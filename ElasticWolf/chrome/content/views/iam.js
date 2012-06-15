@@ -611,6 +611,14 @@ var ew_AccessKeyTreeView = {
         ew_session.launchShell(keypair, accesskey);
     },
 
+    selectionChanged: function()
+    {
+        var key = this.getSelected();
+        if (key == null) return;
+        key.secret = this.getAccessKeySecret(key.id);
+        TreeView.selectionChanged.call(this);
+    },
+
     refresh: function()
     {
         var me = this;

@@ -601,7 +601,10 @@ var ew_session = {
 
     promptForTag: function(tags)
     {
-        var rc = { ok: false, text: String(tags), title: "Tag (ex: Key:Value, Key:Value...) " };
+        var rc = { ok: false,
+                   text: String(tags),
+                   title: "Tags (Key:Value, Key:Value...) ",
+                   descr: "Predefined tags: Name: for primary name" };
         openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=400,height=250', rc);
         return rc.ok ? (rc.text || '').replace(/(\n|\r)+/g, ' ').trim() : null;
     },

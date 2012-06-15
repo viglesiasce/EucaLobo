@@ -99,7 +99,7 @@
           <menulist id="ew.newvolume.availabilityzonelist" sizetopopup="none" style="max-width:500px;"/>
         </row>
         <row>
-          <label control="ew.newvolume.tag" value="Tag" />
+          <label control="ew.newvolume.tag" value="Tag (use Name: for naming new volume)" />
           <textbox id="ew.newvolume.tag" size="40" />
         </row>
       </rows>
