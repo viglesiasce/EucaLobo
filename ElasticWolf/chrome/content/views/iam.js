@@ -556,9 +556,11 @@ var ew_KeypairTreeView = {
         name = name.trim();
         var me = this;
 
-        var file = this.promptForDir("Choose where to store keys and certificate or Cancel to use " + ew_session.getKeyHome(), true)
-        if (file) {
-            this.setStrPrefs("ew.key.home", file);
+        if (!ew_session.getKeyHome()) {
+            var file = ew_session.promptForDir("Choose where to store keys and certificate or Cancel to use " + ew_session.getKeyHome(), true)
+            if (file) {
+                this.setStrPrefs("ew.key.home", file);
+            }
         }
 
         // Create new certificate file using openssl and return cert value
@@ -568,7 +570,7 @@ var ew_KeypairTreeView = {
         }
         // For signing in command line tools we need at least one certificate
         if (uploadCert) {
-            ew_CertTreeView.upload(body, user);
+            ew_CertsTreeView.upload(body, user);
         }
 
         // Import new public key as new keypair

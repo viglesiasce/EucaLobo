@@ -367,6 +367,11 @@ var ew_session = {
         var openssl = this.getOpenSSLCommand();
         var conffile = this.getKeyHome() + DirIO.sep + "openssl.cnf"
 
+        // Make sure we do not lose existing private keys
+        if (FileIO.exists(keyfile)) {
+            if (!confirm('Private key file ' + keyfile + ' already exists, it will be overwritten, OK continue?')) return null;
+        }
+
         FileIO.remove(certfile);
         FileIO.remove(keyfile);
         FileIO.remove(pubfile);
