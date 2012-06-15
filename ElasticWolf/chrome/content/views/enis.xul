@@ -23,6 +23,7 @@
                     <toolbarbutton image="images/attach.png" style="-moz-box-pack:center;" oncommand="ew_NetworkInterfacesTreeView.attachInterface();" tooltiptext="Attach to instance" />
                     <toolbarbutton image="images/revoke.png" style="-moz-box-pack:center;" oncommand="ew_NetworkInterfacesTreeView.detachInterface();" tooltiptext="Detach from instance" />
                     <toolbarbutton image="images/edit.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_NetworkInterfacesTreeView.edit()" tooltiptext="Edit ENI" />
+                    <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_NetworkInterfacesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                 </toolbar>
                 <tree id="ew.enis.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>

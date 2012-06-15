@@ -176,7 +176,7 @@ var ew_session = {
 
     getActiveCredentials : function()
     {
-        var cur = this.getLastUsedAccount();
+        var cur = this.getCurrentUser();
         for (var i in this.credentials) {
             if (cur == this.credentials[i].name) return this.credentials[i];
         }
@@ -187,7 +187,7 @@ var ew_session = {
     {
         if (cred) {
             debug("switch credentials to " + cred.name)
-            this.setLastUsedAccount(cred.name);
+            this.setStrPrefs("ew.account.name", cred.name);
             this.setCredentials(cred.accessKey, cred.secretKey);
 
             if (cred.endPoint != "") {
@@ -264,7 +264,7 @@ var ew_session = {
             if (this.isGovCloud() != wasGovCloud) {
                 debug('disable credentials when switching to/from GovCloud')
                 this.setCredentials("", "");
-                this.setLastUsedAccount("");
+                this.setStrPrefs("ew.account.name", "");
                 ew_menu.update();
             }
             // Since we are switching creds, ensure that all the views are redrawn
@@ -356,14 +356,14 @@ var ew_session = {
     },
 
     // Create cert with private and public keys for given key name
-    generateCertificate : function(name)
+    generateCertificate : function(keyname)
     {
         // Make sure we have directory
         if (!this.makeKeyHome()) return 0
 
-        var certfile = this.getCertificateFile(name);
-        var keyfile = this.getPrivateKeyFile(name);
-        var pubfile = this.getPublicKeyFile(name);
+        var certfile = this.getCertificateFile(keyname);
+        var keyfile = this.getPrivateKeyFile(keyname);
+        var pubfile = this.getPublicKeyFile(keyname);
         var openssl = this.getOpenSSLCommand();
         var conffile = this.getKeyHome() + DirIO.sep + "openssl.cnf"
 
@@ -415,7 +415,7 @@ var ew_session = {
         if (!this.makeKeyHome()) return 0
 
         // Save access key into file
-        var file = this.getCredentialFile(name);
+        var file = this.getCredentialFile(keyPair.name);
         if (!accessKey) accessKey = { id: this.accessCode, secret: this.secretKey };
         if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
             return alert('Unable to create credentials file ' + file + ", please check directory permissions");
@@ -668,78 +668,44 @@ var ew_session = {
         return list
     },
 
-    tagResource: function(obj, attr, callback)
+    // Set tags to the specified object(s).
+    // objs an be an object, an id string or list of objects or list of ids
+    // tags can be a string or list of tags
+    setTags: function(objs, tags, callback)
     {
-        if (!attr) attr = "id";
-        var tag = this.promptForTag(obj.tags);
-        if (tag == null) return;
+        log('setTags: id=' + objs + ", tags=" + tags)
 
-        obj.tags = this.parseTags(tag);
-        ew_model.processTags(obj);
-        this.setTags([ obj[attr] ], obj.tags, callback);
-    },
-
-    parseTags: function(tag)
-    {
-        var list = [];
-        if (tag) {
-            tag += ',';
-            var pairs = (tag.match(/\s*[^,":]+\s*:\s*("(?:[^"]|"")*"|[^,]*)\s*,\s*/g) || []);
-            for (var i = 0; i < pairs.length; i++) {
-                var pair = pairs[i].split(/\s*:\s*/, 2);
-                var key = (pair[0] || "").trim();
-                var value = (pair[1] || "").trim();
-                value = value.replace(/,\s*$/, '').trim();
-                value = value.replace(/^"/, '').replace(/"$/, '').replace(/""/, '"');
-                if (key.length == 0 || value.length == 0) continue;
-                list.push([ key, value ]);
-            }
-        }
-        return list;
-    },
-
-    setTags: function(resIds, tags, callback)
-    {
         var me = this;
-        var multiIds = new Array();
-        var multiTags = new Array();
+        var ntags = new Array();
 
-        try {
-            if (typeof tags == "string") {
-                tags = this.parseTags(tags);
+        if (!(objs instanceof Array)) objs = [ objs ];
+        tags = this.model.parseTags(tags);
+
+        for (var i = 0; i < objs.length; i++) {
+            var id = objs[i];
+            if (typeof id == "object") id = obj.id;
+            for (var j = 0; j < tags.length; j++) {
+                ntags.push(new Tag(tags[j].name, tags[j].value, id));
             }
+        }
 
-            for ( var i = 0; i < resIds.length; i++) {
-                var resId = resIds[i];
-                for (var j = 0; j < tags.length; j++) {
-                    multiIds.push(resId);
-                }
-                multiTags = multiTags.concat(tags);
+        function wrap() {
+            if (ntags.length > 0) {
+                me.controller.createTags(ntags, callback);
+            } else
+            if (callback) {
+                callback();
             }
-            if (multiIds.length == 0) multiIds = resIds;
-
-            this.controller.describeTags(resIds, function(described) {
-                var delResIds = new Array();
-                var delKyes = new Array();
-
-                for (var i = 0; i < described.length; i++) {
-                    delResIds.push(described[i][0]);
-                    delKyes.push(described[i][1]);
-                }
-                if (delResIds.length > 0 && delKyes.length > 0) {
-                    me.controller.deleteTags(delResIds, delKyes);
-                }
-                if (multiTags.length > 0) {
-                    me.controller.createTags(multiIds, multiTags, callback);
-                } else
-                if (callback) {
-                    callback();
-                }
-            });
         }
-        catch (e) {
-            alert(e);
-        }
+
+        // Get existing tags and delete them all, then create new tags if exist
+        this.controller.describeTags(objs, function(described) {
+            if (described.length) {
+                me.controller.deleteTags(described, wrap);
+            } else {
+                wrap();
+            }
+        });
     },
 
     copyToClipboard: function(text)
@@ -1354,14 +1320,9 @@ var ew_session = {
         return 1
     },
 
-    getLastUsedAccount : function()
+    getCurrentUser : function()
     {
         return this.getStrPrefs("ew.account.name", "");
-    },
-
-    setLastUsedAccount : function(value)
-    {
-        this.setStrPrefs("ew.account.name", value);
     },
 
     getShellCommand : function()
@@ -1473,22 +1434,22 @@ var ew_session = {
 
     getCredentialFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "AWSCredential_${keyname}.txt", [ [ "keyname", sanitize(name ? name : this.getLastUsedAccount()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "AWSCredential_${keyname}.txt", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
     },
 
     getPrivateKeyFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PrivateKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getLastUsedAccount()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PrivateKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
     },
 
     getPublicKeyFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PublicKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getLastUsedAccount()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PublicKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
     },
 
     getCertificateFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "X509Certificate_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getLastUsedAccount()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "X509Certificate_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
     },
 
     getTemplateProcessed : function(file, params)
@@ -1524,7 +1485,7 @@ var ew_session = {
             file = file.replace(/\${keyhome}/g, quotepath(home));
         }
         if (file.indexOf("${user}") > -1) {
-            file = file.replace(/\${user}/g, this.getLastUsedAccount());
+            file = file.replace(/\${user}/g, this.getCurrentUser());
         }
         if (file.indexOf("${key}") > -1) {
             file = file.replace(/\${key}/g, quotepath(this.getPrivateKeyFile(keyname)));
@@ -1558,12 +1519,12 @@ var ew_session = {
 
     getLastEC2PrivateKeyFile : function()
     {
-        return this.getStrPrefs("ew.ec2.pkey." + this.getLastUsedAccount() + "." + this.getLastUsedEndpoint(), "");
+        return this.getStrPrefs("ew.ec2.pkey." + this.getCurrentUser() + "." + this.getLastUsedEndpoint(), "");
     },
 
     setLastEC2PrivateKeyFile : function(value)
     {
-        this.setStrPrefs("ew.ec2.pkey." + this.getLastUsedAccount() + "." + this.getLastUsedEndpoint(), value);
+        this.setStrPrefs("ew.ec2.pkey." + this.getCurrentUser() + "." + this.getLastUsedEndpoint(), value);
     },
 
     getHome : function()

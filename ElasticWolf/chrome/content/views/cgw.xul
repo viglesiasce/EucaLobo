@@ -27,6 +27,8 @@
                 </toolbar>
                 <tree id="ew.customergateways.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
+                        <treecol id="customerGateways.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="customerGateway.id" label="&ew.customergateways.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="customerGateway.type" label="&ew.customergateways.type.label;" flex="1" persist="width ordinal hidden sortDirection" />
@@ -37,7 +39,6 @@
                         <splitter class="tree-splitter" />
                         <treecol id="customerGateways.bgpAsn" label="&ew.customergateways.bgpasn.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
-                        <treecol id="customerGateways.tags" label="Tag" flex="1" persist="width ordinal hidden sortDirection" />
                     </treecols>
                     <treechildren context="ew.customergateways.contextmenu" />
                 </tree>

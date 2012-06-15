@@ -19,6 +19,13 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.deletePolicy").disabled = !item || !item.policies || !item.policies.length;
     },
 
+    makeKeypair: function(uploadCert)
+    {
+        var item = this.getSelected();
+        if (!item) return;
+        ew_KeypairTreeView.makeKeypair(uploadCert, item.name);
+    },
+
     selectionChanged: function()
     {
         var me = this;
@@ -501,7 +508,7 @@ var ew_KeypairTreeView = {
     createKeypair : function ()
     {
         if (ew_session.isGovCloud()) {
-            alert("This function is disabled in GovCloud mode")
+            alert("This function is disabled in GovCloud region")
             return
         }
         var name = prompt("Please provide a new keypair name");
@@ -540,9 +547,11 @@ var ew_KeypairTreeView = {
         }
     },
 
-    makeKeypair: function(uploadCert)
+    // If user is specified we create cet/keypair on behalf of that user, for keypair it does not matter,
+    // they go by name but for ceetificate we need valid user name
+    makeKeypair: function(uploadCert, user)
     {
-        var name = prompt("Please provide a new keypair name");
+        var name = prompt("Please provide a new keypair name:", user || "");
         if (name == null) return;
         name = name.trim();
         var me = this;
@@ -559,7 +568,7 @@ var ew_KeypairTreeView = {
         }
         // For signing in command line tools we need at least one certificate
         if (uploadCert) {
-            ew_CertTreeView.upload(body);
+            ew_CertTreeView.upload(body, user);
         }
 
         // Import new public key as new keypair
@@ -665,14 +674,14 @@ var ew_AccessKeyTreeView = {
     switchCredentials  : function () {
         var key = this.getSelected();
         if (key == null) return;
-        key.secret = this.getAccessKeySecret(key.AccessKeyId)
+        key.secret = this.getAccessKeySecret(key.id)
         if (key.secret == "") {
-            alert("Access key " + key.name + " does not have secret code available, cannot use this key");
+            alert("Access key " + key.id + " does not have secret code available, cannot use this key");
             return;
         }
 
         if (!ew_session.promptYesNo("Confirm", "Use access key "+key.id+" for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
-        ew_session.setCredentials(key.name, key.secret);
+        ew_session.setCredentials(key.id, key.secret);
         ew_session.updateCredentials(ew_session.getActiveCredentials(), key.id, key.secret);
         this.refresh();
     },
@@ -689,13 +698,6 @@ var ew_CertsTreeView = {
         ew_session.controller.listSigningCertificates(null, function(list) { me.display(list); })
     },
 
-    upload: function(body)
-    {
-        // Delay to avoid "not valid yet" error due to clock drift
-        var me = this;
-        setTimeout(function() { ew_session.controller.uploadSigningCertificate(body, function() { me.refresh();}); }, 30000);
-    },
-
     createCert : function () {
         var me = this;
         var body = ew_session.generateCertificate();
@@ -706,12 +708,19 @@ var ew_CertsTreeView = {
         }
     },
 
-    uploadCert : function () {
+    upload: function(body, user)
+    {
+        // Delay to avoid "not valid yet" error due to clock drift
+        var me = this;
+        setTimeout(function() { ew_session.controller.uploadSigningCertificate(user, body, function() { me.refresh();}); }, 30000);
+    },
+
+    uploadCert : function (user) {
         var me = this;
         var file = ew_session.promptForFile("Select the certificate file to upload:")
         if (file) {
             var body = FileIO.toString(file);
-            ew_session.controller.uploadSigningCertificate(body, function() { me.refresh(); });
+            ew_session.controller.uploadSigningCertificate(user, body, function() { me.refresh(); });
         }
     },
 

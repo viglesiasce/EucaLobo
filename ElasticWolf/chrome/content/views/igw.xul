@@ -20,14 +20,15 @@
                     <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.destroy();" tooltiptext="&ew.internetgateways.remove.tip;" />
                     <toolbarbutton image="images/attach.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.attach();" tooltiptext="&ew.internetgateways.attach.tip;" />
                     <toolbarbutton image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.detach();" tooltiptext="&ew.internetgateways.detach.tip;" />
+                    <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                 </toolbar>
                 <tree id="ew.internetgateways.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
+                        <treecol id="igw.Name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="igw.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="igw.vpcId" label="VPC" flex="1" persist="width ordinal hidden sortDirection" />
-                        <splitter class="tree-splitter" />
-                        <treecol id="igw.tags" label="Tags" flex="1" persist="width ordinal hidden sortDirection" />
                     </treecols>
                     <treechildren context="ew.internetgateways.contextmenu" />
                 </tree>

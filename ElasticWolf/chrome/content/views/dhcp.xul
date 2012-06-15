@@ -26,11 +26,12 @@
                 </toolbar>
                 <tree id="ew.dhcpOptions.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
+                        <treecol id="dhcpoption.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="dhcpoption.id" label="&ew.dhcpopts.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="dhcpoption.options" label="&ew.dhcpopts.options.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
-                        <treecol id="dhcpoption.tags" label="Tag" flex="1" persist="width ordinal hidden sortDirection" />
                     </treecols>
                     <treechildren context="ew.dhcpOptions.contextmenu" />
                 </tree>

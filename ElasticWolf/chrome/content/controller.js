@@ -2235,38 +2235,39 @@ var ew_controller = {
         ew_session.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
     },
 
-    createTags : function(resIds, tags, callback)
+    createTags : function(tags, callback)
     {
         var params = new Array();
 
-        for ( var i = 0; i < resIds.length; i++) {
-            params.push([ "ResourceId." + (i + 1), resIds[i] ]);
-            params.push([ "Tag." + (i + 1) + ".Key", tags[i][0] ]);
-            params.push([ "Tag." + (i + 1) + ".Value", tags[i][1] ]);
+        for ( var i = 0; i < tags.length; i++) {
+            params.push([ "ResourceId." + (i + 1), tags[i].resourceId ]);
+            params.push([ "Tag." + (i + 1) + ".Key", tags[i].name ]);
+            params.push([ "Tag." + (i + 1) + ".Value", tags[i].value ]);
         }
 
         ew_session.queryEC2("CreateTags", params, this, false, "onComplete", callback);
     },
 
-    deleteTags : function(resIds, keys, callback)
+    deleteTags : function(tags, callback)
     {
         var params = new Array();
 
-        for ( var i = 0; i < resIds.length; i++) {
-            params.push([ "ResourceId." + (i + 1), resIds[i] ]);
-            params.push([ "Tag." + (i + 1) + ".Key", keys[i] ]);
+        for ( var i = 0; i < tags.length; i++) {
+            params.push([ "ResourceId." + (i + 1), tags[i].resourceId ]);
+            params.push([ "Tag." + (i + 1) + ".Key", tags[i].name ]);
         }
 
         ew_session.queryEC2("DeleteTags", params, this, false, "onComplete", callback);
     },
 
-    describeTags : function(resIds, callback)
+    describeTags : function(ids, callback)
     {
-        var params = new Array();
+        if (!(ids instanceof Array)) ids = [ ids ];
 
-        for ( var i = 0; i < resIds.length; i++) {
+        var params = new Array();
+        for ( var i = 0; i < ids.length; i++) {
             params.push([ "Filter." + (i + 1) + ".Name", "resource-id" ]);
-            params.push([ "Filter." + (i + 1) + ".Value.1", resIds[i] ]);
+            params.push([ "Filter." + (i + 1) + ".Value.1", ids[i] ]);
         }
 
         ew_session.queryEC2("DescribeTags", params, this, false, "onCompleteDescribeTags", callback);
@@ -2280,10 +2281,10 @@ var ew_controller = {
         var tags = new Array();
 
         for ( var i = 0; i < items.snapshotLength; ++i) {
-            var resid = getNodeValue(items.snapshotItem(i), "resourceId");
+            var id = getNodeValue(items.snapshotItem(i), "resourceId");
             var key = getNodeValue(items.snapshotItem(i), "key");
             var value = getNodeValue(items.snapshotItem(i), "value");
-            tags.push([ resid, key, value ]);
+            tags.push(new Tag(key, value, id));
         }
 
         if (responseObj.callback) responseObj.callback(tags);
@@ -2819,12 +2820,12 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
 
-        var user = getNodeValue(xmlDoc, "UserName");
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
             var id = getNodeValue(items[i], "CertificateId");
             var body = getNodeValue(items[i], "CertificateBody");
+            var user = getNodeValue(items[i], "UserName");
             list.push(new Certificate(id, user, body));
         }
 
@@ -2834,9 +2835,11 @@ var ew_controller = {
         if (responseObj.callback) responseObj.callback(list);
     },
 
-    uploadSigningCertificate : function(body, callback)
+    uploadSigningCertificate : function(user, body, callback)
     {
-        ew_session.queryIAM("UploadSigningCertificate", [ [ "CertificateBody", body ] ], this, false, "onComplete", callback);
+        var params = [ [ "CertificateBody", body ] ];
+        if (user) params.push([["UserName", user]])
+        ew_session.queryIAM("UploadSigningCertificate", params, this, false, "onComplete", callback);
     },
 
     deleteSigningCertificate : function(cert, callback)
@@ -2856,7 +2859,7 @@ var ew_controller = {
         var alarms = new Array();
 
         // Not in GovCloud yet
-        //responseObj.hasErrors = false;
+        responseObj.hasErrors = false;
 
         for (var i = 0 ; i < items.snapshotLength; i++) {
             var item = items.snapshotItem(i);

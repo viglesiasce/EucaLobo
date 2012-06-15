@@ -28,6 +28,8 @@
                 </toolbar>
                 <tree id="ew.vpnconnections.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
+                        <treecol id="vpnConnection.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="vpnConnection.id" label="&ew.vpnconnections.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="vpnConnection.vgwId" label="&ew.vpnconnections.vgwid.label;" flex="1" persist="width ordinal hidden sortDirection" />
@@ -38,7 +40,6 @@
                         <splitter class="tree-splitter" />
                         <treecol id="vpnConnection.state" label="&ew.vpnconnections.state.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
-                        <treecol id="vpnConnection.tags" label="Tag" flex="1" persist="width ordinal hidden sortDirection" />
                     </treecols>
                     <treechildren context="ew.vpnconnections.contextmenu" />
                 </tree>

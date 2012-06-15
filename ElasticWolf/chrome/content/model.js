@@ -21,7 +21,7 @@ function AccessKey(id, status, user, secret, state)
 {
     this.id = id;
     this.status = status;
-    this.userName = user
+    this.userName = user || "";
     this.secret = secret || "";
     this.state = state
     this.toString = function() {
@@ -124,12 +124,13 @@ function S3BucketKey(bucket, name, type, size, mtime, owner, etag)
     }
 }
 
-function Tag(key, value)
+function Tag(name, value, id)
 {
-    this.key = key || "";
+    this.name = name || "";
     this.value = value || "";
+    this.resourceId = id || "";
     this.toString = function() {
-        return this.key + ":" + (this.value.match(/[,:]+/) ? '"' + this.value + '"' : this.value);
+        return this.name + ":" + (this.value.match(/[,:]+/) ? '"' + this.value + '"' : this.value);
     }
 }
 
@@ -1049,17 +1050,49 @@ var ew_model = {
         return obj;
     },
 
+    // Assign tags to the object and parse it
+    setTags: function(obj, tags)
+    {
+        obj.tags = this.parseTags(tags);
+        this.processTags(obj);
+    },
+
     // Extract common tags from the list and updater the object
     processTags: function(obj, name)
     {
         if (!obj || !obj.tags) return;
         for (var i in obj.tags) {
-            switch (obj.tags[i].key) {
+            switch (obj.tags[i].name) {
             case "Name":
                 obj[name || "name"] = obj.tags[i].value;
                 return;
             }
         }
+    },
+
+    // If tag is string, parse and return list of tags, if it is already a list, return as it is
+    parseTags: function(tag)
+    {
+        var list = [];
+        if (!tag) return list;
+
+        if (typeof tag == "string") {
+            tag += ',';
+            var pairs = (tag.match(/\s*[^,":]+\s*:\s*("(?:[^"]|"")*"|[^,]*)\s*,\s*/g) || []);
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i].split(/\s*:\s*/, 2);
+                var key = (pair[0] || "").trim();
+                var value = (pair[1] || "").trim();
+                value = value.replace(/,\s*$/, '').trim();
+                value = value.replace(/^"/, '').replace(/"$/, '').replace(/""/, '"');
+                if (key.length == 0 || value.length == 0) continue;
+                list.push(new Tag(key, value));
+            }
+        } else
+        if (tag instanceof Array) {
+            list = tag;
+        }
+        return list;
     },
 
     // Find object in the list by id or name

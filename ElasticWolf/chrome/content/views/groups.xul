@@ -50,6 +50,8 @@
                 <textbox id="ew.groupUsers.search" size="15" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add User to group" oncommand="ew_GroupsTreeView.addUser();" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete User from group" oncommand="ew_GroupsTreeView.deleteUser();" />
+                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_UsersTreeView.makeKeypair(true);" />
+                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_UsersTreeView.makeKeypair();" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.groupUsers.view" flex="1">

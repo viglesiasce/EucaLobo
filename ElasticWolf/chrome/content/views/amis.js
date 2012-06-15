@@ -116,8 +116,7 @@ var ew_AMIsTreeView = {
                                                retVal.securityGroups, retVal.userData, retVal.properties, retVal.instanceType, retVal.placement,
                                                retVal.subnetId, retVal.ipAddress, function(list) {
                 if (retVal.tag != "") {
-                    var tags = ew_session.parseTags(retVal.tag);
-                    ew_session.setTags(list, tags, function() { ew_InstancesTreeView.refresh() });
+                    ew_session.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
                 } else {
                     ew_InstancesTreeView.refresh();
                 }

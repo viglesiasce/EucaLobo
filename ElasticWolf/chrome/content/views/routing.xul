@@ -11,10 +11,13 @@
                    <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_RouteTablesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                    <toolbarbutton image="images/add.png" tooltiptext="&ew.routetable.create.tip;" oncommand="ew_RouteTablesTreeView.createTable();" />
                    <toolbarbutton image="images/delete.png" tooltiptext="&ew.routetable.delete.tip;" oncommand="ew_RouteTablesTreeView.deleteSelected();" />
+                   <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_RouteTablesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                </hbox>
            </toolbar>
            <tree id="ew.routetables.view" seltype="single" enableColumnDrag="true" flex="1">
                <treecols>
+                   <treecol id="routeTable.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
                    <treecol id="routeTable.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
                    <splitter class="tree-splitter" />
                    <treecol id="routeTable.vpcId" label="VPC Id" flex="1" persist="width ordinal hidden sortDirection" />

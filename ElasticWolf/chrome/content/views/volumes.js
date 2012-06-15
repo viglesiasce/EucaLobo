@@ -43,15 +43,16 @@ var ew_VolumeTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,ew_session,retVal);
         if (retVal.ok) {
             var me = this;
-            var wrap = function(id) {
-                $(me.searchElement).value = '';
+            ew_session.controller.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
                 if (retVal.tag != '') {
-                    ew_session.setTags([id], retVal.tag, function() { me.refresh() });
+                    ew_session.setTags(id, retVal.tag, function() {
+                        var vol = ew_model.find("volumes", id);
+                        if (vol) ew_model.setTags(vol, retVal.tag);
+                    });
                 } else {
                     me.refresh();
                 }
-            }
-            ew_session.controller.createVolume(retVal.size,retVal.snapshotId,retVal.zone,wrap);
+            });
         }
         return retVal.ok;
     },

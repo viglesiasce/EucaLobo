@@ -31,6 +31,8 @@
                 </toolbar>
                 <tree id="ew.subnets.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
+                        <treecol id="subnet.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="subnet.id" label="&ew.subnets.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="subnet.cidr" label="&ew.subnets.cidrblock.label;" flex="1" persist="width ordinal hidden sortDirection" />
@@ -42,8 +44,6 @@
                         <treecol id="subnet.availabilityZone" label="&ew.subnets.availabilityzone.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="subnet.vpcId" label="VPC" flex="1" persist="width ordinal hidden sortDirection" />
-                        <splitter class="tree-splitter" />
-                        <treecol id="subnet.tags" label="Tag" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="subnet.tableId" label="Routes" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />

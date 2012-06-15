@@ -399,12 +399,16 @@ var TreeView = {
         this.stopRefreshTimer();
         this.savePreferences();
     },
-    tag: function(event)
+    tag: function(event, callback)
     {
+        var me = this;
         var item = this.getSelected();
-        if (item) {
-            ew_session.tagResource(item, this.tagId);
-        }
+        if (!item) return;
+        var tag = ew_session.promptForTag(item.tags);
+        if (tag == null) return;
+        // Replace tas in the object without reloading the whole list
+        ew_model.setTags(item, tag);
+        ew_session.setTags(item[this.tagId || "id"], item.tags, callback);
     },
     copyToClipboard : function(name)
     {
