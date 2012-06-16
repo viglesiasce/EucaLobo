@@ -2020,9 +2020,9 @@ var ew_controller = {
             if (LoadBalancerName != '' && CreatedTime != '') {
                 list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
             }
-            ew_model.set('loadBalancers', list);
-            responseObj.result = list;
         }
+        ew_model.set('loadBalancers', list);
+        responseObj.result = list;
     },
 
     describeInstanceHealth : function(LoadBalancerName, callback)
@@ -2798,10 +2798,6 @@ var ew_controller = {
             var user = getNodeValue(items[i], "UserName");
             list.push(new Certificate(id, user, body));
         }
-
-        // Update user record with the key list
-        ew_model.update('users', user, 'certs', list)
-
         responseObj.result = list;
     },
 
@@ -2827,9 +2823,6 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
         var items = xmlDoc.evaluate("/monitoring:DescribeAlarmsResponse/monitoring:DescribeAlarmsResult/monitoring:MetricAlarms/monitoring:member",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
         var alarms = new Array();
-
-        // Not in GovCloud yet
-        responseObj.hasErrors = false;
 
         for (var i = 0 ; i < items.snapshotLength; i++) {
             var item = items.snapshotItem(i);

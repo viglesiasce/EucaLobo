@@ -16,7 +16,7 @@
               <menuitem oncommand="ew_LoadbalancerTreeView.registerinstances(event);" label="&ew.loadbalancer.contextmenu.registerinstance.label;" />
               <menuitem id="loadbalancer.context.instances" oncommand="ew_LoadbalancerTreeView.deregisterinstances(event);" label="&ew.loadbalancer.contextmenu.deregisterinstance.label;" />
               <menuseparator/>
-              <menuitem oncommand="ew_LoadbalancerTreeView.manageZones(true);" label="&ew.loadbalancer.contextmenu.enableavailability.label;" />
+              <menuitem id="loadbalancer.context.enableezones" oncommand="ew_LoadbalancerTreeView.manageZones(true);" label="&ew.loadbalancer.contextmenu.enableavailability.label;" />
               <menuitem id="loadbalancer.context.disablezones" oncommand="ew_LoadbalancerTreeView.manageZones(false);" label="&ew.loadbalancer.contextmenu.disableavailability.label;" />
               <menuseparator/>
               <menuitem id="loadbalancer.context.disablestickness" oncommand="ew_LoadbalancerTreeView.disablestickness(event);" label="&ew.loadbalancer.contextmenu.disablestickness.label;" />

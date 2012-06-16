@@ -683,8 +683,7 @@ var ew_AccessKeyTreeView = {
             alert("Access key " + key.id + " does not have secret code available, cannot use this key");
             return;
         }
-
-        if (!ew_session.promptYesNo("Confirm", "Use access key "+key.id+" for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
+        if (!ew_session.promptYesNo("Confirm", "Use access key " + key.id + " for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
         ew_session.setCredentials(key.id, key.secret);
         ew_session.updateCredentials(ew_session.getActiveCredentials(), key.id, key.secret);
         this.refresh();
@@ -694,7 +693,7 @@ ew_AccessKeyTreeView.__proto__ = TreeView;
 ew_AccessKeyTreeView.register();
 
 var ew_CertsTreeView = {
-    searchElement: "ew.certs.search",
+    name: "certs",
 
     refresh: function()
     {
@@ -728,7 +727,16 @@ var ew_CertsTreeView = {
         }
     },
 
-    deleteSelected  : function () {
+    saveCert : function () {
+        var item = this.getSelected();
+        if (item == null) return;
+        var file = ew_session.promptForFile("Select the file to save certificate to:", true, DirIO.fileName(ew_session.getCertificateFile(item.userName)))
+        if (file) {
+            FileIO.write(FileIO.open(file), item.body);
+        }
+    },
+
+    deleteCert  : function () {
         var item = this.getSelected();
         if (item == null) return;
         if (!confirm("Delete certificate "+item.id+"?")) return;

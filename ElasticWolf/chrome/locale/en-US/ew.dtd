@@ -359,19 +359,20 @@
 <!ENTITY ew.keypairs.details.tip "Show keypair details">
 <!ENTITY ew.keypairs.create.tip "Create a new keypair">
 <!ENTITY ew.keypairs.delete.tip "Delete selected keypair">
-<!ENTITY ew.keypairs.import.tip "Create keypair from existing public key">
-<!ENTITY ew.keypairs.generate.tip "Create new certificate/public/private keys and import into new keypair">
-<!ENTITY ew.keypairs.make.tip "Create new public/private keys and import into new keypair">
+<!ENTITY ew.keypairs.import.tip "Create keypair from existing SSH key">
+<!ENTITY ew.keypairs.generate.tip "Create X.509 cert and SSH keys and import into keypair">
+<!ENTITY ew.keypairs.make.tip "Create SSH keys and import into keypair">
 
 <!ENTITY ew.accesskeys.create.tip "Create a new access key">
 <!ENTITY ew.accesskeys.delete.tip "Delete selected access key">
 <!ENTITY ew.accesskeys.switch.tip "Use selected access key for credentials authentication">
-<!ENTITY ew.accesskeys.shell.tip "Run shell with environment variables set to use currently selected access key and keypair">
-<!ENTITY ew.accesskeys.export.tip "Export this access key into text file">
+<!ENTITY ew.accesskeys.shell.tip "Run shell with selected access key and keypair">
+<!ENTITY ew.accesskeys.export.tip "Export into file">
 
 <!ENTITY ew.certs.create.tip "Create a new certificate">
-<!ENTITY ew.certs.delete.tip "Delete selected certificate">
-<!ENTITY ew.certs.upload.tip "Upload existing certificate">
+<!ENTITY ew.certs.delete.tip "Delete certificate">
+<!ENTITY ew.certs.upload.tip "Upload existing certificate from file">
+<!ENTITY ew.certs.save.tip "Export certificate into file">
 
 <!ENTITY ew.eips.allocate.tip "Allocate a new address">
 <!ENTITY ew.eips.associate.tip "Associate selected address">

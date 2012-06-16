@@ -53,7 +53,6 @@ function User(id, name, path, arn)
     this.policies = null;
     this.keys = null;
     this.devices = null;
-    this.certs = null;
     this.loginProfileDate = null;
 
     this.toString = function() {

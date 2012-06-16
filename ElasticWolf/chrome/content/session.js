@@ -11,6 +11,7 @@ var ew_session = {
     SIG_VERSION: '2',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
+    notAvail: { "us-gov-west-1": ["DescriveAlarms", "DescribeLoadBalancers", "GetLoginProfile",  ] },
 
     accessCode : "",
     secretKey : "",
@@ -961,7 +962,7 @@ var ew_session = {
         xmlhttp.setRequestHeader("Content-Length", queryParams.length);
         xmlhttp.setRequestHeader("Connection", "close");
 
-        return this.sendRequest(xmlhttp, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
+        return this.sendRequest(xmlhttp, url, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
     },
 
     queryS3Prepare : function(method, bucket, key, path, params, content)
@@ -1034,7 +1035,7 @@ var ew_session = {
             xmlhttp.setRequestHeader(p, req.headers[p]);
         }
 
-        return this.sendRequest(xmlhttp, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
+        return this.sendRequest(xmlhttp, req.url, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
     },
 
     showBusy : function(fShow)
@@ -1050,7 +1051,7 @@ var ew_session = {
         }
     },
 
-    sendRequest: function(xmlhttp, content, isSync, action, handlerMethod, handlerObj, callback, params)
+    sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
     {
         debug('sendRequest: ' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
         var me = this;
@@ -1068,7 +1069,7 @@ var ew_session = {
                 if (xhr.readyState == 4) {
                     me.showBusy(false);
                     me.stopTimer(timerKey);
-                    me.handleResponse(xhr, isSync, action, handlerMethod, handlerObj, callback, params);
+                    me.handleResponse(xhr, url, isSync, action, handlerMethod, handlerObj, callback, params);
                 }
             }
         }
@@ -1076,10 +1077,10 @@ var ew_session = {
         try {
             xmlhttp.send(content);
         } catch(e) {
-            debug(e)
+            debug('xmlhttp error:' + url + ", " + e)
             this.showBusy(false);
             this.stopTimer(timerKey);
-            this.handleResponse(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params);
+            this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
             return false;
         }
 
@@ -1087,18 +1088,18 @@ var ew_session = {
         if (isSync) {
             this.showBusy(false);
             this.stopTimer(timerKey);
-            return this.handleResponse(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params);
+            return this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
         }
         return true;
     },
 
-    handleResponse : function(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params)
+    handleResponse : function(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params)
     {
         log(xmlhttp.responseText);
 
         var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
-                 this.createResponse(xmlhttp, isSync, action, handlerMethod, callback, params) :
-                 this.createResponseError(xmlhttp, isSync, action, handlerMethod, callback, params);
+                 this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
+                 this.createResponseError(xmlhttp, url, isSync, action, handlerMethod, callback, params);
 
         // Response callback is called in all cases, some errors can be ignored
         if (handlerObj) {
@@ -1106,11 +1107,15 @@ var ew_session = {
         }
         debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', errorCount=' + this.errorCount + ', errCode=' + rc.errCode + ', errString=' + rc.errString);
 
+        // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
+        // also ignore not supported but implemented API calls
         if (rc.hasErrors) {
-            // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed
             this.errorCount++;
             if (this.errorCount < this.errorMax) {
-                this.errorDialog("Server responded with an error for " + rc.action, rc)
+                var apis = this.notAvail[this.region];
+                if (!apis || apis.indexOf(action) == -1) {
+                    this.errorDialog("Server responded with an error for " + rc.action, rc)
+                }
             }
         } else {
             this.errorCount = 0;
@@ -1123,16 +1128,15 @@ var ew_session = {
     },
 
     // Extract standard AWS error code and message
-    createResponseError : function(xmlhttp, isSync, action, handlerMethod, callback, params)
+    createResponseError : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
-        var rc = this.createResponse(xmlhttp, isSync, action, handlerMethod, callback, params);
+        var rc = this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params);
         rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
         rc.errString = "An unknown error occurred, please check connectivity";
         rc.requestId = "";
         rc.hasErrors = true;
 
         if (xmlhttp) {
-            debug(xmlhttp.responseText)
             var xmlDoc = xmlhttp.responseXML;
             if (!xmlDoc) {
                 if (xmlhttp.responseText) {
@@ -1144,16 +1148,18 @@ var ew_session = {
                 rc.errString = getNodeValue(xmlDoc, "Message");
                 rc.requestId = getNodeValue(xmlDoc, "RequestID");
             }
+            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url)
         }
         return rc;
     },
 
-    createResponse : function(xmlhttp, isSync, action, handlerMethod, callback, params)
+    createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
         return { xmlhttp: xmlhttp,
                  xmlDoc: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
                  responseText: xmlhttp ? xmlhttp.responseText : '',
                  status : xmlhttp.status,
+                 url: url,
                  action: action,
                  method: handlerMethod,
                  isSync: isSync,
@@ -1191,10 +1197,11 @@ var ew_session = {
         if (stylesheet == null) {
             stylesheet = "customer-gateway-config-formats.xml";
         }
-        xmlhttp.open("GET", this.VPN_CONFIG_PATH + '2009-07-15' + "/" + stylesheet, false);
+        var url = this.VPN_CONFIG_PATH + '2009-07-15' + "/" + stylesheet;
+        xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.overrideMimeType('text/xml');
-        return this.sendRequest(xmlhttp, 'vpnConfig', null, true, stylesheet);
+        return this.sendRequest(xmlhttp, url, 'vpnConfig', null, true, stylesheet);
     },
 
     queryCheckIP : function(type, retVal)
@@ -1204,10 +1211,11 @@ var ew_session = {
             log("Could not create xmlhttp object");
             return;
         }
-        xmlhttp.open("GET", "http://checkip.amazonaws.com/" + type, false);
+        var url = "http://checkip.amazonaws.com/" + type;
+        xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.overrideMimeType('text/plain');
-        return this.sendRequest(xmlhttp, 'checkIP', null, true, "checkip", null, function(obj) { retVal.ipAddress = obj.textBody; });
+        return this.sendRequest(xmlhttp, url, 'checkIP', null, true, "checkip", null, function(obj) { retVal.ipAddress = obj.textBody; });
     },
 
     download: function(url, headers, filename, callback, progresscb)

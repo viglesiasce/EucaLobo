@@ -189,7 +189,8 @@ var ew_LoadbalancerTreeView = {
         }
         document.getElementById("loadbalancer.context.instances").disabled = elb.Instances.length == 0 ? true : false;
         document.getElementById("loadbalancer.context.disablezones").disabled = elb.zones.length > 1 ? false : true;
-        document.getElementById("loadbalancer.context.changegroups").disabled = elb.vlcId != '' ? false : true;
+        document.getElementById("loadbalancer.context.enableezones").disabled = elb.vpcId != '' ? true : false;
+        document.getElementById("loadbalancer.context.changegroups").disabled = elb.vpcId != '' ? false : true;
 
         document.getElementById("loadbalancer.context.addsubnet").disabled = elb.vpcId != '' ? false : true;
         document.getElementById("loadbalancer.context.delsubnet").disabled = elb.subnets && elb.subnets.length ? false : true;
