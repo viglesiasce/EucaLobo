@@ -47,24 +47,24 @@
             <caption label="&ew.captions.keypairs.label;" />
             <popupset>
                 <menupopup id="keypair.tree.contextmenu">
-                    <menuitem oncommand="ew_KeypairTreeView.displayDetails()" label="&ew.keypairs.details.tip;" />
-                    <menuitem oncommand="ew_KeypairTreeView.createKeypair()" label="&ew.keypairs.create.tip;" />
-                    <menuitem oncommand="ew_KeypairTreeView.deleteSelected();" label="&ew.keypairs.delete.tip;" />
-                    <menuitem oncommand="ew_KeypairTreeView.importKeypair();" label="&ew.keypairs.import.tip;"/>
-                    <menuitem oncommand="ew_KeypairTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
-                    <menuitem oncommand="ew_KeypairTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
-                    <menuitem oncommand="ew_KeypairTreeView.runShell()" label="&ew.accesskeys.shell.tip;"/>
+                    <menuitem oncommand="ew_KeypairsTreeView.displayDetails()" label="&ew.keypairs.details.tip;" />
+                    <menuitem oncommand="ew_KeypairsTreeView.createKeypair()" label="&ew.keypairs.create.tip;" />
+                    <menuitem oncommand="ew_KeypairsTreeView.deleteSelected();" label="&ew.keypairs.delete.tip;" />
+                    <menuitem oncommand="ew_KeypairsTreeView.importKeypair();" label="&ew.keypairs.import.tip;"/>
+                    <menuitem oncommand="ew_KeypairsTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
+                    <menuitem oncommand="ew_KeypairsTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
+                    <menuitem oncommand="ew_KeypairsTreeView.runShell()" label="&ew.accesskeys.shell.tip;"/>
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.keypairs.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_KeypairTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="&ew.keypairs.create.tip;" oncommand="ew_KeypairTreeView.createKeypair();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="&ew.keypairs.delete.tip;" oncommand="ew_KeypairTreeView.deleteSelected();" />
-                <toolbarbutton image="images/import.png" tooltiptext="&ew.keypairs.import.tip;" oncommand="ew_KeypairTreeView.importKeypair();" />
-                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairTreeView.makeKeypair(true);" />
-                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairTreeView.makeKeypair();" />
-                <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairTreeView.displayDetails()"/>
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_KeypairsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="&ew.keypairs.create.tip;" oncommand="ew_KeypairsTreeView.createKeypair();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="&ew.keypairs.delete.tip;" oncommand="ew_KeypairsTreeView.deleteSelected();" />
+                <toolbarbutton image="images/import.png" tooltiptext="&ew.keypairs.import.tip;" oncommand="ew_KeypairsTreeView.importKeypair();" />
+                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
+                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
+                <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairsTreeView.displayDetails()"/>
                 <toolbarbutton image="images/shell.png" tooltiptext="&ew.accesskeys.shell.tip;" oncommand="ew_AccessKeyTreeView.runShell()"/>
             </toolbar>
             <tree enableColumnDrag="true" id="ew.keypairs.view" flex="1">

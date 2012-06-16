@@ -42,9 +42,9 @@ var ew_S3BucketsTreeView = {
             if (item.keys.length) {
                 ew_S3BucketsTreeView.display(item.keys);
             } else {
-                ew_session.controller.listS3BucketKeys(item.name, null, function(bucket, keys) {
-                    if (item.name == bucket) {
-                        ew_S3BucketsTreeView.display(keys);
+                ew_session.controller.listS3BucketKeys(item.name, null, function(obj) {
+                    if (item.name == obj.name) {
+                        ew_S3BucketsTreeView.display(obj.keys);
                     }
                 })
             }
@@ -181,19 +181,22 @@ var ew_S3BucketsTreeView = {
         if (item == null) return
         var retVal = { ok : null, content: null };
 
-        if (!item.acls) {
-            if (!this.path.length) {
-                ew_session.controller.getS3BucketAcl(item.name)
-            } else {
-                ew_session.controller.getS3BucketKeyAcl(item.bucket, item.name)
+        function wrap() {
+            window.openDialog("chrome://ew/content/dialogs/manage_s3acl.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal, item);
+            if (retVal.ok) {
+                if (item.bucket) {
+                    ew_session.controller.setS3BucketKeyAcl(item.bucket, item.name, retVal.content, function() { me.selectionChanged(); })
+                } else {
+                    ew_session.controller.setS3BucketAcl(item.name, retVal.content, function() { me.selectionChanged(); })
+                }
             }
         }
-        window.openDialog("chrome://ew/content/dialogs/manage_s3acl.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal, item);
-        if (retVal.ok) {
-            if (item.bucket) {
-                ew_session.controller.setS3BucketKeyAcl(item.bucket, item.name, retVal.content, function() { me.onSelection(); })
+
+        if (!item.acls) {
+            if (!this.path.length) {
+                ew_session.controller.getS3BucketAcl(item.name, wrap)
             } else {
-                ew_session.controller.setS3BucketAcl(item.name, retVal.content, function() { me.onSelection(); })
+                ew_session.controller.getS3BucketKeyAcl(item.bucket, item.name, wrap)
             }
         }
     },
@@ -203,20 +206,18 @@ var ew_S3BucketsTreeView = {
         var item = this.getSelected()
         if (this.path.length) return;
         if (item == null) return
-        var retVal = { bucket: item.name, ok: 0, enable: 0, index: '', error: '' };
+        var retVal = { bucket: item.name, ok: 0, enable: 0 };
 
-        ew_session.controller.getS3BucketWebsite(item.name, function(bucket, index, error) {
-            retVal.index = index;
-            retVal.error = error;
-        });
-        window.openDialog("chrome://ew/content/dialogs/manage_s3website.xul", null, "chrome,centerscreen,modal,resizable", retVal);
-        if (retVal.ok) {
-            if (retVal.enable) {
-                ew_session.controller.setS3BucketWebsite(item.name, retVal.index, retVal.error, function() { me.onSelection(); })
-            } else {
-                ew_session.controller.deleteS3BucketWebsite(item.name, function() { me.onSelection(); })
+        ew_session.controller.getS3BucketWebsite(item.name, function(obj) {
+            window.openDialog("chrome://ew/content/dialogs/manage_s3website.xul", null, "chrome,centerscreen,modal,resizable", retVal, obj);
+            if (retVal.ok) {
+                if (retVal.enable) {
+                    ew_session.controller.setS3BucketWebsite(item.name, obj.indexSuffix, obj.errorKey, function() { me.selectionChanged(); })
+                } else {
+                    ew_session.controller.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
+                }
             }
-        }
+        });
     },
 
 };

@@ -14,39 +14,14 @@
 
     function init()
     {
-        document.getElementById("ew.console.instanceid").value = window.arguments[0];
-        document.getElementById("ew.console.timestamp").value = window.arguments[1];
-        var output = "<no output available>";
-        if (window.arguments[2] != null) {
-            output = window.arguments[2];
-        }
-        document.getElementById("ew.console.output").value = output;
+        document.getElementById("ew.console.output").value = window.arguments[0] || "<no output available>";
     }
 
   ]]>
   </script>
 
   <vbox flex="1">
-    <grid flex="1">
-      <columns>
-        <column />
-        <column />
-      </columns>
-      <rows>
-        <row>
-          <label control="ew.console.instanceid" value="Instance ID:" />
-          <textbox id="ew.console.instanceid" size="40" readonly="true" />
-        </row>
-        <row>
-          <label control="ew.console.timestamp" value="Timestamp:" />
-          <textbox id="ew.console.timestamp" size="40" readonly="true" />
-        </row>
-        <row>
-          <label control="ew.console.output" value="Console Output:" />
-          <textbox id="ew.console.output" multiline="true" cols="100" rows="35" wrap="false" style="font-family: monospace;" readonly="true"/>
-        </row>
-      </rows>
-    </grid>
+     <textbox id="ew.console.output" multiline="true" cols="120" rows="50" wrap="false" style="font-family: monospace;" readonly="true"/>
   </vbox>
 </dialog>
 

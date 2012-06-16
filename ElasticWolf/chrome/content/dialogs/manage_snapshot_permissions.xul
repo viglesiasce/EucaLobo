@@ -30,7 +30,7 @@
     function refresh()
     {
         var me = this;
-        this.session.controller.describeSnapshotAttribute(this.image.id, function(id, list) { me.display(list); });
+        this.session.controller.describeSnapshotAttribute(this.image.id, function(list) { me.display(list); });
     }
 
     function add()

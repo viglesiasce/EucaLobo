@@ -24,7 +24,9 @@
 
         if (!this.validateSize()) return false;
 
+        // Only Name: tag for now, other tags can be added later in popup dialog
         this.retVal.tag = document.getElementById("ew.newvolume.tag").value.trim();
+        if (this.retVal.tag != "") this.retVal.tag = "Name:" + this.retVal.tag;
         this.retVal.ok = true;
         return true;
     }
@@ -73,7 +75,7 @@
         snapshotIdMenu.selectedIndex += 1;
 
         if (srcSnap) {
-            document.getElementById("ew.newvolume.tag").value = srcSnap.tag || "";
+            document.getElementById("ew.newvolume.tag").value = srcSnap.name || "";
         }
     }
   ]]>
@@ -99,7 +101,7 @@
           <menulist id="ew.newvolume.availabilityzonelist" sizetopopup="none" style="max-width:500px;"/>
         </row>
         <row>
-          <label control="ew.newvolume.tag" value="Tag (use Name: for naming new volume)" />
+          <label control="ew.newvolume.tag" value="Volume Name" />
           <textbox id="ew.newvolume.tag" size="40" />
         </row>
       </rows>

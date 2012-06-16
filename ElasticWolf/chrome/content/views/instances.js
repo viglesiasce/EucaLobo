@@ -54,20 +54,10 @@ var ew_InstancesTreeView = {
         } while (!retVal.ok);
 
         if (retVal.ok) {
-            var wrap = function(list) {
-                if (list == null) return;
-                // Since we allow just one instance to be bundled at a
-                // time, this list will only contain information about
-                // the newly created SINGLE bundle task. In order to
-                // select this task in the new view, it suffices to
-                // select list[0].id
-
-                // Navigate to the Bundle Tasks tab
-                ew_BundleTasksTreeView.refresh();
-                ew_BundleTasksTreeView.select({ id: list[0].id });
+            ew_session.controller.bundleInstance(instance.id, retVal.bucketName, retVal.prefix, ew_session.getActiveCredentials(), function() {
+                ew_model.refresh('bundleTasks');
                 ew_session.selectTab('ew.tabs.bundletask');
-            }
-            ew_session.controller.bundleInstance(instance.id, retVal.bucketName, retVal.prefix, ew_session.getActiveCredentials(), wrap);
+            });
         }
     },
 
@@ -82,22 +72,6 @@ var ew_InstancesTreeView = {
                 alert("A new AMI is being created and will be available in a moment.\n\nThe AMI ID is: "+id);
             });
         }
-    },
-
-    isInstanceReadyToUse : function(instance) {
-        var ret = false;
-        if (isWindows(instance.platform)) {
-            ew_session.controller.getConsoleOutput(instance.id, true, function(instanceId, timestamp, output) {
-                // Parse the response to determine whether the instance is ready to use
-                ret = output.indexOf("Windows is Ready to use") >= 0;
-            });
-        } else {
-            ret = true;
-        }
-        if (!ret) {
-            alert ("Please wait till 'Windows is Ready to use' before attaching an EBS volume to instance: " + instance.id);
-        }
-        return ret;
     },
 
     attachEBSVolume : function() {
@@ -171,7 +145,8 @@ var ew_InstancesTreeView = {
         ew_session.controller.associateAddress(eip, instance.id, null, function() { me.refresh() });
     },
 
-    retrieveRSAKeyFromKeyFile : function(keyFile, fSilent) {
+    retrieveRSAKeyFromKeyFile : function(keyFile, fSilent)
+    {
         var fileIn = FileIO.open(keyFile);
         if (!fileIn || !fileIn.exists()) {
             alert ("Couldn't find EC2 Private Key File: " + keyFile);
@@ -206,13 +181,12 @@ var ew_InstancesTreeView = {
         var hexArray = bin2hex(keyArray);
         log('RSA Key Str: ' + keyStr + " ByteArray: " + keyArray + " HexArray: " + hexArray);
 
-        var rpk =  parseRSAKey(keyArray);
+        var rpk = parseRSAKey(keyArray);
         var rsakey = null;
         if (rpk != null) {
             rsakey = new RSAKey();
             rsakey.setPrivateEx(rpk.N, rpk.E, rpk.D, rpk.P, rpk.Q, rpk.DP, rpk.DQ, rpk.C);
         }
-
         return rsakey;
     },
 
@@ -237,7 +211,6 @@ var ew_InstancesTreeView = {
 
         if (fSuccess) {
             endIdx = output.lastIndexOf(passEnd);
-
             if ((endIdx < startIdx) || (endIdx == -1)) {
                 fSuccess = false;
             }
@@ -263,7 +236,8 @@ var ew_InstancesTreeView = {
         }
     },
 
-    promptForKeyFile : function(keyName) {
+    promptForKeyFile : function(keyName)
+    {
         var keyFile = ew_session.promptForFile("Select the EC2 Private Key File for key: " + keyName);
         if (keyFile) {
             ew_session.setLastEC2PrivateKeyFile(keyFile);
@@ -272,32 +246,28 @@ var ew_InstancesTreeView = {
         return keyFile;
     },
 
-    getInstancePasswordImpl : function(output, fSilent) {
-        var fSuccess = true;
-        var instance = this.getSelected();
-        if (!isWindows(instance.platform)) {
-            this.instPassword = "";
-            fSuccess = false;
-            return;
+    getAdminPassword : function(instance, fSilent)
+    {
+        if (instance == null) {
+            instance = this.getSelected();
         }
+        if (instance == null) return;
+        if (!isWindows(instance.platform)) return;
+
+        var password = "";
+        var fSuccess = true;
+        var output = ew_session.controller.getConsoleOutput(instance.id);
 
         if (output == null || output.length == 0) {
             alert ("This instance is currently being configured. Please try again in a short while...");
-            this.instPassword = "";
-            fSuccess = false;
             return;
         }
 
-        if (fSuccess) {
-            // 3. Get the password hex array by parsing the console output
-            var passwordHex = this.decodePassword(output, fSilent);
-            fSuccess = (passwordHex != null);
-        }
+        // 3. Get the password hex array by parsing the console output
+        var passwordHex = this.decodePassword(output, fSilent);
+        if (!passwordHex) return;
 
-        if (fSuccess) {
-            var prvKeyFile = ew_session.getPrivateKeyFile(instance.keyName);
-        }
-
+        var prvKeyFile = ew_session.getPrivateKeyFile(instance.keyName);
         log("Private Key File: " + prvKeyFile);
 
         while (fSuccess) {
@@ -320,8 +290,7 @@ var ew_InstancesTreeView = {
                     continue;
                 }
 
-                // There is no default EC2 Private Key File, and a bad Private
-                // Key File was specified. Ask the user whether they would like to retry with a new private key file
+                // There is no default EC2 Private Key File, and a bad Private Key File was specified. Ask the user whether they would like to retry with a new private key file
                 if (!confirm ("An error occurred while reading the EC2 Private Key from file: " + prvKeyFile + ". Would you like to retry with a different private key file?")) {
                     break;
                 } else {
@@ -334,24 +303,24 @@ var ew_InstancesTreeView = {
             if (fSuccess) {
                 // Get the RSA private key from the password file
                 var rsaPrivateKey  = this.retrieveRSAKeyFromKeyFile(prvKeyFile, fSilent);
-                fSuccess =  (rsaPrivateKey != null);
+                fSuccess = (rsaPrivateKey != null);
             }
 
             if (fSuccess) {
-                var password = rsaPrivateKey.decrypt(passwordHex);
+                password = rsaPrivateKey.decrypt(passwordHex);
 
                 // Display the admin password to the user
                 if ((password != null) && (password.length > 0)) {
-                    this.instPassword = password;
                     ew_session.copyToClipboard(password);
                     if (!fSilent) {
                         alert ("Instance Administrator Password [" + password + "] has been saved to clipboard");
                     }
                 } else
+
                 if (!fSilent) {
                     fSuccess = false;
                     // Reset the instance's password to be the empty string.
-                    this.instPassword = "";
+                    password = "";
                     // Need to retry with a new private key file
                     if (!confirm("An error occurred while retrieving the password. Would you like to retry with a different private key file?")) {
                         break;
@@ -362,27 +331,11 @@ var ew_InstancesTreeView = {
                     }
                 }
             }
-
-            // If we arrived here, everything succeeded,
-            // so let's exit out of the loop.
+            // If we arrived here, everything succeeded, so let's exit out of the loop.
             break;
         }
-    },
 
-    getAdminPassword : function(fSilent, instance) {
-        // Since we are retrieving a new password, ensure that we are starting with a clean slate.
-        if (instance == null) {
-            instance = this.getSelected();
-        }
-        if (instance == null) return;
-        this.instPassword = "";
-        this.fSilent = fSilent;
-        var me = this;
-        var wrap = function(id, timestamp, output) {
-            me.getInstancePasswordImpl(output, me.fSilent);
-        }
-        this.fetchConsoleOutput(wrap, instance);
-        return this.instPassword;
+        return password;
     },
 
     menuChanged  : function(event) {
@@ -543,24 +496,27 @@ var ew_InstancesTreeView = {
         ew_session.controller.startInstances(instances, function() {me.refresh()});
     },
 
-    fetchConsoleOutput : function(callback, instance) {
-        var me = this;
-        if (instance == null) {
-            instance = this.getSelected();
+    isInstanceReadyToUse : function(instance) {
+        var ret = false;
+        if (isWindows(instance.platform)) {
+            var output = ew_session.controller.getConsoleOutput(instance.id);
+            // Parse the response to determine whether the instance is ready to use
+            ret = output.indexOf("Windows is Ready to use") >= 0;
+        } else {
+            ret = true;
         }
-        if (instance == null) {
-            alert ("Please select an instance");
-            return;
+        if (!ret) {
+            alert ("Please wait till 'Windows is Ready to use' before attaching an EBS volume to instance: " + instance.id);
         }
-        var wrap = callback;
-        if (wrap == null) {
-            wrap = function(id, timestamp, output) { me.showConsoleOutput(id, timestamp, output); }
-        }
-        ew_session.controller.getConsoleOutput(instance.id, false, wrap);
+        return ret;
     },
 
-    showConsoleOutput : function(id, timestamp, output) {
-        window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", id, timestamp, output);
+    showConsoleOutput : function(id, timestamp, output)
+    {
+        var instance = this.getSelected();
+        if (!instance) return;
+        var output = ew_session.controller.getConsoleOutput(instance.id);
+        window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", output);
     },
 
     showInstancesSummary : function() {
@@ -730,7 +686,7 @@ var ew_InstancesTreeView = {
             cmd = ew_session.getRDPCommand();
             if (isMac(navigator.platform)) {
                 // On Mac OS X, we use a totally different connection mechanism that isn't particularly extensible
-                this.getAdminPassword(false, instance);
+                this.getAdminPassword(instance);
                 this.rdpToMac(hostname, cmd);
                 return;
             }
@@ -744,7 +700,7 @@ var ew_InstancesTreeView = {
         params.push(["privateIpAddress", instance.privateIpAddress]);
 
         if (args.indexOf("${pass}") >= 0) {
-            var pass = this.getAdminPassword(true, instance);
+            var pass = this.getAdminPassword(instance, true);
             if (pass) {
                 params.push(["pass", pass])
             }

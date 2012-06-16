@@ -73,7 +73,7 @@ var ew_SnapshotTreeView = {
     {
         var image = this.getSelected();
         if (image == null) return;
-        ew_session.controller.describeSnapshotAttribute(this.image.id, function(id, list) {
+        ew_session.controller.describeSnapshotAttribute(this.image.id, function(list) {
            window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_session, image, list);
         });
     },

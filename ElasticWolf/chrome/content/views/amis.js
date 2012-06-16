@@ -128,12 +128,10 @@ var ew_AMIsTreeView = {
     callRegisterImageInRegion : function(manifest, region)
     {
         var me = this;
-        var wrap = function(x)
-        {
+        ew_session.controller.registerImageInRegion(manifest, region, function() {
             me.refresh();
             alert("Image with Manifest: " + manifest + " was registered");
-        }
-        ew_session.controller.registerImageInRegion(manifest, region, wrap);
+        });
     },
 
     registerNewImage : function()
@@ -158,9 +156,8 @@ var ew_AMIsTreeView = {
                 return false;
             }
             var s3bucket = value.split('/')[0];
-            var bucketReg = ew_session.controller.getS3BucketLocation(s3bucket, function(bucket, region) {
-                me.callRegisterImageInRegion(value, region);
-            });
+            var region = ew_session.controller.getS3BucketLocation(s3bucket);
+            callRegisterImageInRegion(value, region);
         }
     },
 

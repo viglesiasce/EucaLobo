@@ -23,7 +23,7 @@ var ew_UsersTreeView = {
     {
         var item = this.getSelected();
         if (!item) return;
-        ew_KeypairTreeView.makeKeypair(uploadCert, item.name);
+        ew_KeypairsTreeView.makeKeypair(uploadCert, item.name);
     },
 
     selectionChanged: function()
@@ -39,7 +39,7 @@ var ew_UsersTreeView = {
         var me = this;
         // GovCloud does not support this yet
         if (!item.loginProfileDate && !ew_session.isGovCloud()) {
-            ew_session.controller.getLoginProfile(item.name, function(list) { me.menuChanged() })
+            ew_session.controller.getLoginProfile(item.name, function(date) { me.menuChanged() })
         }
         if (!item.groups) {
             ew_session.controller.listGroupsForUser(item.name, function(list) { me.menuChanged() })
@@ -502,7 +502,7 @@ ew_VMFATreeView.__proto__ = TreeView;
 ew_VMFATreeView.register();
 
 
-var ew_KeypairTreeView = {
+var ew_KeypairsTreeView = {
     model: ["keypairs"],
 
     createKeypair : function ()
@@ -515,15 +515,13 @@ var ew_KeypairTreeView = {
         if (name == null) return;
         name = name.trim();
         var me = this;
-        var wrap = function(name, key) {
+        ew_session.controller.createKeypair(name, function(keypair) {
             // Save key in the file
-            var file = ew_session.getPrivateKeyFile(name)
+            var file = ew_session.getPrivateKeyFile(name);
             var fp = FileIO.open(file)
-            FileIO.write(fp, key + "\n\n", "");
+            FileIO.write(fp, keypair.material + "\n\n", "");
             me.refresh();
-            me.select({name: name});
-        }
-        ew_session.controller.createKeypair(name, wrap);
+        });
     },
 
     importKeypair : function ()
@@ -532,10 +530,6 @@ var ew_KeypairTreeView = {
         if (name == null) return;
         name = name.trim();
         var me = this;
-        var wrap = function(name) {
-            me.refresh();
-            me.select({name: name});
-        }
         // Create new private key file using openssl and return key value
         var file = ew_session.promptForFile("Select the public key file to upload:")
         if (file) {
@@ -543,7 +537,7 @@ var ew_KeypairTreeView = {
             if (body == '') {
                 return alert('Unable to read public key file ' + file);
             }
-            ew_session.controller.importKeypair(name, body, wrap);
+            ew_session.controller.importKeypair(name, body, function() { me.refresh() });
         }
     },
 
@@ -592,8 +586,8 @@ var ew_KeypairTreeView = {
     },
 };
 
-ew_KeypairTreeView.__proto__ = TreeView;
-ew_KeypairTreeView.register();
+ew_KeypairsTreeView.__proto__ = TreeView;
+ew_KeypairsTreeView.register();
 
 var ew_AccessKeyTreeView = {
     name: ["accesskeys"],
@@ -607,7 +601,7 @@ var ew_AccessKeyTreeView = {
             if (!accesskey.secret) alert('Cannot get secret for the access key, AWS command line tools will not work');
         }
         // Use currently selected keypair
-        var keypair = ew_KeypairTreeView.getSelected();
+        var keypair = ew_KeypairsTreeView.getSelected();
         ew_session.launchShell(keypair, accesskey);
     },
 

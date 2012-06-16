@@ -604,7 +604,7 @@ var ew_session = {
         var rc = { ok: false,
                    text: String(tags),
                    title: "Tags (Key:Value, Key:Value...) ",
-                   descr: "Predefined tags: Name: for primary name" };
+                   descr: "Predefined tags:\n - Name: for primary name" };
         openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=400,height=250', rc);
         return rc.ok ? (rc.text || '').replace(/(\n|\r)+/g, ' ').trim() : null;
     },
@@ -1079,89 +1079,91 @@ var ew_session = {
             debug(e)
             this.showBusy(false);
             this.stopTimer(timerKey);
-            var rsp = this.createResponse(null, action, handlerMethod, callback, true, "Send Request Error", e, "", params);
-            this.handleError(rsp, action);
+            this.handleResponse(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params);
             return false;
         }
 
+        // In sync mode the result is always returned
         if (isSync) {
             this.showBusy(false);
             this.stopTimer(timerKey);
-            this.handleResponse(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params);
-            return false;
+            return this.handleResponse(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params);
         }
         return true;
     },
 
     handleResponse : function(xmlhttp, isSync, action, handlerMethod, handlerObj, callback, params)
     {
-        debug('handleResponse: ' + action + "/" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + xmlhttp.status);
         log(xmlhttp.responseText);
 
-        var rc = xmlhttp.status >= 200 && xmlhttp.status < 300 ?
-                 this.createResponse(xmlhttp, action, handlerMethod, callback, false, "", "", "", params) :
-                 this.createResponseError(xmlhttp, action, handlerMethod, callback, params);
+        var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
+                 this.createResponse(xmlhttp, isSync, action, handlerMethod, callback, params) :
+                 this.createResponseError(xmlhttp, isSync, action, handlerMethod, callback, params);
 
-        rc.isSync = isSync;
-        // If context object is not specified call the callback directly
+        // Response callback is called in all cases, some errors can be ignored
         if (handlerObj) {
             handlerObj.onResponseComplete(rc);
-        } else
-        if (callback) {
-            callback(rc);
         }
-        this.handleError(rc);
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', errorCount=' + this.errorCount + ', errCode=' + rc.errCode + ', errString=' + rc.errString);
+
+        if (rc.hasErrors) {
+            // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed
+            this.errorCount++;
+            if (this.errorCount < this.errorMax) {
+                this.errorDialog("Server responded with an error for " + rc.action, rc)
+            }
+        } else {
+            this.errorCount = 0;
+            // Pass the result or the whole response object if it is null
+            if (callback) {
+                callback(rc.result != null ? rc.result : rc);
+            }
+        }
+        return rc.result;
+    },
+
+    // Extract standard AWS error code and message
+    createResponseError : function(xmlhttp, isSync, action, handlerMethod, callback, params)
+    {
+        var rc = this.createResponse(xmlhttp, isSync, action, handlerMethod, callback, params);
+        rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
+        rc.errString = "An unknown error occurred, please check connectivity";
+        rc.requestId = "";
+        rc.hasErrors = true;
+
+        if (xmlhttp) {
+            debug(xmlhttp.responseText)
+            var xmlDoc = xmlhttp.responseXML;
+            if (!xmlDoc) {
+                if (xmlhttp.responseText) {
+                    xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText, "text/xml");
+                }
+            }
+            if (xmlDoc) {
+                rc.errCode = getNodeValue(xmlDoc, "Code");
+                rc.errString = getNodeValue(xmlDoc, "Message");
+                rc.requestId = getNodeValue(xmlDoc, "RequestID");
+            }
+        }
         return rc;
     },
 
-    createResponseError : function(xmlhttp, action, handlerMethod, callback, params)
-    {
-        debug(xmlhttp.responseText)
-        var errCode = "Unknown: " + xmlhttp.status;
-        var errString = "An unknown error occurred, please check connectivity";
-        var requestId = "";
-        var xmlDoc = xmlhttp.responseXML;
-        if (!xmlDoc) {
-            if (xmlhttp.responseText) {
-                xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText, "text/xml");
-            }
-        }
-        if (xmlDoc) {
-            errCode = getNodeValue(xmlDoc, "Code");
-            errString = getNodeValue(xmlDoc, "Message");
-            requestId = getNodeValue(xmlDoc, "RequestID");
-        }
-        return this.createResponse(xmlhttp, action, handlerMethod, callback, true, errCode, errString, requestId, params);
-    },
-
-    createResponse : function(xmlhttp, action, handlerMethod, callback, hasErrors, errCode, errString, requestId, params)
+    createResponse : function(xmlhttp, isSync, action, handlerMethod, callback, params)
     {
         return { xmlhttp: xmlhttp,
-                 xmlDoc: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('p'),
+                 xmlDoc: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
                  responseText: xmlhttp ? xmlhttp.responseText : '',
                  status : xmlhttp.status,
                  action: action,
                  method: handlerMethod,
-                 requestId: requestId,
-                 errCode: errCode,
-                 errString: errString,
-                 hasErrors: hasErrors,
+                 isSync: isSync,
+                 hasErrors: false,
                  params: params,
-                 callback: callback, };
-    },
-
-    handleError: function(rsp)
-    {
-        if (rsp.hasErrors) {
-            debug('error: action: ' + rsp.action + ', status: ' + rsp.status + ', errorCount: ' + this.errorCount + ', errCode: ' + rsp.errCode + ', errString: ' + rsp.errString)
-            // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed
-            this.errorCount++;
-            if (this.errorCount < this.errorMax) {
-                this.errorDialog("Server responded with an error for " + rsp.action, rsp)
-            }
-            return;
-        }
-        this.errorCount = 0;
+                 callback: callback,
+                 result: null,
+                 errCode: "",
+                 errString: "",
+                 requestId: "" };
     },
 
     // Show non modal error popup

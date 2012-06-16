@@ -8,10 +8,11 @@ function Certificate(id, user, body)
     }
 }
 
-function KeyPair(name, fingerprint)
+function KeyPair(name, fingerprint, material)
 {
     this.name = name;
     this.fingerprint = fingerprint;
+    this.material = material;
     this.toString = function() {
         return this.name;
     }
@@ -94,6 +95,8 @@ function S3Bucket(name, mtime, owner)
     this.region = ""
     this.acls = null
     this.keys = []
+    this.indexSuffix = "";
+    this.errorKey = "";
     this.toString = function() {
         return this.name;
     }

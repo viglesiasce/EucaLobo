@@ -34,8 +34,8 @@
             </menupopup>
           </menu>
           <menuseparator />
-          <menuitem oncommand="ew_InstancesTreeView.fetchConsoleOutput();" label="Show Console Output" />
-          <menuitem id="instances.context.getPassword" oncommand="ew_InstancesTreeView.getAdminPassword(false);" label="Get Administrator Password" />
+          <menuitem oncommand="ew_InstancesTreeView.showConsoleOutput();" label="Show Console Output" />
+          <menuitem id="instances.context.getPassword" oncommand="ew_InstancesTreeView.getAdminPassword();" label="Get Administrator Password" />
           <menuseparator />
           <menu label="Copy to clipboard">
             <menupopup>
@@ -70,7 +70,7 @@
           <toolbarseparator />
           <toolbarbutton image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
           <toolbarseparator />
-          <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.fetchConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
+          <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
           <toolbarbutton image="images/key.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectToSelectedInstances(3);" tooltiptext="&ew.instances.connect.tip;" />
           <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
           <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />

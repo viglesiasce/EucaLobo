@@ -34,18 +34,14 @@ var ew_AMIDeleter = {
         prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
         // Enumerate the items with prefix from source bucket
         var region = controller.getS3BucketLocation(sourceB);
-        var srcKeys = controller.getS3KeyListWithPrefixInBucket(prefix,
-                                                                sourceB,
-                                                                region);
+        var srcKeys = controller.getS3KeyListWithPrefixInBucket(prefix, sourceB, region);
         var progressMet = this.getProgressMeter();
         this.getCurrentOperation().value = "Deleting AMI parts...";
 
         if (srcKeys != null) {
             var keyCount = srcKeys.length;
             for (var i = 0; i < keyCount; ++i) {
-                controller.deleteS3KeyFromBucket(sourceB,
-                                                 srcKeys[i],
-                                                 region);
+                controller.deleteS3KeyFromBucket(sourceB, srcKeys[i], region);
                 progressMet.value = ((i+1)/keyCount) * 100;
             }
             this.retVal.ok = true;

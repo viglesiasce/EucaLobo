@@ -25,15 +25,23 @@ var ew_SubnetsTreeView = {
 
     createSubnet : function(vpc)
     {
-        var retVal = { ok : null, cidr : null, vpcid : vpc, az : null };
+        var retVal = { ok : null, cidr : null, vpcid : vpc, az : null, tag: '' };
         window.openDialog("chrome://ew/content/dialogs/create_subnet.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
 
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function() {
+            function wrap() {
                 me.refresh();
                 if (confirm('If this subnet will be a "public" subnet (one where instances can communicate to or from the Internet), please attach / create Internet Gateway.\nDo you want to do it now?')) {
                     ew_InternetGatewayTreeView.attachInternetGateway(retVal.vpcid, null);
+                }
+            }
+            ew_session.controller.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(response) {
+                var id = getNodeValue(response.xmlDoc, "subnetId");
+                if (retVal.tag != '' && id) {
+                    ew_session.setTags(id, retVal.tag, wrap);
+                } else {
+                    wrap();
                 }
             });
         }

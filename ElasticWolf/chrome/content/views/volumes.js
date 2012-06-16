@@ -45,10 +45,7 @@ var ew_VolumeTreeView = {
             var me = this;
             ew_session.controller.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
                 if (retVal.tag != '') {
-                    ew_session.setTags(id, retVal.tag, function() {
-                        var vol = ew_model.find("volumes", id);
-                        if (vol) ew_model.setTags(vol, retVal.tag);
-                    });
+                    ew_session.setTags(id, retVal.tag, function() { me.refresh() });
                 } else {
                     me.refresh();
                 }

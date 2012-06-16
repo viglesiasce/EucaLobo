@@ -4,6 +4,7 @@
 <!DOCTYPE window SYSTEM "chrome://ew/locale/main.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:html="http://www.w3.org/1999/xhtml"
   title=""
   buttons="accept,cancel"
   ondialogaccept="return accept();"
@@ -30,6 +31,6 @@
   <label id="title" control="text" value="" />
   <textbox id="text" multiline="true" flex="1" wrap="false" />
   <spacer style="height:10px;"/>
-  <description id="descr" />
+  <description id="descr" style="white-space: pre-wrap;" />
   </vbox>
 </dialog>

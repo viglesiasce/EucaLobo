@@ -14,6 +14,8 @@
         this.retVal.vpcid = document.getElementById("ew.newsubnet.vpcid").value.trim();
         this.retVal.cidr = document.getElementById("ew.newsubnet.cidr").value.trim();
         this.retVal.az = document.getElementById("ew.newsubnet.az").value.trim();
+        this.retVal.tag = document.getElementById("ew.newsubnet.name").value.trim();
+        if (this.retVal.tag != '') this.retVal.tag = "Name:" + this.retVal.tag;
         this.retVal.ok = true;
         return true;
     }
@@ -54,14 +56,18 @@
                         <menulist id="ew.newsubnet.vpcid"/>
                     </hbox>
                 </row>
-
                 <row>
                     <label control="ew.newsubnet.cidr" value="Subnet CIDR Block:" />
                     <hbox>
                         <textbox id="ew.newsubnet.cidr" size="20" value="" />
                     </hbox>
                 </row>
-
+                <row>
+                    <label control="ew.newsubnet.cidr" value="Subnet Name:" />
+                    <hbox>
+                        <textbox id="ew.newsubnet.name" size="20" value="" />
+                    </hbox>
+                </row>
                 <row>
                     <label control="ew.newsubnetaz" value="Availability Zone: "/>
                     <hbox>

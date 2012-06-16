@@ -26,7 +26,6 @@ var ew_controller = {
     // Common controller response callback when there is no need to parse result but only to call user callback
     onComplete : function(responseObj)
     {
-        if (responseObj.callback) responseObj.callback(responseObj);
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -196,7 +195,7 @@ var ew_controller = {
         }
 
         ew_model.set('volumes', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeSnapshots : function(callback)
@@ -226,7 +225,7 @@ var ew_controller = {
         }
 
         ew_model.set('snapshots', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeSnapshotAttribute: function(id, callback) {
@@ -244,14 +243,14 @@ var ew_controller = {
             var group = getNodeValue(items[i], "group");
             var user = getNodeValue(items[i], "userId");
             if (group != '') {
-                list.push({ id: group, type: 'Group' })
+                list.push({ id: group, type: 'Group', snapshotId: snapshotId })
             } else
             if (user != '') {
-                list.push({ id: user, type: 'UserId' })
+                list.push({ id: user, type: 'UserId', snapshotId: snapshotId })
             }
         }
 
-        if (responseObj.callback) responseObj.callback(id, list);
+        responseObj.result = list;
     },
 
     modifySnapshotAttribute: function(id, add, remove, callback) {
@@ -290,7 +289,7 @@ var ew_controller = {
             list.push(new Vpc(id, cidr, state, dhcpopts, tags));
         }
         ew_model.set('vpcs', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createVpc : function(cidr, callback)
@@ -324,7 +323,7 @@ var ew_controller = {
             list.push(new Subnet(id, vpcId, cidrBlock, state, availableIp, availabilityZone, tags));
         }
         ew_model.set('subnets', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createSubnet : function(vpcId, cidr, az, callback)
@@ -374,7 +373,7 @@ var ew_controller = {
             list.push(new DhcpOptions(id, options.join("; "), tags));
         }
         ew_model.set('dhcpOptions', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     associateDhcpOptions : function(dhcpOptionsId, vpcId, callback)
@@ -491,7 +490,7 @@ var ew_controller = {
         }
 
         ew_model.set('networkAcls', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeVpnGateways : function(callback)
@@ -521,7 +520,7 @@ var ew_controller = {
             list.push(new VpnGateway(id, availabilityZone, state, type, attachments));
         }
         ew_model.set('vpnGateways', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createVpnGateway : function(type, az, callback)
@@ -554,7 +553,7 @@ var ew_controller = {
             list.push(new CustomerGateway(id, ipAddress, bgpAsn, state, type, tags));
         }
         ew_model.set('customerGateways', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createCustomerGateway : function(type, ip, asn, callback)
@@ -589,7 +588,7 @@ var ew_controller = {
             list.push(new InternetGateway(id, vpcId, tags));
         }
         ew_model.set('internetGateways', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createInternetGateway : function(callback)
@@ -646,7 +645,7 @@ var ew_controller = {
             list.push(new VpnConnection(id, vgwId, cgwId, type, state, config, tags));
         }
         ew_model.set('vpnConnections', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createVpnConnection : function(type, cgwid, vgwid, callback)
@@ -699,8 +698,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             ami = new AMI(imageId, imageLocation, imageState, owner, (isPublic == 'true' ? 'public' : 'private'), platform, aki, ari, rdt, ownerAlias, name, description, snapshotId, tags);
         }
-
-        if (responseObj.callback) responseObj.callback(ami);
+        responseObj.result = ami;
     },
 
     createImage : function(instanceId, amiName, amiDescription, noReboot, callback)
@@ -713,8 +711,7 @@ var ew_controller = {
     onCompleteCreateImage: function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var imageId = getNodeValue(xmlDoc, "imageId");
-        if (responseObj.callback) responseObj.callback(imageId);
+        responseObj.result = getNodeValue(xmlDoc, "imageId");
     },
 
     describeImages : function( callback)
@@ -753,7 +750,7 @@ var ew_controller = {
         }
 
         ew_model.set('images', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeLeaseOfferings : function(callback)
@@ -784,7 +781,7 @@ var ew_controller = {
         }
 
         ew_model.set('offerings', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeReservedInstances : function(callback)
@@ -819,7 +816,7 @@ var ew_controller = {
         }
 
         ew_model.set('reservedInstances', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     purchaseOffering : function(id, count, callback)
@@ -847,7 +844,7 @@ var ew_controller = {
             }
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     addLaunchPermission : function(imageId, name, callback)
@@ -985,7 +982,7 @@ var ew_controller = {
         }
 
         ew_model.set('instances', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     runMoreInstances: function(instance, count, callback) {
@@ -1052,7 +1049,7 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
         var list = this.getItems(xmlDoc, "instancesSet", "item", "instanceId");
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     terminateInstances : function(instances, callback)
@@ -1089,14 +1086,9 @@ var ew_controller = {
     {
         // Generate the S3 policy string using the bucket and prefix
         var s3policy = generateS3Policy(bucket, prefix);
-        log("S3 Policy[" + s3policy + "]");
-
         var s3polb64 = Base64.encode(s3policy);
-        log("S3 Policy B64[" + s3polb64 + "]");
-
         // Sign the generated policy with the secret key
         var policySig = b64_hmac_sha1(activeCred.secretKey, s3polb64);
-        log("S3 Policy Sig[" + policySig + "]");
 
         var params = []
         params.push([ "InstanceId", instanceId ]);
@@ -1112,14 +1104,10 @@ var ew_controller = {
     onCompleteBundleInstance : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var list = new Array();
 
-        var items = xmlDoc.getElementsByTagName("bundleInstanceTask");
-        for ( var i = 0; i < items.length; ++i) {
-            list.push(this.unpackBundleTask(items[i]));
-        }
-
-        if (responseObj.callback) responseObj.callback(list);
+        var item = xmlDoc.getElementsByTagName("bundleInstanceTask")[0];
+        if (!item) return;
+        responseObj.result = this.unpackBundleTask(item);
     },
 
     cancelBundleTask : function(id, callback)
@@ -1173,7 +1161,7 @@ var ew_controller = {
         }
 
         ew_model.set('bundleTasks', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createS3Bucket : function(bucket, region, params, callback)
@@ -1203,7 +1191,7 @@ var ew_controller = {
         }
         ew_model.set('s3Buckets', list);
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     getS3BucketAcl : function(bucket, callback)
@@ -1239,9 +1227,9 @@ var ew_controller = {
             list.push(new S3BucketAcl(id, type, name, perms));
         }
         var obj = ew_model.getS3Bucket(bucket)
-        if (obj) obj.acls = list;
+        if (obj) obj.acls = list; else obj = { acls: list };
 
-        if (responseObj.callback) responseObj.callback(bucket, list);
+        responseObj.result = list;
     },
 
     setS3BucketAcl : function(bucket, content, callback)
@@ -1253,15 +1241,16 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var bucket = responseObj.params[0];
-        var obj = ew_model.getS3Bucket(bucket)
-        if (obj) obj.acls = null;
+        var obj = ew_model.getS3Bucket(bucket);
+        if (obj) obj.acls = null; else obj = { acls: list };
 
-        if (responseObj.callback) responseObj.callback(bucket);
+        responseObj.result = obj;
     },
 
+    // Without callback it uses sync mode and returns region
     getS3BucketLocation : function(bucket, callback)
     {
-        ew_session.queryS3("GET", bucket, "", "?location", {}, null, this, false, "onCompleteGetS3BucketLocation", callback);
+        ew_session.queryS3("GET", bucket, "", "?location", {}, null, this, callback ? false : true, "onCompleteGetS3BucketLocation", callback);
     },
 
     onCompleteGetS3BucketLocation : function(responseObj)
@@ -1273,7 +1262,7 @@ var ew_controller = {
         var obj = ew_model.getS3Bucket(bucket)
         if (obj) obj.region = region;
 
-        if (responseObj.callback) responseObj.callback(bucket, region);
+        responseObj.result = region;
     },
 
     listS3BucketKeys : function(bucket, params, callback)
@@ -1297,10 +1286,10 @@ var ew_controller = {
             var owner = getNodeValue(items[i], "ID")
             list.push(new S3BucketKey(bucket, id, type, size, mtime, owner, etag));
         }
-        var obj = ew_model.getS3Bucket(bucket)
-        if (obj) obj.keys = list;
+        var obj = ew_model.getS3Bucket(bucket);
+        if (obj) obj.keys = list; else obj = { keys: list };
 
-        if (responseObj.callback) responseObj.callback(bucket, list);
+        responseObj.result = obj;
     },
 
     deleteS3Bucket : function(bucket, params, callback)
@@ -1330,7 +1319,7 @@ var ew_controller = {
 
     onCompleteReadS3BucketKey : function(responseObj)
     {
-        if (responseObj.callback) responseObj.callback(responseObj.xmlhttp.responseText);
+        responseObj.result = responseObj.responseText;
     },
 
     putS3BucketKey : function(bucket, key, path, params, text, callback)
@@ -1346,8 +1335,7 @@ var ew_controller = {
     onCompleteInitS3BucketKeyUpload : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var id = getNodeValue(xmlDoc, "UploadId");
-        if (responseObj.callback) responseObj.callback(id);
+        responseObj.result = getNodeValue(xmlDoc, "UploadId");
     },
 
     uploadS3BucketFile : function(bucket, key, path, params, file, callback, progresscb)
@@ -1391,7 +1379,7 @@ var ew_controller = {
         var obj = ew_model.getS3BucketKey(bucket, key)
         if (obj) obj.acls = list;
 
-        if (responseObj.callback) responseObj.callback(bucket, list);
+        responseObj.result = obj;
     },
 
     setS3BucketKeyAcl : function(bucket, key, content, callback)
@@ -1408,7 +1396,7 @@ var ew_controller = {
         var obj = ew_model.getS3BucketKey(bucket, key)
         if (obj) obj.acls = null;
 
-        if (responseObj.callback) responseObj.callback(bucket, key);
+        responseObj.result = obj;
     },
 
     getS3BucketWebsite : function(bucket, callback)
@@ -1420,6 +1408,8 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var bucket = responseObj.params[0];
+        var obj = ew_model.getS3Bucket(bucket);
+        if (!obj) obj = {};
 
         if (responseObj.hasErrors) {
             // Ignore no website error
@@ -1428,10 +1418,11 @@ var ew_controller = {
             }
         } else {
             var doc = xmlDoc.getElementsByTagName("IndexDocument");
-            var index = getNodeValue(doc[0], "Suffix");
+            obj.indexSuffix = getNodeValue(doc[0], "Suffix");
             var doc = xmlDoc.getElementsByTagName("ErrorDocument");
-            var error = getNodeValue(doc[0], "Key");
-            if (responseObj.callback) responseObj.callback(bucket, index, error);
+            obj.errorKey = getNodeValue(doc[0], "Key");
+
+            responseObj.result = obj;
         }
     },
 
@@ -1445,28 +1436,12 @@ var ew_controller = {
             content += '<ErrorDocument><Key>' + error + '</Key></ErrorDocument>';
         }
         content += '</WebsiteConfiguration>';
-        ew_session.queryS3("PUT", bucket, "", "?website", {}, content, this, false, "onCompleteSetS3BucketWebsite", callback);
-    },
-
-    onCompleteSetS3BucketWebsite : function(responseObj)
-    {
-        var xmlDoc = responseObj.xmlDoc;
-        var bucket = responseObj.params[0];
-
-        if (responseObj.callback) responseObj.callback(bucket);
+        ew_session.queryS3("PUT", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
     },
 
     deleteS3BucketWebsite : function(bucket, callback)
     {
-        ew_session.queryS3("DELETE", bucket, "", "?website", {}, content, this, false, "onCompleteDeleteS3BucketWebsite", callback);
-    },
-
-    onCompleteDeleteS3BucketKeyAcl : function(responseObj)
-    {
-        var xmlDoc = responseObj.xmlDoc;
-        var bucket = responseObj.params[0];
-
-        if (responseObj.callback) responseObj.callback(bucket);
+        ew_session.queryS3("DELETE", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
     },
 
     describeKeypairs : function(callback)
@@ -1487,7 +1462,7 @@ var ew_controller = {
         }
 
         ew_model.set('keypairs', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createKeypair : function(name, callback)
@@ -1501,12 +1476,9 @@ var ew_controller = {
 
         var name = getNodeValue(xmlDoc, "keyName");
         var fp = getNodeValue(xmlDoc, "keyFingerprint");
-        var keyMaterial = getNodeValue(xmlDoc, "keyMaterial");
+        var material = getNodeValue(xmlDoc, "keyMaterial");
 
-        // I'm lazy, so for now the caller will just have to call describeKeypairs again to see
-        // the new keypair.
-
-        if (responseObj.callback) responseObj.callback(name, keyMaterial);
+        responseObj.result = new Keypair(name, fp, material);
     },
 
     deleteKeypair : function(name, callback)
@@ -1556,7 +1528,7 @@ var ew_controller = {
             list.push(new RouteTable(id, vpcId, routes, associations, tags));
         }
         ew_model.set('routeTables', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createRouteTable : function(vpcId, callback)
@@ -1706,7 +1678,7 @@ var ew_controller = {
         }
 
         ew_model.set('networkInterfaces', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeSecurityGroups : function(callback)
@@ -1770,7 +1742,7 @@ var ew_controller = {
         }
 
         ew_model.set('securityGroups', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createSecurityGroup : function(name, desc, vpcId, callback)
@@ -1849,9 +1821,10 @@ var ew_controller = {
         ew_session.queryEC2("RebootInstances", params, this, false, "onComplete", callback);
     },
 
-    getConsoleOutput : function(instanceId, isSync, callback)
+    // Without callback the request will be sync and the result will be cnsole output
+    getConsoleOutput : function(instanceId, callback)
     {
-        return ew_session.queryEC2("GetConsoleOutput", [ [ "InstanceId", instanceId ] ], this, isSync, "onCompleteGetConsoleOutput", callback);
+        return ew_session.queryEC2("GetConsoleOutput", [ [ "InstanceId", instanceId ] ], this, callback ? false : true, "onCompleteGetConsoleOutput", callback);
     },
 
     onCompleteGetConsoleOutput : function(responseObj)
@@ -1866,7 +1839,7 @@ var ew_controller = {
         } else {
             output = '';
         }
-        if (responseObj.callback) responseObj.callback(instanceId, timestamp, output);
+        responseObj.result = output;
     },
 
     describeAvailabilityZones : function(callback)
@@ -1887,7 +1860,7 @@ var ew_controller = {
         }
 
         ew_model.set('availabilityZones', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeAddresses : function(callback)
@@ -1911,7 +1884,7 @@ var ew_controller = {
             list.push(new EIP(publicIp, instanceid, allocId, assocId, domain, tags));
         }
         ew_model.set('addresses', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     allocateAddress : function(vpc, callback)
@@ -1963,7 +1936,7 @@ var ew_controller = {
             list.push(new Endpoint(name, url));
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     describeLoadBalancers : function(callback)
@@ -2048,7 +2021,7 @@ var ew_controller = {
                 list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
             }
             ew_model.set('loadBalancers', list);
-            if (responseObj.callback) responseObj.callback(list);
+            responseObj.result = list;
         }
     },
 
@@ -2076,7 +2049,7 @@ var ew_controller = {
         var elb = ew_model.find('loadBalancers', responseObj.params[0][1]);
         if (elb) elb.InstanceHealth = list;
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     deleteLoadBalancer : function(LoadBalancerName, callback)
@@ -2287,7 +2260,7 @@ var ew_controller = {
             tags.push(new Tag(key, value, id));
         }
 
-        if (responseObj.callback) responseObj.callback(tags);
+        responseObj.result = tags;
     },
 
     describeInstanceAttribute : function(instanceId, attribute, callback)
@@ -2301,7 +2274,7 @@ var ew_controller = {
         var items = xmlDoc.evaluate("/ec2:DescribeInstanceAttributeResponse/*", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         var value = getNodeValue(items.snapshotItem(2), "value");
 
-        if (responseObj.callback) responseObj.callback(value);
+        responseObj.result = value;
     },
 
     modifyInstanceAttribute : function(instanceId, name, value, callback)
@@ -2338,8 +2311,6 @@ var ew_controller = {
             var instance = ew_model.find('instances', instanceId);
             if (instance) instance.events = list;
         }
-
-        if (responseObj.callback) responseObj.callback();
     },
 
     describeVolumeStatus : function (callback) {
@@ -2373,7 +2344,7 @@ var ew_controller = {
             }
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createAccessKey : function(name, callback)
@@ -2395,7 +2366,7 @@ var ew_controller = {
         var secret = getNodeValue(xmlDoc, "SecretAccessKey");
         debug("Access key = " + key + ", secret = " + secret)
 
-        if (responseObj.callback) responseObj.callback(user, key, secret);
+        responseObj.result = new AccessKey(user, key, secret);
     },
 
     deleteAccessKey : function(id, callback)
@@ -2426,7 +2397,7 @@ var ew_controller = {
 
         ew_model.update('users', getParam(params, 'UserName'), 'keys', list)
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     listMFADevices : function(user, callback)
@@ -2452,7 +2423,7 @@ var ew_controller = {
 
         ew_model.update('users', getParam(params, 'UserName'), 'devices', list)
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     listVirtualMFADevices : function(user, callback)
@@ -2473,7 +2444,7 @@ var ew_controller = {
             list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), arn));
         }
         ew_model.set('vmfas', list);
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     createVirtualMFADevice : function(name, path, callback)
@@ -2490,7 +2461,7 @@ var ew_controller = {
         obj.seed = getNodeValue(xmlDoc, "Base32StringSeed");
         obj.qr = getNodeValue(xmlDoc, "QRCodePNG");
 
-        if (responseObj.callback) responseObj.callback(obj);
+        responseObj.result = obj;
     },
 
     enableMFADevice: function(user, serial, auth1, auth2, callback)
@@ -2548,7 +2519,7 @@ var ew_controller = {
             break;
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     getUser : function(name, callback)
@@ -2567,7 +2538,7 @@ var ew_controller = {
         var path = getNodeValue(xmlDoc, "Path");
         var arn = getNodeValue(xmlDoc, "Arn");
 
-        if (responseObj.callback) responseObj.callback(new User(id, name, path, arn));
+        responseObj.result = new User(id, name, path, arn);
     },
 
     getUserPolicy : function(user, policy, callback)
@@ -2584,8 +2555,7 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
 
-        var policy = decodeURIComponent(getNodeValue(xmlDoc, "PolicyDocument"));
-        if (responseObj.callback) responseObj.callback(policy);
+        responseObj.result = decodeURIComponent(getNodeValue(xmlDoc, "PolicyDocument"));
     },
 
     createUser : function(name, path, callback)
@@ -2613,7 +2583,7 @@ var ew_controller = {
         var date = getNodeValue(xmlDoc, "CreateDate");
         ew_model.update('users', name, 'loginProfileDate', date)
 
-        if (responseObj.callback) responseObj.callback(name, date);
+        responseObj.result = date;
     },
 
     createLoginProfile : function(name, pwd, callback)
@@ -2700,7 +2670,7 @@ var ew_controller = {
             break;
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     listGroupPolicies : function(name, callback)
@@ -2730,7 +2700,7 @@ var ew_controller = {
             break;
         }
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     getGroupPolicy : function(group, policy, callback)
@@ -2792,7 +2762,7 @@ var ew_controller = {
         } else {
             responseObj.hasErrors = false;
         }
-        if (responseObj.callback) responseObj.callback(obj);
+        responseObj.result = obj;
     },
 
     updateAccountPasswordPolicy: function(obj, callback)
@@ -2832,7 +2802,7 @@ var ew_controller = {
         // Update user record with the key list
         ew_model.update('users', user, 'certs', list)
 
-        if (responseObj.callback) responseObj.callback(list);
+        responseObj.result = list;
     },
 
     uploadSigningCertificate : function(user, body, callback)
@@ -2894,7 +2864,7 @@ var ew_controller = {
 
         ew_model.set('alarms', alarms);
 
-        if (responseObj.callback) responseObj.callback(alarms);
+        responseObj.result = alarms;
     },
 
 
