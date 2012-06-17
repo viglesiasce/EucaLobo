@@ -9,21 +9,23 @@
         <caption label="&ew.captions.accesskeys.label;" />
         <popupset>
             <menupopup id="accesskey.tree.contextmenu">
-                <menuitem oncommand="ew_AccessKeyTreeView.displayDetails()" label="View Details" />
-                <menuitem oncommand="ew_AccessKeyTreeView.createAccessKey()" label="&ew.accesskeys.create.tip;" />
-                <menuitem oncommand="ew_AccessKeyTreeView.switchCredentials();" label="&ew.accesskeys.switch.tip;" />
-                <menuitem oncommand="ew_AccessKeyTreeView.deleteSelected();" label="&ew.accesskeys.delete.tip;" />
-                <menuitem oncommand="ew_AccessKeyTreeView.exportSelected();" label="&ew.accesskeys.export.tip;" />
-                <menuitem oncommand="ew_AccessKeyTreeView.runShell();" label="&ew.accesskeys.shell.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.displayDetails()" label="View Details" />
+                <menuitem oncommand="ew_AccessKeysTreeView.createAccessKey()" label="&ew.accesskeys.create.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.switchCredentials();" label="&ew.accesskeys.switch.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.deleteSelected();" label="&ew.accesskeys.delete.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.exportSelected();" label="&ew.accesskeys.export.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.runShell();" label="&ew.accesskeys.shell.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.createTemp();" label="Create Temporary Access Key" />
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
             <textbox id="ew.accesskeys.search" size="15" />
-            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeyTreeView.refresh()" />
-            <toolbarbutton image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeyTreeView.createAccessKey();" />
-            <toolbarbutton image="images/delete.png" tooltiptext="&ew.accesskeys.delete.tip;" oncommand="ew_AccessKeyTreeView.deleteSelected();" />
-            <toolbarbutton image="images/attach.png" tooltiptext="&ew.accesskeys.switch.tip;" oncommand="ew_AccessKeyTreeView.switchCredentials();" />
-            <toolbarbutton image="images/shell.png" tooltiptext="&ew.accesskeys.shell.tip;" oncommand="ew_AccessKeyTreeView.runShell()"/>
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeysTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeysTreeView.createAccessKey();" />
+            <toolbarbutton image="images/delete.png" tooltiptext="&ew.accesskeys.delete.tip;" oncommand="ew_AccessKeysTreeView.deleteSelected();" />
+            <toolbarbutton image="images/attach.png" tooltiptext="&ew.accesskeys.switch.tip;" oncommand="ew_AccessKeysTreeView.switchCredentials();" />
+            <toolbarbutton image="images/key.png" tooltiptext="Create Temporary Access key" oncommand="ew_AccessKeysTreeView.createTemp()"/>
+            <toolbarbutton image="images/shell.png" tooltiptext="&ew.accesskeys.shell.tip;" oncommand="ew_AccessKeysTreeView.runShell()"/>
         </toolbar>
         <tree enableColumnDrag="true" id="ew.accesskeys.view" flex="1">
             <treecols>
@@ -34,6 +36,8 @@
                 <treecol id="accesskey.userName" label="User" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                 <splitter class="tree-splitter" />
                 <treecol id="accesskey.state" label="&ew.accesskeys.current.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.expire" label="Expire" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
             </treecols>
             <treechildren id="accesskey.tree.children" context="accesskey.tree.contextmenu" />
         </tree>
@@ -65,7 +69,7 @@
                 <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
                 <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
                 <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairsTreeView.displayDetails()"/>
-                <toolbarbutton image="images/shell.png" tooltiptext="&ew.accesskeys.shell.tip;" oncommand="ew_AccessKeyTreeView.runShell()"/>
+                <toolbarbutton image="images/shell.png" tooltiptext="&ew.accesskeys.shell.tip;" oncommand="ew_AccessKeysTreeView.runShell()"/>
             </toolbar>
             <tree enableColumnDrag="true" id="ew.keypairs.view" flex="1">
                 <treecols>

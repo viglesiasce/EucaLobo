@@ -21,6 +21,10 @@
             </columns>
             <rows>
                 <row>
+                    <label control="ew.home" value="User name:" />
+                    <label id="ew.user" />
+                </row>
+                <row>
                     <label control="ew.home" value="User home directory:" />
                     <label id="ew.home" />
                 </row>

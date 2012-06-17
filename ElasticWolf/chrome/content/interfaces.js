@@ -38,6 +38,17 @@ var TreeView = {
     {
         return this.treeList;
     },
+    setData: function(list)
+    {
+        this.treeList = new Array();
+        if (list) {
+            this.treeList = this.treeList.concat(list);
+        }
+        this.treeBox.rowCountChanged(0, this.treeList.length);
+        this.treeBox.invalidate();
+        this.selection.clearSelection();
+        this.invalidate();
+    },
     getList: function()
     {
         return this.model ? this.getModel() : this.getData();
@@ -147,7 +158,7 @@ var TreeView = {
     getCellProperties : function(idx, column, prop)
     {
         var name = column.id.split(".").pop();
-        if (this.properties.indexOf(name) == -1) return;
+        if (idx < 0 || idx >= this.rowCount || this.properties.indexOf(name) == -1) return;
         var value = String(this.treeList[idx][name]).replace(/[ -.:]+/g,'_').toLowerCase();
         if (!this.atomService) {
             this.atomService = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
@@ -215,6 +226,14 @@ var TreeView = {
         if (!this.registered) {
             this.registered = true;
             ew_model.registerInterest(this, this.model);
+        }
+    },
+    remove: function(obj, columns)
+    {
+        var i = this.find(obj, columns)
+        if (i >= 0) {
+            this.treeList.splice(i, 1);
+            this.treeBox.rowCountChanged(i + 1, -1);
         }
     },
     find: function(obj, columns)

@@ -3,37 +3,35 @@ var ew_session = {
     VERSION: "2.0",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
-    EC2_API_VERSION: '2012-05-01',
+    EC2_API_VERSION: '2012-06-01',
     ELB_API_VERSION: '2011-11-15',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
+    STS_API_VERSION: '2011-06-15',
     VPN_CONFIG_PATH : 'https://ec2-downloads.s3.amazonaws.com/',
     SIG_VERSION: '2',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
-    notAvail: { "us-gov-west-1": ["DescriveAlarms", "DescribeLoadBalancers", "GetLoginProfile",  ] },
 
-    accessCode : "",
-    secretKey : "",
+    disabled: false,
+    prefs: null,
     locked: false,
     controller : null,
     model : null,
+    user: {},
     credentials : null,
     cmdline: null,
     endpoints: null,
+    timers: {},
     region: "",
-    serviceURL: "",
-    elbURL: "",
-    cwURL: "",
-    iamURL: "",
-    accessCode: "",
+    urls: {},
+    versions: {},
+    accessKey: "",
     secretKey: "",
+    securityToken: null,
+    httpCount: 0,
     errorCount: 0,
     errorMax: 3,
-    timers: {},
-    disabled: false,
-    httpCount: 0,
-    prefs: null,
 
     initialize : function()
     {
@@ -42,19 +40,19 @@ var ew_session = {
         }
 
         ew_menu.init();
+        ew_controller.session = this;
 
         this.model = ew_model;
         this.controller = ew_controller;
-        ew_controller.session = this;
+        this.credentials = this.getCredentials();
 
-        this.loadCredentials();
         this.getEndpoints();
 
         document.title = ew_session.getAppName();
 
         // Use last used credentials
-        this.selectCredentials(this.getActiveCredentials());
         this.selectEndpoint(this.getActiveEndpoint());
+        this.selectCredentials(this.getActiveCredentials());
         this.selectTab(this.getStrPrefs("ew.tab.current"));
 
         // Parse command line
@@ -65,8 +63,9 @@ var ew_session = {
         var key = this.cmdLine.handleFlagWithParam('key', true);
         var secret = this.cmdLine.handleFlagWithParam('secret', true);
         var endpoint = this.cmdLine.handleFlagWithParam('endpoint', true);
+        var token = this.cmdLine.handleFlagWithParam('token', true);
         if (key && key != '' && secret && secret != '') {
-            var cred = new Credential(name || 'AWS', key, secret, endpoint);
+            var cred = new Credential(name || 'AWS', key, secret, endpoint, token);
             this.switchCredentials(cred);
         } else
 
@@ -81,6 +80,7 @@ var ew_session = {
         // Check for pin
         this.promptForPin();
         this.setIdleTimer();
+        this.refreshEndpoints();
     },
 
     setIdleTimer: function()
@@ -164,17 +164,6 @@ var ew_session = {
         this.savePassword('Cred:' + cred.name, cred.toString())
     },
 
-    loadCredentials : function()
-    {
-        this.credentials = this.getCredentials();
-        if (this.credentials.length == 0) {
-            // invalidate all the views
-            this.model.invalidate();
-            // Reset the credentials stored in the client
-            this.setCredentials("", "");
-        }
-    },
-
     getActiveCredentials : function()
     {
         var cur = this.getCurrentUser();
@@ -186,16 +175,20 @@ var ew_session = {
 
     selectCredentials: function(cred)
     {
+        var me = this;
         if (cred) {
             debug("switch credentials to " + cred.name)
             this.setStrPrefs("ew.account.name", cred.name);
-            this.setCredentials(cred.accessKey, cred.secretKey);
+            this.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
 
             if (cred.endPoint != "") {
-                var endpoint = new Endpoint("", cred.endPoint)
+                var endpoint = this.getEndpoint(null, cred.endPoint);
+                if (!endpoint) endpoint = new Endpoint("", cred.endPoint)
                 this.selectEndpoint(endpoint);
             }
             ew_menu.update();
+            // Retrieve current user info
+            this.controller.getUser(null, function(user) { me.user = user || {}; })
             return true;
         }
         return false;
@@ -216,37 +209,56 @@ var ew_session = {
         }
     },
 
-    setCredentials : function (accessCode, secretKey)
+    setCredentials : function (accessKey, secretKey, securityToken)
     {
-        this.accessCode = accessCode;
+        this.accessKey = accessKey;
         this.secretKey = secretKey;
+        this.securityToken = securityToken;
         this.errorCount = 0;
+    },
+
+    getEndpoint: function(name, url)
+    {
+        if (this.endpoints) {
+            for (var i in this.endpoints) {
+                if (name && this.endpoints[i].name == name) return this.endpoints[i];
+                if (url && this.endpoints[i].url == url) return this.endpoints[i];
+            }
+        }
+        return null;
     },
 
     setEndpoint : function (endpoint)
     {
         if (endpoint != null) {
-            this.serviceURL = endpoint.url;
+            this.errorCount = 0;
             this.region = endpoint.name;
-            this.elbURL = "https://elasticloadbalancing." + this.region + ".amazonaws.com";
-            this.cwURL = "https://monitoring." + this.region + ".amazonaws.com";
-            this.iamURL = this.isGovCloud() ? 'https://iam.us-gov.amazonaws.com' : 'https://iam.amazonaws.com';
+            this.urls.EC2 = endpoint.url;
+            this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
+            this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
+            this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
+            this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
+            this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
+            this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
+            this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
+            this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
+            this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
+            this.actionIgnore = endpoint.actionIgnore || [];
+            debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
         }
     },
 
     getActiveEndpoint : function()
     {
-        var name = this.getLastUsedEndpoint();
-        var endpoint = this.getEndpoint(name);
-        return endpoint ? endpoint : new Endpoint(name, this.getServiceURL());
+        var endpoint = this.getEndpoint(this.getLastUsedEndpoint());
+        return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com"));
     },
 
     selectEndpoint: function(endpoint)
     {
         if (endpoint != null) {
-            debug("switch endpoint to " + endpoint.name)
             this.setLastUsedEndpoint(endpoint.name);
-            this.setServiceURL(endpoint.url);
+            this.setStrPrefs("ew.endpoint.url", endpoint.url);
             this.setEndpoint(endpoint);
             ew_menu.update();
             return true;
@@ -275,22 +287,10 @@ var ew_session = {
         }
     },
 
-    getEndpoint: function(name)
-    {
-        if (this.endpoints) {
-            for (var i in this.endpoints) {
-                if (this.endpoints[i].name == name) return this.endpoints[i];
-            }
-        }
-        return null;
-    },
-
     addEndpoint: function(name, url)
     {
         if (this.endpoints) {
-            for (var i in this.endpoints) {
-                if (this.endpoints[i].name == name) return;
-            }
+            if (this.getEndpoint(name)) return;
             this.endpoints.push(new Endpoint(name, url))
             this.setListPrefs("ew.endpoints", this.endpoints);
         }
@@ -314,22 +314,20 @@ var ew_session = {
         if (this.endpoints == null) {
             this.endpoints = [];
 
+            // Default endpoints with posssible custom configuration like urls, versions for each service
+            var regions = this.model.getEC2Regions();
+            for (var i in regions) {
+                this.endpoints.push(regions[i]);
+            }
+
+            // Merge with added endpoints
             var list = this.getListPrefs("ew.endpoints");
             for (var i in list) {
-                if (list[i] && list[i].name && list[i].url) {
+                if (list[i] && list[i].name && list[i].url && me.getEndpoint(regions[i].name) == null) {
                     this.endpoints.push(new Endpoint(list[i].name, list[i].url));
                 }
             }
-            // Default regions
-            var regions = this.model.getEC2Regions();
-            for (var i in regions) {
-                if (this.getEndpoint(regions[i].name) == null) {
-                    this.endpoints.push(regions[i]);
-                }
-            }
-            this.refreshEndpoints();
         }
-
         return this.endpoints;
     },
 
@@ -422,7 +420,7 @@ var ew_session = {
 
         // Save access key into file
         var file = this.getCredentialFile(keyPair.name);
-        if (!accessKey) accessKey = { id: this.accessCode, secret: this.secretKey };
+        if (!accessKey) accessKey = { id: this.accessKey, secret: this.secretKey };
         if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
             return alert('Unable to create credentials file ' + file + ", please check directory permissions");
         }
@@ -433,9 +431,9 @@ var ew_session = {
             this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
             this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
         }
-        this.setEnv("EC2_URL", this.serviceURL);
-        this.setEnv("AWS_IAM_URL", this.iamURL);
-        this.setEnv("AWS_CLOUDWATCH_URL", this.cwURL);
+        this.setEnv("EC2_URL", this.urlEC2);
+        this.setEnv("AWS_IAM_URL", this.urlIAM);
+        this.setEnv("AWS_CLOUDWATCH_URL", this.urlCW);
 
         // Current PATH
         var path = this.getEnv("PATH");
@@ -666,7 +664,7 @@ var ew_session = {
 
     getPasswordList : function(prefix)
     {
-        var list = []
+        var list = [];
         var loginManager = Components.classes["@mozilla.org/login-manager;1"].getService(Components.interfaces.nsILoginManager);
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
@@ -747,12 +745,12 @@ var ew_session = {
 
     isGovCloud : function()
     {
-        return String(this.serviceURL).indexOf("ec2.us-gov") > -1;
+        return String(this.urlEC2).indexOf("ec2.us-gov") > -1;
     },
 
     isEnabled: function()
     {
-        return this.getBoolPrefs("ew.http.enabled", true) && !this.disabled && this.accessCode != "" && this.secretKey != "";
+        return this.getBoolPrefs("ew.http.enabled", true) && !this.disabled && this.accessKey != "" && this.secretKey != "";
     },
 
     checkForUpdates: function()
@@ -802,35 +800,33 @@ var ew_session = {
     {
         if (!this.isEnabled()) return null;
 
-        if (this.serviceURL == null || this.serviceURL == "") {
-            this.setEndpoint(ew_session.getActiveEndpoint());
-        }
-
-        try {
+        //try {
             return this.queryEC2Impl(action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion);
-        } catch (e) {
-            debug(e)
-            this.errorDialog("An error occurred while calling "+ action, { errString: e });
-        }
+        //} catch (e) {
+            //debug(e + ", " + JSON.stringify(arguments));
+            //this.errorDialog("An error occurred while calling "+ action, { errString: e });
+        //}
         return null;
     },
 
     queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        if (this.elbURL == null || this.elbURL == "") {
-            this.setEndpoint(ew_session.getActiveEndpoint());
-        }
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.elbURL, this.ELB_API_VERSION);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
     },
 
     queryIAM : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.iamURL, this.IAM_API_VERSION);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.IAM, this.versions.IAM);
     },
 
     queryCloudWatch : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.cwURL, this.CW_API_VERSION);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW);
+    },
+
+    querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS);
     },
 
     downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
@@ -909,14 +905,15 @@ var ew_session = {
         var curTime = new Date();
         var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
 
-        var url = apiURL ? apiURL : this.serviceURL
+        var url = apiURL ? apiURL : this.urls.EC2;
         var sigValues = new Array();
         sigValues.push(new Array("Action", action));
-        sigValues.push(new Array("AWSAccessKeyId", this.accessCode));
+        sigValues.push(new Array("AWSAccessKeyId", this.accessKey));
         sigValues.push(new Array("SignatureVersion", sigVersion ? sigVersion : this.SIG_VERSION));
         sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
-        sigValues.push(new Array("Version", apiVersion ? apiVersion : this.EC2_API_VERSION));
+        sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
         sigValues.push(new Array("Timestamp", formattedTime));
+        if (this.securityToken) sigValues.push(new Array("SecurityToken", this.securityToken));
 
         // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
         for (var i = 0; i < params.length; i++) {
@@ -976,6 +973,7 @@ var ew_session = {
         if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
         if (!params["Content-Type"]) params["Content-Type"] = "binary/octet-stream; charset=UTF-8";
         if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
+        if (this.securityToken) params["x-amz-security-token"] = this.securityToken;
 
         // Construct the string to sign and query string
         var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";
@@ -1011,7 +1009,7 @@ var ew_session = {
         }
         strSig += (bucket ? "/" + bucket : "") + "/" + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
 
-        params["Authorization"] = "AWS " + this.accessCode + ":" + b64_hmac_sha1(this.secretKey, strSig);
+        params["Authorization"] = "AWS " + this.accessKey + ":" + b64_hmac_sha1(this.secretKey, strSig);
         params["User-Agent"] = this.getUserAgent();
         params["Connection"] = "close";
 
@@ -1112,8 +1110,7 @@ var ew_session = {
         if (rc.hasErrors) {
             this.errorCount++;
             if (this.errorCount < this.errorMax) {
-                var apis = this.notAvail[this.region];
-                if (!apis || apis.indexOf(action) == -1) {
+                if (this.actionIgnore.indexOf(rc.action) == -1) {
                     this.errorDialog("Server responded with an error for " + rc.action, rc)
                 }
             }
@@ -1138,11 +1135,6 @@ var ew_session = {
 
         if (xmlhttp) {
             var xmlDoc = xmlhttp.responseXML;
-            if (!xmlDoc) {
-                if (xmlhttp.responseText) {
-                    xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText, "text/xml");
-                }
-            }
             if (xmlDoc) {
                 rc.errCode = getNodeValue(xmlDoc, "Code");
                 rc.errString = getNodeValue(xmlDoc, "Message");
@@ -1300,16 +1292,6 @@ var ew_session = {
     getProfileHome : function()
     {
         return DirIO.get("ProfD").path;
-    },
-
-    getServiceURL : function()
-    {
-        return this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com");
-    },
-
-    setServiceURL : function(value)
-    {
-        this.setStrPrefs("ew.endpoint.url", value);
     },
 
     getKeyHome : function()

@@ -93,6 +93,10 @@ treechildren::-moz-tree-cell(accesskeys_current) {
     background-color: #C3DDC3;
 }
 
+treechildren::-moz-tree-cell(accesskeys_expired) {
+    background-color: #FFCCCC;
+}
+
 treechildren::-moz-tree-cell-text(selected) {
     color: #000000;
 }

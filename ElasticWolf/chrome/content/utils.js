@@ -254,6 +254,7 @@ function getNodeValue(item, nodeName, childName)
         var node = parent ? parent.getElementsByTagName(nodeName)[0] : null;
         return node && node.firstChild ? node.firstChild.nodeValue : "";
     }
+    if (!item) return '';
     if (childName) {
         return _getNodeValue(item.getElementsByTagName(nodeName)[0], childName);
     } else {

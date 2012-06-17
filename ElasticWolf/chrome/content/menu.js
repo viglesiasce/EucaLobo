@@ -20,7 +20,7 @@ var ew_menu = {
 
             { name: "ew.tabs.image",         views: [ { id: "ew.images.view", view: ew_AMIsTreeView } ], },
 
-            { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeyTreeView },
+            { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeysTreeView },
                                                       { id: "ew.keypairs.view", view: ew_KeypairsTreeView, } ], },
 
             { name: "ew.tabs.cert",          views: [  { id: "ew.certs.view", view: ew_CertsTreeView } ] },

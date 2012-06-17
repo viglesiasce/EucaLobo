@@ -1,3 +1,18 @@
+
+function Endpoint(name, url)
+{
+    if (!name || name == "") {
+        this.name = url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
+    } else {
+        this.name = name;
+    }
+    this.url = url;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
 function Certificate(id, user, body)
 {
     this.id = id
@@ -18,25 +33,50 @@ function KeyPair(name, fingerprint, material)
     }
 }
 
-function AccessKey(id, status, user, secret, state)
+function AccessKey(id, secret, status, user)
 {
     this.id = id;
     this.status = status;
     this.userName = user || "";
     this.secret = secret || "";
-    this.state = state
+    this.state = "";
+
     this.toString = function() {
         return this.id + ew_model.separator + this.userName + (this.state ? ew_model.separator + this.state : "");
     }
 }
 
-function Credential(name, accessKey, secretKey, endPoint)
+function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
+{
+    this.id = id;
+    this.status = "Temporary";
+    this.secret = secret || "";
+    this.state = "";
+    this.securityToken = securityToken || "";
+    this.expire = expire || "";
+    this.userName = userName || "";
+    this.userId = userId || "";
+    this.arn = arn || "";
+
+    if (typeof this.expire == "string") {
+        this.expire = new Date();
+        this.expire.setISO8601(expire);
+    }
+
+    this.toString = function() {
+        return this.id + ew_model.separator + this.userName + (this.state ? ew_model.separator + this.state : "");
+    }
+}
+
+function Credential(name, accessKey, secretKey, endPoint, securityToken)
 {
     this.name = name;
     this.accessKey = accessKey;
     this.secretKey = secretKey;
     this.endPoint = endPoint || "";
+    this.securityToken = securityToken || "";
     this.status = "";
+    this.type = "Real";
 
     this.toString = function() {
         return this.accessKey + ";;" + this.secretKey + ";;" + this.endPoint;
@@ -242,21 +282,7 @@ function NetworkAcl(id, vpcId, dflt, rules, assocs)
     }
 }
 
-function Endpoint(name, url)
-{
-    if (!name || name == "") {
-        this.name = url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
-    } else {
-        this.name = name;
-    }
-    this.url = url;
-
-    this.toString = function() {
-        return this.name;
-    }
-}
-
-function AMI(id, location, state, owner, status, arch, platform, aki, ari, rootDeviceType, ownerAlias, name, description, snapshotId, tags)
+function AMI(id, name, description, location, state, status, arch, platform, aki, ari, rootDeviceType, rootDeviceName, owner, ownerAlias, snapshotId, volumes, virtType, hypervisor, productCodes, tags)
 {
     this.id = id;
     this.location = location;
@@ -269,10 +295,15 @@ function AMI(id, location, state, owner, status, arch, platform, aki, ari, rootD
     this.aki = aki;
     this.ari = ari;
     this.rootDeviceType = rootDeviceType;
+    this.rootDeviceName = rootDeviceName;
     this.ownerAlias = ownerAlias;
     this.name = name;
     this.description = description;
     this.snapshotId = snapshotId;
+    this.volumes = volumes;
+    this.virtualizationType = virtType;
+    this.hypervisor = hypervisor;
+    this.productCodes = productCodes;
     ew_model.processTags(this)
 
     this.toString = function() {
@@ -337,7 +368,26 @@ function VolumeStatusEvent(volumeId, availabilityZone, eventId, eventType, descr
     }
 }
 
-function InstanceVolumeAttachment(volumeId, deviceName, status, attachTime, deleteOnTermination)
+function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, deleteOnTermination, noDevice)
+{
+    this.snapshotId = snapshotId;
+    this.deviceName = deviceName;
+    this.virtualName = virtualName;
+    this.volumesize = volumeSize
+    this.deleteOnTermination = deleteOnTermination;
+    this.noDevice = noDevice;
+
+    this.toString = function() {
+        return this.deviceName +
+               (this.virtualName ? ew_model.separator + this.virtualName : "") +
+               (this.volumeSize ? ew_model.separator + this.volumeSize + "GB" : "") +
+               (this.snapshotId ? ew_model.separator + this.snapshotId : "") +
+               (this.deleteOnTermination ? ew_model.separator + "DeleteOnTermination" : "") +
+               (this.noDevice ? ew_model.separator + "noDevice" : "");
+    }
+}
+
+function InstanceBlockDeviceMapping(deviceName, volumeId, status, attachTime, deleteOnTermination)
 {
     this.volumeId = volumeId;
     this.deviceName = deviceName;
@@ -346,7 +396,7 @@ function InstanceVolumeAttachment(volumeId, deviceName, status, attachTime, dele
     this.deleteOnTermination = deleteOnTermination;
 
     this.toString = function() {
-        return this.deviceName + ew_model.separator + this.status + ew_model.separator + this.volumeId + ew_model.separator + (this.deleteOnTermination ? "DeleteOnTermination" : "Keep");
+        return this.deviceName + ew_model.separator + this.status + ew_model.separator + this.volumeId + (this.deleteOnTermination ? ew_model.separator + "DeleteOnTermination" : "");
     }
 }
 
@@ -794,6 +844,8 @@ var ew_model = {
     progress: {},
     separator: " | ",
 
+    accesskeys: null,
+    certs: null,
     volumes : null,
     images : null,
     snapshots : null,
@@ -835,6 +887,12 @@ var ew_model = {
         this.progress[name] = now;
 
         switch (name) {
+        case "certs":
+            ew_session.controller.listSigningCertificates();
+            break;
+        case "accesskeys":
+            ew_session.controller.listAccessKeys();
+            break;
         case "alarms":
             ew_session.controller.describeAlarms();
             break;
@@ -1098,14 +1156,32 @@ var ew_model = {
     },
 
     // Find object in the list by id or name
-    findObject: function(list, id, field)
+    findObjectIndex: function(list, id, field)
     {
         for (var i in list) {
-            if (field && list[i][field] == id) return list[i];
-            if (list[i].id && list[i].id == id) return list[i];
-            if (list[i].name && list[i].name == id) return list[i];
+            if (field && list[i][field] == id) return i;
+            if (list[i].id && list[i].id == id) return i;
+            if (list[i].name && list[i].name == id) return i;
         }
-        return null;
+        return -1;
+    },
+
+    // Find object in the list by id or name
+    findObject: function(list, id, field)
+    {
+        var i = this.findObjectIndex(list, id, field);
+        return i >= 0 ? list[i] : null;
+    },
+
+    // Remove object in the list by id or name
+    removeObject: function(list, id, field)
+    {
+        var i = this.findObjectIndex(list, id, field);
+        if (i >= 0) {
+            list.splice(i, 1);
+            return true;
+        }
+        return false;
     },
 
     // Return objects if all arguments match
@@ -1227,18 +1303,6 @@ var ew_model = {
         return this.findObject(this.securityGroups, id)
     },
 
-    getS3Regions: function()
-    {
-        return [ { name: "US Standard", url: "s3.amazonaws.com", region: "" },
-                 { name: "US West (Oregon)", url: "s3-us-west-2.amazonaws.com", region: "us-west-2" },
-                 { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com", region: "us-west-1" },
-                 { name: "EU (Ireland)", url: "s3-eu-west-1.amazonaws.com", region: "EU" },
-                 { name: "Asia Pacific (Singapore)", url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
-                 { name: "Asia Pacific (Tokyo)", url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
-                 { name: "South America (Sao Paulo)", url: "s3-sa-east-1.amazonaws.com", region: "sa-east-1" },
-                 { name: "GovCloud", url: "s3-us-gov-west-1.amazonaws.com", region: 'us-gov-west-1' } ]
-    },
-
     getS3Region: function(region)
     {
         var regions = this.getS3Regions();
@@ -1250,14 +1314,35 @@ var ew_model = {
         return regions[0]
     },
 
+    getS3Regions: function()
+    {
+        return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
+                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
+                 { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
+                 { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
+                 { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
+                 { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
+                 { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
+                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' } ]
+    },
+
     getEC2Regions: function()
     {
-        return [ { name: 'us-east-1', url: 'https://ec2.us-east-1.amazonaws.com' },
-                 { name: 'eu-west-1', url: 'https://ec2.eu-west-1.amazonaws.com' },
-                 { name: 'us-west-1', url: 'https://ec2.us-west-1.amazonaws.com' },
+        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com' },
+                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com' },
+                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com' },
+                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com' },
                  { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com' },
                  { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com' },
-                 { name: 'us-gov-west-1', url: 'https://ec2.us-gov-west-1.amazonaws.com' },
+                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com' },
+                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com' ,
+                   version: '2012-05-01',
+                   versionELB: '2011-11-15',
+                   versionCW: '2010-08-01',
+                   urlIAM: 'https://iam.us-gov.amazonaws.com',
+                   versionIAM: '2010-05-08',
+                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "GetLoginProfile", ],
+                 },
             ];
     },
 

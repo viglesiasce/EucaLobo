@@ -193,7 +193,7 @@ var ew_UsersTreeView = {
         ew_session.controller.createAccessKey(user, function(user, key, secret) {
             item.keys = null;
             this.selectionChanged();
-            ew_AccessKeyTreeView.saveAccessKey(user, key, secret);
+            ew_AccessKeysTreeView.saveAccessKey(user, key, secret);
         });
     },
 
@@ -589,9 +589,33 @@ var ew_KeypairsTreeView = {
 ew_KeypairsTreeView.__proto__ = TreeView;
 ew_KeypairsTreeView.register();
 
-var ew_AccessKeyTreeView = {
-    name: ["accesskeys"],
+var ew_AccessKeysTreeView = {
+    name: "accesskeys",
     properties: ["state"],
+
+    createTemp: function()
+    {
+        var me = this;
+        var rc = {};
+        openDialog('chrome://ew/content/dialogs/create_temp_accesskey.xul', null, 'chrome,centerscreen,modal', ew_session, rc);
+        if (!rc.ok) return;
+
+        switch (rc.type) {
+        case 'session':
+            ew_session.controller.getSessionToken(rc.duration, function(key) {
+                me.saveTempKeys(me.getTempKeys().concat([ key ]));
+                me.refresh();
+            });
+            break;
+
+        case 'federation':
+            ew_session.controller.getFederationToken(rc.duration, rc.name, rc.policy, function(key) {
+                me.saveTempKeys(me.getTempKeys().concat([ key ]));
+                me.refresh();
+            });
+            break;
+        }
+    },
 
     runShell: function()
     {
@@ -608,15 +632,27 @@ var ew_AccessKeyTreeView = {
     selectionChanged: function()
     {
         var key = this.getSelected();
-        if (key == null) return;
+        if (key == null || key.secret) return;
         key.secret = this.getAccessKeySecret(key.id);
         TreeView.selectionChanged.call(this);
+    },
+
+    filter: function(list)
+    {
+        var now = new Date();
+        for (var i in list) {
+            list[i].state = ew_session.accessKey == list[i].id ? "Current" : "";
+            if (list[i].status == "Temporary" && list[i].expire < now) list[i].state = "Expired";
+        }
+        return TreeView.filter.call(this, list);
     },
 
     refresh: function()
     {
         var me = this;
-        ew_session.controller.listAccessKeys(null, function(list) { me.display(list); })
+        ew_session.controller.listAccessKeys(null, function(list) {
+            me.setData(list.concat(me.getTempKeys()));
+        })
     },
 
     saveAccessKey: function(user, key, secret, save)
@@ -638,20 +674,45 @@ var ew_AccessKeyTreeView = {
 
     getAccessKeySecret : function(key) {
         var secret = ew_session.getPassword('AccessKey:' + key)
-        if (secret == "" && key == ew_session.accessCode) {
+        if (secret == "" && key == ew_session.accessKey) {
             secret = ew_session.secretKey
         }
         return secret
     },
 
+    getTempKeys: function()
+    {
+        var list = [];
+        var keys = ew_session.getPassword("ew.temp.keys");
+        try { list = JSON.parse(keys); } catch(e) {};
+        for (var i in list) {
+            list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
+        }
+        return list;
+    },
+
+    saveTempKeys: function(list)
+    {
+        list = JSON.stringify(list instanceof Array ? list : []);
+        ew_session.savePassword("ew.temp.keys", list);
+    },
+
     deleteSelected  : function () {
         var key = this.getSelected();
         if (key == null) return;
-        if (key.current) {
+        if (key.state == "Current") {
             alert("You cannot delete current access key")
             return;
         }
         if (!ew_session.promptYesNo("Confirm", "Delete access key "+key.id+"?")) return;
+
+        if (key.status == "Temporary") {
+            var list = this.getTempKeys();
+            ew_model.removeObject(list, key.id);
+            this.saveTempKeys(list);
+            this.refresh();
+            return;
+        }
 
         var me = this;
         var wrap = function() {
@@ -664,7 +725,7 @@ var ew_AccessKeyTreeView = {
     exportSelected  : function () {
         var key = this.getSelected();
         if (key == null) return;
-        key.secret = this.getAccessKeySecret(key.id)
+        if (!key.secret) key.secret = this.getAccessKeySecret(key.id)
         if (key.secret == "") {
             alert("No secret key available for this access key")
             return
@@ -678,7 +739,7 @@ var ew_AccessKeyTreeView = {
     switchCredentials  : function () {
         var key = this.getSelected();
         if (key == null) return;
-        key.secret = this.getAccessKeySecret(key.id)
+        if (!key.secret) key.secret = this.getAccessKeySecret(key.id)
         if (key.secret == "") {
             alert("Access key " + key.id + " does not have secret code available, cannot use this key");
             return;
@@ -689,8 +750,8 @@ var ew_AccessKeyTreeView = {
         this.refresh();
     },
 };
-ew_AccessKeyTreeView.__proto__ = TreeView;
-ew_AccessKeyTreeView.register();
+ew_AccessKeysTreeView.__proto__ = TreeView;
+ew_AccessKeysTreeView.register();
 
 var ew_CertsTreeView = {
     name: "certs",
@@ -698,7 +759,7 @@ var ew_CertsTreeView = {
     refresh: function()
     {
         var me = this;
-        ew_session.controller.listSigningCertificates(null, function(list) { me.display(list); })
+        ew_session.controller.listSigningCertificates(null, function(list) { me.setData(list); })
     },
 
     createCert : function () {

@@ -668,6 +668,42 @@ var ew_controller = {
         ew_session.queryEC2("DetachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
     },
 
+    unpackImage: function(item)
+    {
+        if (!item) return null;
+        var imageId = getNodeValue(item, "imageId");
+        var imageLocation = getNodeValue(item, "imageLocation");
+        var imageState = getNodeValue(item, "imageState");
+        var owner = getNodeValue(item, "imageOwnerId");
+        var isPublic = getNodeValue(item, "isPublic");
+        var platform = getNodeValue(item, "platform");
+        var aki = getNodeValue(item, "kernelId");
+        var ari = getNodeValue(item, "ramdiskId");
+        var rdt = getNodeValue(item, "rootDeviceType");
+        var rdn = getNodeValue(item, "rootDeviceName");
+        var ownerAlias = getNodeValue(item, "imageOwnerAlias");
+        var productCodes = this.getItems(item, "productCodes", "item", ["productCode", "type"], function(obj) { return new Group(obj.productCode, obj.type) });
+        var name = getNodeValue(item, "name");
+        var description = getNodeValue(item, "description");
+        var snapshotId = getNodeValue(item, "snapshotId");
+        var volumes = [];
+        var objs = this.getItems(item, "blockDeviceMapping", "item");
+        for (var i = 0; i < objs.length; i++) {
+            var vdevice = getNodeValue(objs[i], "deviceName");
+            var vname = getNodeValue(objs[i], "virtualName");
+            var vid = getNodeValue(objs[i], "ebs", "snapshotId");
+            var vsize = getNodeValue(objs[i], "ebs", "volumeSize");
+            var vdel = getNodeValue(objs[i], "ebs", "deleteOnTermination");
+            var nodev = objs[i].getElementsByTagName("noDevice");
+            volumes.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, vdel, nodev.length ? true : false));
+        }
+        var virtType = getNodeValue(item, 'virtualizationType');
+        var hypervisor = getNodeValue(item, 'hypervisor');
+        var arch = getNodeValue(item, 'architecture');
+        var tags = this.getTags(item);
+        return new AMI(imageId, name, description, imageLocation, imageState, (isPublic == 'true' ? 'public' : 'private'), arch, platform, aki, ari, rdt, rdn, owner, ownerAlias, snapshotId, volumes, virtType, hypervisor, productCodes, tags);
+    },
+
     describeImage : function(imageId, callback)
     {
         ew_session.queryEC2("DescribeImages", [ [ "ImageId", imageId ] ], this, false, "onCompleteDescribeImage", callback);
@@ -679,26 +715,7 @@ var ew_controller = {
 
         var items = xmlDoc.evaluate("/ec2:DescribeImagesResponse/ec2:imagesSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         var item = items.snapshotItem(0);
-        var ami = null;
-
-        if (item) {
-            var imageId = getNodeValue(item, "imageId");
-            var imageLocation = getNodeValue(item, "imageLocation");
-            var imageState = getNodeValue(item, "imageState");
-            var owner = getNodeValue(item, "imageOwnerId");
-            var isPublic = getNodeValue(item, "isPublic");
-            var platform = getNodeValue(item, "platform");
-            var aki = getNodeValue(item, "kernelId");
-            var ari = getNodeValue(item, "ramdiskId");
-            var rdt = getNodeValue(item, "rootDeviceType");
-            var ownerAlias = getNodeValue(item, "imageOwnerAlias");
-            var name = getNodeValue(item, "name");
-            var description = getNodeValue(item, "description");
-            var snapshotId = getNodeValue(item, "snapshotId");
-            var tags = this.getTags(item);
-            ami = new AMI(imageId, imageLocation, imageState, owner, (isPublic == 'true' ? 'public' : 'private'), platform, aki, ari, rdt, ownerAlias, name, description, snapshotId, tags);
-        }
-        responseObj.result = ami;
+        responseObj.result = this.unpackImage(item);
     },
 
     createImage : function(instanceId, amiName, amiDescription, noReboot, callback)
@@ -724,31 +741,11 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var img = null;
         var items = xmlDoc.evaluate("/ec2:DescribeImagesResponse/ec2:imagesSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         for ( var i = 0; i < items.snapshotLength; i++) {
-            var imageId = getNodeValue(items.snapshotItem(i), "imageId");
-            var imageLocation = getNodeValue(items.snapshotItem(i), "imageLocation");
-            var imageState = getNodeValue(items.snapshotItem(i), "imageState");
-            var owner = getNodeValue(items.snapshotItem(i), "imageOwnerId");
-            var isPublic = getNodeValue(items.snapshotItem(i), "isPublic");
-            var arch = getNodeValue(items.snapshotItem(i), "architecture");
-            var rdt = getNodeValue(items.snapshotItem(i), "rootDeviceType");
-            var ownerAlias = getNodeValue(items.snapshotItem(i), "imageOwnerAlias");
-            var name = getNodeValue(items.snapshotItem(i), "name");
-            var description = getNodeValue(items.snapshotItem(i), "description");
-            var snapshotId = getNodeValue(items.snapshotItem(i), "snapshotId");
-
-            // These value might not exist, but getNodeValue
-            // returns "" in case the element is not defined.
-            var platform = getNodeValue(items.snapshotItem(i), "platform");
-            var aki = getNodeValue(items.snapshotItem(i), "kernelId");
-            var ari = getNodeValue(items.snapshotItem(i), "ramdiskId");
-            var tags = this.getTags(items.snapshotItem(i));
-
-            list.push(new AMI(imageId, imageLocation, imageState, owner, (isPublic == 'true' ? 'public' : 'private'), arch, platform, aki, ari, rdt, ownerAlias, name, description, snapshotId, tags));
+            var ami = this.unpackImage(items.snapshotItem(i));
+            if (ami) list.push(ami);
         }
-
         ew_model.set('images', list);
         responseObj.result = list;
     },
@@ -912,11 +909,7 @@ var ew_controller = {
                     var instanceId = getNodeValue(instance, "instanceId");
                     var imageId = getNodeValue(instance, "imageId");
                     var state = getNodeValue(instance, "instanceState", "name");
-                    var productCodes = [];
-                    var objs = this.getItems(instance, "productCodes", "item", ["productCode", "type"]);
-                    for (var i = 0; i < objs.length; i++) {
-                        list.push(new Group(objs[i].productCode, objs[i].type));
-                    }
+                    var productCodes = this.getItems(instance, "productCodes", "item", ["productCode", "type"], function(obj) { return new Group(obj.productCode, obj.type) });
                     var allGroups = groups.concat(this.getGroups(instance));
                     var dnsName = getNodeValue(instance, "dnsName");
                     var privateDnsName = getNodeValue(instance, "privateDnsName");
@@ -953,7 +946,7 @@ var ew_controller = {
                         var vstatus = getNodeValue(objs[i], "ebs", "status");
                         var vtime = getNodeValue(objs[i], "ebs", "attachTime");
                         var vdel = getNodeValue(objs[i], "ebs", "deleteOnTermination");
-                        volumes.push(new InstanceVolumeAttachment(vid, vdevice, vstatus, vtime, vdel));
+                        volumes.push(new InstanceBlockDeviceMapping(vdevice, vid, vstatus, vtime, vdel));
                     }
                     var enis = [];
                     var objs = this.getItems(instance, "networkInterfaceSet", "item");
@@ -1019,7 +1012,6 @@ var ew_controller = {
             } else {
                 userData = userData.substring(b64str.length);
             }
-            log(userData);
             params.push([ "UserData", userData ]);
         }
         if (properties != null) {
@@ -1050,6 +1042,56 @@ var ew_controller = {
         var list = this.getItems(xmlDoc, "instancesSet", "item", "instanceId");
 
         responseObj.result = list;
+    },
+
+    describeInstanceAttribute : function(instanceId, attribute, callback)
+    {
+        ew_session.queryEC2("DescribeInstanceAttribute", [[ "InstanceId", instanceId ], [ "Attribute", attribute ]], this, false, "onCompleteDescribeInstanceAttribute", callback);
+    },
+
+    onCompleteDescribeInstanceAttribute : function(responseObj)
+    {
+        var xmlDoc = responseObj.xmlDoc;
+        var items = xmlDoc.evaluate("/ec2:DescribeInstanceAttributeResponse/*", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        var value = getNodeValue(items.snapshotItem(2), "value");
+
+        responseObj.result = value;
+    },
+
+    modifyInstanceAttribute : function(instanceId, name, value, callback)
+    {
+        ew_session.queryEC2("ModifyInstanceAttribute", [ [ "InstanceId", instanceId ], [ name + ".Value", value ] ], this, false, "onComplete", callback);
+    },
+
+    describeInstanceStatus : function (callback) {
+        ew_session.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
+    },
+
+    onCompleteDescribeInstanceStatus : function (responseObj) {
+        var xmlDoc = responseObj.xmlDoc;
+        var items = xmlDoc.evaluate("/ec2:DescribeInstanceStatusResponse/ec2:instanceStatusSet/ec2:item",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+
+        for (var i = 0 ; i < items.snapshotLength; i++) {
+            var item = items.snapshotItem(i);
+            var eventsSet = item.getElementsByTagName("eventsSet")[0];
+            if (!eventsSet) { continue; }
+            var instanceId = getNodeValue(item, "instanceId");
+            var availabilityZone = getNodeValue(item, "availabilityZone");
+            var eventsSetItems = eventsSet.childNodes;
+            var list = new Array();
+
+            for (var j = 0; j < eventsSetItems.length; j++) {
+                var event = eventsSetItems[j];
+                if (event.nodeName == '#text') continue;
+                var code = getNodeValue(event, "code");
+                var description = getNodeValue(event, "description");
+                var startTime = getNodeValue(event, "notBefore");
+                var endTime = getNodeValue(event, "notAfter");
+                list.push(new InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime));
+            }
+            var instance = ew_model.find('instances', instanceId);
+            if (instance) instance.events = list;
+        }
     },
 
     terminateInstances : function(instances, callback)
@@ -2263,56 +2305,6 @@ var ew_controller = {
         responseObj.result = tags;
     },
 
-    describeInstanceAttribute : function(instanceId, attribute, callback)
-    {
-        ew_session.queryEC2("DescribeInstanceAttribute", [[ "InstanceId", instanceId ], [ "Attribute", attribute ]], this, false, "onCompleteDescribeInstanceAttribute", callback);
-    },
-
-    onCompleteDescribeInstanceAttribute : function(responseObj)
-    {
-        var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeInstanceAttributeResponse/*", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        var value = getNodeValue(items.snapshotItem(2), "value");
-
-        responseObj.result = value;
-    },
-
-    modifyInstanceAttribute : function(instanceId, name, value, callback)
-    {
-        ew_session.queryEC2("ModifyInstanceAttribute", [ [ "InstanceId", instanceId ], [ name + ".Value", value ] ], this, false, "onComplete", callback);
-    },
-
-    describeInstanceStatus : function (callback) {
-        ew_session.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
-    },
-
-    onCompleteDescribeInstanceStatus : function (responseObj) {
-        var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeInstanceStatusResponse/ec2:instanceStatusSet/ec2:item",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-
-        for (var i = 0 ; i < items.snapshotLength; i++) {
-            var item = items.snapshotItem(i);
-            var eventsSet = item.getElementsByTagName("eventsSet")[0];
-            if (!eventsSet) { continue; }
-            var instanceId = getNodeValue(item, "instanceId");
-            var availabilityZone = getNodeValue(item, "availabilityZone");
-            var eventsSetItems = eventsSet.childNodes;
-            var list = new Array();
-
-            for (var j = 0; j < eventsSetItems.length; j++) {
-                var event = eventsSetItems[j];
-                if (event.nodeName == '#text') continue;
-                var code = getNodeValue(event, "code");
-                var description = getNodeValue(event, "description");
-                var startTime = getNodeValue(event, "notBefore");
-                var endTime = getNodeValue(event, "notAfter");
-                list.push(new InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime));
-            }
-            var instance = ew_model.find('instances', instanceId);
-            if (instance) instance.events = list;
-        }
-    },
-
     describeVolumeStatus : function (callback) {
         ew_session.queryEC2("DescribeVolumeStatus", [], this, false, "onCompleteDescribeVolumeStatus", callback);
     },
@@ -2364,9 +2356,10 @@ var ew_controller = {
         var user = getNodeValue(xmlDoc, "UserName");
         var key = getNodeValue(xmlDoc, "AccessKeyId");
         var secret = getNodeValue(xmlDoc, "SecretAccessKey");
+        var status = getNodeValue(xmlDoc, "Status");
         debug("Access key = " + key + ", secret = " + secret)
 
-        responseObj.result = new AccessKey(user, key, secret);
+        responseObj.result = new AccessKey(key, secret, status, user);
     },
 
     deleteAccessKey : function(id, callback)
@@ -2392,7 +2385,7 @@ var ew_controller = {
         for (var i = 0; i < items.length; i++) {
             var id = getNodeValue(items[i], "AccessKeyId");
             var status = getNodeValue(items[i], "Status");
-            list.push(new AccessKey(id, status, user, "", ew_session.accessCode == id ? "Current" : ""));
+            list.push(new AccessKey(id, "", status, user));
         }
 
         ew_model.update('users', getParam(params, 'UserName'), 'keys', list)
@@ -2858,6 +2851,42 @@ var ew_controller = {
         ew_model.set('alarms', alarms);
 
         responseObj.result = alarms;
+    },
+
+    getSessionToken : function (duration, callback)
+    {
+        var params = [];
+        if (duration) params.push(["DurationSeconds", duration]);
+
+        ew_session.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback);
+    },
+
+    getFederationToken : function (duration, name, policy, callback)
+    {
+        var params = [ ["Name", name] ];
+        if (duration) params.push(["DurationSeconds", duration]);
+        if (policy) params.push(["Policy", policy]);
+
+        ew_session.querySTS("GetFederationToken", params, this, false, "onCompleteGetSessionToken", callback);
+    },
+
+    onCompleteGetSessionToken : function(responseObj)
+    {
+        var xmlDoc = responseObj.xmlDoc;
+        var params = responseObj.params;
+
+        var item = xmlDoc.getElementsByTagName('Credentials')[0];
+        var id = getNodeValue(xmlDoc, "FederatedUser", "FederatedUserId");
+        var arn = getNodeValue(xmlDoc, "FederatedUser", "Arn");
+
+        var token = getNodeValue(item, "SessionToken");
+        var key = getNodeValue(item, "AccessKeyId");
+        var secret = getNodeValue(item, "SecretAccessKey");
+        var expire = getNodeValue(item, "Expiration");
+        var name = getParam(params, "Name");
+        var obj = new TempAccessKey(key, secret, token, expire, name || ew_session.user.name, id || ew_session.user.id, arn || ew_session.user.arn);
+
+        responseObj.result = obj;
     },
 
 
