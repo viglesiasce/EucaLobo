@@ -923,6 +923,12 @@ var ew_session = {
         var strSig = "";
         var queryParams = "";
 
+        function encode(str) {
+            str = encodeURIComponent(str);
+            var efunc = function(m) { return m == '!' ? '%21' : m == "'" ? '%27' : m == '(' ? '%28' : m == ')' ? '%29' : m == '*' ? '%2A' : m; }
+            return str.replace(/[!'()*~]/g, efunc);
+        }
+
         if (this.sigVersion == "1") {
             function sigParamCmp(x, y) {
                 if (x[0].toLowerCase() < y[0].toLowerCase ()) return -1;
@@ -932,13 +938,13 @@ var ew_session = {
             sigValues.sort(sigParamCmp);
             for (var i = 0; i < sigValues.length; i++) {
                 strSig += sigValues[i][0] + sigValues[i][1];
-                queryParams += (i ? "&" : "") + sigValues[i][0] + "=" + encodeURIComponent(sigValues[i][1]);
+                queryParams += (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
             }
         }  else {
             sigValues.sort();
             strSig = "POST\n" + url.replace(/https?:\/\//,"") + "\n/\n";
             for (var i = 0; i < sigValues.length; i++) {
-                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encodeURIComponent(sigValues[i][1]);
+                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
                 strSig += item
                 queryParams += item
             }

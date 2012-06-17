@@ -135,7 +135,7 @@ var ew_UsersTreeView = {
         if (!item) return;
         var name = prompt("Enter new policy name");
         if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
+        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
         text = ew_session.promptForText('Enter policy permissions',text);
         if (text) {
             ew_session.controller.putUserPolicy(item.name, name, text);
@@ -373,7 +373,7 @@ var ew_GroupsTreeView = {
         if (!item) return;
         var name = prompt("Enter new policy name");
         if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
+        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
         text = ew_session.promptForText('Enter policy permissions',text);
         if (text) {
             ew_session.controller.putGroupPolicy(item.name, name, text);
