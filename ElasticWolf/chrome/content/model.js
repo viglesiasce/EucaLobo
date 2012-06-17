@@ -1341,6 +1341,7 @@ var ew_model = {
                    versionCW: '2010-08-01',
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
+                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "GetLoginProfile", ],
                  },
             ];
