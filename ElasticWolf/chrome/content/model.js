@@ -52,7 +52,7 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
     this.status = "Temporary";
     this.secret = secret || "";
     this.state = "";
-    this.securityToken = securityToken || "";
+    this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.expire = expire || "";
     this.userName = userName || "";
     this.userId = userId || "";
@@ -68,18 +68,17 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
     }
 }
 
-function Credential(name, accessKey, secretKey, endPoint, securityToken)
+function Credential(name, accessKey, secretKey, url, securityToken)
 {
     this.name = name;
     this.accessKey = accessKey;
     this.secretKey = secretKey;
-    this.endPoint = endPoint || "";
-    this.securityToken = securityToken || "";
+    this.url = typeof url == "string" ? url : "";
+    this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
-    this.type = "Real";
 
     this.toString = function() {
-        return this.accessKey + ";;" + this.secretKey + ";;" + this.endPoint;
+        return this.accessKey + ";;" + this.secretKey + ";;" + this.url;
     }
 }
 
@@ -421,7 +420,7 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
 
 function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
                   amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
-                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, volumes, enis, tags)
+                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, volumes, enis, tags)
 {
     this.id = instanceId;
     this.reservationId = reservationId;
@@ -458,6 +457,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.architecture = architecture;
     this.instanceLifecycle = instanceLifecycle;
     this.clientToken = clientToken;
+    this.spotInstanceRequestId = spotId;
     this.volumes = volumes;
     this.enis = enis;
     this.tags = tags;
@@ -885,13 +885,14 @@ var ew_model = {
         }
         log('refresh model ' + name)
         this.progress[name] = now;
+        var me = this;
 
         switch (name) {
         case "certs":
-            ew_session.controller.listSigningCertificates();
+            ew_session.controller.listSigningCertificates(null, function(list) { me.set(name, list); });
             break;
         case "accesskeys":
-            ew_session.controller.listAccessKeys();
+            ew_session.controller.listAccessKeys(null, function(list) { me.set(name, list); });
             break;
         case "alarms":
             ew_session.controller.describeAlarms();

@@ -6,6 +6,7 @@ var ew_CredentialsTreeView = {
     {
         this.refresh();
         TreeView.activate.call(this);
+        this.select(ew_session.getActiveCredentials());
     },
 
     deactivate: function()
@@ -65,11 +66,8 @@ var ew_EndpointsTreeView = {
    properties: ["status"],
 
    activate : function() {
-       this.refresh();
-       var name = ew_session.getLastUsedEndpoint();
-       if (name != null) {
-           this.select({name:name});
-       }
+       TreeView.activate.call(this);
+       this.select(ew_session.getActiveEndpoint());
    },
 
    refresh: function() {
@@ -84,7 +82,7 @@ var ew_EndpointsTreeView = {
    switchEndpoint : function() {
        var item = this.getSelected();
        if (!item) return;
-       ew_session.ew_switchEndpoints(item.name);
+       ew_session.switchEndpoints(item.name);
        this.invalidate();
    },
 

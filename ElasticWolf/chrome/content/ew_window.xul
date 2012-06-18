@@ -27,7 +27,6 @@
 <?xul-overlay href="chrome://ew/content/views/enis.xul"?>
 <?xul-overlay href="chrome://ew/content/views/s3.xul"?>
 <?xul-overlay href="chrome://ew/content/views/credentials.xul"?>
-<?xul-overlay href="chrome://ew/content/views/endpoints.xul"?>
 <?xul-overlay href="chrome://ew/content/views/prefs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/users.xul"?>
 <?xul-overlay href="chrome://ew/content/views/groups.xul"?>
@@ -115,7 +114,6 @@
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Endpoints" value="ew.tabs.endpoint" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Access Keys/Keypairs" value="ew.tabs.access" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Signing Certificates" value="ew.tabs.cert" /></treerow></treeitem>
        </treechildren>

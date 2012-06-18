@@ -28,7 +28,7 @@ var ew_session = {
     versions: {},
     accessKey: "",
     secretKey: "",
-    securityToken: null,
+    securityToken: "",
     httpCount: 0,
     errorCount: 0,
     errorMax: 3,
@@ -52,7 +52,7 @@ var ew_session = {
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
-        this.selectCredentials(this.getActiveCredentials());
+        this.switchCredentials(this.getActiveCredentials());
         this.selectTab(this.getStrPrefs("ew.tab.current"));
 
         // Parse command line
@@ -140,7 +140,7 @@ var ew_session = {
         return credentials;
     },
 
-    updateCredentials : function(cred, key, secret, endpoint)
+    updateCredentials : function(cred, key, secret, url)
     {
         if (cred == null || key == null || key == "" || secret == null || secret == "") {
             alert("Invalid access key given for account");
@@ -148,9 +148,7 @@ var ew_session = {
         }
         cred.accessKey = key;
         cred.secretKey = secret;
-        if (endpoint) {
-            cred.endPoint = endpoint;
-        }
+        if (url) cred.url = url;
         this.saveCredentials(cred);
     },
 
@@ -173,48 +171,49 @@ var ew_session = {
         return null;
     },
 
-    selectCredentials: function(cred)
-    {
-        var me = this;
-        if (cred) {
-            debug("switch credentials to " + cred.name)
-            this.setStrPrefs("ew.account.name", cred.name);
-            this.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
-
-            if (cred.endPoint != "") {
-                var endpoint = this.getEndpoint(null, cred.endPoint);
-                if (!endpoint) endpoint = new Endpoint("", cred.endPoint)
-                this.selectEndpoint(endpoint);
-            }
-            ew_menu.update();
-            // Retrieve current user info
-            this.controller.getUser(null, function(user) { me.user = user || {}; })
-            return true;
-        }
-        return false;
-    },
-
     switchCredentials : function(cred)
     {
         if (this.locked || this.disabled) return;
 
         var wasGovCloud = this.isGovCloud();
-        if (this.selectCredentials(cred)) {
+        if (cred) {
+            debug("switch credentials to " + cred.name + " " + cred.url)
+            this.setStrPrefs("ew.account.name", cred.name);
+            this.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
+
+            if (cred.url != "") {
+                var endpoint = this.getEndpoint(null, cred.url);
+                if (!endpoint) endpoint = new Endpoint("", cred.url)
+                this.selectEndpoint(endpoint);
+            }
             // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errros
-            if (wasGovCloud && cred.endPoint == '') {
+            if (wasGovCloud && cred.url == '') {
                 this.selectEndpoint(this.getEndpoint("us-east-1"));
             }
             // Since we are switching creds, ensure that all the views are redrawn
             this.model.invalidate();
+            var me = this;
+            // Retrieve current user info
+            this.controller.getUser(null, function(user) { me.user = user || {}; })
+            ew_menu.update();
+            return true;
         }
+        return false;
     },
 
     setCredentials : function (accessKey, secretKey, securityToken)
     {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
-        this.securityToken = securityToken;
+        this.securityToken = typeof securityToken == "string" ? securityToken : "";
         this.errorCount = 0;
+        debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
+    },
+
+    getActiveEndpoint : function()
+    {
+        var endpoint = this.getEndpoint(this.getLastUsedEndpoint());
+        return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com"));
     },
 
     getEndpoint: function(name, url)
@@ -248,12 +247,6 @@ var ew_session = {
         }
     },
 
-    getActiveEndpoint : function()
-    {
-        var endpoint = this.getEndpoint(this.getLastUsedEndpoint());
-        return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com"));
-    },
-
     selectEndpoint: function(endpoint)
     {
         if (endpoint != null) {
@@ -263,7 +256,7 @@ var ew_session = {
             ew_menu.update();
             return true;
         }
-        return false;
+        return false;2
     },
 
     switchEndpoints : function(name)
@@ -745,7 +738,7 @@ var ew_session = {
 
     isGovCloud : function()
     {
-        return String(this.urlEC2).indexOf("ec2.us-gov") > -1;
+        return String(this.urls.EC2).indexOf("us-gov") > -1;
     },
 
     isEnabled: function()
@@ -913,7 +906,7 @@ var ew_session = {
         sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
         sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
         sigValues.push(new Array("Timestamp", formattedTime));
-        if (this.securityToken) sigValues.push(new Array("SecurityToken", this.securityToken));
+        if (this.securityToken != "") sigValues.push(new Array("SecurityToken", this.securityToken));
 
         // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
         for (var i = 0; i < params.length; i++) {
@@ -979,7 +972,7 @@ var ew_session = {
         if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
         if (!params["Content-Type"]) params["Content-Type"] = "binary/octet-stream; charset=UTF-8";
         if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
-        if (this.securityToken) params["x-amz-security-token"] = this.securityToken;
+        if (this.securityToken != "") params["x-amz-security-token"] = this.securityToken;
 
         // Construct the string to sign and query string
         var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";

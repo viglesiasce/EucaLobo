@@ -938,6 +938,7 @@ var ew_controller = {
                     var architecture = getNodeValue(instance, "architecture");
                     var instanceLifecycle = getNodeValue(instance, "instanceLifecycle")
                     var clientToken = getNodeValue(instance, "clientToken")
+                    var spotId = getNodeValue(instance ,"spotInstanceRequestId");
                     var volumes = [];
                     var objs = this.getItems(instance, "blockDeviceMapping", "item");
                     for (var i = 0; i < objs.length; i++) {
@@ -969,7 +970,7 @@ var ew_controller = {
                     list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, allGroups, dnsName, privateDnsName, privateIpAddress,
                                            vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus, stateReason,
                                            platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName, virtType, hypervisor, ip, srcDstCheck, architecture, instanceLifecycle,
-                                           clientToken, volumes, enis, tags));
+                                           clientToken, spotId, volumes, enis, tags));
                 }
             }
         }
@@ -980,12 +981,13 @@ var ew_controller = {
 
     runMoreInstances: function(instance, count, callback) {
         ew_session.controller.describeInstanceAttribute(instance.id, "userData", function(data) {
-            var placement = { availabilityZone: instance.availabilityZone, tenancy: instance.tenancy };
-            this.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName, instance.groups, data, null, instance.instanceType, placement, instance.subnetId, null, callback);
+            this.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName,
+                              instance.groups, data, null, instance.instanceType, instance.availabilityZone,
+                              instance.tenancy, instance.subnetId, null, instance.monitoringStatus != "", callback);
         });
     },
 
-    runInstances : function(imageId, kernelId, ramdiskId, minCount, maxCount, keyName, securityGroups, userData, properties, instanceType, placement, subnetId, ipAddress, callback)
+    runInstances : function(imageId, kernelId, ramdiskId, minCount, maxCount, keyName, securityGroups, userData, properties, instanceType, availabilityZone, tenancy, subnetId, ipAddress, monitoring, callback)
     {
         var params = []
         params.push([ "ImageId", imageId ]);
@@ -1014,18 +1016,19 @@ var ew_controller = {
             }
             params.push([ "UserData", userData ]);
         }
-        if (properties != null) {
+        if (properties) {
             params.push([ "AdditionalInfo", properties ]);
         }
-        if (placement) {
-            if (placement.availabilityZone != null && placement.availabilityZone != "") {
-                params.push([ "Placement.AvailabilityZone", placement.availabilityZone ]);
-            }
-            if (placement.tenancy != null && placement.tenancy != "") {
-                params.push([ "Placement.Tenancy", placement.tenancy ]);
-            }
+        if (monitoring) {
+            params.push([ "Monitoring.Enabled", "true"]);
         }
-        if (subnetId != null) {
+        if (availabilityZone) {
+            params.push([ "Placement.AvailabilityZone", availabilityZone ]);
+        }
+        if (tenancy) {
+            params.push([ "Placement.Tenancy", tenancy ]);
+        }
+        if (subnetId) {
             params.push([ "SubnetId", subnetId ]);
 
             if (ipAddress != null && ipAddress != "") {
@@ -1122,6 +1125,24 @@ var ew_controller = {
             params.push([ "InstanceId." + (i + 1), instances[i].id ]);
         }
         ew_session.queryEC2("StartInstances", params, this, false, "onCompleteRunInstances", callback);
+    },
+
+    monitorInstances: function(instances, callback)
+    {
+        var params = [];
+        for ( var i in instances) {
+            params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
+        }
+        ew_session.queryEC2("MonitorInstances", params, this, false, "onComplete", callback);
+    },
+
+    unmonitorInstances: function(instances, callback)
+    {
+        var params = [];
+        for ( var i in instances) {
+            params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
+        }
+        ew_session.queryEC2("UnmonitorInstances", params, this, false, "onComplete", callback);
     },
 
     bundleInstance : function(instanceId, bucket, prefix, activeCred, callback)

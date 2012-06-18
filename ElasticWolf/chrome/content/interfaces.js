@@ -51,7 +51,8 @@ var TreeView = {
     },
     getList: function()
     {
-        return this.model ? this.getModel() : this.getData();
+        var list = this.model ? this.getModel() : this.getData();
+        return list || [];
     },
     get rowCount() {
         return this.treeList.length;

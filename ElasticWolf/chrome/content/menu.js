@@ -3,9 +3,8 @@ var ew_menu = {
     tabs: [
             { name: "ew.tabs.prefs",         views: [ { view: ew_PrefsView } ] },
 
-            { name: "ew.tabs.credential",    views: [ { id: "ew.credentials.view", view: ew_CredentialsTreeView } ] },
-
-            { name: "ew.tabs.endpoint",      views: [ { id: "ew.endpoints.view", view: ew_EndpointsTreeView } ] },
+            { name: "ew.tabs.credential",    views: [ { id: "ew.credentials.view", view: ew_CredentialsTreeView },
+                                                      { id: "ew.endpoints.view", view: ew_EndpointsTreeView }] },
 
             { name: "ew.tabs.policy",        views: [ { view: ew_PasswordPolicyView } ] },
 
@@ -209,12 +208,9 @@ var ew_menu = {
         var idx = this.getMenu("ew.tabs.credential")
         if (idx > 0) {
             var cred = ew_session.getActiveCredentials();
-            this.tree.view.setCellText(idx, this.tree.columns.getFirstColumn(), cred ? 'Account: ' + cred.name : "Manage Credentials");
-        }
-        idx = this.getMenu("ew.tabs.endpoint")
-        if (idx > 0) {
             var endpoint = ew_session.getActiveEndpoint();
-            this.tree.view.setCellText(idx, this.tree.columns.getFirstColumn(), endpoint ? 'Endpoint: ' + endpoint.name : "Manage Endpoints");
+            var label = cred ? 'Account: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
+            this.tree.view.setCellText(idx, this.tree.columns.getFirstColumn(), label);
         }
     },
 

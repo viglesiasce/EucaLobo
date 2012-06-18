@@ -57,7 +57,9 @@ var ew_InstanceLauncher = {
         this.retVal.keyName = document.getElementById("ew.keypairlist").selectedItem.value;
 
         // This will be an empty string if <any> is selected
-        this.retVal.placement = { "availabilityZone" : this.azMenu.value, "tenancy": this.tnMenu.value };
+        this.retVal.availabilityZone = this.azMenu.value;
+        this.retVal.tenancy = this.tnMenu.value;
+        this.retVal.monitoring = document.getElementById("ew.monitor").checked;
 
         this.retVal.userData = document.getElementById("ew.userdata").value;
         if (this.retVal.userData == "") {

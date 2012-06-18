@@ -27,10 +27,13 @@
           <menuitem id="instances.context.createimage" oncommand="ew_InstancesTreeView.showCreateImageDialog();" label="Create Image (EBS AMI)" />
           <menuitem id="instances.context.changeUserData" oncommand="ew_InstancesTreeView.changeUserData();" label="View/Change User Data" />
           <menuitem id="instances.context.changeInstanceType" oncommand="ew_InstancesTreeView.changeInstanceType();" label="Change Instance Type" />
-          <menu label="Termination Protection">
+          <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
+          <menuitem id="instances.context.changeShutdownBehaviour" oncommand="ew_InstancesTreeView.changeShutdownBehaviour();" label="Change Shutdown Behaviour" />
+          <menuitem id="instances.context.changeSourceDestCheck" oncommand="ew_InstancesTreeView.changeSourceDestCheck();" label="Change SourceDesct Check" />
+          <menu label="Monitoring">
             <menupopup>
-              <menuitem id="instances.context.showTerminationProtection" oncommand="ew_InstancesTreeView.showTerminationProtection();" label="Show Termination Protection" />
-              <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
+            <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
+            <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
             </menupopup>
           </menu>
           <menuseparator />

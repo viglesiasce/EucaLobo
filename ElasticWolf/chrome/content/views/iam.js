@@ -590,8 +590,26 @@ ew_KeypairsTreeView.__proto__ = TreeView;
 ew_KeypairsTreeView.register();
 
 var ew_AccessKeysTreeView = {
-    name: "accesskeys",
+    model: "accesskeys",
     properties: ["state"],
+
+    activate: function()
+    {
+        TreeView.activate.call(this);
+        this.select({ id: ew_session.accessKey });
+    },
+
+    filter: function(list)
+    {
+        list = list.concat(this.getTempKeys());
+
+        var now = new Date();
+        for (var i in list) {
+            list[i].state = ew_session.accessKey == list[i].id ? "Current" : "";
+            if (list[i].status == "Temporary" && list[i].expire < now) list[i].state = "Expired";
+        }
+        return TreeView.filter.call(this, list);
+    },
 
     createTemp: function()
     {
@@ -635,24 +653,6 @@ var ew_AccessKeysTreeView = {
         if (key == null || key.secret) return;
         key.secret = this.getAccessKeySecret(key.id);
         TreeView.selectionChanged.call(this);
-    },
-
-    filter: function(list)
-    {
-        var now = new Date();
-        for (var i in list) {
-            list[i].state = ew_session.accessKey == list[i].id ? "Current" : "";
-            if (list[i].status == "Temporary" && list[i].expire < now) list[i].state = "Expired";
-        }
-        return TreeView.filter.call(this, list);
-    },
-
-    refresh: function()
-    {
-        var me = this;
-        ew_session.controller.listAccessKeys(null, function(list) {
-            me.setData(list.concat(me.getTempKeys()));
-        })
     },
 
     saveAccessKey: function(user, key, secret, save)
@@ -746,6 +746,7 @@ var ew_AccessKeysTreeView = {
         }
         if (!ew_session.promptYesNo("Confirm", "Use access key " + key.id + " for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
         ew_session.setCredentials(key.id, key.secret);
+        // Update current credentials record with new access key but keep current endpoint
         ew_session.updateCredentials(ew_session.getActiveCredentials(), key.id, key.secret);
         this.refresh();
     },
@@ -754,13 +755,7 @@ ew_AccessKeysTreeView.__proto__ = TreeView;
 ew_AccessKeysTreeView.register();
 
 var ew_CertsTreeView = {
-    name: "certs",
-
-    refresh: function()
-    {
-        var me = this;
-        ew_session.controller.listSigningCertificates(null, function(list) { me.setData(list); })
-    },
+    model: "certs",
 
     createCert : function () {
         var me = this;

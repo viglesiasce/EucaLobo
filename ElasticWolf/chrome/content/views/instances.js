@@ -377,8 +377,11 @@ var ew_InstancesTreeView = {
         $("instances.context.start").disabled = optDisabled;
         $("instances.context.stop").disabled = optDisabled;
         $("instances.context.forceStop").disabled = optDisabled;
-        $("instances.context.showTerminationProtection").disabled = optDisabled;
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
+        $("instances.context.changeShutdownBehaviour").disabled = optDisabled;
+        $("instances.context.changeSourceDestCheck").disabled = optDisabled;
+        $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringStatus != "";
+        $("instances.context.stopMonitoring").disabled = optDisabled || instance.monitoringStatus == "";
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
     },
@@ -440,29 +443,6 @@ var ew_InstancesTreeView = {
         });
     },
 
-    showTerminationProtection : function() {
-        var instances = this.getSelectedAll();
-        if (!instances.length) return;
-        var statusList = new Array();
-
-        function pushStatusToArray(instance, status) {
-            statusList.push(status + " | " + instance.toString());
-            if (statusList.length == instances.length) {
-                alert(statusList.join("\n"));
-            }
-        }
-
-        function __describeInstanceAttribute__(instance) {
-            ew_session.controller.describeInstanceAttribute(instance.id, "disableApiTermination", function(value) {
-                value = (value == "true");
-                pushStatusToArray(instance, (value ? "enable" : "disable"));
-            });
-        }
-        for (var i = 0; i < instances.length; i++) {
-            __describeInstanceAttribute__(instances[i]);
-        }
-    },
-
     changeTerminationProtection : function() {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
@@ -478,11 +458,58 @@ var ew_InstancesTreeView = {
         });
     },
 
+    changeSourceDestCheck : function() {
+        var instances = this.getSelectedAll();
+        if (!instances.length) return;
+        var me = this;
+
+        ew_session.controller.describeInstanceAttribute(instances[0].id, "sourceDestCheck", function(value) {
+            value = (value == "true")
+            if (confirm((value ? "Disable" : "Enable") + " source/destination checking?")) {
+                for (var i = 0; i < instances.length; i++) {
+                  ew_session.controller.modifyInstanceAttribute(instances[i].id, "SourceDesctCheck", !value);
+                }
+            }
+        });
+    },
+
+    changeShutdownBehaviour : function(value) {
+        var instances = this.getSelectedAll();
+        if (!instances.length) return;
+        var me = this;
+
+        ew_session.controller.describeInstanceAttribute(instances[0].id, "instanceInitiatedShutdownBehavior", function(value) {
+            value = value == "stop" ? "terminate" : "stop";
+            if (confirm("Change instance initiated shutdown behaviour to " + value + " for "+instances.length+" instance(s)?")) {
+                for (var i = 0; i < instances.length; i++) {
+                    ew_session.controller.modifyInstanceAttribute(instances[i].id, "InstanceInitiatedShutdownBehavior", value);
+                }
+            }
+        });
+    },
+
+    startMonitoring: function()
+    {
+        var instances = this.getSelectedAll();
+        if (instances.length == 0) return;
+        if (!confirm("Start monitoring "+instances.length+" instance(s)?")) return;
+        var me = this;
+        ew_session.controller.monitorInstances(instances, function() { me.refresh(); });
+    },
+
+    stopMonitoring: function()
+    {
+        var instances = this.getSelectedAll();
+        if (instances.length == 0) return;
+        if (!confirm("Stop monitoring "+instances.length+" instance(s)?")) return;
+        var me = this;
+        ew_session.controller.unmonitorInstances(instances, function() { me.refresh(); });
+    },
+
     rebootInstance: function()
     {
         var instances = this.getSelectedAll();
         if (instances.length == 0) return;
-
         if (!confirm("Reboot "+instances.length+" instance(s)?")) return;
         var me = this;
         ew_session.controller.rebootInstances(instances, function() { me.refresh(); });
@@ -491,7 +518,6 @@ var ew_InstancesTreeView = {
     startInstance : function() {
         var instances = this.getSelectedAll();
         if (instances.length == 0) return;
-
         var me = this;
         ew_session.controller.startInstances(instances, function() {me.refresh()});
     },
@@ -517,10 +543,6 @@ var ew_InstancesTreeView = {
         if (!instance) return;
         var output = ew_session.controller.getConsoleOutput(instance.id);
         window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", output);
-    },
-
-    showInstancesSummary : function() {
-        window.openDialog("chrome://ew/content/dialogs/summary.xul", null, "chrome,centerscreen,modal,resizable", this.treeList, ew_session.getActiveEndpoint().name);
     },
 
     authorizeProtocolForGroup : function(transport, protocol, groups) {

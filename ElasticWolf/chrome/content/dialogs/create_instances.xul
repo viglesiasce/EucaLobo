@@ -13,7 +13,6 @@
     <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
     <script type="application/x-javascript" src="chrome://ew/content/dialogs/create_instances.js" />
     <script type="application/x-javascript" src="chrome://ew/content/model.js" />
-    <script type="application/x-javascript" src="chrome://ew/content/base64.js" />
 
     <vbox flex="1">
         <grid flex="1">
@@ -80,6 +79,9 @@
                 <row>
                     <label control="ew.keypairlist" value="KeyPair:" />
                     <menulist id="ew.keypairlist" />
+                    <spacer style="width:30px;" />
+                    <label control="ew.monitor" value="Enable Monitoring:" />
+                    <checkbox id="ew.monitor" />
                 </row>
             </rows>
         </grid>
