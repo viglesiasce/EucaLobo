@@ -1,5 +1,6 @@
 .DS_Store
 .settings
+ElasticWolf.app/Contents/Resources/chrome.manifest
 ElasticWolf.app/Contents/Resources/application.ini
 ElasticWolf.app/Contents/Resources/chrome
 ElasticWolf.app/Contents/Resources/defaults

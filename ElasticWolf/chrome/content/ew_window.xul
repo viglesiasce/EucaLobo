@@ -74,12 +74,16 @@
     <stringbundle id="ew.properties.bundle" src="chrome://ew/locale/ew.properties" />
   </stringbundleset>
 
+  <keyset>
+    <key id="quit" key="q" modifiers="control" oncommand="ew_session.quit();"/>
+  </keyset>
+
   <toolbox>
   <menubar id="ew.menubar">
     <menu label="File">
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
-       <menuitem label="Exit" image="images/reboot.png" class="menuitem-iconic" oncommand="ew_session.quit();"/>
+       <menuitem label="Exit" image="images/reboot.png" class="menuitem-iconic" key="quit" oncommand="ew_session.quit();"/>
 
       </menupopup>
     </menu>

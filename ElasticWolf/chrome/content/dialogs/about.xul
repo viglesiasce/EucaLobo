@@ -19,12 +19,12 @@
 
   <vbox flex="1">
     <groupbox>
-      <description class="header">
+      <description class="header" >
       <html:span id="ew.appname">APPNAME</html:span> version
       <html:span id="ew.version">VERSION</html:span>
       </description>
       <description>
-      <html:p>
+      <html:p />
       <html:span id="ew.appname1">APPNAME</html:span> (<html:span id="ew.appurl">URL</html:span>)
        Console to Amazon Web Services (EC2/S3/...).
       </description>
