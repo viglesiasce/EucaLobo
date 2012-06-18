@@ -747,7 +747,7 @@ var ew_AccessKeysTreeView = {
         if (!ew_session.promptYesNo("Confirm", "Use access key " + key.id + " for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
         ew_session.setCredentials(key.id, key.secret);
         // Update current credentials record with new access key but keep current endpoint
-        ew_session.updateCredentials(ew_session.getActiveCredentials(), key.id, key.secret);
+        ew_session.updateCredentials(ew_session.getActiveCredentials(), key.id, key.secret, null, key.securityToken);
         this.refresh();
     },
 };

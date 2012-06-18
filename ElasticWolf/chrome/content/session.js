@@ -52,7 +52,7 @@ var ew_session = {
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
-        this.switchCredentials(this.getActiveCredentials());
+        this.switchCredentials(this.findCredentials(this.getCurrentUser()));
         this.selectTab(this.getStrPrefs("ew.tab.current"));
 
         // Parse command line
@@ -133,22 +133,20 @@ var ew_session = {
         for (var i = 0; i < list.length; i++) {
             var pw = list[i][1].split(";;");
             if (pw.length > 1) {
-                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "")
+                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "")
                 credentials.push(cred);
             }
         }
         return credentials;
     },
 
-    updateCredentials : function(cred, key, secret, url)
+    updateCredentials : function(cred, key, secret, url, token)
     {
-        if (cred == null || key == null || key == "" || secret == null || secret == "") {
-            alert("Invalid access key given for account");
-            return;
-        }
-        cred.accessKey = key;
-        cred.secretKey = secret;
-        if (url) cred.url = url;
+        if (!cred) return;
+        if (key) cred.accessKey = key;
+        if (secret) cred.secretKey = secret;
+        if (typeof url == "string") cred.url = url;
+        if (typeof token == "string") cred.securityToken = token;
         this.saveCredentials(cred);
     },
 
@@ -164,9 +162,17 @@ var ew_session = {
 
     getActiveCredentials : function()
     {
-        var cur = this.getCurrentUser();
         for (var i in this.credentials) {
-            if (cur == this.credentials[i].name) return this.credentials[i];
+            if (this.accessKey == this.credentials[i].accessKey) return this.credentials[i];
+        }
+        return null;
+    },
+
+    findCredentials : function(name, key)
+    {
+        for (var i in this.credentials) {
+            if (name && name == this.credentials[i].name) return this.credentials[i];
+            if (key && key == this.credentials[i].accessKey) return this.credentials[i];
         }
         return null;
     },

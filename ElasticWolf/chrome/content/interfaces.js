@@ -203,23 +203,7 @@ var TreeView = {
             }
         }
         if (!sortField) return;
-
-        var sortFunc = function(a, b) {
-            var aVal = a[sortField] || "";
-            var bVal = b[sortField] || "";
-            var aF = parseFloat(aVal);
-            if (!isNaN(aF) && aF.toString() == aVal) {
-                aVal = aF;
-                bVal = parseFloat(bVal);
-            } else {
-                aVal = aVal.toString().toLowerCase();
-                bVal = bVal.toString().toLowerCase();
-            }
-            if (aVal < bVal) return ascending ? -1 : 1;
-            if (aVal > bVal) return ascending ? 1 : -1;
-            return 0;
-        };
-        this.treeList.sort(sortFunc);
+        ew_model.sortObjects(this.treeList, sortField, ascending);
         if (item) this.select(item);
     },
     register : function()

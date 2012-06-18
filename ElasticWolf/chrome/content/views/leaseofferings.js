@@ -3,7 +3,7 @@ var ew_ReservedInstancesTreeView = {
 
     isRefreshable: function() {
         for (var i in this.treeList) {
-            if (list[i].state == "payment-pending") return true;
+            if (this.treeList[i].state == "payment-pending") return true;
         }
         return false;
     },
@@ -34,28 +34,21 @@ var ew_LeaseOfferingsTreeView = {
                 var check = null;
                 var flags = prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_0 + prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_1 + prompts.BUTTON_TITLE_CANCEL * prompts.BUTTON_POS_2 + prompts.BUTTON_POS_0_DEFAULT;
 
-                var msg = "You are about to purchase " + retVal.count;
-                msg = msg + " " + image.description + " Reserved Instance(s)";
-                msg = msg + " in the " + image.azone;
-                msg = msg + " Availability Zone for $";
-                msg = msg + retVal.count * parseInt(image.fixedPrice);
+                var msg = "You are about to purchase " + retVal.count + " " + image.description + " Reserved Instance(s) in the " + image.azone + " Availability Zone for $" + retVal.count * parseInt(image.fixedPrice);
                 msg = msg + ". Are you sure?\n\nAn email will be sent to you shortly after we receive your order.";
                 var button = prompts.confirmEx(window, "Confirm Reserved Instances Offering Purchase", msg, flags, "Edit Order", "Place Order", "", null, {});
 
-                // Edit: 0
-                // Purchase: 1
-                // Cancel: 2
+                // Edit: 0, Purchase: 1, Cancel: 2
                 if (button == 1) {
                     fRepeat = false;
-                    // The user wants to purchase this offering purchase this lease offering
                     ew_session.controller.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
                 } else
-                    if (button == 0) {
-                        // The user wants to edit the order
-                        continue;
-                    } else {
-                        fRepeat = false;
-                    }
+                 if (button == 0) {
+                     // The user wants to edit the order
+                     continue;
+                 } else {
+                     fRepeat = false;
+                 }
             }
         }
     },

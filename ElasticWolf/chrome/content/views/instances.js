@@ -778,7 +778,8 @@ var ew_InstancesTreeView = {
         ew_session.launchProcess(cmd, [filename]);
     },
 
-    isRefreshable : function(instances) {
+    isRefreshable : function()
+    {
         for (var i in this.treeList) {
             if (this.treeList[i].state == "pending" || this.treeList[i].state == "shutting-down") return true;
         }

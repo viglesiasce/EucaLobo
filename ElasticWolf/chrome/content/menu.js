@@ -209,7 +209,7 @@ var ew_menu = {
         if (idx > 0) {
             var cred = ew_session.getActiveCredentials();
             var endpoint = ew_session.getActiveEndpoint();
-            var label = cred ? 'Account: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
+            var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
             this.tree.view.setCellText(idx, this.tree.columns.getFirstColumn(), label);
         }
     },

@@ -78,7 +78,7 @@ function Credential(name, accessKey, secretKey, url, securityToken)
     this.status = "";
 
     this.toString = function() {
-        return this.accessKey + ";;" + this.secretKey + ";;" + this.url;
+        return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken;
     }
 }
 
@@ -325,7 +325,9 @@ function Snapshot(id, volumeId, status, startTime, progress, volumeSize, descrip
     ew_model.processTags(this);
 
     this.toString = function() {
-        return this.description + ew_model.separator + this.id + ew_model.separator + this.status + "/" + this.progress;
+        return (this.description ? this.description + ew_model.separator : this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator +
+               (this.status != "completed" ? this.status + ew_model.separator : "") +
+               (this.progress != "100%" ? this.progress : this.volumeSize + "GB");
     }
 }
 
@@ -347,7 +349,7 @@ function Volume(id, size, snapshotId, zone, status, createTime, instanceId, devi
     ew_model.processTags(this);
 
     this.toString = function() {
-        return (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.device + ew_model.separator + this.status +
+        return (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.device + ew_model.separator + this.status + ew_model.separator + this.size + "GB" +
                (this.instanceId ? " (" + ew_model.modelValue("instanceId", this.instanceId) + ")" : "");
     }
 }
@@ -372,7 +374,7 @@ function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, del
     this.snapshotId = snapshotId;
     this.deviceName = deviceName;
     this.virtualName = virtualName;
-    this.volumesize = volumeSize
+    this.volumeSize = volumeSize
     this.deleteOnTermination = deleteOnTermination;
     this.noDevice = noDevice;
 
@@ -1202,6 +1204,28 @@ var ew_model = {
             }
         }
         return list;
+    },
+
+    sortObjects: function(list, col, ascending)
+    {
+        if (!(list instanceof Array)) return;
+
+        var sortFunc = function(a, b) {
+            var aVal = a[col] || "";
+            var bVal = b[col] || "";
+            var aF = parseFloat(aVal);
+            if (!isNaN(aF) && aF.toString() == aVal) {
+                aVal = aF;
+                bVal = parseFloat(bVal);
+            } else {
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+            }
+            if (aVal < bVal) return ascending ? -1 : 1;
+            if (aVal > bVal) return ascending ? 1 : -1;
+            return 0;
+        };
+        list.sort(sortFunc);
     },
 
     // Send signal about updates model, assume TreeView interface

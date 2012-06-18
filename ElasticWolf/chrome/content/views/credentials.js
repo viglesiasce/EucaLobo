@@ -22,6 +22,20 @@ var ew_CredentialsTreeView = {
         return ew_session.getCredentials()
     },
 
+    editCredentials : function()
+    {
+        var cred = this.getSelected();
+        if (!cred) return;
+        var rc = { ok: null, endpoints: ew_session.getEndpoints(), obj: cred };
+        window.openDialog("chrome://ew/content/dialogs/manage_credentials.xul", null, "chrome,centerscreen, modal, resizable", rc);
+        if (rc.ok) {
+            ew_session.removeCredentials(cred);
+            var cred = new Credential(rc.name, rc.accessKey, rc.secretKey, rc.url, rc.securityToken);
+            ew_session.saveCredentials(cred);
+            this.display(ew_session.getCredentials());
+        }
+    },
+
     deleteCredentials : function()
     {
         var cred = this.getSelected();
@@ -34,9 +48,9 @@ var ew_CredentialsTreeView = {
     addCredentials : function()
     {
         var rc = { ok: null, endpoints: ew_session.getEndpoints() };
-        window.openDialog("chrome://ew/content/dialogs/create_credentials.xul", null, "chrome,centerscreen, modal, resizable", rc);
+        window.openDialog("chrome://ew/content/dialogs/manage_credentials.xul", null, "chrome,centerscreen, modal, resizable", rc);
         if (rc.ok) {
-            var cred = new Credential(rc.name, rc.accessKey, rc.secretKey, rc.endpoint);
+            var cred = new Credential(rc.name, rc.accessKey, rc.secretKey, rc.url, rc.securityToken);
             ew_session.saveCredentials(cred);
             this.display(ew_session.getCredentials());
         }
@@ -44,9 +58,8 @@ var ew_CredentialsTreeView = {
 
     filter: function(list)
     {
-        var cred = ew_session.getActiveCredentials();
         for (var i in list) {
-            list[i].status = cred && list[i].name == cred.name ? "Current" : "";
+            list[i].status = list[i].accessKey == ew_session.accessKey ? "Current" : "";
         }
         return TreeView.filter.call(this, list);
     },

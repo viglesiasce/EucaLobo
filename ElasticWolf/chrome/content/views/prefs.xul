@@ -21,10 +21,6 @@
             </columns>
             <rows>
                 <row>
-                    <label control="ew.home" value="User name:" />
-                    <label id="ew.user" />
-                </row>
-                <row>
                     <label control="ew.home" value="User home directory:" />
                     <label id="ew.home" />
                 </row>
@@ -168,6 +164,14 @@
                 <column />
             </columns>
             <rows>
+                <row>
+                    <label control="ew.home" value="AWS Account:" />
+                    <label id="ew.user" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
                 <row>
                    <label control="ew.version" value="Version:" />
                    <label id="ew.version" />
