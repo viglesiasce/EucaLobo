@@ -75,7 +75,9 @@
   </stringbundleset>
 
   <keyset>
-    <key id="quit" key="q" modifiers="control" oncommand="ew_session.quit();"/>
+    <key id="exit" key="q" modifiers="control" oncommand="ew_session.quit();"/>
+    <key id="quit" key="q" modifiers="meta" oncommand="ew_session.quit();"/>
+    <key id="prefs" key="," modifiers="meta" oncommand="ew_session.selectTab('ew.tabs.prefs');"/>
   </keyset>
 
   <toolbox>
@@ -83,7 +85,8 @@
     <menu label="File">
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
-       <menuitem label="Exit" image="images/reboot.png" class="menuitem-iconic" key="quit" oncommand="ew_session.quit();"/>
+       <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_session.selectTab('ew.tabs.prefs');"/>
+       <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_session.quit();"/>
 
       </menupopup>
     </menu>
