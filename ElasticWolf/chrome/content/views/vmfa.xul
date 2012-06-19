@@ -25,7 +25,7 @@
 
             <tree enableColumnDrag="true" seltype="single" id="ew.vmfas.view" flex="1">
                 <treecols>
-                    <treecol id="vmfas.id" label="Serial" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="vmfas.id" label="Id" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="vmfas.date" label="Date" flex="2" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />

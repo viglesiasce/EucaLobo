@@ -522,14 +522,16 @@ var ew_session = {
     },
 
     // MultiInput dialog:
-    // items is list of input field labels,
-    // values are corresponding initial values for the input fields,
-    // types are corresponding field types: textbox, checkbox, password
-    promptInput: function(title, items, values, types)
+    // items is list of input field descriptor objects with reserved properties:
+    // label: - name of the field
+    // value:  initial value for the input field
+    // type: default is textbox, can be checkbox, password, label, image...
+    // all other properties will be additional attributes of the element
+    promptInput: function(title, items, modeless)
     {
-        var params = { session: ew_session, title: title, items: items || [ "" ], values: values || [], types: types || [] };
-        window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,modal,resizable", params);
-        return params.ok ? params.values : null;
+        var params = { session: ew_session, title: title, items: items || [ "" ], values: null, modeless: modeless };
+        var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
+        return modeless ? win : (params.ok ? params.values : null);
     },
 
     promptForFile : function(msg, save, filename)
@@ -1229,7 +1231,7 @@ var ew_session = {
         try {
           FileIO.remove(filename);
           var file = FileIO.open(filename);
-          if (!FileIO.create(file)) {
+          if (!file || !FileIO.create(file)) {
               alert('Cannot create ' + filename)
               return false;
           }

@@ -2429,6 +2429,8 @@ var ew_controller = {
         var params = responseObj.params;
 
         var user = getNodeValue(xmlDoc, "UserName");
+        if (!user) user = getParam(params, 'UserName');
+        if (!user) user = ew_session.user.name;
 
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
@@ -2437,13 +2439,15 @@ var ew_controller = {
             list.push(id);
         }
 
-        ew_model.update('users', getParam(params, 'UserName'), 'devices', list)
+        ew_model.update('users', user, 'devices', list)
 
         responseObj.result = list;
     },
 
-    listVirtualMFADevices : function(user, callback)
+    listVirtualMFADevices : function(status, callback)
     {
+        var params = [];
+        if (status) params.push(["AssignmentStatus", status]);
         ew_session.queryIAM("ListVirtualMFADevices", [], this, false, "onCompleteListVirtualMFADevices", callback);
     },
 
@@ -2475,7 +2479,7 @@ var ew_controller = {
         var obj = [];
         obj.id = getNodeValue(xmlDoc, "SerialNumber");
         obj.seed = getNodeValue(xmlDoc, "Base32StringSeed");
-        obj.qr = getNodeValue(xmlDoc, "QRCodePNG");
+        obj.qrcode = getNodeValue(xmlDoc, "QRCodePNG");
 
         responseObj.result = obj;
     },
@@ -2595,6 +2599,8 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
 
+        // It is valid not to have it
+        responseObj.hasErrors = false;
         var name = getNodeValue(xmlDoc, "UserName");
         var date = getNodeValue(xmlDoc, "CreateDate");
         ew_model.update('users', name, 'loginProfileDate', date)

@@ -17,35 +17,47 @@
       document.getElementById('title').label = rc.title;
       var rows = document.getElementById('rows');
       for (var i in rc.items) {
+          var title = rc.items[i].label || '';
+          var type = rc.items[i].type || 'textbox';
+          var value = rc.items[i].value || '';
+          var item = null;
           var row = document.createElement('row');
           row.setAttribute('flex', '1');
           var label = document.createElement('label');
-          label.setAttribute('value', rc.items[i]);
+          label.setAttribute('value', title);
+          label.setAttribute('class', 'header');
           row.appendChild(label);
-          var type = rc.types[i] || 'textbox';
-          var textbox = null;
           switch (type) {
+          case 'image':
+             item = document.createElement(type);
+             item.setAttribute('src', value);
+             break;
+
           case 'password':
-             textbox = document.createElement('textbox');
-             textbox.setAttribute('type', 'password');
+             item = document.createElement('textbox');
+             item.setAttribute('type', 'password');
+             item.setAttribute('value', value);
              break;
 
           default:
-             textbox = document.createElement(type);
+             item = document.createElement(type);
+             item.setAttribute('value', value);
           }
-          textbox.setAttribute('id', 'text' + i);
-          if (rc.values[i]) {
-             textbox.setAttribute('value', rc.values[i]);
+          for (var p in rc.items[i]) {
+              if (p == "type" || p == "label" || p == "value") continue;
+              item.setAttribute(p, rc.items[i][p]);
           }
-          row.appendChild(textbox);
+          item.setAttribute('id', 'item' + i);
+          row.appendChild(item);
           rows.appendChild(row);
       }
     }
 
     function accept() {
+      rc.values = [];
       for (var i in rc.items) {
-          var obj = document.getElementById('text' + i);
-          var type = rc.types[i] || 'textbox';
+          var obj = document.getElementById('item' + i);
+          var type = rc.items[i].type || 'textbox';
           switch(type) {
           case 'checkbox':
              rc.values[i] = obj.checked;
@@ -64,11 +76,11 @@
   <groupbox flex="1">
   <caption id="title" style="text-align:center;"/>
   <grid flex="1">
-   <columns>
+   <columns flex="1">
     <column />
-    <column />
+    <column flex="1" />
    </columns>
-   <rows id="rows">
+   <rows id="rows" flex="1">
    </rows>
   </grid>
   </groupbox>

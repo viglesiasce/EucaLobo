@@ -173,6 +173,10 @@
                    <label value=" "/>
                 </row>
                 <row>
+                   <label control="ew.sys" value="Platform:" />
+                   <label id="ew.sys" />
+                </row>
+                <row>
                    <label control="ew.version" value="Version:" />
                    <label id="ew.version" />
                 </row>

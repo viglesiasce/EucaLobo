@@ -3,6 +3,9 @@ var ew_PrefsView = {
 
    refresh: function() {
        this.rowCount++;
+       var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+       var os = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS;
+       $("ew.sys").value = os + " " + info.platformVersion;
        $("ew.version").value = ew_session.VERSION;
        $("ew.ec2_version").value = ew_session.EC2_API_VERSION;
        $("ew.iam_version").value = ew_session.IAM_API_VERSION;

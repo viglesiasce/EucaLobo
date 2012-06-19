@@ -113,9 +113,9 @@ function UserGroup(id, name, path, arn)
     }
 }
 
-function MFADevice(serial, date, user, arn)
+function MFADevice(id, date, user, arn)
 {
-    this.id = serial
+    this.id = id
     this.date = date
     this.userName = user
     this.arn = arn

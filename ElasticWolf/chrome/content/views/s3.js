@@ -21,7 +21,10 @@ var ew_S3BucketsTreeView = {
         if (this.isFolder(item)) {
             this.path.push(item.folder);
             this.show();
+            return;
         }
+        // Try to show this file in popup
+        this.showFile();
     },
 
     display : function(list)
@@ -135,7 +138,7 @@ var ew_S3BucketsTreeView = {
         var file = ew_session.promptForFile("Save to file", true, DirIO.fileName(item.name))
         if (file) {
             ew_session.controller.getS3BucketKey(item.bucket, item.name, "", {}, file,
-                    function(f) { meSetStatus(f, 100); },
+                    function(f) { me.setStatus(f, 100); },
                     function(f, p) { me.setStatus(f, p); } )
         }
     },
@@ -153,6 +156,25 @@ var ew_S3BucketsTreeView = {
                     function(fn) { me.show(); },
                     function(fn, p) { me.setStatus(fn, p); });
         }
+    },
+
+    showFile: function()
+    {
+        var me = this;
+        var item = this.getSelected()
+        if (item == null) return
+        if (this.isFolder(item)) return
+        var type = ew_session.getMimeType(item.name);
+        if (type.indexOf("image") == -1) return;
+
+        var file = DirIO.get("TmpD").path + "/" + DirIO.fileName(item.name);
+        ew_session.controller.getS3BucketKey(item.bucket, item.name, "", {}, file,
+                function(f) {
+                     me.setStatus(f, 100);
+                     try { if (me.win) me.win.close(); } catch(e) { debug(e) }
+                     me.win = ew_session.promptInput(item.bucket + "/" + item.name, [ { type: "image", value: "file://" + file, width: "100%", height: "100%" } ], true);
+                },
+                function(f, p) { me.setStatus(f, p); } )
     },
 
     edit: function() {

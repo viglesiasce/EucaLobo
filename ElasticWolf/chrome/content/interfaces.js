@@ -775,6 +775,18 @@ var FileIO = {
         }
     },
 
+    createUnique: function(file)
+    {
+        try {
+            file.createUnique(0x00, 0600);
+            return true;
+        }
+        catch (e) {
+            debug(e);
+            return false;
+        }
+    },
+
     unlink : function(file)
     {
         try {
@@ -832,6 +844,7 @@ var FileIO = {
         }
         return data;
     },
+
 }
 
 // Directory service get properties

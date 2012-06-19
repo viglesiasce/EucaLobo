@@ -1,3 +1,63 @@
+var ew_VMFATreeView = {
+    model: ["vmfas", "users"],
+
+    menuChanged: function()
+    {
+        var item = this.getSelected();
+        $('ew.vmfas.contextmenu.delete').disabled = item == null;
+        $('ew.vmfas.contextmenu.assign').disabled = !item || !item.userName;
+        $('ew.vmfas.contextmenu.unassign').disabled = !item || item.userName;
+    },
+
+    addDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        var values = ew_session.promptInput('Create Virtual MFA device', [{label:"Device Name"}, {label:"Device Path"}]);
+        if (!values) return;
+        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
+            me.refresh()
+            var png = "data:image/png;base64," + obj.qrcode;
+            ew_session.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
+        });
+    },
+
+    deleteDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        if (!confirm('Delete Virtual MFA device ' + item.id)) return;
+        ew_session.controller.deleteVirtualMFADevice(item.id, function(){ me.refresh() });
+    },
+
+    assignDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item || item.userName) return;
+        var users = ew_model.get('users');
+        var idx = ew_session.promptList("User name", "Select user to assign this device to", users);
+        if (idx < 0) return;
+        var values = ew_session.promptInput('Assign MFA device', [{label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+        if (!values) return;
+        ew_session.controller.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh() });
+    },
+
+    unassignDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item || !item.userName) return;
+        if (!confirm('Deactivate MFA device from user ' + item.userName)) return;
+        ew_session.controller.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
+    },
+};
+ew_VMFATreeView.__proto__ = TreeView;
+ew_VMFATreeView.register();
+
+
 var ew_UsersTreeView = {
     model: [ "users", "groups"],
 
@@ -58,7 +118,7 @@ var ew_UsersTreeView = {
     addUser: function()
     {
         var me = this;
-        var values = ew_session.promptInput('Create User', ["User Name", "Path"]);
+        var values = ew_session.promptInput('Create User', [{ label: "User Name"}, { label: "Path"} ]);
         if (values) {
             ew_session.controller.createUser(values[0], values[1], function() { me.refresh() })
         }
@@ -78,7 +138,7 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Rename User', ["New User Name", "New Path"], [ item.name, item.path ]);
+        var values = ew_session.promptInput('Rename User', [{ label: "New User Name", value: item.name } , { label: "New Path", value: item.path} ]);
         if (!values) return;
         ew_session.controller.updateUser(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() { me.refresh() })
     },
@@ -99,7 +159,7 @@ var ew_UsersTreeView = {
 
     changePassword: function()
     {
-        var values = ew_session.promptInput('Change Password', ["Old Password", "New Password", "Retype Password", "Check"], null, ["textbox", "password", "password", "checkbox"]);
+        var values = ew_session.promptInput('Change Password', [{ label: "Old Password", type: "password" }, { label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
         if (!values) return;
         if (values[1] != values[2]) {
             return alert('New entered passwords mismatch')
@@ -223,10 +283,15 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Create Virtual MFA device', ["Serial Number", "Device Path", "Auth Code 1", "Auth Code 2"]);
+        var values = ew_session.promptInput('Create Virtual MFA device', [{label:"Name"}, {label:"Device Path"}]);
         if (!values) return;
-        ew_session.controller.createVirtualMFADevice(values[0], values[1], function() {
-            ew_session.controller.enableMFADevice(item.name, values[0], values[2], values[3], function() { me.refresh() });
+        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
+            var png = "data:image/png;base64," + obj.qrcode;
+            values = ew_session.promptInput('Enable MFA device', [{ label: "Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',width:300,height:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+            if (!values) return;
+            ew_session.controller.enableMFADevice(item.name, obj.id, values[0], values[1], function() {
+                me.refresh()
+            });
         });
     },
 
@@ -235,7 +300,7 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Enable MFA device', ["Serial Number", "Auth Code 1", "Auth Code 2"]);
+        var values = ew_session.promptInput('Enable MFA device', [{label:"Serial Number"}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
         if (!values) return;
         ew_session.controller.enableMFADevice(item.name, values[0], values[1], values[2], function() { me.refresh() });
     },
@@ -247,7 +312,7 @@ var ew_UsersTreeView = {
         if (!item || !item.devices || !item.devices.length) {
             return alert('No devices to resync');
         }
-        var values = ew_session.promptInput('Resync MFA device', ["Serial Number", "Auth Code 1", "Auth Code 2"]);
+        var values = ew_session.promptInput('Resync MFA device', [{label:"Serial Number"}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
         if (!values) return;
         ew_session.controller.resyncMFADevice(item.name, values[0], values[1], values[2], function() { me.refresh() });
     },
@@ -341,7 +406,7 @@ var ew_GroupsTreeView = {
     addGroup: function()
     {
         var me = this;
-        var values = ew_session.promptInput('Create Group', ["Group Name", "Path"]);
+        var values = ew_session.promptInput('Create Group', [{label:"Group Name"}, {label:"Path"}]);
         if (values) {
             ew_session.controller.createGroup(values[0], values[1], function() { me.refresh() })
         }
@@ -361,7 +426,7 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Rename Group', ["New Group Name", "New Path"], [ item.name, item.path ]);
+        var values = ew_session.promptInput('Rename Group', [{label:"New Group Name"}, {label:"New Path"}], [ item.name, item.path ]);
         if (!values) return;
         ew_session.controller.updateGroup(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() { me.refresh() })
     },
@@ -448,59 +513,6 @@ var ew_GroupUsersTreeView = {
     },
 };
 ew_GroupUsersTreeView.__proto__ = TreeView;
-
-var ew_VMFATreeView = {
-    model: ["vmfas", "users"],
-
-    menuChanged: function()
-    {
-        var item = this.getSelected();
-        $('ew.vmfas.contextmenu.delete').disabled = item == null;
-        $('ew.vmfas.contextmenu.assign').disabled = !item || !item.userName;
-        $('ew.vmfas.contextmenu.unassign').disabled = !item || item.userName;
-    },
-
-    addDevice: function()
-    {
-        var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        var values = ew_session.promptInput('Create Virtual MFA device', ["Serial Number", "Device Path"]);
-        if (!values) return;
-        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(){ me.refresh() });
-    },
-
-    deleteDevice: function()
-    {
-        var item = this.getSelected();
-        if (!item) return;
-        if (!confirm('Delete Virtual MFA device ' + item.id)) return;
-        ew_session.controller.deleteVirtualMFADevice(item.id, function(){ me.refresh() });
-    },
-
-    assignDevice: function()
-    {
-        var item = this.getSelected();
-        if (!item || item.userName) return;
-        var users = ew_model.get('users');
-        var idx = ew_session.promptList("User name", "Select user to assign this device to", users);
-        if (idx < 0) return;
-        var values = ew_session.promptInput('Assign MFA device', ["Auth Code 1", "Auth Code 2"]);
-        if (!values) return;
-        ew_session.controller.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh() });
-    },
-
-    unassignDevice: function()
-    {
-        var item = this.getSelected();
-        if (!item || !item.userName) return;
-        if (!confirm('Deactivate MFA device from user ' + item.userName)) return;
-        ew_session.controller.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
-    },
-};
-ew_VMFATreeView.__proto__ = TreeView;
-ew_VMFATreeView.register();
-
 
 var ew_KeypairsTreeView = {
     model: ["keypairs"],
