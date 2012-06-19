@@ -689,7 +689,7 @@ var ew_session = {
 
         for (var i = 0; i < objs.length; i++) {
             var id = objs[i];
-            if (typeof id == "object") id = obj.id;
+            if (typeof id == "object") id = id.id;
             for (var j = 0; j < tags.length; j++) {
                 ntags.push(new Tag(tags[j].name, tags[j].value, id));
             }
@@ -1474,7 +1474,7 @@ var ew_session = {
         }
         // Global variables
         if (file.indexOf("${login}") > -1) {
-            var user = this.getSSHUser()
+            var user = this.getStrPrefs("ew.ssh.user");
             if (user != "") {
                 file = file.replace(/\${login}/g, user);
             } else {

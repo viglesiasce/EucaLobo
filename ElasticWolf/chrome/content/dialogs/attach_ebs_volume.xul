@@ -15,16 +15,12 @@
   <![CDATA[
 
     function attach() {
-        var textbox = document.getElementById("ew.attachebsvolume.device");
-        if (textbox.value == "") {
-            alert("You must enter a device name (e.g. /dev/sdh)");
-            textbox.select();
+        this.retVal.device = document.getElementById("ew.device").value;
+        if (this.retVal.device == "") {
+            alert("You must enter a device name (e.g. /dev/sdb)");
             return false;
         }
-
-        this.retVal.device = document.getElementById("ew.attachebsvolume.device").value;
-        var idxSel = document.getElementById("ew.attachebsvolume.volumeId").selectedIndex;
-        this.retVal.volumeId = this.volList[idxSel].id;
+        this.retVal.volumeId = document.getElementById("ew.volumeId").value;
         this.retVal.ok = true;
 
         return true;
@@ -36,13 +32,12 @@
         this.instanceId = instance.id;
         var zone = instance.availabilityZone;
         this.retVal = window.arguments[2];
-        this.volList = new Array();
 
         // instance
-        document.getElementById("ew.attachebsvolume.instanceId").value = this.instanceId;
+        document.getElementById("ew.instanceId").value = this.instanceId + " [" + zone + "]";
 
         // device
-        var textbox = document.getElementById("ew.attachebsvolume.device");
+        var textbox = document.getElementById("ew.device");
         if (this.retVal.windows) {
             textbox.disabled = true;
             textbox.value = "windows_device";
@@ -52,7 +47,7 @@
         }
 
         // volume ids
-        var volMenu = document.getElementById("ew.attachebsvolume.volumeId");
+        var volMenu = document.getElementById("ew.volumeId");
         // A volume can be attached to this instance only if:
         // 1. It is in the same zone as this instance
         // 2. It is not attached to another instance
@@ -61,9 +56,6 @@
             volMenu.appendItem(volumes[i].toString(), volumes[i].id);
         }
         volMenu.selectedIndex = 0;
-
-        var az = document.getElementById("ew.attachebsvolume.instanceLabel");
-        az.value += " [" + zone + "]";
     }
   ]]>
   </script>
@@ -76,16 +68,16 @@
       </columns>
       <rows>
         <row>
-          <label id="ew.attachebsvolume.instanceLabel" control="ew.attachebsvolume.instanceId" value="&ew.instances.id.label;" />
-          <textbox id="ew.attachebsvolume.instanceId" readonly="true" size="30"/>
+          <label control="ew.instanceId" value="&ew.instances.id.label;" />
+          <label id="ew.instanceId" />
         </row>
         <row>
-          <label control="ew.attachebsvolume.volumeId" value="&ew.volumes.id.label;" />
-          <menulist id="ew.attachebsvolume.volumeId" size="30" />
+          <label control="ew.volumeId" value="&ew.volumes.id.label;" />
+          <menulist id="ew.volumeId" size="30" />
         </row>
         <row>
-          <label control="ew.attachebsvolume.device" value="&ew.volumes.attachment.device.label;" />
-          <textbox id="ew.attachebsvolume.device" size="30" />
+          <label control="ew.device" value="&ew.volumes.attachment.device.label;" />
+          <textbox id="ew.device" size="30" />
         </row>
       </rows>
     </grid>

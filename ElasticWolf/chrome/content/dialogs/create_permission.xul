@@ -9,12 +9,12 @@
     <script type="application/x-javascript" src="chrome://ew/content/model.js" />
     <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
 
-    <groupbox flex="1" orient="vertical" id="ew.newpermission.add.box">
-        <caption id="ew.newpermission.add.caption" label="Add New Permission for Security Group: " />
+    <groupbox flex="1" orient="vertical" id="ew.add.box">
+        <caption id="ew.add.caption" label="Add New Permission for Security Group: " />
 
        <groupbox flex="1" orient="vertical">
           <caption label="Permission Type" />
-          <menulist id="ew.newpermission.type" size="50" onselect="ew_Authorizer.typeChanged()" />
+          <menulist id="ew.type" size="50" onselect="ew_Authorizer.typeChanged()" />
        </groupbox>
 
         <groupbox orient="vertical" flex="1">
@@ -30,7 +30,7 @@
                 <rows>
                     <row>
                         <hbox flex="0">
-                            <menulist id="ew.newpermission.protocol" selectedIndex="0" size="50" onselect="ew_Authorizer.selectionChanged()">
+                            <menulist id="ew.protocol" selectedIndex="0" size="50" onselect="ew_Authorizer.selectionChanged()">
                                 <menupopup>
                                     <menuitem label="Other" value="other" oncommand="ew_Authorizer.displayProtocolDetails(true);" />
                                     <menuitem label="SSH" value="ssh" oncommand="ew_Authorizer.displayProtocolDetails(false);" />
@@ -52,10 +52,10 @@
                         </hbox>
                     </row>
                     <row>
-                        <deck id="ew.newpermission.deck.protocol" selectedIndex="0">
+                        <deck id="ew.deck.protocol" selectedIndex="0">
                             <hbox flex="1" align="pack">
                                 <label value="Protocol" />
-                                <menulist id="ew.newpermission.protocol.menuitem" size="30" selectedIndex="0">
+                                <menulist id="ew.protocol.menuitem" size="30" selectedIndex="0">
                                     <menupopup>
                                         <menuitem label="TCP/IP" value="tcp" />
                                         <menuitem label="UDP/IP" value="udp" />
@@ -64,7 +64,7 @@
                             </hbox>
                             <hbox flex="1" align="pack">
                                 <label value="Protocol" />
-                                <menulist id="ew.newpermission.other" size="30" selectedIndex="0">
+                                <menulist id="ew.other" size="30" selectedIndex="0">
                                     <menupopup>
                                         <menuitem label="TCP/IP" value="tcp" oncommand="ew_Authorizer.selectProtocolDataDeck(1);" />
                                         <menuitem label="UDP/IP" value="udp" oncommand="ew_Authorizer.selectProtocolDataDeck(1);" />
@@ -77,22 +77,22 @@
                         </deck>
                     </row>
                     <row>
-                        <deck id="ew.newpermission.deck.protocol.data" selectedIndex="0">
+                        <deck id="ew.deck.protocol.data" selectedIndex="0">
                             <hbox flex="1" align="pack">
                                 <label value="Port" />
-                                <textbox id="ew.newpermission.knownport" value="" size="10" />
+                                <textbox id="ew.knownport" value="" size="10" />
                             </hbox>
                             <hbox flex="1" align="pack">
-                                <label control="ew.newpermission.fromport" value="Port Range:" />
-                                <textbox id="ew.newpermission.fromport" value="0" size="10" />
-                                <label control="ew.newpermission.toport" value="to" />
-                                <textbox id="ew.newpermission.toport" value="0" size="10" />
+                                <label control="ew.fromport" value="Port Range:" />
+                                <textbox id="ew.fromport" value="0" size="10" />
+                                <label control="ew.toport" value="to" />
+                                <textbox id="ew.toport" value="0" size="10" />
                             </hbox>
                             <hbox flex="1" align="pack">
-                                <label control="ew.newpermission.icmptype" value="ICMP Type" />
-                                <textbox id="ew.newpermission.icmptype" value="-1" size="10" />
-                                <label control="ew.newpermission.icmpcode" value="ICMP Code" />
-                                <textbox id="ew.newpermission.icmpcode" value="-1" size="10" />
+                                <label control="ew.icmptype" value="ICMP Type" />
+                                <textbox id="ew.icmptype" value="-1" size="10" />
+                                <label control="ew.icmpcode" value="ICMP Code" />
+                                <textbox id="ew.icmpcode" value="-1" size="10" />
                             </hbox>
                             <description align="center">All traffic will be affected</description>
                         </deck>
@@ -103,7 +103,7 @@
 
         <groupbox orient="vertical" flex="1">
             <caption label="Host/Network Details" />
-            <radiogroup id="ew.newpermission.hostnet.group" orient="vertical">
+            <radiogroup id="ew.hostnet.group" orient="vertical" oncommand="ew_Authorizer.groupChanged()">
                 <grid flex="1">
                     <columns>
                         <column />
@@ -113,24 +113,24 @@
                     <rows>
                         <row>
                             <radio id="host" value="host" label="Host" />
-                            <textbox id="ew.newpermission.source.host" />
+                            <textbox id="ew.source.host" />
                             <button id="get-host-button" label="Get My Host Address" default="true" oncommand="ew_Authorizer.getHostAddress();" />
                         </row>
                         <row>
                             <radio id="range" value="range" label="Network" />
-                            <textbox id="ew.newpermission.source.range" />
+                            <textbox id="ew.source.range" />
                             <button id="get-network-button" label="Get My Network Range" default="true" oncommand="ew_Authorizer.getHostNetwork();" />
                         </row>
                         <row>
                             <radio id="group" value="group" label="group" selected="true" />
                             <rows>
                                 <row>
-                                    <label control="ew.newpermission.source.user" value="User ID" />
-                                    <textbox id="ew.newpermission.source.user" value="" />
+                                    <label control="ew.source.user" value="User ID" />
+                                    <textbox id="ew.source.user" value="" />
                                 </row>
                                 <row>
-                                    <label control="ew.newpermission.source.group" value="Group" />
-                                    <menulist id="ew.newpermission.source.group" />
+                                    <label control="ew.source.group" value="Group" />
+                                    <menulist id="ew.source.group" />
                                 </row>
                             </rows>
                         </row>

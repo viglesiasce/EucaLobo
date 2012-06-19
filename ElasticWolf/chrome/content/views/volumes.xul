@@ -9,16 +9,14 @@
                 <popupset>
                     <menupopup id="ew.volumes.contextmenu" >
                         <menuitem oncommand="ew_VolumeTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
+                        <menuitem oncommand="ew_VolumeTreeView.createVolume();" label="&ew.volume.contextmenu.create.label;" />
+                        <menuitem oncommand="ew_VolumeTreeView.deleteVolume();" label="&ew.volume.contextmenu.delete.label;" />
                         <menuitem oncommand="ew_VolumeTreeView.tag(event);" label="Edit EC2 Tag" />
                         <menuseparator />
                         <menuitem id="volumes.context.attach" oncommand="ew_VolumeTreeView.attachVolume();" label="&ew.volume.contextmenu.attach.label;" />
                         <menuitem id="volumes.context.detach" oncommand="ew_VolumeTreeView.detachVolume();" label="&ew.volume.contextmenu.detach.label;" />
                         <menuitem id="volumes.context.forcedetach" oncommand="ew_VolumeTreeView.forceDetachVolume();" label="&ew.volume.contextmenu.forcedetach.label;" />
-                        <menuseparator />
                         <menuitem oncommand="ew_VolumeTreeView.createSnapshot();" label="&ew.volume.contextmenu.createsnap.label;" />
-                        <menuseparator />
-                        <menuitem oncommand="ew_VolumeTreeView.createVolume();" label="&ew.volume.contextmenu.create.label;" />
-                        <menuitem oncommand="ew_VolumeTreeView.deleteVolume();" label="&ew.volume.contextmenu.delete.label;" />
                         <menuseparator />
                         <menuitem oncommand="ew_VolumeTreeView.copyToClipboard('id');" label="&ew.volume.contextmenu.copyvolid.label;" />
                     </menupopup>

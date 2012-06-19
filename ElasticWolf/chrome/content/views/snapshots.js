@@ -1,5 +1,5 @@
 var ew_SnapshotTreeView = {
-    model: ['snapshots', 'securityGroups'],
+    model: ['snapshots', 'securityGroups', 'availabilityZones', 'volumes'],
 
     filter: function(list) {
         if (!list) return list;

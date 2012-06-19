@@ -7,60 +7,56 @@
   ondialogaccept="return create();"
   ondialogcancel="return true;"
   onload="init();"
-  title="Create Volume" buttonlabelaccept="Create">
+  title="Create Volume"
+  buttonlabelaccept="Create">
 
   <script type="application/x-javascript">
   <![CDATA[
       function create() {
-        this.retVal.size = document.getElementById("ew.newvolume.size").value.trim();
-        if (this.retVal.size.length == 0) this.retVal.size = null;
-
-        this.retVal.snapshotId = document.getElementById("ew.newvolume.snapshotId").value.trim();
-        if (this.retVal.snapshotId.length == 0 || this.retVal.snapshotId.indexOf("<none>") == 0) {
+        this.retVal.snapshotId = document.getElementById("ew.snapshotId").value.trim();
+        if (this.retVal.snapshotId == "" || this.retVal.snapshotId.indexOf("<none>") == 0) {
             this.retVal.snapshotId = null;
         }
 
-        this.retVal.zone = document.getElementById("ew.newvolume.availabilityzonelist").value;
+        this.retVal.size = document.getElementById("ew.size").value.trim();
+        var val = parseInt(this.retVal.size);
+        if ((isNaN(val) || val < 1) && !this.retVal.snapshotId) {
+            alert("Size must be >= 1 if a snapshot is not selected");
+            document.getElementById("ew.size").select();
+            return false;
+        }
 
-        if (!this.validateSize()) return false;
+        this.retVal.zone = document.getElementById("ew.azone").value;
+        if (!this.retVal.zone) {
+            alert('Availability Zone is required');
+            document.getElementById("ew.azone").select();
+            return false;
+        }
 
         // Only Name: tag for now, other tags can be added later in popup dialog
-        this.retVal.tag = document.getElementById("ew.newvolume.tag").value.trim();
+        this.retVal.tag = document.getElementById("ew.tag").value.trim();
         if (this.retVal.tag != "") this.retVal.tag = "Name:" + this.retVal.tag;
         this.retVal.ok = true;
         return true;
     }
 
-    function validateSize() {
-        var val = (this.retVal.size != null) ? this.retVal.size : "";
-        val = parseInt(val);
-        var textbox = document.getElementById("ew.newvolume.size");
-        if ((!isNaN(val) && val < 1) || (isNaN(val) && this.retVal.snapshotId == null)) {
-            alert("Size must be >= 1 if a snapshot is not selected");
-            textbox.select();
-            return false;
-        }
-
-        return true;
-    }
-
     function init() {
         var srcSnap = window.arguments[0];
-        this.ew_session = window.arguments[1];
+        this.session = window.arguments[1];
         this.retVal = window.arguments[2];
 
         // availability zones
-        var availZoneMenu = document.getElementById("ew.newvolume.availabilityzonelist");
-        var availZones = this.ew_session.model.get('availabilityZones');
+        var availZoneMenu = document.getElementById("ew.azone");
+        var availZones = this.session.model.get('availabilityZones');
         for (var i in availZones) {
             availZoneMenu.appendItem(availZones[i].toString(), availZones[i].name);
         }
         availZoneMenu.selectedIndex = 0;
 
         // snapshots
-        var snapshotIdMenu = document.getElementById("ew.newvolume.snapshotId");
+        var snapshotIdMenu = document.getElementById("ew.snapshotId");
         snapshotIdMenu.appendItem("<none>");
-        var snapshots = this.ew_session.model.get('snapshots');
+        var snapshots = this.session.model.get('snapshots');
         var snap = null;
         for (var i in snapshots) {
             snap = snapshots[i];
@@ -75,7 +71,7 @@
         snapshotIdMenu.selectedIndex += 1;
 
         if (srcSnap) {
-            document.getElementById("ew.newvolume.tag").value = srcSnap.name || "";
+            document.getElementById("ew.tag").value = srcSnap.name || "";
         }
     }
   ]]>
@@ -89,20 +85,20 @@
       </columns>
       <rows>
         <row>
-          <label control="ew.newvolume.size" value="&ew.volumes.size.label;" />
-          <textbox id="ew.newvolume.size" size="40" />
+          <label control="ew.size" value="&ew.volumes.size.label;" />
+          <textbox id="ew.size" size="40" type="number" />
         </row>
         <row>
-          <label control="ew.newvolume.snapshotId" value="&ew.snapshots.id.label;" />
-          <menulist id="ew.newvolume.snapshotId" editable="true" sizetopopup="none" style="max-width:500px;"/>
+          <label control="ew.snapshotId" value="&ew.snapshots.id.label;" />
+          <menulist id="ew.snapshotId" editable="true" sizetopopup="none" style="max-width:500px;"/>
         </row>
         <row>
-          <label control="ew.newvolume.availabilityzonelist" value="&ew.availabilityZone.label;" />
-          <menulist id="ew.newvolume.availabilityzonelist" sizetopopup="none" style="max-width:500px;"/>
+          <label control="ew.azone" value="&ew.availabilityZone.label;" />
+          <menulist id="ew.azone" sizetopopup="none" style="max-width:500px;"/>
         </row>
         <row>
-          <label control="ew.newvolume.tag" value="Volume Name" />
-          <textbox id="ew.newvolume.tag" size="40" />
+          <label control="ew.tag" value="Volume Name" />
+          <textbox id="ew.tag" size="40" />
         </row>
       </rows>
     </grid>

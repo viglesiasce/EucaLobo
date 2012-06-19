@@ -12,12 +12,12 @@ var ew_Authorizer = {
     var newPerm = new Object();
 
     // Need to get the IP etc.
-    var radioSel = document.getElementById("ew.newpermission.hostnet.group").selectedItem.value;
+    var radioSel = document.getElementById("ew.hostnet.group").selectedItem.value;
     var cidrStr = "";
 
     switch (radioSel) {
     case "host":
-        var textbox = document.getElementById("ew.newpermission.source.host");
+        var textbox = document.getElementById("ew.source.host");
         if (textbox.value == "") {
             alert("Please provide a source host");
             textbox.select();
@@ -33,7 +33,7 @@ var ew_Authorizer = {
         break;
 
     case "range":
-        var textbox = document.getElementById("ew.newpermission.source.range");
+        var textbox = document.getElementById("ew.source.range");
         if (textbox.value == "") {
             alert("Please provide a source host range");
             textbox.select();
@@ -46,8 +46,8 @@ var ew_Authorizer = {
         break;
 
     case "group":
-        var group = document.getElementById("ew.newpermission.source.group");
-        var user = document.getElementById("ew.newpermission.source.user");
+        var group = document.getElementById("ew.source.group");
+        var user = document.getElementById("ew.source.user");
         if (!user.value || !group.value) {
             alert("Please provide a source group / user");
             return false;
@@ -56,7 +56,7 @@ var ew_Authorizer = {
     }
     newPerm.cidrIp = cidrStr;
 
-    var protocol = document.getElementById("ew.newpermission.protocol").value;
+    var protocol = document.getElementById("ew.protocol").value;
     if (protocol == "any") {
         protocol = "-1";
         newPerm.toPort = "0";
@@ -65,10 +65,10 @@ var ew_Authorizer = {
     } else
 
     if (protocol == "other") {
-        protocol = document.getElementById("ew.newpermission.other").value;
+        protocol = document.getElementById("ew.other").value;
         if (protocol == "tcp" || protocol == "udp") {
-          var fromTextBox = document.getElementById("ew.newpermission.fromport");
-          var toTextBox   = document.getElementById("ew.newpermission.toport");
+          var fromTextBox = document.getElementById("ew.fromport");
+          var toTextBox   = document.getElementById("ew.toport");
           if (!this.validateMinPort(fromTextBox)) {
               return false;
           }
@@ -81,13 +81,13 @@ var ew_Authorizer = {
         } else
 
         if (protocol == "icmp") {
-          newPerm.fromPort = document.getElementById("ew.newpermission.icmptype").value.trim();
-          newPerm.toPort = document.getElementById("ew.newpermission.icmpcode").value.trim();
+          newPerm.fromPort = document.getElementById("ew.icmptype").value.trim();
+          newPerm.toPort = document.getElementById("ew.icmpcode").value.trim();
         }
     } else {
-        newPerm.toPort = document.getElementById("ew.newpermission.knownport").value.trim();
-        newPerm.fromPort = document.getElementById("ew.newpermission.knownport").value.trim();
-        protocol = document.getElementById("ew.newpermission.protocol.menuitem").value;
+        newPerm.toPort = document.getElementById("ew.knownport").value.trim();
+        newPerm.fromPort = document.getElementById("ew.knownport").value.trim();
+        protocol = document.getElementById("ew.protocol.menuitem").value;
     }
 
     newPerm.ipProtocol = protocol;
@@ -96,7 +96,7 @@ var ew_Authorizer = {
 
         // If the user chooses to change these settings, bring the dialog back in focus.
         if (!fOpen) {
-            document.getElementById("ew.newpermission.toport").select();
+            document.getElementById("ew.toport").select();
             return false;
         }
     }
@@ -109,9 +109,9 @@ var ew_Authorizer = {
   validateMinPort : function(minTextBox) {
     var val = parseInt(minTextBox.value);
     if (val < 0 || isNaN(val)) {
-      alert("Lower port range bound must be a non-negative integer");
-      textbox.select();
-      return false;
+        alert("Lower port range bound must be a non-negative integer");
+        textbox.select();
+        return false;
     }
     return true;
   },
@@ -119,61 +119,60 @@ var ew_Authorizer = {
   validateMaxPort : function(maxTextBox, minTextBox) {
     maxval = parseInt(maxTextBox.value);
     if (maxval < 0 || isNaN(maxval)) {
-      alert("Upper port range bound must be a non-negative integer");
-      maxTexBbox.select();
-      return false;
+        alert("Upper port range bound must be a non-negative integer");
+        maxTexBbox.select();
+        return false;
     }
     var minval = parseInt(minTextBox.value);
     if (minval > maxval) {
-      alert("Upper port range bound may not be smaller than lower bound");
-      alert("Maximum value may not be smaller than minimum value");
-      maxTextBox.select();
-      return false;
+        alert("Upper port range bound may not be smaller than lower bound");
+        alert("Maximum value may not be smaller than minimum value");
+        maxTextBox.select();
+        return false;
     }
     return true;
   },
 
   validateCIDR : function(cidrStr, textbox) {
-    var cidrre = new RegExp("^\\d+\\.\\d+\\.\\d+\\.\\d+\\/\\d+$");
-    if (cidrStr.match(cidrre) == null) {
-      alert("Malformed CIDR, expecting n.n.n.n/n or n.n.n.n");
-      textbox.select();
-      return false;
+    if (!cidrStr.match(/^\d+\.\d+\.\d+\.\d+\/\d+$/)) {
+        alert("Malformed CIDR, expecting n.n.n.n/n");
+        textbox.select();
+        return false;
     }
     return true;
   },
 
   validateSourceUserGroup : function() {
-    var user = document.getElementById("ew.newpermission.source.user");
+    var user = document.getElementById("ew.source.user");
     if (user.value == "") {
-      alert("Please provide a source user ID");
-      user.select();
-      return false;
+        alert("Please provide a source user ID");
+        user.select();
+        return false;
     }
-    var group = document.getElementById("ew.newpermission.source.group");
+    var group = document.getElementById("ew.source.group");
     if (group.value == "") {
-      alert("Please provide a source security group name");
-      group.select();
-      return false;
+        alert("Please provide a source security group name");
+        group.select();
+        return false;
     }
     return true;
   },
 
   displayProtocolDetails : function(fDisplay) {
     if (fDisplay) {
-      ew_Authorizer.selectProtocolDataDeck(1);
-      ew_Authorizer.selectProtocolDeck(1);
+        ew_Authorizer.selectProtocolDataDeck(1);
+        ew_Authorizer.selectProtocolDeck(1);
     } else {
-      this.selectProtocolDataDeck(0);
-      this.selectProtocolDeck(0);
-      var protocol = document.getElementById("ew.newpermission.protocol").value;
-      document.getElementById("ew.newpermission.knownport").value = protPortMap[protocol];
+        this.selectProtocolDataDeck(0);
+        this.selectProtocolDeck(0);
+        var protocol = document.getElementById("ew.protocol").value;
+        document.getElementById("ew.knownport").value = protPortMap[protocol];
     }
   },
 
   selectionChanged: function()
   {
-      var protocol = document.getElementById("ew.newpermission.protocol").value;
+      var protocol = document.getElementById("ew.protocol").value;
       if (protocol == "any") {
           this.selectProtocolDataDeck(3);
           this.selectProtocolDeck(2);
@@ -181,35 +180,43 @@ var ew_Authorizer = {
   },
 
   getHostAddress : function() {
-    var retVal = {ipAddress:"0.0.0.0"};
-    this.ew_session.queryCheckIP("", retVal);
-    var hostIP = document.getElementById("ew.newpermission.source.host");
-    hostIP.value = retVal.ipAddress.replace(/\s/g,'') + "/32";
-    document.getElementById("ew.newpermission.hostnet.group").selectedIndex = 0;
+      var retVal = {ipAddress:"0.0.0.0"};
+      this.ew_session.queryCheckIP("", retVal);
+      var hostIP = document.getElementById("ew.source.host");
+      hostIP.value = retVal.ipAddress.replace(/\s/g,'') + "/32";
+      document.getElementById("ew.hostnet.group").selectedIndex = 0;
   },
 
   getHostNetwork : function() {
-    var retVal = {ipAddress:"0.0.0.0"};
-    this.ew_session.queryCheckIP("block", retVal);
-    var hostSubnet = document.getElementById("ew.newpermission.source.range");
-    hostSubnet.value = retVal.ipAddress.replace(/\s/g,'');
-    document.getElementById("ew.newpermission.hostnet.group").selectedIndex = 1;
+      var retVal = {ipAddress:"0.0.0.0"};
+      this.ew_session.queryCheckIP("block", retVal);
+      var hostSubnet = document.getElementById("ew.source.range");
+      hostSubnet.value = retVal.ipAddress.replace(/\s/g,'');
+      document.getElementById("ew.hostnet.group").selectedIndex = 1;
   },
 
   selectProtocolDeck : function(index) {
-    var deck = document.getElementById("ew.newpermission.deck.protocol");
-    deck.selectedIndex = index;
+      var deck = document.getElementById("ew.deck.protocol");
+      deck.selectedIndex = index;
   },
 
   selectProtocolDataDeck : function(index) {
-    var deck = document.getElementById("ew.newpermission.deck.protocol.data");
-    deck.selectedIndex = index;
+      var deck = document.getElementById("ew.deck.protocol.data");
+      deck.selectedIndex = index;
+  },
+
+  groupChanged: function()
+  {
+      var type = document.getElementById("ew.hostnet.group").selectedItem.value;
+      if (type == "range" && document.getElementById("ew.source.range").value == "") {
+          document.getElementById("ew.source.range").value = "0.0.0.0/0";
+      }
   },
 
   typeChanged: function()
   {
-      var type = document.getElementById("ew.newpermission.type")
-      var permCaption = document.getElementById("ew.newpermission.add.caption");
+      var type = document.getElementById("ew.type")
+      var permCaption = document.getElementById("ew.add.caption");
       permCaption.label = "Add New " + type.value + " Permission for Security Group: " + this.group.name;
   },
 
@@ -221,20 +228,20 @@ var ew_Authorizer = {
     if (this.group == null) {
         return true;
     }
-    var type = document.getElementById("ew.newpermission.type");
+    var type = document.getElementById("ew.type");
     type.appendItem('Ingress', 'Ingress');
     if (this.group.vpcId) {
         type.appendItem('Egress', 'Egress');
     }
     type.selectedIndex = 0;
 
-    var permCaption = document.getElementById("ew.newpermission.add.caption");
+    var permCaption = document.getElementById("ew.add.caption");
     permCaption.label = "Add New " + this.retVal.type + " Permission for Security Group: " + this.group.name;
 
-    var user = document.getElementById("ew.newpermission.source.user");
+    var user = document.getElementById("ew.source.user");
     user.value = this.group.ownerId;
     var securityGroups = this.ew_session.model.get('securityGroups');
-    var groupMenu = document.getElementById("ew.newpermission.source.group");
+    var groupMenu = document.getElementById("ew.source.group");
     groupMenu.appendItem("", "");
     for(var i in securityGroups) {
         if ((this.group.vpcId != "" && securityGroups[i].vpcId == "") || (this.group.vpcId == "" && securityGroups[i].vpcId != "")) {
@@ -247,8 +254,8 @@ var ew_Authorizer = {
     }
 
     // Initialize the Protocol Port for the selected protocol.
-    var proto = document.getElementById("ew.newpermission.protocol");
-    document.getElementById("ew.newpermission.knownport").value = protPortMap[proto.value];
+    var proto = document.getElementById("ew.protocol");
+    document.getElementById("ew.knownport").value = protPortMap[proto.value];
     if (this.group.vpcId) {
         proto.insertItemAt(0, "Any", "any");
         proto.selectedIndex = 0;

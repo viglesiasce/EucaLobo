@@ -92,7 +92,7 @@ var ew_PermissionsTreeView = {
             }
 
             var newPerm = retVal.newPerm;
-            if (newPerm.cidrIp != null) {
+            if (newPerm.cidrIp) {
                 ew_session.controller.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
             } else {
                 ew_session.controller.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);

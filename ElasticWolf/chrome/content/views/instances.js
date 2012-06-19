@@ -1,5 +1,5 @@
 var ew_InstancesTreeView = {
-    model: ['instances', 'images', 'addresses', 'networkInterfaces', 'subnets', 'vpcs'],
+    model: ['instances', 'images', 'addresses', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes'],
     properties: [ 'state' ],
     max: 50,
 
