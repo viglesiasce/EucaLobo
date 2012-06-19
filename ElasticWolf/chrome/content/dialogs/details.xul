@@ -38,6 +38,7 @@
                 cell = document.createElement('listcell');
                 cell.setAttribute('label', val);
                 row.setAttribute('value', val);
+                row.setAttribute('tooltiptext', val);
                 row.appendChild(cell);
                 this.list.appendChild(row);
             }
