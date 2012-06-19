@@ -120,7 +120,7 @@
          <treecell label="Access" src="images/iam.png" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /> <treecell label="" value="ew.tabs.credential.info" properties="info" /> </treerow></treeitem>
          <treeitem><treerow><treecell label="Access Keys/Keypairs" value="ew.tabs.access" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Signing Certificates" value="ew.tabs.cert" /></treerow></treeitem>
        </treechildren>

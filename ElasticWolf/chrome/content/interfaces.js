@@ -52,7 +52,7 @@ var TreeView = {
     getList: function()
     {
         var list = (this.model ? this.getModel() : this.getData()) || [];
-        log(this.getName() + ' contains ' + list.length + 'records')
+        log(this.getName() + ' contains ' + list.length + ' records')
         return list || [];
     },
     get rowCount() {
