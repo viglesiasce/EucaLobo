@@ -8,17 +8,34 @@ var ew_S3BucketsTreeView = {
         return name.replace(/[ \/\\'":]+/g, '');
     },
 
+    isFolder: function(item)
+    {
+        return !this.path.length || item.label[item.label.length - 1] == "/";
+    },
+
+    displayDetails: function(event)
+    {
+        var item = this.getSelected()
+        if (item == null) return
+        // Folder or bucket
+        if (this.isFolder(item)) {
+            this.path.push(item.folder);
+            this.show();
+        }
+    },
+
     display : function(list)
     {
         var idx = -1;
-        var path = this.path.join("/");
+        var path = this.path.join("/") + "/";
         var nlist = [];
         for (var i in list) {
             var n = (this.path[0] + "/" + list[i].name).replace(/[ \/]+$/, '');
             var p = n.split("/");
             // Next level only
             if (!this.path.length || n.indexOf(path) == 0 && p.length == this.path.length + 1) {
-                list[i].label = p[p.length - 1] + (list[i].name[list[i].name.length - 1] == "/" ? "/" : "")
+                list[i].folder = p[p.length - 1];
+                list[i].label = list[i].folder + (list[i].name[list[i].name.length - 1] == "/" ? "/" : "")
                 nlist.push(list[i])
                 // Select given item
                 if (list[i].name == this.folder) {
@@ -28,9 +45,22 @@ var ew_S3BucketsTreeView = {
         }
         TreeView.display.call(this, nlist);
         if (idx >= 0) this.setSelected(idx);
-        $("ew.s3.path").value = path;
+        $("ew.s3Buckets.path").value = path;
 
         this.folder = '';
+    },
+
+    selectionChanged: function()
+    {
+    },
+
+    menuChanged: function()
+    {
+        var item = this.getSelected()
+        $("ew.s3Buckets.back").disabled = !this.path.length;
+        $("ew.s3Buckets.edit").disabled = !this.path.length || !item || !item.bucket || item.size > 1024*1024;
+        $("ew.s3Buckets.createFile").disabled = !this.path.length;
+        $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
     },
 
     show: function()
@@ -51,18 +81,6 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    displayDetails: function(event)
-    {
-        var me = this;
-        var item = this.getSelected()
-        if (item == null) return
-        // Folder or bucket
-        if (!this.path.length || item.label[item.label.length - 1] == "/") {
-            this.path.push(item.name);
-            this.show();
-        }
-    },
-
     refresh: function()
     {
         this.path = [];
@@ -78,7 +96,7 @@ var ew_S3BucketsTreeView = {
     setStatus: function(file, p)
     {
         file = DirIO.fileName(file);
-        document.getElementById("ew.s3.status").value = file + ": " + (p >= 0 && p <= 100 ? Math.round(p) : 100) + "%";
+        document.getElementById("ew.s3Buckets.status").value = file + ": " + (p >= 0 && p <= 100 ? Math.round(p) : 100) + "%";
     },
 
     create: function() {
@@ -86,12 +104,11 @@ var ew_S3BucketsTreeView = {
         var retVal = { ok : null, name: null, region : null, params: {}, type: this.path.length ? "Folder" : "Bucket" }
         window.openDialog("chrome://ew/content/dialogs/create_s3bucket.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
         if (retVal.ok) {
-
             if (!this.path.length) {
                 ew_session.controller.createS3Bucket(retVal.name, retVal.region, retVal.params, function() { me.refresh(true); });
             } else {
                 ew_model.getS3Bucket(this.path[0]).keys = []
-                ew_session.controller.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + retVal.name, retVal.params, null, function() { me.show(); });
+                ew_session.controller.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + '/' + retVal.name, retVal.params, null, function() { me.show(); });
             }
         }
     },
@@ -113,7 +130,7 @@ var ew_S3BucketsTreeView = {
     download: function() {
         var me = this;
         var item = this.getSelected()
-        if (item == null) return
+        if (this.isFolder(item)) return
 
         var file = ew_session.promptForFile("Save to file", true, DirIO.fileName(item.name))
         if (file) {
@@ -124,15 +141,15 @@ var ew_S3BucketsTreeView = {
     },
 
     upload: function() {
-        var me = this;
         if (!this.path.length) return;
-        var item = ew_model.getS3Bucket(this.path[0])
-        item.keys = []
+        var me = this;
         var file = ew_session.promptForFile("Upload file")
         if (file) {
+            var item = ew_model.getS3Bucket(this.path[0])
+            item.keys = []
             var f = FileIO.open(file)
             var name = this.keyName(f.leafName)
-            ew_session.controller.uploadS3BucketFile(item.name, this.path.slice(1).join('/') + name, "", {}, file,
+            ew_session.controller.uploadS3BucketFile(item.name, this.path.slice(1).join('/') + '/' + name, "", {}, file,
                     function(fn) { me.show(); },
                     function(fn, p) { me.setStatus(fn, p); });
         }
@@ -141,7 +158,7 @@ var ew_S3BucketsTreeView = {
     edit: function() {
         var me = this;
         var item = this.getSelected()
-        if (item == null) return
+        if (this.isFolder(item)) return
         if (item.size > 1024*1024) {
             alert(item.name + " is too big");
             return;
@@ -151,20 +168,21 @@ var ew_S3BucketsTreeView = {
             var rc = { file: item.name, text: t, save: false };
             window.openDialog("chrome://ew/content/dialogs/edit_s3.xul", null, "chrome,centerscreen,modal,resizable", rc);
             if (rc.save) {
-                ew_session.controller.putS3BucketKey(item.bucket, me.path.slice(1).join('/') + item.name, "", {}, rc.text, function() {
+                ew_session.controller.putS3BucketKey(item.bucket, me.path.slice(1).join('/') + '/' + item.name, "", {}, rc.text, function() {
                     me.show();
                 });
             }
         });
     },
 
-    create: function() {
+    createFile: function() {
         var me = this;
         if (!this.path.length) return;
-        var item = ew_model.getS3Bucket(this.path[0])
         var file = prompt("File name:")
         if (file) {
-            var name = this.path.slice(1).join('/') + this.keyName(file)
+            var item = ew_model.getS3Bucket(this.path[0])
+            item.keys = []
+            var name = this.path.slice(1).join('/') + '/' + this.keyName(file)
             var rc = { file: name, text: "", save: false };
             window.openDialog("chrome://ew/content/dialogs/edit_s3.xul", null, "chrome,centerscreen,modal,resizable", rc);
             if (rc.save) {
@@ -202,9 +220,9 @@ var ew_S3BucketsTreeView = {
     },
 
     manageWebsite: function() {
+        if (this.path.length) return;
         var me = this;
         var item = this.getSelected()
-        if (this.path.length) return;
         if (item == null) return
         var retVal = { bucket: item.name, ok: 0, enable: 0 };
 

@@ -1387,6 +1387,7 @@ var ew_controller = {
 
     putS3BucketKey : function(bucket, key, path, params, text, callback)
     {
+        if (!params["Content-Type"]) params["Content-Type"] = ew_session.getMimeType(key);
         ew_session.queryS3("PUT", bucket, key, path, params, text, this, false, "onComplete", callback);
     },
 
@@ -1403,6 +1404,7 @@ var ew_controller = {
 
     uploadS3BucketFile : function(bucket, key, path, params, file, callback, progresscb)
     {
+        if (!params["Content-Type"]) params["Content-Type"] = ew_session.getMimeType(key);
         ew_session.uploadS3(bucket, key, path, params, file, callback, progresscb);
     },
 

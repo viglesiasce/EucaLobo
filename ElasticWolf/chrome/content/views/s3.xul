@@ -8,20 +8,20 @@
             <groupbox flex="1" orient="vertical">
                 <caption label="S3 Buckets" />
                 <popupset>
-                    <menupopup id="ew.s3.contextmenu">
-                        <menuitem oncommand="ew_S3BucketsTreeView.back()" label="Back" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.onClick()" label="Show contents" />
+                    <menupopup id="ew.s3Buckets.contextmenu">
+                        <menuitem id="ew.s3Buckets.back" oncommand="ew_S3BucketsTreeView.back()" label="Back" />
+                        <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayDetails()" label="Show contents" />
                         <menuseparator />
                         <menuitem oncommand="ew_S3BucketsTreeView.refresh()" label="&ew.refresh.tip;" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.manageAcls();" label="Manage ACLs" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.manageWebsite();" label="Manage Website config" />
+                        <menuitem id="ew.s3Buckets.create" oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
+                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder" />
+                        <menuitem id="ew.s3Buckets.acl" oncommand="ew_S3BucketsTreeView.manageAcls();" label="Manage ACLs" />
+                        <menuitem id="ew.s3Buckets.web" oncommand="ew_S3BucketsTreeView.manageWebsite();" label="Manage Website config" />
                         <menuseparator />
-                        <menuitem oncommand="ew_S3BucketsTreeView.download();" label="Download select file" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.upload();" label="Upload file" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.edit();" label="Edit selected text file" />
-                        <menuitem oncommand="ew_S3BucketsTreeView.create();" label="Create and edit new text file" />
+                        <menuitem id="ew.s3Buckets.download" oncommand="ew_S3BucketsTreeView.download();" label="Download selected file" />
+                        <menuitem id="ew.s3Buckets.upload" oncommand="ew_S3BucketsTreeView.upload();" label="Upload file" />
+                        <menuitem id="ew.s3Buckets.edit" oncommand="ew_S3BucketsTreeView.edit();" label="Edit selected text file" />
+                        <menuitem id="ew.s3Buckets.createFile" oncommand="ew_S3BucketsTreeView.createFile();" label="Create and edit new text file" />
                     </menupopup>
                 </popupset>
 
@@ -30,17 +30,17 @@
                     <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.create();" tooltiptext="Create Bucket/Folder" />
                     <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder" />
-                    <toolbarbutton image="images/revoke.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageAcls();" tooltiptext="Manage ACLs" />
+                    <toolbarbutton image="images/credentials.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageAcls();" tooltiptext="Manage ACLs" />
                     <toolbarbutton image="images/web.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageWebsite();" tooltiptext="Manage Website config" />
                     <toolbarbutton image="images/download.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.download();" tooltiptext="Download file" />
                     <toolbarbutton image="images/upload.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.upload();" tooltiptext="Upload file" />
                     <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.edit();" tooltiptext="Edit text file" />
                 </toolbar>
                 <hbox style="background-color:#EEEEEE;">
-                <label id="ew.s3.path" flex="1" />
-                <label id="ew.s3.status" style="color:green;text-align:right;" flex="1" />
+                <label id="ew.s3Buckets.path" flex="1" />
+                <label id="ew.s3Buckets.status" style="color:green;text-align:right;" flex="1" />
                 </hbox>
-                <tree id="ew.s3.view" seltype="single" enableColumnDrag="true" flex="1" >
+                <tree id="ew.s3Buckets.view" seltype="single" enableColumnDrag="true" flex="1" >
                     <treecols>
                         <treecol id="s3.label" label="Name" flex="2" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
@@ -52,7 +52,7 @@
                         <splitter class="tree-splitter" />
                         <treecol id="s3.etag" label="ETag" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     </treecols>
-                    <treechildren context="ew.s3.contextmenu" />
+                    <treechildren context="ew.s3Buckets.contextmenu" />
                 </tree>
             </groupbox>
        </hbox>

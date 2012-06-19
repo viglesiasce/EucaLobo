@@ -980,6 +980,11 @@ var ew_session = {
         if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
         if (this.securityToken != "") params["x-amz-security-token"] = this.securityToken;
 
+        // Without media type mozilla changes encoding and signatures do not match
+        if (params["Content-Type"] && params["Content-Type"].indexOf("charset=") == -1) {
+            params["Content-Type"] += "; charset=UTF-8";
+        }
+
         // Construct the string to sign and query string
         var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";
 
@@ -1277,6 +1282,19 @@ var ew_session = {
         }
         this.timers[key] = null;
         return true;
+    },
+
+    getMimeType: function(file)
+    {
+        if (!file || file.indexOf('.') == -1) return null;
+        try {
+            var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+            var url = ioService.newURI('file://' + file, null, null);
+            var mService = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService);
+            return mService.getTypeFromURI(url);
+        }
+        catch(e) {}
+        return null;
     },
 
     getDirSeparator : function()

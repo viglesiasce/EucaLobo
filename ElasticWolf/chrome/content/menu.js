@@ -89,7 +89,7 @@ var ew_menu = {
 
             { name: "ew.tabs.availzone",     views: [ { id: "ew.azones.view", view: ew_AvailZoneTreeView }], },
 
-            { name: "ew.tabs.s3",            views: [ { id: "ew.s3.view", view: ew_S3BucketsTreeView }], },
+            { name: "ew.tabs.s3",            views: [ { id: "ew.s3Buckets.view", view: ew_S3BucketsTreeView }], },
 
             { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
     ],
