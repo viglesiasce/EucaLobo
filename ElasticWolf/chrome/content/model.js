@@ -1012,7 +1012,7 @@ var ew_model = {
     // Update model list and notify components
     set: function(name, list)
     {
-        log('set model ' + name + ' ' + (list ? list.length : 0))
+        log('set model ' + name + ' with ' + (list ? list.length : 0) + ' records')
         this.progress[name] = 0;
         this[name] = list;
         this.notifyComponents(name);

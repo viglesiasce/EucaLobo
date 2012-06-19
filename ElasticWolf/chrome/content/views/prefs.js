@@ -144,5 +144,12 @@ var ew_PrefsView = {
           $(id).value = path;
       }
    },
+
+   cleanup: function()
+   {
+       if (!confirm('All preferences and credentials will be removed from this computer, access to AWS will not be possible without new credentials, continue?')) return;
+       DirIO.remove(ew_session.getProfileHome());
+       ew_session.quit();
+   },
 }
 

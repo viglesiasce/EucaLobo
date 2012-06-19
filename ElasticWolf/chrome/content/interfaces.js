@@ -51,7 +51,8 @@ var TreeView = {
     },
     getList: function()
     {
-        var list = this.model ? this.getModel() : this.getData();
+        var list = (this.model ? this.getModel() : this.getData()) || [];
+        log(this.getName() + ' contains ' + list.length + 'records')
         return list || [];
     },
     get rowCount() {
@@ -130,7 +131,7 @@ var TreeView = {
         if (idx >= 0 && idx < this.rowCount) this.treeList[idx][name] = val;
     },
     notifyModelChanged : function(interest) {
-        log('notify model changed ' + this.model)
+        log('notify model changed ' + this.getName())
         this.invalidate();
     },
     hasNextSibling: function(idx, after)
@@ -275,7 +276,7 @@ var TreeView = {
     },
     refreshAll: function(force)
     {
-        log('refreshAll ' + (force ? "force" : "") + ' ' + this.model)
+        log('refreshAll' + (force ? "force" : "") + ' ' + this.model)
         if (this.model instanceof Array) {
             for (var i = 1; i < this.model.length; i++) {
                 if (force || ew_model.getModel(this.model[i]) == null) {
@@ -292,7 +293,7 @@ var TreeView = {
         var me = this;
         // Ignore refresh timer if we have popup active
         this.refreshTimer = setTimeout(function() { if (!me.menuActive) me.refresh() }, this.refreshTimeout);
-        log('start timer ' + this.model)
+        log('start timer ' + this.getName() + ' for ' + this.refreshTimeout + ' ms');
     },
     stopRefreshTimer : function()
     {
@@ -375,6 +376,7 @@ var TreeView = {
         if (list) {
             this.treeList = this.treeList.concat(list);
         }
+        log(this.getName() + ' displays ' + this.treeList.length + ' records')
         this.treeBox.rowCountChanged(0, this.treeList.length);
         this.treeBox.invalidate();
         this.selection.clearSelection();
@@ -770,7 +772,7 @@ var FileIO = {
             return true;
         }
         catch (e) {
-            debug(e)
+            debug('Error:' + e);
             return false;
         }
     },
@@ -782,7 +784,7 @@ var FileIO = {
             return true;
         }
         catch (e) {
-            debug(e);
+            debug('Error:' + e);
             return false;
         }
     },
@@ -828,7 +830,7 @@ var FileIO = {
             data = this.read(this.open(path))
         }
         catch (e) {
-            debug("toString:" + path + ": " + e)
+            debug("Error: toString:" + path + ": " + e)
         }
         return data
     },
@@ -895,9 +897,14 @@ var DirIO = {
             return true;
         }
         catch (e) {
-            debug(e)
+            debug('Error:' + e);
             return false;
         }
+    },
+
+    remove : function(path, recursive)
+    {
+        return this.unlink(this.open(path), recursive);
     },
 
     mkpath: function(path)
@@ -922,7 +929,7 @@ var DirIO = {
             return true;
         }
         catch (e) {
-            debug(e)
+            debug('Error:' + e);
             return false;
         }
     },
@@ -972,10 +979,7 @@ var DirIO = {
     unlink : function(dir, recursive)
     {
         try {
-            if (recursive == null) {
-                recursive = false;
-            }
-            dir.remove(recursive);
+            dir.remove(recursive ? true : false);
             return true;
         }
         catch (e) {

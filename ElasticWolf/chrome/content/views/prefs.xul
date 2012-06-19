@@ -26,7 +26,10 @@
                 </row>
                 <row>
                     <label control="ew.profile" value="Profile directory:" />
+                    <hbox>
                     <label id="ew.profile" />
+                    <button label="Delete Preferences" oncommand="ew_PrefsView.cleanup()" />
+                    </hbox>
                 </row>
                 <row>
                     <label control="ew.key.home" value="Directory for private key files:" />

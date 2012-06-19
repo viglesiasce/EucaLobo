@@ -179,13 +179,13 @@ var ew_menu = {
 
     getSelected: function()
     {
-        return this.tree.currentIndex >= 0 ? this.get(this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns.getFirstColumn())) : null;
+        return this.tree.currentIndex >= 0 ? this.get(this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns[0])) : null;
     },
 
     getMenu: function(id)
     {
         for (var i = 0; i < this.tree.view.rowCount; i++) {
-            var val = this.tree.view.getCellValue(i, this.tree.columns.getFirstColumn());
+            var val = this.tree.view.getCellValue(i, this.tree.columns[0]);
             if (val == id) return i;
         }
         return -1;
@@ -193,10 +193,12 @@ var ew_menu = {
 
     selectionChanged: function()
     {
-        var id = this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns.getFirstColumn());
+        var id = this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns[0]);
         switch (id) {
         case "":
+            var label = this.tree.view.getCellText(this.tree.currentIndex, this.tree.columns[0]).replace(/[()]+/g, '');
             this.tree.view.toggleOpenState(this.tree.currentIndex);
+            this.tree.view.setCellText(this.tree.currentIndex, this.tree.columns[0], this.tree.view.isContainerOpen(this.tree.currentIndex) ? label : "(" + label + ")");
             break;
 
         default:
@@ -210,7 +212,7 @@ var ew_menu = {
             var cred = ew_session.getActiveCredentials();
             var endpoint = ew_session.getActiveEndpoint();
             var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
-            this.tree.view.setCellText(idx, this.tree.columns.getFirstColumn(), label);
+            this.tree.view.setCellText(idx, this.tree.columns[0], label);
         }
     },
 

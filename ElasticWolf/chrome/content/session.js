@@ -45,7 +45,6 @@ var ew_session = {
         this.model = ew_model;
         this.controller = ew_controller;
         this.credentials = this.getCredentials();
-
         this.getEndpoints();
 
         document.title = ew_session.getAppName();

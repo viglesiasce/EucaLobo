@@ -72,7 +72,7 @@ treechildren::-moz-tree-checkbox(checked) {
 
 treechildren::-moz-tree-row {
     border-top: 1px solid transparent;
-    height: 18px;
+    height: 20px;
     background-color: #FFFFFF;
     color: #000000;
 }
