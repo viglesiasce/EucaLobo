@@ -2844,9 +2844,78 @@ var ew_controller = {
         ew_session.queryIAM("UploadSigningCertificate", params, this, false, "onComplete", callback);
     },
 
-    deleteSigningCertificate : function(cert, callback)
+    deleteSigningCertificate : function(id, callback)
     {
-        ew_session.queryIAM("DeleteSigningCertificate", [ [ "CertificateId", cert ] ], this, false, "onComplete", callback);
+        ew_session.queryIAM("DeleteSigningCertificate", [ [ "CertificateId", id ] ], this, false, "onComplete", callback);
+    },
+
+    updateSigningCertificate : function(id, status, callback)
+    {
+        ew_session.queryIAM("UpdateSigningCertificate", [ [ "CertificateId", id ], ["Status", status] ], this, false, "onComplete", callback);
+    },
+
+    uploadServerCertificate : function(name, body, privatekey, path, chain, callback)
+    {
+        var params = [ ["ServerCertificateName", name]];
+        params.push([ "CertificateBody", body ]);
+        params.push(["PrivateKey", privatekey ]);
+        if (path) params.push([["Path", user]])
+        if (chain) params.push(["CertificateChain", chain])
+        ew_session.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
+    },
+
+    deleteServerCertificate : function(name, callback)
+    {
+        ew_session.queryIAM("DeleteServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onComplete", callback);
+    },
+
+    updateServerCertificate : function(name, newname, newpath, callback)
+    {
+        var params = [ [ "ServerCertificateName", name ] ];
+        if (newname) params.push(["NewServerCertificateName", newname]);
+        if (newpath) params.push(["NewPath", newpath]);
+        ew_session.queryIAM("UpdateServerCertificate", params, this, false, "onComplete", callback);
+    },
+
+    getServerCertificate : function(name, callback)
+    {
+        ew_session.queryIAM("GetServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onCompleteGetServerCertificate", callback);
+    },
+
+    unpackServerCertificate: function(item)
+    {
+        var id = getNodeValue(item, "ServerCertificateId");
+        var name = getNodeValue(item, "ServerCertificateName");
+        var arn = getNodeValue(item, "Arn");
+        var path = getNodeValue(item, "Path");
+        var date = getNodeValue(item, "UploadDate");
+        var body = getNodeValue(item, "CertificateBody");
+        return new ServerCertificate(id, name, arn, path, date, body);
+    },
+
+    onCompleteGetServerCertificate : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.unpackServerCertificate(xmlDoc);
+    },
+
+    listServerCertificates : function(callback)
+    {
+        var params = [];
+        ew_session.queryIAM("ListServerCertificates", params, this, false, "onCompleteListServerCertificates", callback);
+    },
+
+    onCompleteListServerCertificates : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = xmlDoc.getElementsByTagName("ServerCertificateMetadata");
+        for ( var i = 0; i < items.length; i++) {
+            list.push(this.unpackServerCertificte(items[i]));
+        }
+        ew_model.set('serverCerts', list);
+        response.result = list;
     },
 
     describeAlarms : function(callback)

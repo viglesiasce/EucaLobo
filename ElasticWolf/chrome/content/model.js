@@ -23,6 +23,20 @@ function Certificate(id, user, body)
     }
 }
 
+function ServerCertificate(id, name, arn, path, date, body)
+{
+    this.id = id;
+    this.name = name;
+    this.arn = arn;
+    this.path = path;
+    this.date = date || "";
+    this.body = body || "";
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
 function KeyPair(name, fingerprint, material)
 {
     this.name = name;
@@ -851,6 +865,7 @@ var ew_model = {
 
     accesskeys: null,
     certs: null,
+    serverCerts: null,
     volumes : null,
     images : null,
     snapshots : null,
@@ -895,6 +910,9 @@ var ew_model = {
         switch (name) {
         case "certs":
             ew_session.controller.listSigningCertificates(null, function(list) { me.set(name, list); });
+            break;
+        case "serverCerts":
+            ew_session.controller.listServerCertificates();
             break;
         case "accesskeys":
             ew_session.controller.listAccessKeys(null, function(list) { me.set(name, list); });
