@@ -571,10 +571,12 @@ var ew_ListBox = {
         list.width = this.width;
         for (var i in this.listItems) {
             if (this.listItems[i] == null) continue;
+            var val = this.toItem(this.listItems[i]);
             if (this.multiple) {
                 var row = document.createElement('listitem');
                 var cell = document.createElement('listcell');
                 cell.setAttribute('type', 'checkbox');
+                cell.setAttribute('crop', 'end');
                 cell.setAttribute('id', this.name + '.check' + i);
                 // Check if this item is already selected
                 for (var j in this.checkedItems) {
@@ -585,16 +587,25 @@ var ew_ListBox = {
                 }
                 row.appendChild(cell);
                 cell = document.createElement('listcell');
-                cell.setAttribute('label', this.toItem(this.listItems[i]));
+                cell.setAttribute('label', val);
+                row.setAttribute('tooltiptext', val);
                 row.appendChild(cell);
                 list.appendChild(row);
             } else {
-                list.appendItem(this.toItem(this.listItems[i]), i);
+                var row = document.createElement('listitem');
+                var cell = document.createElement('listcell');
+                row.appendChild(cell);
+                cell = document.createElement('listcell');
+                cell.setAttribute('crop', 'end');
+                cell.setAttribute('label', val);
+                row.setAttribute('tooltiptext', val);
                 for (var j in this.checkedItems) {
                     if (this.listItems[i] == this.checkedItems[j]) {
                         list.selectedIndex = i;
                     }
                 }
+                row.appendChild(cell);
+                list.appendChild(row);
             }
         }
         for (var i in this.header) {

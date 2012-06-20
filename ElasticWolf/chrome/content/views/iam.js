@@ -5,8 +5,8 @@ var ew_VMFATreeView = {
     {
         var item = this.getSelected();
         $('ew.vmfas.contextmenu.delete').disabled = item == null;
-        $('ew.vmfas.contextmenu.assign').disabled = !item || !item.userName;
-        $('ew.vmfas.contextmenu.unassign').disabled = !item || item.userName;
+        $('ew.vmfas.contextmenu.assign').disabled = !item || item.userName;
+        $('ew.vmfas.contextmenu.unassign').disabled = !item || !item.userName;
     },
 
     addDevice: function()
@@ -19,7 +19,7 @@ var ew_VMFATreeView = {
         ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
             me.refresh()
             var png = "data:image/png;base64," + obj.qrcode;
-            ew_session.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
+            ew_session.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
         });
     },
 
@@ -70,7 +70,7 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.deletePassword").disabled = !item || (!item.loginProfileDate && !ew_session.isGovCloud());
         $("ew.users.contextmenu.createKey").disabled = !item;
         $("ew.users.contextmenu.deleteKey").disabled = !item || !item.keys || !item.keys.length;
-        $("ew.users.contextmenu.createVMFA").disabled = !item;
+        $("ew.users.contextmenu.enableVMFA").disabled = !item;
         $("ew.users.contextmenu.enableMFA").disabled = !item;
         $("ew.users.contextmenu.resyncMFA").disabled = !item || !item.devices || item.devices.length;
         $("ew.users.contextmenu.deactivateMFA").disabled = !item || !item.devices || !item.devices.length;
@@ -287,11 +287,9 @@ var ew_UsersTreeView = {
         if (!values) return;
         ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
             var png = "data:image/png;base64," + obj.qrcode;
-            values = ew_session.promptInput('Enable MFA device', [{ label: "Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',width:300,height:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+            values = ew_session.promptInput('Enable MFA device', [{ label: "Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
             if (!values) return;
-            ew_session.controller.enableMFADevice(item.name, obj.id, values[0], values[1], function() {
-                me.refresh()
-            });
+            ew_session.controller.enableMFADevice(item.name, obj.id, values[3], values[4], function() { me.refresh() });
         });
     },
 

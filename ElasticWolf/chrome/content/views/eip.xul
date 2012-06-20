@@ -9,11 +9,11 @@
                 <menupopup id="ew.addresses.contextmenu" onpopupshowing="ew_ElasticIPTreeView.menuChanged();">
                     <menuitem id="addresses.context.associate" oncommand="ew_ElasticIPTreeView.associateAddress();" label="Associate EIP" />
                     <menuitem id="addresses.context.disassociate" oncommand="ew_ElasticIPTreeView.disassociateAddress();" label="Disassociate EIP" />
-                    <menuitem oncommand="ew_ElasticIPTreeView.releaseAddress();" label="Release EIP" />
+                    <menuitem id="addresses.context.release" oncommand="ew_ElasticIPTreeView.releaseAddress();" label="Release EIP" />
                     <menuseparator />
                     <menuitem oncommand="ew_ElasticIPTreeView.tag();" label="Add Tag" />
-                    <menuitem oncommand="ew_ElasticIPTreeView.copyToClipboard('address');" label="Copy Elastic IP to Clipboard" />
-                    <menuitem oncommand="ew_ElasticIPTreeView.copyPublicDnsToClipBoard('address');" label="Copy Public DNS Name to Clipboard" />
+                    <menuitem oncommand="ew_ElasticIPTreeView.copyToClipboard('publicIp');" label="Copy Elastic IP to Clipboard" />
+                    <menuitem id="addresses.context.dns" oncommand="ew_ElasticIPTreeView.copyPublicDnsToClipBoard();" label="Copy Public DNS Name to Clipboard" />
                 </menupopup>
             </popupset>
 

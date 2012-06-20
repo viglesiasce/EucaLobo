@@ -717,6 +717,7 @@ var ew_session = {
 
     copyToClipboard: function(text)
     {
+        if (!text) return;
         var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
         str.data = text;
 

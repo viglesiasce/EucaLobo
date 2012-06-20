@@ -113,12 +113,11 @@ function UserGroup(id, name, path, arn)
     }
 }
 
-function MFADevice(id, date, user, arn)
+function MFADevice(id, date, user)
 {
     this.id = id
     this.date = date
     this.userName = user
-    this.arn = arn
 
     this.toString = function() {
         return this.id + (this.userName ? ew_model.separator + this.userName : "");

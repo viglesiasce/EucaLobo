@@ -38,6 +38,7 @@ var ew_controller = {
         if (tagSet) {
             var items = tagSet.getElementsByTagName(itemsNode);
             for (var i = 0; i < items.length; i++) {
+                if (items[i].parentNode && items[i].parentNode.tagName != parentNode) continue;
                 if (columns) {
                     // Return object or just plain list if columns is a string
                     if (columns instanceof Array) {
@@ -52,7 +53,7 @@ var ew_controller = {
                         if (val) list.push(callback ? callback(val) : val);
                     }
                 } else {
-                    list.push(callback ? callback(items[i]) : items[i]);
+                    list.push(callback ? cgallback(items[i]) : items[i]);
                 }
             }
         }
@@ -164,16 +165,17 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeVolumesResponse/ec2:volumeSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "volumeId");
-            var size = getNodeValue(items.snapshotItem(i), "size");
-            var snapshotId = getNodeValue(items.snapshotItem(i), "snapshotId");
+        var items = this.getItems(xmlDoc, "volumeSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "volumeId");
+            var size = getNodeValue(item, "size");
+            var snapshotId = getNodeValue(item, "snapshotId");
 
-            var zone = getNodeValue(items.snapshotItem(i), "availabilityZone");
-            var status = getNodeValue(items.snapshotItem(i), "status");
+            var zone = getNodeValue(item, "availabilityZone");
+            var status = getNodeValue(item, "status");
             var createTime = new Date();
-            createTime.setISO8601(getNodeValue(items.snapshotItem(i), "createTime"));
+            createTime.setISO8601(getNodeValue(item, "createTime"));
 
             // Zero out the values for attachment
             var instanceId = "";
@@ -181,16 +183,16 @@ var ew_controller = {
             var attachStatus = "";
             var attachTime = new Date();
             // Make sure there is an attachment
-            if (items.snapshotItem(i).getElementsByTagName("attachmentSet")[0].firstChild) {
-                instanceId = getNodeValue(items.snapshotItem(i), "instanceId");
-                device = getNodeValue(items.snapshotItem(i), "device");
-                attachStatus = items.snapshotItem(i).getElementsByTagName("status")[1].firstChild;
+            if (item.getElementsByTagName("attachmentSet")[0].firstChild) {
+                instanceId = getNodeValue(item, "instanceId");
+                device = getNodeValue(item, "device");
+                attachStatus = item.getElementsByTagName("status")[1].firstChild;
                 if (attachStatus) {
                     attachStatus = attachStatus.nodeValue;
                 }
-                attachTime.setISO8601(getNodeValue(items.snapshotItem(i), "attachTime"));
+                attachTime.setISO8601(getNodeValue(item, "attachTime"));
             }
-            var tags = this.getTags(items.snapshotItem(i));
+            var tags = this.getTags(item);
             list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags));
         }
 
@@ -208,19 +210,20 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeSnapshotsResponse/ec2:snapshotSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "snapshotId");
-            var volumeId = getNodeValue(items.snapshotItem(i), "volumeId");
-            var status = getNodeValue(items.snapshotItem(i), "status");
+        var items = this.getItems(xmlDoc, "snapshotSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "snapshotId");
+            var volumeId = getNodeValue(item, "volumeId");
+            var status = getNodeValue(item, "status");
             var startTime = new Date();
-            startTime.setISO8601(getNodeValue(items.snapshotItem(i), "startTime"));
-            var progress = getNodeValue(items.snapshotItem(i), "progress");
-            var volumeSize = getNodeValue(items.snapshotItem(i), "volumeSize");
-            var description = getNodeValue(items.snapshotItem(i), "description");
-            var ownerId = getNodeValue(items.snapshotItem(i), "ownerId")
-            var ownerAlias = getNodeValue(items.snapshotItem(i), "ownerAlias")
-            var tags = this.getTags(items.snapshotItem(i));
+            startTime.setISO8601(getNodeValue(item, "startTime"));
+            var progress = getNodeValue(item, "progress");
+            var volumeSize = getNodeValue(item, "volumeSize");
+            var description = getNodeValue(item, "description");
+            var ownerId = getNodeValue(item, "ownerId")
+            var ownerAlias = getNodeValue(item, "ownerAlias")
+            var tags = this.getTags(item);
             list.push(new Snapshot(id, volumeId, status, startTime, progress, volumeSize, description, ownerId, ownerAlias, tags));
         }
 
@@ -279,13 +282,14 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeVpcsResponse/ec2:vpcSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "vpcId");
-            var cidr = getNodeValue(items.snapshotItem(i), "cidrBlock");
-            var state = getNodeValue(items.snapshotItem(i), "state");
-            var dhcpopts = getNodeValue(items.snapshotItem(i), "dhcpOptionsId");
-            var tags = this.getTags(items.snapshotItem(i));
+        var items = this.getItems(xmlDoc, "vpcSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "vpcId");
+            var cidr = getNodeValue(item, "cidrBlock");
+            var state = getNodeValue(item, "state");
+            var dhcpopts = getNodeValue(item, "dhcpOptionsId");
+            var tags = this.getTags(item);
             list.push(new Vpc(id, cidr, state, dhcpopts, tags));
         }
         ew_model.set('vpcs', list);
@@ -311,15 +315,16 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeSubnetsResponse/ec2:subnetSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "subnetId");
-            var vpcId = getNodeValue(items.snapshotItem(i), "vpcId");
-            var cidrBlock = getNodeValue(items.snapshotItem(i), "cidrBlock");
-            var state = getNodeValue(items.snapshotItem(i), "state");
-            var availableIp = getNodeValue(items.snapshotItem(i), "availableIpAddressCount");
-            var availabilityZone = getNodeValue(items.snapshotItem(i), "availabilityZone");
-            var tags = this.getTags(items.snapshotItem(i));
+        var items = this.getItems(xmlDoc, "subnetSet", "item");
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "subnetId");
+            var vpcId = getNodeValue(item, "vpcId");
+            var cidrBlock = getNodeValue(item, "cidrBlock");
+            var state = getNodeValue(item, "state");
+            var availableIp = getNodeValue(item, "availableIpAddressCount");
+            var availabilityZone = getNodeValue(item, "availabilityZone");
+            var tags = this.getTags(item);
             list.push(new Subnet(id, vpcId, cidrBlock, state, availableIp, availabilityZone, tags));
         }
         ew_model.set('subnets', list);
@@ -345,12 +350,13 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeDhcpOptionsResponse/ec2:dhcpOptionsSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "dhcpOptionsId");
+        var items = this.getItems(xmlDoc, "dhcpOptionsSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "dhcpOptionsId");
             var options = new Array();
 
-            var optTags = items.snapshotItem(i).getElementsByTagName("dhcpConfigurationSet")[0];
+            var optTags = item.getElementsByTagName("dhcpConfigurationSet")[0];
             var optItems = optTags.childNodes;
             log("Parsing DHCP Options: " + optItems.length + " option sets");
 
@@ -369,7 +375,7 @@ var ew_controller = {
                 }
                 options.push(key + " = " + values.join(","))
             }
-            var tags = this.getTags(items.snapshotItem(i));
+            var tags = this.getTags(item);
             list.push(new DhcpOptions(id, options.join("; "), tags));
         }
         ew_model.set('dhcpOptions', list);
@@ -449,14 +455,16 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeNetworkAclsResponse/ec2:networkAclSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var entryList = [], assocList = []
-            var id = getNodeValue(items.snapshotItem(i), "networkAclId");
-            var vpcId = getNodeValue(items.snapshotItem(i), "vpcId");
-            var dflt = getNodeValue(items.snapshotItem(i), "default");
 
-            var entries = items.snapshotItem(i).getElementsByTagName("entrySet")[0].getElementsByTagName("item");
+        var items = this.getItems(xmlDoc, "networkAclSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var entryList = [], assocList = []
+            var id = getNodeValue(item, "networkAclId");
+            var vpcId = getNodeValue(item, "vpcId");
+            var dflt = getNodeValue(item, "default");
+
+            var entries = item.getElementsByTagName("entrySet")[0].getElementsByTagName("item");
             for ( var j = 0; j < entries.length; j++) {
                 var num = getNodeValue(entries[j], "ruleNumber");
                 var proto = getNodeValue(entries[j], "protocol");
@@ -479,7 +487,7 @@ var ew_controller = {
                 entryList.push(new NetworkAclEntry(num, proto, action, egress, cidr, icmpList, portList))
             }
 
-            var assoc = items.snapshotItem(i).getElementsByTagName("associationSet")[0].getElementsByTagName("item");
+            var assoc = item.getElementsByTagName("associationSet")[0].getElementsByTagName("item");
             for ( var j = 0; j < assoc.length; j++) {
                 var aid = getNodeValue(assoc[j], "networkAclAssociationId");
                 var acl = getNodeValue(assoc[j], "networkAclId");
@@ -502,15 +510,16 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeVpnGatewaysResponse/ec2:vpnGatewaySet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "vpnGatewayId");
-            var availabilityZone = getNodeValue(items.snapshotItem(i), "availabilityZone");
-            var type = getNodeValue(items.snapshotItem(i), "type");
-            var state = getNodeValue(items.snapshotItem(i), "state");
+        var items = this.getItems(xmlDoc, "vpnGatewaySet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "vpnGatewayId");
+            var availabilityZone = getNodeValue(item, "availabilityZone");
+            var type = getNodeValue(item, "type");
+            var state = getNodeValue(item, "state");
             var attachments = new Array();
 
-            var atttags = items.snapshotItem(i).getElementsByTagName("attachments")[0].getElementsByTagName("item");
+            var atttags = item.getElementsByTagName("attachments")[0].getElementsByTagName("item");
             for ( var j = 0; j < atttags.length; j++) {
                 var vpcId = getNodeValue(atttags[j], "vpcId");
                 var attstate = getNodeValue(atttags[j], "state");
@@ -542,14 +551,15 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeCustomerGatewaysResponse/ec2:customerGatewaySet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "customerGatewayId");
-            var type = getNodeValue(items.snapshotItem(i), "type");
-            var state = getNodeValue(items.snapshotItem(i), "state");
-            var ipAddress = getNodeValue(items.snapshotItem(i), "ipAddress");
-            var bgpAsn = getNodeValue(items.snapshotItem(i), "bgpAsn");
-            var tags = this.getTags(items.snapshotItem(i));
+        var items = this.getItems(xmlDoc, "customerGatewaySet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "customerGatewayId");
+            var type = getNodeValue(item, "type");
+            var state = getNodeValue(item, "state");
+            var ipAddress = getNodeValue(item, "ipAddress");
+            var bgpAsn = getNodeValue(item, "bgpAsn");
+            var tags = this.getTags(item);
             list.push(new CustomerGateway(id, ipAddress, bgpAsn, state, type, tags));
         }
         ew_model.set('customerGateways', list);
@@ -575,16 +585,17 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeInternetGatewaysResponse/ec2:internetGatewaySet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
+        var items = this.getItems(xmlDoc, "internetGatewaySet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var vpcId = null, tags = []
-            var id = getNodeValue(items.snapshotItem(i), "internetGatewayId");
+            var id = getNodeValue(item, "internetGatewayId");
 
-            var etags = items.snapshotItem(i).getElementsByTagName("attachmentSet")[0].getElementsByTagName("item");
+            var etags = item.getElementsByTagName("attachmentSet")[0].getElementsByTagName("item");
             for ( var j = 0; j < etags.length; j++) {
                 vpcId = getNodeValue(etags[j], "vpcId");
             }
-            var tags = this.getTags(items.snapshotItem(i));
+            var tags = this.getTags(item);
             list.push(new InternetGateway(id, vpcId, tags));
         }
         ew_model.set('internetGateways', list);
@@ -625,23 +636,24 @@ var ew_controller = {
         xmlDoc.normalize();
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeVpnConnectionsResponse/ec2:vpnConnectionSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "vpnConnectionId");
-            var cgwId = getNodeValue(items.snapshotItem(i), "customerGatewayId");
-            var vgwId = getNodeValue(items.snapshotItem(i), "vpnGatewayId");
-            var type = getNodeValue(items.snapshotItem(i), "type");
-            var state = getNodeValue(items.snapshotItem(i), "state");
-            var ipAddress = getNodeValue(items.snapshotItem(i), "ipAddress");
+        var items = this.getItems(xmlDoc, "vpnConnectionSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "vpnConnectionId");
+            var cgwId = getNodeValue(item, "customerGatewayId");
+            var vgwId = getNodeValue(item, "vpnGatewayId");
+            var type = getNodeValue(item, "type");
+            var state = getNodeValue(item, "state");
+            var ipAddress = getNodeValue(item, "ipAddress");
             // Required since Firefox limits nodeValue to 4096 bytes
-            var cgwtag = items.snapshotItem(i).getElementsByTagName("customerGatewayConfiguration")
+            var cgwtag = item.getElementsByTagName("customerGatewayConfiguration")
             var config = null;
             if (cgwtag[0]) {
                 config = cgwtag[0].textContent;
             }
 
-            var bgpAsn = getNodeValue(items.snapshotItem(i), "bgpAsn");
-            var tags = this.getTags(items.snapshotItem(i));
+            var bgpAsn = getNodeValue(item, "bgpAsn");
+            var tags = this.getTags(item);
             list.push(new VpnConnection(id, vgwId, cgwId, type, state, config, tags));
         }
         ew_model.set('vpnConnections', list);
@@ -712,10 +724,8 @@ var ew_controller = {
     onCompleteDescribeImage : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-
-        var items = xmlDoc.evaluate("/ec2:DescribeImagesResponse/ec2:imagesSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        var item = items.snapshotItem(0);
-        responseObj.result = this.unpackImage(item);
+        var items = this.getItems(xmlDoc, "imagesSet", "item");
+        responseObj.result = this.unpackImage(items[0]);
     },
 
     createImage : function(instanceId, amiName, amiDescription, noReboot, callback)
@@ -741,9 +751,10 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeImagesResponse/ec2:imagesSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var ami = this.unpackImage(items.snapshotItem(i));
+        var items = this.getItems(xmlDoc, "imagesSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var ami = this.unpackImage(item);
             if (ami) list.push(ami);
         }
         ew_model.set('images', list);
@@ -760,19 +771,19 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var img = null;
-        var items = xmlDoc.evaluate("/ec2:DescribeReservedInstancesOfferingsResponse/ec2:reservedInstancesOfferingsSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "reservedInstancesOfferingId");
-            var type = getNodeValue(items.snapshotItem(i), "instanceType");
-            var az = getNodeValue(items.snapshotItem(i), "availabilityZone");
-            var duration = secondsToYears(getNodeValue(items.snapshotItem(i), "duration"));
-            var fPrice = parseInt(getNodeValue(items.snapshotItem(i), "fixedPrice")).toString();
-            var uPrice = getNodeValue(items.snapshotItem(i), "usagePrice");
-            var desc = getNodeValue(items.snapshotItem(i), "productDescription");
-            var otype = getNodeValue(items.snapshotItem(i), "offeringType");
-            var tenancy = getNodeValue(items.snapshotItem(i), "instanceTenancy");
-            var rPrices = this.getItems(items.snapshotItem(i), "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
+        var items = this.getItems(xmlDoc, "reservedInstancesOfferingsSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "reservedInstancesOfferingId");
+            var type = getNodeValue(item, "instanceType");
+            var az = getNodeValue(item, "availabilityZone");
+            var duration = secondsToYears(getNodeValue(item, "duration"));
+            var fPrice = parseInt(getNodeValue(item, "fixedPrice")).toString();
+            var uPrice = getNodeValue(item, "usagePrice");
+            var desc = getNodeValue(item, "productDescription");
+            var otype = getNodeValue(item, "offeringType");
+            var tenancy = getNodeValue(item, "instanceTenancy");
+            var rPrices = this.getItems(item, "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
 
             list.push(new LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy));
         }
@@ -791,10 +802,9 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var img = null;
-        var items = xmlDoc.evaluate("/ec2:DescribeReservedInstancesResponse/ec2:reservedInstancesSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var item = items.snapshotItem(i);
+        var items = this.getItems(xmlDoc, "reservedInstancesSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var id = getNodeValue(item, "reservedInstancesId");
             var type = getNodeValue(item, "instanceType");
             var az = getNodeValue(item, "availabilityZone");
@@ -890,17 +900,18 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeInstancesResponse/ec2:reservationSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for (var k = 0; k < items.snapshotLength; k++) {
-            var reservationId = getNodeValue(items.snapshotItem(k), "reservationId");
-            var ownerId = getNodeValue(items.snapshotItem(k), "ownerId");
-            var requesterId = getNodeValue(items.snapshotItem(k), "requesterId");
+        var items = this.getItems(xmlDoc, "reservationSet", "item");
+        for ( var k = 0; k < items.length; k++) {
+            var item = items[k];
+            var reservationId = getNodeValue(item, "reservationId");
+            var ownerId = getNodeValue(item, "ownerId");
+            var requesterId = getNodeValue(item, "requesterId");
             var groups = [];
-            var objs = this.getItems(items.snapshotItem(k), "groupSet", "item", ["groupId", "groupName"]);
+            var objs = this.getItems(item, "groupSet", "item", ["groupId", "groupName"]);
             for (var j = 0; j < objs.length; j++) {
                 groups.push(new Group(objs[j].groupId, objs[j].groupName));
             }
-            var instancesSet = items.snapshotItem(k).getElementsByTagName("instancesSet")[0];
+            var instancesSet = item.getElementsByTagName("instancesSet")[0];
             var instanceItems = instancesSet.childNodes;
             if (instanceItems) {
                 for (var j = 0; j < instanceItems.length; j++) {
@@ -1055,8 +1066,7 @@ var ew_controller = {
     onCompleteDescribeInstanceAttribute : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeInstanceAttributeResponse/*", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        var value = getNodeValue(items.snapshotItem(2), "value");
+        var value = getNodeValue(xmlDoc, "value");
 
         responseObj.result = value;
     },
@@ -1072,10 +1082,9 @@ var ew_controller = {
 
     onCompleteDescribeInstanceStatus : function (responseObj) {
         var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeInstanceStatusResponse/ec2:instanceStatusSet/ec2:item",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-
-        for (var i = 0 ; i < items.snapshotLength; i++) {
-            var item = items.snapshotItem(i);
+        var items = this.getItems(xmlDoc, "instanceStatusSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var eventsSet = item.getElementsByTagName("eventsSet")[0];
             if (!eventsSet) { continue; }
             var instanceId = getNodeValue(item, "instanceId");
@@ -1218,9 +1227,10 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeBundleTasksResponse/ec2:bundleInstanceTasksSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; ++i) {
-            list.push(this.unpackBundleTask(items.snapshotItem(i)));
+        var items = this.getItems(xmlDoc, "bundleInstanceTasksSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            list.push(this.unpackBundleTask(item));
         }
 
         ew_model.set('bundleTasks', list);
@@ -1561,13 +1571,14 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeRouteTablesResponse/ec2:routeTableSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
+        var items = this.getItems(xmlDoc, "routeTableSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var routes = [], associations = []
-            var id = getNodeValue(items.snapshotItem(i), "routeTableId");
-            var vpcId = getNodeValue(items.snapshotItem(i), "vpcId");
+            var id = getNodeValue(item, "routeTableId");
+            var vpcId = getNodeValue(item, "vpcId");
 
-            var routeItems = items.snapshotItem(i).getElementsByTagName("routeSet")[0].childNodes;
+            var routeItems = item.getElementsByTagName("routeSet")[0].childNodes;
             for ( var j = 0; routeItems && j < routeItems.length; j++) {
                 if (routeItems.item(j).nodeName == '#text') continue;
                 var cidr = getNodeValue(routeItems.item(j), "destinationCidrBlock");
@@ -1578,7 +1589,7 @@ var ew_controller = {
                 var state = getNodeValue(routeItems.item(j), "state");
                 routes.push(new Route(id, cidr, state, gateway, eni, instance, owner));
             }
-            var assocSet = items.snapshotItem(i).getElementsByTagName("associationSet")[0];
+            var assocSet = item.getElementsByTagName("associationSet")[0];
             var assocItems = assocSet.childNodes;
             if (assocItems) {
                 for ( var j = 0; j < assocItems.length; j++) {
@@ -1589,7 +1600,7 @@ var ew_controller = {
                     associations.push(new RouteAssociation(aid, table, subnet));
                 }
             }
-            var tags = this.getTags(items.snapshotItem(i));
+            var tags = this.getTags(item);
             list.push(new RouteTable(id, vpcId, routes, associations, tags));
         }
         ew_model.set('routeTables', list);
@@ -1701,22 +1712,23 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeNetworkInterfacesResponse/ec2:networkInterfaceSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var id = getNodeValue(items.snapshotItem(i), "networkInterfaceId");
-            var subnetId = getNodeValue(items.snapshotItem(i), "subnetId");
-            var vpcId = getNodeValue(items.snapshotItem(i), "vpcId");
-            var descr = getNodeValue(items.snapshotItem(i), "description");
-            var status = getNodeValue(items.snapshotItem(i), "status");
-            var mac = getNodeValue(items.snapshotItem(i), "macAddress");
-            var ip = getNodeValue(items.snapshotItem(i), "privateIpAddress");
-            var check = getNodeValue(items.snapshotItem(i), "sourceDestCheck");
-            var azone = getNodeValue(items.snapshotItem(i), "availabilityZone");
+        var items = this.getItems(xmlDoc, "networkInterfaceSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "networkInterfaceId");
+            var subnetId = getNodeValue(item, "subnetId");
+            var vpcId = getNodeValue(item, "vpcId");
+            var descr = getNodeValue(item, "description");
+            var status = getNodeValue(item, "status");
+            var mac = getNodeValue(item, "macAddress");
+            var ip = getNodeValue(item, "privateIpAddress");
+            var check = getNodeValue(item, "sourceDestCheck");
+            var azone = getNodeValue(item, "availabilityZone");
             var tags = [];
             var attachment = null;
             var association = null;
 
-            var aitem = items.snapshotItem(i).getElementsByTagName("attachment")[0];
+            var aitem = item.getElementsByTagName("attachment")[0];
             if (aitem) {
                 var aid = getNodeValue(aitem, "attachmentId");
                 var instId = getNodeValue(aitem, "instanceId");
@@ -1728,7 +1740,7 @@ var ew_controller = {
                 attachment = new NetworkInterfaceAttachment(aid, instId, owner, index, astatus, time, del);
             }
 
-            aitem = items.snapshotItem(i).getElementsByTagName("association")[0];
+            aitem = item.getElementsByTagName("association")[0];
             if (aitem) {
                 aid = getNodeValue(aitem, "associationId");
                 var pubip = getNodeValue(aitem, "publicIp");
@@ -1737,8 +1749,8 @@ var ew_controller = {
                 var attId = getNodeValue(aitem, "attachmentID");
                 association = new NetworkInterfaceAssociation(aid, pubip, owner, instId, attId);
             }
-            var groups = this.getGroups(items.snapshotItem(i));
-            var tags = this.getTags(items.snapshotItem(i));
+            var groups = this.getGroups(item);
+            var tags = this.getTags(item);
             list.push(new NetworkInterface(id, status, descr, subnetId, vpcId, azone, mac, ip, check, groups, attachment, association, tags));
         }
 
@@ -1789,20 +1801,21 @@ var ew_controller = {
         var xmlDoc = responseObj.xmlDoc;
 
         var list = new Array();
-        var items = xmlDoc.evaluate("/ec2:DescribeSecurityGroupsResponse/ec2:securityGroupInfo/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; i++) {
-            var ownerId = getNodeValue(items.snapshotItem(i), "ownerId");
-            var groupId = getNodeValue(items.snapshotItem(i), "groupId");
-            var groupName = getNodeValue(items.snapshotItem(i), "groupName");
-            var groupDescription = getNodeValue(items.snapshotItem(i), "groupDescription");
-            var vpcId = getNodeValue(items.snapshotItem(i), "vpcId");
+        var items = this.getItems(xmlDoc, "securityGroupInfo", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var ownerId = getNodeValue(item, "ownerId");
+            var groupId = getNodeValue(item, "groupId");
+            var groupName = getNodeValue(item, "groupName");
+            var groupDescription = getNodeValue(item, "groupDescription");
+            var vpcId = getNodeValue(item, "vpcId");
             log("Group name [id=" + groupId + ", name=" + groupName + ", vpcId=" + vpcId + "]");
 
-            var ipPermissions = items.snapshotItem(i).getElementsByTagName("ipPermissions")[0];
+            var ipPermissions = item.getElementsByTagName("ipPermissions")[0];
             var ipPermissionsList = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
-            ipPermissions = items.snapshotItem(i).getElementsByTagName("ipPermissionsEgress")[0];
+            ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
             ipPermissionsList = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
-            var tags = this.getTags(items.snapshotItem(i));
+            var tags = this.getTags(item);
             list.push(new SecurityGroup(groupId, ownerId, groupName, groupDescription, vpcId, ipPermissionsList, tags));
         }
 
@@ -1991,10 +2004,11 @@ var ew_controller = {
     {
         var xmlDoc = responseObj.xmlDoc;
         var list = [];
-        var items = xmlDoc.evaluate("/ec2:DescribeRegionsResponse/ec2:regionInfo/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for ( var i = 0; i < items.snapshotLength; ++i) {
-            var name = getNodeValue(items.snapshotItem(i), "regionName");
-            var url = getNodeValue(items.snapshotItem(i), "regionEndpoint");
+        var items = this.getItems(xmlDoc, "regionInfo", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var name = getNodeValue(item, "regionName");
+            var url = getNodeValue(item, "regionEndpoint");
             if (url.indexOf("https://") != 0) {
                 url = "https://" + url;
             }
@@ -2314,14 +2328,14 @@ var ew_controller = {
     onCompleteDescribeTags : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeTagsResponse/ec2:tagSet/ec2:item", xmlDoc, this.getNsResolver(), XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
         var tags = new Array();
 
-        for ( var i = 0; i < items.snapshotLength; ++i) {
-            var id = getNodeValue(items.snapshotItem(i), "resourceId");
-            var key = getNodeValue(items.snapshotItem(i), "key");
-            var value = getNodeValue(items.snapshotItem(i), "value");
+        var items = this.getItems(xmlDoc, "tagSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "resourceId");
+            var key = getNodeValue(item, "key");
+            var value = getNodeValue(item, "value");
             tags.push(new Tag(key, value, id));
         }
 
@@ -2334,13 +2348,12 @@ var ew_controller = {
 
     onCompleteDescribeVolumeStatus : function (responseObj) {
         var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/ec2:DescribeVolumeStatus/ec2:volumeStatusSet/ec2:item",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
         var list = new Array();
 
-        for(var i = 0 ; i < items.snapshotLength; i++) {
-            var item = items.snapshotItem(i);
+        var items = this.getItems(xmlDoc, "volumeStatusSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var eventsSet = item.getElementsByTagName("eventsSet")[0];
-
             if (!eventsSet) { continue; }
 
             var volumeId = getNodeValue(item, "volumeId");
@@ -2461,7 +2474,7 @@ var ew_controller = {
             var serial = getNodeValue(items[i], "SerialNumber");
             var arn = getNodeValue(items[i], "Arn");
             var date = getNodeValue(items[i], "EnableDate");
-            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), arn));
+            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop()));
         }
         ew_model.set('vmfas', list);
         responseObj.result = list;
@@ -2843,11 +2856,11 @@ var ew_controller = {
     onCompleteDescribeAlarms : function(responseObj)
     {
         var xmlDoc = responseObj.xmlDoc;
-        var items = xmlDoc.evaluate("/monitoring:DescribeAlarmsResponse/monitoring:DescribeAlarmsResult/monitoring:MetricAlarms/monitoring:member",xmlDoc,this.getNsResolver(),XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
         var alarms = new Array();
 
-        for (var i = 0 ; i < items.snapshotLength; i++) {
-            var item = items.snapshotItem(i);
+        var items = this.getItems(xmlDoc, "MetricAlarms", "member");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
             var arn = getNodeValue(item, "AlarmArn");
             var name = getNodeValue(item, "AlarmName");
             var enabled = getNodeValue(item, "ActionsEnabled");

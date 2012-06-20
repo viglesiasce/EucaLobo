@@ -29,7 +29,7 @@
             ew_ListBox.session = params.session;
             ew_ListBox.name = 'list';
             ew_ListBox.columns = params.columns;
-            ew_ListBox.width = params.width || 400;
+            ew_ListBox.width = params.width || 500;
             ew_ListBox.listItems = params.listItems;
             ew_ListBox.header = params.header || [];
             ew_ListBox.multiple = params.multiple;
@@ -40,13 +40,13 @@
     </script>
 
     <vbox flex="1">
-      <label id="msg" value="" />
-      <listbox id="list" flex="2" rows="10" onclick="ew_ListBox.selectionChanged()">
+      <label id="msg" value="" flex="1" />
+      <listbox id="list" flex="1" rows="10" onclick="ew_ListBox.selectionChanged()">
       <listhead>
-        <listheader label=" " id="list.header0" width="100"/>
-        <listheader label=" " id="list.header1" width="150"/>
+        <listheader label=" " id="list.header0" flex="1"/>
+        <listheader label=" " id="list.header1" flex="2" />
       </listhead>
-      <listcols>
+      <listcols flex="1">
         <listcol/>
         <listcol flex="1"/>
       </listcols>

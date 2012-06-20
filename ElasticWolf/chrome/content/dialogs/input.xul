@@ -44,10 +44,16 @@
              item.setAttribute('value', value);
           }
           for (var p in rc.items[i]) {
-              if (p == "type" || p == "label" || p == "value") continue;
+              if (p == "type" || p == "label" || p == "value" || p == "fixed") continue;
               item.setAttribute(p, rc.items[i][p]);
           }
           item.setAttribute('id', 'item' + i);
+          if (rc.items[i].fixed) {
+             var box = document.createElement('box');
+             box.setAttribute('autostretch', 'never');
+             box.appendChild(item);
+             item = box;
+          }
           row.appendChild(item);
           rows.appendChild(row);
       }

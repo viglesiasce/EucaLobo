@@ -6,13 +6,8 @@ var ew_ElasticIPTreeView = {
         var eip = this.getSelected();
         document.getElementById("ew.addresses.contextmenu").disabled = (eip == null);
         if (eip == null) return;
-
-        var fAssociated = true;
-        if (eip.instanceId == null || eip.instanceId == "") {
-            // There is no instance associated with this address
-            fAssociated = false;
-        }
-        document.getElementById("addresses.context.disassociate").disabled = !fAssociated;
+        document.getElementById("addresses.context.disassociate").disabled = !eip.instanceId;
+        document.getElementById("addresses.context.dns").disabled = !eip.instanceId;
     },
 
     allocateAddress : function() {
