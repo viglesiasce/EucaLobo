@@ -8,7 +8,6 @@ var ew_session = {
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
     STS_API_VERSION: '2011-06-15',
-    VPN_CONFIG_PATH : 'https://ec2-downloads.s3.amazonaws.com/',
     SIG_VERSION: '2',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
@@ -564,6 +563,12 @@ var ew_session = {
         return promptService.confirmEx(window, title, text, promptService.STD_YES_NO_BUTTONS| promptService.BUTTON_POS_0_DEFAULT, "", "", "", null, {}) == 0
     },
 
+    promptConfirm: function(title, msg, checkmsg, checkval)
+    {
+        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+        return promptService.confirmCheck(window, title, msg, checkmsg, checkval);
+    },
+
     // Does not wait for response, once called it will ask for pin and quit if entered wrongly
     promptForPin: function() {
         var me = this;
@@ -791,7 +796,7 @@ var ew_session = {
             try {
                 xmlhttp = new XMLHttpRequest();
             } catch (e) {
-                debug(e)
+                debug('Error: ' + e);
             }
         }
         return xmlhttp;
@@ -801,12 +806,13 @@ var ew_session = {
     {
         if (!this.isEnabled()) return null;
 
-        //try {
+        try {
             return this.queryEC2Impl(action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion);
-        //} catch (e) {
-            //debug(e + ", " + JSON.stringify(arguments));
-            //this.errorDialog("An error occurred while calling "+ action, { errString: e });
-        //}
+        } catch (e) {
+            debug('Error: ' + e + ", " + JSON.stringify(arguments));
+            this.errorDialog("An error occurred while calling "+ action, { errString: e });
+            if (this.getBoolPrefs("ew.debug.enabled", false)) throw e;
+        }
         return null;
     },
 
@@ -869,7 +875,7 @@ var ew_session = {
                 if (progresscb) progresscb(filename, Math.round(a / length * 100));
             }
             catch(e) {
-                debug(e)
+                debug('Error: ' + e);
                 this.errorDialog("Error uploading " + filename, { errString: e })
             }
         }, 300);
@@ -946,8 +952,8 @@ var ew_session = {
             strSig = "POST\n" + url.replace(/https?:\/\//,"") + "\n/\n";
             for (var i = 0; i < sigValues.length; i++) {
                 var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-                strSig += item
-                queryParams += item
+                strSig += item;
+                queryParams += item;
             }
         }
         queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(this.secretKey, strSig));
@@ -1115,7 +1121,7 @@ var ew_session = {
         if (handlerObj) {
             handlerObj.onResponseComplete(rc);
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', errorCount=' + this.errorCount + ', errCode=' + rc.errCode + ', errString=' + rc.errString);
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + this.errorCount + ' ' + rc.errCode + ' ' + rc.errString);
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls
@@ -1146,11 +1152,10 @@ var ew_session = {
         rc.hasErrors = true;
 
         if (xmlhttp) {
-            var xmlDoc = xmlhttp.responseXML;
-            if (xmlDoc) {
-                rc.errCode = getNodeValue(xmlDoc, "Code");
-                rc.errString = getNodeValue(xmlDoc, "Message");
-                rc.requestId = getNodeValue(xmlDoc, "RequestID");
+            if (xmlhttp.responseXML) {
+                rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
+                rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
+                rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
             }
             debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url)
         }
@@ -1160,7 +1165,7 @@ var ew_session = {
     createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
         return { xmlhttp: xmlhttp,
-                 xmlDoc: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
+                 responseXML: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
                  responseText: xmlhttp ? xmlhttp.responseText : '',
                  status : xmlhttp.status,
                  url: url,
@@ -1191,35 +1196,33 @@ var ew_session = {
         }
     },
 
-    queryVpnConnectionStylesheets : function(stylesheet)
+    queryVpnConnectionStylesheets : function(stylesheet, config)
     {
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
             return;
         }
-        if (stylesheet == null) {
-            stylesheet = "customer-gateway-config-formats.xml";
-        }
-        var url = this.VPN_CONFIG_PATH + '2009-07-15' + "/" + stylesheet;
+        if (!stylesheet) stylesheet = "customer-gateway-config-formats.xml";
+        var url = 'https://ec2-downloads.s3.amazonaws.com/2009-07-15/' + stylesheet;
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.overrideMimeType('text/xml');
-        return this.sendRequest(xmlhttp, url, 'vpnConfig', null, true, stylesheet);
+        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this.controller, null, config || "");
     },
 
-    queryCheckIP : function(type, retVal)
+    queryCheckIP : function(type)
     {
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
             return;
         }
-        var url = "http://checkip.amazonaws.com/" + type;
+        var url = "http://checkip.amazonaws.com/" + (type || "");
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.overrideMimeType('text/plain');
-        return this.sendRequest(xmlhttp, url, 'checkIP', null, true, "checkip", null, function(obj) { retVal.ipAddress = obj.textBody; });
+        return this.sendRequest(xmlhttp, url, null, true, "checkip", null, null, function(response) { response.result = String(response.responseText).trim(); }, type);
     },
 
     download: function(url, headers, filename, callback, progresscb)

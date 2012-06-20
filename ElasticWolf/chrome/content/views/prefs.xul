@@ -216,6 +216,10 @@
                     <checkbox id="ew.accesskey.save" />
                 </row>
                 <row>
+                    <label control="ew.prompt.open.port" value="Ask about opening ports on instance launch" tooltiptext="When new instance is launched it may need inbound ports to be opened for access, use this to enable/disable confirmation popup about opening ports, if disabled, ports for access (RDP, SSH) will be open automatically if needed" />
+                    <checkbox id="ew.prompt.open.port" />
+                </row>
+                <row>
                     <label control="ew.http.timeout" value="HTTP timeout(ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
                     <textbox id="ew.http.timeout" type="number" size="5" maxlength="5"/>
                 </row>

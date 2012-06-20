@@ -90,9 +90,11 @@ function User(id, name, path, arn)
     this.arn = arn;
     this.groups = null;
     this.policies = null;
-    this.keys = null;
-    this.devices = null;
+    this.accessKeys = null;
+    this.mfaDevices = null;
     this.loginProfileDate = null;
+    // arn:aws:iam::123456:user/name
+    this.accountId = arn ? arn.split(":")[4] : "";
 
     this.toString = function() {
         return this.name + (this.groups && this.groups.length ? ew_model.separator + this.groups : "");
@@ -118,9 +120,11 @@ function MFADevice(id, date, user)
     this.id = id
     this.date = date
     this.userName = user
+    // arn:aws:iam::123456:mfa/name
+    this.name = this.id.split(":").pop()
 
     this.toString = function() {
-        return this.id + (this.userName ? ew_model.separator + this.userName : "");
+        return this.name
     }
 }
 

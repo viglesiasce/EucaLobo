@@ -545,24 +545,17 @@ var ew_InstancesTreeView = {
         window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", output);
     },
 
-    authorizeProtocolForGroup : function(transport, protocol, groups) {
+    authorizeProtocolForGroup : function(transport, protocol, groups)
+    {
         this.authorizeProtocolPortForGroup(transport,protocol,protPortMap[protocol],groups);
     },
 
-    authorizeProtocolPortForGroup : function (transport, protocol, port, groups) {
-        if (!ew_session.getBoolPrefs("ew.open.connection.port", true)) return;
-
-        var result = {ipAddress:"0.0.0.0"};
+    authorizeProtocolPortForGroup : function (transport, protocol, port, groups)
+    {
         var fAdd = true;
         var openCIDR = "0.0.0.0/0";
-
-        // host CIDR
-        ew_session.queryCheckIP("", result);
-        var hostCIDR = result.ipAddress.trim() + "/32";
-
-        // network CIDR
-        ew_session.queryCheckIP("block", result);
-        var networkCIDR = result.ipAddress.trim();
+        var hostCIDR = ew_session.queryCheckIP() + "/32";
+        var networkCIDR = ew_session.queryCheckIP("block");
 
         debug("Host: " + hostCIDR + ", net:" + networkCIDR)
 
@@ -608,17 +601,9 @@ var ew_InstancesTreeView = {
             if (ew_session.getBoolPrefs("ew.prompt.open.port", true)) {
                 port = port.toString();
                 var msg = ew_session.getAppName() + " needs to open " + transport.toUpperCase() + " port " + port + " (" + protocol + ") to continue. Click Ok to authorize this action";
-
-                // default the checkbox to false
-                var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
                 var check = {value: false};
-                result = prompts.confirmCheck(window, "EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
-
-                // The user asked not to be prompted again
-                if (check.value) {
-                    ew_session.setBoolPrefs("ew.prompt.open.port", false);
-                    ew_session.setBoolPrefs("ew.open.connection.port", result);
-                }
+                result = ew_session.promptConfirm("EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
+                ew_session.setBoolPrefs("ew.prompt.open.port", !check.value);
             } else {
                 result = true;
             }

@@ -181,7 +181,7 @@ var ew_Authorizer = {
 
   getHostAddress : function() {
       var retVal = {ipAddress:"0.0.0.0"};
-      this.ew_session.queryCheckIP("", retVal);
+      retVal.ipAddress = this.ew_session.queryCheckIP();
       var hostIP = document.getElementById("ew.source.host");
       hostIP.value = retVal.ipAddress.replace(/\s/g,'') + "/32";
       document.getElementById("ew.hostnet.group").selectedIndex = 0;
@@ -189,7 +189,7 @@ var ew_Authorizer = {
 
   getHostNetwork : function() {
       var retVal = {ipAddress:"0.0.0.0"};
-      this.ew_session.queryCheckIP("block", retVal);
+      retVal.ipAddress = this.ew_session.queryCheckIP("block");
       var hostSubnet = document.getElementById("ew.source.range");
       hostSubnet.value = retVal.ipAddress.replace(/\s/g,'');
       document.getElementById("ew.hostnet.group").selectedIndex = 1;

@@ -36,6 +36,7 @@ var ew_PrefsView = {
        this.getPrefs("ew.idle.action");
        this.getPrefs("ew.accesskey.save")
        this.getPrefs("ew.http.timeout", 15000);
+       this.getPrefs("ew.prompt.open.port", true);
        // Optional debugging support
        $('ew.venkman').hidden = typeof start_venkman != 'function';
    },
@@ -64,6 +65,7 @@ var ew_PrefsView = {
        this.setPrefs("ew.accesskey.save")
        this.setPrefs("ew.idle.action");
        this.setPrefs("ew.http.timeout", 5000, 3600000);
+       this.setPrefs("ew.prompt.open.port");
 
        ew_session.setIdleTimer();
        this.rowCount = 0;

@@ -69,11 +69,11 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.changePassword").disabled = !item || (!item.loginProfileDate && !ew_session.isGovCloud());
         $("ew.users.contextmenu.deletePassword").disabled = !item || (!item.loginProfileDate && !ew_session.isGovCloud());
         $("ew.users.contextmenu.createKey").disabled = !item;
-        $("ew.users.contextmenu.deleteKey").disabled = !item || !item.keys || !item.keys.length;
+        $("ew.users.contextmenu.deleteKey").disabled = !item || !item.accessKeys || !item.accessKeys.length;
         $("ew.users.contextmenu.enableVMFA").disabled = !item;
         $("ew.users.contextmenu.enableMFA").disabled = !item;
-        $("ew.users.contextmenu.resyncMFA").disabled = !item || !item.devices || item.devices.length;
-        $("ew.users.contextmenu.deactivateMFA").disabled = !item || !item.devices || !item.devices.length;
+        $("ew.users.contextmenu.resyncMFA").disabled = !item || !item.mfaDevices || item.mfaDevices.length;
+        $("ew.users.contextmenu.deactivateMFA").disabled = !item || !item.mfaDevices || !item.mfaDevices.length;
         $("ew.users.contextmenu.addPolicy").disabled = !item;
         $("ew.users.contextmenu.editPolicy").disabled = !item || !item.policies || !item.policies.length;
         $("ew.users.contextmenu.deletePolicy").disabled = !item || !item.policies || !item.policies.length;
@@ -107,10 +107,10 @@ var ew_UsersTreeView = {
         if (!item.policies) {
             ew_session.controller.listUserPolicies(item.name, function(list) { me.menuChanged() })
         }
-        if (!item.keys) {
+        if (!item.accessKeys) {
             ew_session.controller.listAccessKeys(item.name, function(list) { me.menuChanged() })
         }
-        if (!item.devices) {
+        if (!item.mfaDevices) {
             ew_session.controller.listMFADevices(item.name, function(list) { me.menuChanged() })
         }
     },
@@ -251,7 +251,7 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         ew_session.controller.createAccessKey(user, function(user, key, secret) {
-            item.keys = null;
+            item.accessKeys = null;
             this.selectionChanged();
             ew_AccessKeysTreeView.saveAccessKey(user, key, secret);
         });
@@ -261,19 +261,19 @@ var ew_UsersTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (!item || !item.keys || !item.keys.length) {
+        if (!item || !item.accessKeys || !item.accessKeys.length) {
             return alert('No access keys');
         }
         var idx = 0;
 
-        if (item.keys.length > 0) {
-            idx = ew_session.promptList("Access Key", "Select access key to delete", item.keys);
+        if (item.accessKeys.length > 0) {
+            idx = ew_session.promptList("Access Key", "Select access key to delete", item.accessKeys);
             if (idx < 0) return;
         } else {
-            if (!confirm('Delete access key ' + item.keys[idx] + '?')) return;
+            if (!confirm('Delete access key ' + item.accessKeys[idx] + '?')) return;
         }
-        ew_session.controller.deleteAccessKey(item.keys[idx].id, function() {
-            item.keys = null;
+        ew_session.controller.deleteAccessKey(item.accessKeys[idx].id, function() {
+            item.accessKeys = null;
             this.selectionChanged();
         });
     },
@@ -307,7 +307,7 @@ var ew_UsersTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (!item || !item.devices || !item.devices.length) {
+        if (!item || !item.mfaDevices || !item.mfaDevices.length) {
             return alert('No devices to resync');
         }
         var values = ew_session.promptInput('Resync MFA device', [{label:"Serial Number"}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
@@ -319,18 +319,18 @@ var ew_UsersTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (!item || !item.devices || !item.devices.length) {
+        if (!item || !item.mfaDevices || !item.mfaDevices.length) {
             return alert('No device to delete');
         }
 
-        if (item.keys.length > 0) {
-            idx = ew_session.promptList("MFA Device", "Select device to deactivate", item.devices);
+        if (item.mfaDevices.length > 0) {
+            idx = ew_session.promptList("MFA Device", "Select device to deactivate", item.mfaDevices);
             if (idx < 0) return;
         } else {
-            if (!confirm('Deactivate MFA device ' + item.devices[idx] + '?')) return;
+            if (!confirm('Deactivate MFA device ' + item.mfaDevices[idx] + '?')) return;
         }
-        ew_session.controller.deactivateMFADevice(item.name, item.devices[idx].id, function() {
-            item.devices = null;
+        ew_session.controller.deactivateMFADevice(item.name, item.mfaDevices[idx].id, function() {
+            item.mfaDevices = null;
             this.selectionChanged();
         });
     },

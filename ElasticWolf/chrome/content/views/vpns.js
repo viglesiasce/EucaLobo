@@ -23,30 +23,14 @@ var ew_VpnConnectionTreeView = {
            return;
         }
 
-        var devices = [];
-        var opts = ew_session.queryVpnConnectionStylesheets(null);
-        var formats = opts.xmlDoc.evaluate("/CustomerGatewayConfigFormats/Format", opts.xmlDoc, ew_session.controller.getNsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for (var i = 0; i < formats.snapshotLength; i++) {
-            var platform = getNodeValue(formats.snapshotItem(i), "Platform");
-            var filename = getNodeValue(formats.snapshotItem(i), "Filename");
-            var vendor = getNodeValue(formats.snapshotItem(i), "Vendor");
-            var software = getNodeValue(formats.snapshotItem(i), "Software");
-            devices.push({ title: vendor + " " + platform + " [" + software + "]", filename: filename });
-        }
-
+        var devices = ew_session.queryVpnConnectionStylesheets();
         var idx = ew_session.promptList("Customer Gateway configuration", "Select device type:", devices, ['title']);
         if (idx >= 0) {
-            configXml = new DOMParser().parseFromString(vpn.config, "text/xml");
-            var xsl = ew_session.queryVpnConnectionStylesheets(devices[idx].filename);
-            try {
-                var proc = new XSLTProcessor;
-                proc.importStylesheet(xsl.xmlDoc);
-                var resultXml = proc.transformToDocument(configXml);
-                var result = getNodeValue(resultXml, "transformiix:result");
-                this.saveConnectionConfiguration(vpn.id, result);
-            } catch (e) {
-                alert("Exception while processing XSLT: "+e)
+            var result = ew_session.queryVpnConnectionStylesheets(devices[idx].filename, vpn.config);
+            if (!result) {
+                return alert("Error processing gateway configuration");
             }
+            this.saveConnectionConfiguration(vpn.id, result);
         }
     },
 
