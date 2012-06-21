@@ -37,6 +37,19 @@ function ServerCertificate(id, name, arn, path, date, body)
     }
 }
 
+function Message(id, body, handle)
+{
+    this.id = id;
+    this.body = body || "";
+    this.handle = handle;
+    this.size = this.body.length;
+    this.subject = this.body.substr(0, 32);
+
+    this.toString = function() {
+        return this.id;
+    }
+}
+
 function KeyPair(name, fingerprint, material)
 {
     this.name = name;
@@ -1418,7 +1431,7 @@ var ew_model = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: ["DescribeLoadBalancers"],
+                   actionIgnore: [ "DescribeLoadBalancers", "ListQueues" ],
                  },
             ];
     },

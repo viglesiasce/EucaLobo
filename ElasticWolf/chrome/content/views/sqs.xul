@@ -51,6 +51,13 @@
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.sqsmsg.search" size="15" />
+                <menulist id="ew.sqsmsg.max">
+                  <menupopup>
+                   <menuitem label="Read 5 msgs" value="5" />
+                   <menuitem label="Read 10 msgs" value="10" />
+                   <menuitem label="Read All msgs" value="0" />
+                  </menupopup>
+                </menulist>
                 <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete Message" oncommand="ew_SQSMsgTreeView.deleteMessage();" />
             </toolbar>
@@ -59,11 +66,13 @@
                 <treecols>
                     <treecol id="sqs.id" label="Id" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
+                    <treecol id="sqs.subject" label="Msg" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                     <treecol id="sqs.size" label="Size" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="sqs.sender" label="Sender" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.SenderId" label="Sender" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="sqs.date" label="Date" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.SentTimestamp" label="Date" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.sqsmsg.children" context="ew.sqsmsg.contextmenu" />

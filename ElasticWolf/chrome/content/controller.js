@@ -3130,4 +3130,63 @@ var ew_controller = {
         if (delay) params.push(["DelaySeconds", delay]);
         ew_session.querySQS(url, "SendMessage", params, this, false, "onComplete:MessageId", callback);
     },
+
+    deleteMessage : function(url, handle, callback)
+    {
+        ew_session.querySQS(url, "DeleteMessage", [["ReceiptHandle", id]], this, false, "onComplete", callback);
+    },
+
+    receiveMessage : function(url, max, visibility, callback)
+    {
+        var params = [ [ "AttributeName", "All"] ];
+        if (max) params.push(["MaxNumberOfMessages", max]);
+        if (visibility) params.push(["VisibilityTimeout", visibility]);
+        ew_session.querySQS(url, "ReceiveMessage", params, this, false, "onCompleteReceiveMessage", callback);
+    },
+
+    onCompleteReceiveMessage : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "ReceiveMessageResult", "Message");
+        for (var i = 0; i < items.length; i++) {
+            var id = getNodeValue(items[i], "MessageId");
+            var handle = getNodeValue(items[i], "RecepiptHandle");
+            var body = getNodeValue(items[i], "Body");
+            var msg = new Message(id, body, handle);
+
+            var attrs = items[i].getElementsByTagName('Attribute');
+            for (var j = 0; j < attrs.length; j++) {
+                var name = getNodeValue(attrs[j], "Name");
+                var value = getNodeValue(attrs[j], "Value");
+                switch (name) {
+                case "":
+                    break;
+                case "SentTimestamp":
+                case "ApproximateFirstReceiveTimestamp":
+                    msg[name] = new Date(value * 1000);
+                    break;
+                default:
+                    msg[name] = value;
+                }
+            }
+            list.push(msg);
+        }
+        response.result = list;
+    },
+
+    addPermission : function(url, label, actions, callback)
+    {
+        if (!params) params = [ ["Label", label]];
+        for (var i = 0; i < actions.length; i++) {
+            params.push(["ActionName." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+        }
+        ew_session.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
+    },
+
+    removePermission : function(url, label, callback)
+    {
+        ew_session.querySQS(url, "RemovePermission", [["Label", label]], this, false, "onComplete", callback);
+    },
 };

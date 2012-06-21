@@ -14,6 +14,13 @@ var ew_SQSTreeView = {
         $('ew.sqs.contextmenu.config').disabled = !item;
     },
 
+    selectionChanged: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        ew_SQSMsgTreeView.update(item);
+    },
+
     addQueue: function()
     {
         var me = this;
@@ -99,6 +106,33 @@ ew_SQSTreeView.register();
 
 var ew_SQSMsgTreeView = {
     name: "sqsmsg",
+
+    refresh: function()
+    {
+        var item = ew_SQSTreeView.getSelected();
+        if (!item) return;
+        item.messages = null;
+        ew_SQSTreeView.selectionChanged();
+    },
+
+    update: function(item)
+    {
+        if (!item) {
+            display([]);
+            return;
+        }
+        var me = this;
+        if (item.messages) {
+            this.display(item.messages);
+        } else {
+            var max = parseInt($("ew.sqsmsg.max").value);
+            if (isNaN(max)) max = 0;
+            ew_session.controller.receiveMessage(item.url, max, 0, function(list) {
+               item.messages = list;
+               me.display(item.messages);
+            });
+        }
+    },
 
     deleteMessage: function()
     {
