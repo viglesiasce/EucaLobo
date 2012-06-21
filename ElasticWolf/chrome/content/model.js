@@ -1403,7 +1403,7 @@ var ew_model = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "ListServerCertificates" ],
+                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "ListServerCertificates", "ListAccountAliases" ],
                  },
             ];
     },

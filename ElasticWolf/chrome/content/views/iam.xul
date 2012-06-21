@@ -18,17 +18,17 @@
                 </row>
                 <row>
                     <label control="ew.iam.alias" value="Account Alias:" />
-                    <label id="ew.iam.alias" />
+                    <label id="ew.iam.alias" value="Not set"/>
                 </row>
                 <row>
                     <label control="ew.iam.console" value="IAM user sign-in URL:" />
-                    <label id="ew.iam.console" value="" style="color: blue;" onclick="ew_AccountSummaryView.showConsole()" />
+                    <label id="ew.iam.console" value="Not set" onclick="ew_AccountSummaryView.showConsole()" />
                 </row>
                 <row>
                      <label value=" " />
                      <hbox>
-                      <button id="ew.iam.alias.create" label="Create Alias" oncommand="ew_AccountSummaryView.createAlias()" autostretch="never" />
-                      <button id="ew.iam.alias.delete" label="Delete Alias" oncommand="ew_AccountSummaryView.deleteAlias()" autostretch="never" />
+                      <button id="ew.iam.alias.create" label="Create Alias" hidden="true" oncommand="ew_AccountSummaryView.createAlias()" autostretch="never" />
+                      <button id="ew.iam.alias.delete" label="Delete Alias" hidden="true" oncommand="ew_AccountSummaryView.deleteAlias()" autostretch="never" />
                      </hbox>
                 </row>
                 <row>

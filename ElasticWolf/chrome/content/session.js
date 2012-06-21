@@ -351,14 +351,14 @@ var ew_session = {
         window.openDialog("chrome://ew/content/dialogs/help.xul", null, "chrome,centerscreen,modal,resizable", this);
     },
 
-    displayUrl: function(url)
+    displayUrl: function(url, protocol)
     {
         if (!url) return;
         try {
           var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
           var uri = io.newURI(url, null, null);
           var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService)
-          var launcher = eps.getProtocolHandlerInfo('http');
+          var launcher = eps.getProtocolHandlerInfo(protocol || 'http');
           launcher.preferredAction = Components.interfaces.nsIHandlerInfo.useSystemDefault;
           launcher.launchWithURI(uri, null);
         } catch (e) {
@@ -1149,9 +1149,9 @@ var ew_session = {
             this.errorCount++;
         } else {
             this.errorCount = 0;
-            // Pass the result or the whole response object if it is null
+            // Pass the result and the whole response object if it is null
             if (callback) {
-                callback(rc.result != null ? rc.result : rc);
+                callback(rc.result, rc);
             }
         }
         return rc.result;

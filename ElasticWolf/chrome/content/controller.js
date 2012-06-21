@@ -2404,9 +2404,7 @@ var ew_controller = {
     onCompleteGetAccountSummary: function(response)
     {
         var xmlDoc = response.responseXML;
-        var items = this.getItems(xmlDoc, "SummaryMap", "entry", ["key", "value"]);
-
-        response.result = items;
+        response.result = this.getItems(xmlDoc, "SummaryMap", "entry", ["key", "value"]);
     },
 
     createAccessKey : function(name, callback)

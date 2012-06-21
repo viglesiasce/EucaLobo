@@ -968,10 +968,12 @@ var ew_AccountSummaryView = {
         var me = this;
         var e = $('ew.iam.accountId').value = ew_session.user.accountId || "";
         ew_session.controller.listAccountAliases(function(alias) {
-            $('ew.iam.alias').value = alias;
+            $('ew.iam.alias').value = alias || "Not set";
             $('ew.iam.alias.create').label = alias == "" ? "Create Alias" : "Change Alias";
+            $('ew.iam.alias.create').hidden = false;
             $('ew.iam.alias.delete').hidden = alias == "";
-            $('ew.iam.console').value = alias != "" ? "https://" + alias + ".signin.aws.amazon.com/console" : "";
+            $('ew.iam.console').value = alias != "" ? "https://" + alias + ".signin.aws.amazon.com/console" : "Not Set";
+            $('ew.iam.console').setAttribute("style", alias != "" ? "color:blue" : "color:black");
         });
         ew_session.controller.getAccountSummary(function(list) {
             for (var i in list) {
@@ -998,7 +1000,8 @@ var ew_AccountSummaryView = {
 
     showConsole: function()
     {
-        ew_session.displayUrl($('ew.iam.console').value);
+        var url = $('ew.iam.console').value;
+        if (url.indexOf("https://") == 0) ew_session.displayUrl(url);
     },
 
     createAlias: function()
