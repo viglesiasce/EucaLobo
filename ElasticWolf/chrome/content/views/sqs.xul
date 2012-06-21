@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.sqs" flex="1">
+      <vbox flex="1">
+        <groupbox orient="vertical" flex="1" id="eip.tree.holder">
+            <caption label="SQS Queues" />
+            <popupset>
+                <menupopup id="ew.sqs.contextmenu" >
+                 <menuitem id="ew.sqs.contextmenu.add" oncommand="ew_SQSTreeView.addQueue();" label="Add queue" />
+                 <menuitem id="ew.sqs.contextmenu.delete" oncommand="ew_SQSTreeView.deleteQueue();" label="Delete queue" />
+                 <menuitem id="ew.sqs.contextmenu.perm" oncommand="ew_SQSTreeView.addPermission();" label="Add Permission" />
+                 <menuitem id="ew.sqs.contextmenu.config" oncommand="ew_SQSTreeView.configureQueue();" label="Configure Queue" />
+                 <menuitem id="ew.sqs.contextmenu.send" oncommand="ew_SQSTreeView.sendMessage();" label="Send a Message" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.sqs.search" size="15" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Queue" oncommand="ew_SQSTreeView.addQueue();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Queue" oncommand="ew_SQSTreeView.deleteQueue();" />
+                <toolbarbutton image="images/credentials.png" tooltiptext="Add Permission" oncommand="ew_SQSTreeView.addPermission);" />
+                <toolbarbutton image="images/tools.png" tooltiptext="Configure Queue" oncommand="ew_SQSTreeView.configureQueue();" />
+                <toolbarbutton image="images/email.png" tooltiptext="Send a Message" oncommand="ew_SQSTreeView.sendMessage();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.sqs.view" flex="1">
+                <treecols>
+                   <treecol id="sqs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
+                   <treecol id="sqs.url" label="Url" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.sqs.children" context="ew.sqs.contextmenu" />
+            </tree>
+        </groupbox>
+
+        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
+         <grippy />
+        </splitter>
+
+        <groupbox orient="vertical" flex="1" id="eip.tree.holder">
+            <caption label="Queue Messages" />
+            <popupset>
+                <menupopup id="ew.sqsmsg.contextmenu" >
+                 <menuitem id="ew.sqsmsg.contextmenu.delete" oncommand="ew_SQSMsgTreeView.deleteMessage();" label="Delete Message" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.sqsmsg.search" size="15" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Message" oncommand="ew_SQSMsgTreeView.deleteMessage();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.sqsmsg.view" flex="1">
+                <treecols>
+                    <treecol id="sqs.id" label="Id" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.size" label="Size" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.sender" label="Sender" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.date" label="Date" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.sqsmsg.children" context="ew.sqsmsg.contextmenu" />
+            </tree>
+        </groupbox>
+      </vbox>
+    </tabpanel>
+</overlay>

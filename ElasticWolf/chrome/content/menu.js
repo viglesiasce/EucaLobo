@@ -6,6 +6,8 @@ var ew_menu = {
             { name: "ew.tabs.credential",    views: [ { id: "ew.credentials.view", view: ew_CredentialsTreeView },
                                                       { id: "ew.endpoints.view", view: ew_EndpointsTreeView }] },
 
+            { name: "ew.tabs.password",      call: ew_UsersTreeView.changePassword },
+
             { name: "ew.tabs.policy",        views: [ { view: ew_PasswordPolicyView } ] },
 
             { name: "ew.tabs.iam.folder",    views: [ { view: ew_AccountSummaryView } ] },
@@ -91,6 +93,9 @@ var ew_menu = {
             { name: "ew.tabs.availzone",     views: [ { id: "ew.azones.view", view: ew_AvailZoneTreeView }], },
 
             { name: "ew.tabs.s3",            views: [ { id: "ew.s3Buckets.view", view: ew_S3BucketsTreeView }], },
+
+            { name: "ew.tabs.sqs",            views: [ { id: "ew.sqs.view", view: ew_SQSTreeView },
+                                                       { id: "ew.sqsmsg.view", view: ew_SQSMsgTreeView } ], },
 
             { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
     ],

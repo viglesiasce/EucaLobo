@@ -111,7 +111,7 @@ var ew_UsersTreeView = {
 
     changePassword: function()
     {
-        var values = ew_session.promptInput('Change Password', [{ label: "Old Password", type: "password" }, { label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
+        var values = ew_session.promptInput('Change AWS Console Password', [{ label: "Old Password", type: "password" }, { label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
         if (!values) return;
         if (values[1] != values[2]) {
             return alert('New entered passwords mismatch')

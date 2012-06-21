@@ -46,8 +46,9 @@
              break;
 
           case 'password':
+          case 'number':
              item = document.createElement('textbox');
-             item.setAttribute('type', 'password');
+             item.setAttribute('type', type);
              item.setAttribute('value', value);
              break;
 

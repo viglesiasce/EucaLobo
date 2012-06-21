@@ -1,31 +1,33 @@
-// controller: slightly higher level of abstraction over the EC2 API
+
 var ew_controller = {
     session: null,
 
-    getNsResolver : function()
-    {
-        var me = this.session;
-        return function(prefix) {
-            var ns = { 's':  "http://schemas.xmlsoap.org/soap/envelope/",
-                       'monitoring': "http://monitoring.amazonaws.com/doc/" + me.CW_API_VERSION + "/",
-                       'ec2': "http://ec2.amazonaws.com/doc/" + me.EC2_API_VERSION + "/" };
-            return ns[prefix] || null;
-        }
-    },
-
-    // Call the method
+    // Main callback on request complete, if callback specified in the form onComplete:id,
+    // then response will put value of the node 'id' in the result
     onResponseComplete : function(response)
     {
-        if (this[response.method]) {
-            this[response.method](response);
+        var id = null;
+        var method = response.method;
+        if (!method) return;
+
+        // Return value in response
+        if (method.indexOf(":") > 0) {
+            var m = method.split(":");
+            method = m[0];
+            id = m[1];
+        }
+
+        if (this[method]) {
+            this[method](response, id);
         } else {
            alert('Error calling handler ' + response.method + ' for ' + response.action);
         }
     },
 
-    // Common controller response callback when there is no need to parse result but only to call user callback
-    onComplete : function(response)
+    // Common response callback when there is no need to parse result but only to call user callback
+    onComplete : function(response, id)
     {
+        if (id) response.result = getNodeValue(response.responseXML, id);
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -3077,5 +3079,55 @@ var ew_controller = {
                 debug("Exception while processing XSLT: "+e)
             }
         }
+    },
+
+    listQueues : function(callback)
+    {
+        ew_session.querySQS(null, "ListQueues", [], this, false, "onCompleteListQueues", callback);
+    },
+
+    onCompleteListQueues : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = this.getItems(xmlDoc, "ListQueuesResult", "QueueUrl", null, function(node) { return new Queue(node.firstChild.nodeValue); });
+        ew_model.set('queues', list);
+        response.result = list;
+    },
+
+    getQueueAttributes : function(url, callback)
+    {
+        ew_session.querySQS(url, "GetQueueAttributes", [ ["AttributeName.1", "All"] ], this, false, "onCompleteGetQueueAttributes", callback);
+    },
+
+    onCompleteGetQueueAttributes : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Tag(obj.Name,obj.Value)});
+        response.result = list;
+    },
+
+    setQueueAttributes : function(url, name, value, callback)
+    {
+        ew_session.querySQS(url, "SetQueueAttributes", [ ["Attribute.Name", name], ["Attribute.Value", value] ], this, false, "onComplete", callback);
+    },
+
+    createQueue : function(name, params, callback)
+    {
+        if (!params) params = [];
+        params.push(["QueueName", name]);
+        ew_session.querySQS(null, "CreateQueue", params, this, false, "onComplete:QueueUrl", callback);
+    },
+
+    deleteQueue : function(url, callback)
+    {
+        ew_session.querySQS(url, "DeleteQueue", [], this, false, "onComplete", callback);
+    },
+
+    sendMessage : function(url, body, delay, callback)
+    {
+        var params = [["MessageBody", body]];
+        if (delay) params.push(["DelaySeconds", delay]);
+        ew_session.querySQS(url, "SendMessage", params, this, false, "onComplete:MessageId", callback);
     },
 };

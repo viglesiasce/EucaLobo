@@ -8,6 +8,7 @@ var ew_session = {
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
     STS_API_VERSION: '2011-06-15',
+    SQS_API_VERSION: '2011-10-01',
     SIG_VERSION: '2',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
@@ -246,6 +247,8 @@ var ew_session = {
             this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
             this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
             this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
+            this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
+            this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
             this.actionIgnore = endpoint.actionIgnore || [];
             debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
         }
@@ -851,6 +854,11 @@ var ew_session = {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS);
     },
 
+    querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
+    },
+
     downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
     {
         if (!this.isEnabled()) return null;
@@ -942,6 +950,10 @@ var ew_session = {
             sigValues.push(params[i]);
         }
 
+        // Parse the url
+        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+        var uri = io.newURI(url, null, null);
+
         var strSig = "";
         var queryParams = "";
 
@@ -964,7 +976,7 @@ var ew_session = {
             }
         }  else {
             sigValues.sort();
-            strSig = "POST\n" + url.replace(/https?:\/\//,"") + "\n/\n";
+            strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
             for (var i = 0; i < sigValues.length; i++) {
                 var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
                 strSig += item;
@@ -972,9 +984,8 @@ var ew_session = {
             }
         }
         queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(this.secretKey, strSig));
-        url += "/";
 
-        log("URL ["+url+"?"+queryParams+"]");
+        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSig);
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
@@ -1084,7 +1095,7 @@ var ew_session = {
 
     sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
     {
-        debug('sendRequest: ' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
+        debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
         var me = this;
 
         var xhr = xmlhttp;
@@ -1139,10 +1150,10 @@ var ew_session = {
         debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + this.errorCount + ' ' + rc.errCode + ' ' + rc.errString);
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
-        // also ignore not supported but implemented API calls
+        // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
             if (this.errorCount < this.errorMax) {
-                if (this.actionIgnore.indexOf(rc.action) == -1) {
+                if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
                     this.errorDialog("Server responded with an error for " + rc.action, rc)
                 }
             }

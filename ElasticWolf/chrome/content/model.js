@@ -183,6 +183,16 @@ function S3BucketKey(bucket, name, type, size, mtime, owner, etag)
     }
 }
 
+function Queue(url)
+{
+    this.url = url;
+    this.name = url.split("/").pop();
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
 function Tag(name, value, id)
 {
     this.name = name || "";
@@ -895,6 +905,7 @@ var ew_model = {
     groups: null,
     vmfas: null,
     alarms: null,
+    queues: null,
 
     // Refresh model list by name, this is primary interface to use in the lists and trees
     refresh: function(name)
@@ -909,6 +920,9 @@ var ew_model = {
         var me = this;
 
         switch (name) {
+        case "queues":
+            ew_session.controller.listQueues();
+            break;
         case "certs":
             ew_session.controller.listSigningCertificates(null, function(list) { me.set(name, list); });
             break;
@@ -1404,7 +1418,7 @@ var ew_model = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "ListServerCertificates", "ListAccountAliases" ],
+                   actionIgnore: ["DescribeLoadBalancers"],
                  },
             ];
     },

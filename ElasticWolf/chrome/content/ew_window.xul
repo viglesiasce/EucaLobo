@@ -34,6 +34,7 @@
 <?xul-overlay href="chrome://ew/content/views/vmfa.xul"?>
 <?xul-overlay href="chrome://ew/content/views/alarms.xul"?>
 <?xul-overlay href="chrome://ew/content/views/iam.xul"?>
+<?xul-overlay href="chrome://ew/content/views/sqs.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_session.initialize()">
@@ -47,6 +48,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/controller.js" />
   <script type="application/x-javascript" src="chrome://ew/content/session.js" />
 
+  <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/iam.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/certs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/instances.js" />
@@ -134,8 +136,9 @@
          <treeitem><treerow><treecell label="Users" value="ew.tabs.users" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Groups" value="ew.tabs.groups" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Certificates" value="ew.tabs.cert" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
          <treeitem hidden="true" class="advanced"><treerow><treecell label="Virtual MFA Devices" value="ew.tabs.vmfa" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
+         <treeitem hidden="true" class="advanced"><treerow><treecell label="Change Console Password" value="ew.tabs.password" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -196,8 +199,26 @@
        </treechildren>
       </treeitem>
 
+      <treeitem container="true" open="true">
+       <treerow>
+         <treecell label="Message Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
+       </treerow>
+      </treeitem>
+
+      <treeitem container="true" open="true">
+       <treerow>
+         <treecell label="Push Notification Service" src="images/sns.png" />
+       </treerow>
+       <treechildren>
+          <treeitem><treerow><treecell label="Subscriptions" value="ew.tabs.subscription" /></treerow></treeitem>
+          <treeitem><treerow><treecell label="Topics" value="ew.tabs.topic" /></treerow></treeitem>
+       </treechildren>
+      </treeitem>
+
       <treeitem container="true" empty="true">
-       <treerow><treecell label="Simple Storage Service" value="ew.tabs.s3" src="images/s3.png" /></treerow>
+       <treerow>
+         <treecell label="Simple Storage Service" value="ew.tabs.s3" src="images/s3.png" />
+       </treerow>
       </treeitem>
 
     </treechildren>
@@ -215,6 +236,7 @@
       <tabpanel id="ew.tabs.policy"/>
       <tabpanel id="ew.tabs.iam.folder"/>
       <tabpanel id="ew.tabs.vmfa"/>
+      <tabpanel id="ew.tabs.sqs"/>
       <tabpanel id="ew.tabs.instance"/>
       <tabpanel id="ew.tabs.image"/>
       <tabpanel id="ew.tabs.access"/>
