@@ -50,7 +50,7 @@
     }
 
     function onpolicy() {
-        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
+        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}';
         if (document.getElementById("ew.policy").value == "") document.getElementById("ew.policy").value = text;
     }
 

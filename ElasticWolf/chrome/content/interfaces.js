@@ -32,7 +32,7 @@ var TreeView = {
     },
     getModel: function()
     {
-        return ew_model.getModel(this.getModelName(this.model));
+        return this.model ? ew_model.getModel(this.getModelName(this.model)) : null;
     },
     getData: function()
     {
@@ -130,9 +130,11 @@ var TreeView = {
         var name = column.id.split(".").pop();
         if (idx >= 0 && idx < this.rowCount) this.treeList[idx][name] = val;
     },
-    notifyModelChanged : function(interest) {
-        log('notify model changed ' + this.getName())
-        this.invalidate();
+    modelChanged : function(name) {
+        log('model changed ' + this.getName())
+        if (this.visible || ew_model.getModel(name) == null) {
+            this.invalidate();
+        }
     },
     hasNextSibling: function(idx, after)
     {
@@ -398,6 +400,10 @@ var TreeView = {
     {
         this.visible = true;
         this.restorePreferences();
+        // First time, refresh the model
+        if (this.rowCount == 0 && this.model && this.getModel() == null) {
+            this.refresh();
+        }
     },
     deactivate: function()
     {
@@ -829,21 +835,20 @@ var FileIO = {
             data = uniConv.ConvertToUnicode(data);
         }
         catch (e) {
-
         }
         return data;
     },
 
     toString : function(path)
     {
-        var data = "";
+        if (!path) return "";
         try {
-            data = this.read(this.open(path))
+            return this.read(this.open(path))
         }
         catch (e) {
             debug("Error: toString:" + path + ": " + e)
+            return "";
         }
-        return data
     },
 
     fromUnicode : function(charset, data)

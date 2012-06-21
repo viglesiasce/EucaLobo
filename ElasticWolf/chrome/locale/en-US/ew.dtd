@@ -104,7 +104,7 @@
 <!ENTITY ew.accesskeys.status.label "Status">
 <!ENTITY ew.accesskeys.current.label "Current">
 
-<!ENTITY ew.captions.certs.label "Your Certificates">
+<!ENTITY ew.captions.certs.label "Signing Certificates">
 <!ENTITY ew.certs.name.label "CertId">
 
 <!ENTITY ew.captions.azones.label "Availability Zones">

@@ -11,6 +11,7 @@
 
   <script>
   <![CDATA[
+
     function init() {
       this.rc = window.arguments[0];
       document.title = rc.title;
@@ -20,7 +21,7 @@
           var title = rc.items[i].label || '';
           var type = rc.items[i].type || 'textbox';
           var value = rc.items[i].value || '';
-          var item = null;
+          var item = null, box = null;
           var row = document.createElement('row');
           row.setAttribute('flex', '1');
           var label = document.createElement('label');
@@ -28,6 +29,17 @@
           label.setAttribute('class', 'header');
           row.appendChild(label);
           switch (type) {
+          case 'dir':
+          case 'file':
+             box = document.createElement('box');
+             item = document.createElement('textbox');
+             box.appendChild(item);
+             var button = document.createElement('button');
+             button.setAttribute('label', "Browse");
+             button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
+             box.appendChild(button);
+             break;
+
           case 'image':
              item = document.createElement(type);
              item.setAttribute('src', value);
@@ -43,19 +55,30 @@
              item = document.createElement(type);
              item.setAttribute('value', value);
           }
+          item.setAttribute('id', 'item' + i);
           for (var p in rc.items[i]) {
-              if (p == "type" || p == "label" || p == "value" || p == "fixed") continue;
+              // Ignore our reserved attributes
+              if (p == "type" || p == "label" || p == "value" || p == "fixed" || p == "file" || p == "required") continue;
               item.setAttribute(p, rc.items[i][p]);
           }
-          item.setAttribute('id', 'item' + i);
           if (rc.items[i].fixed) {
-             var box = document.createElement('box');
+             box = document.createElement('box');
              box.setAttribute('autostretch', 'never');
              box.appendChild(item);
-             item = box;
           }
-          row.appendChild(item);
+          row.appendChild(box || item);
           rows.appendChild(row);
+      }
+    }
+
+    function browse(id, forDir) {
+      if (forDir) {
+         path = rc.session.promptForDir("Choose directory:");
+      } else {
+         path = rc.session.promptForFile("Choose file:");
+      }
+      if (path) {
+          document.getElementById(id).value = path;
       }
     }
 
@@ -71,6 +94,11 @@
 
           default:
              rc.values[i] = obj.value;
+          }
+          // Make sure required fields are not empty
+          if (rc.items[i].required && !rc.values[i]) {
+             alert(rc.items[i].label + " is required");
+             return false;
           }
       }
       rc.ok = true;

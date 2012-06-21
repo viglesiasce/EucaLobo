@@ -47,16 +47,17 @@ function KeyPair(name, fingerprint, material)
     }
 }
 
-function AccessKey(id, secret, status, user)
+function AccessKey(id, secret, status, user, date)
 {
     this.id = id;
     this.status = status;
     this.userName = user || "";
     this.secret = secret || "";
+    this.date = date || "";
     this.state = "";
 
     this.toString = function() {
-        return this.id + ew_model.separator + this.userName + (this.state ? ew_model.separator + this.state : "");
+        return this.id + (this.state ? ew_model.separator + this.state : "");
     }
 }
 
@@ -78,7 +79,7 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
     }
 
     this.toString = function() {
-        return this.id + ew_model.separator + this.userName + (this.state ? ew_model.separator + this.state : "");
+        return this.id + (this.state ? ew_model.separator + this.state : "");
     }
 }
 
@@ -129,13 +130,12 @@ function UserGroup(id, name, path, arn)
     }
 }
 
-function MFADevice(id, date, user)
+function MFADevice(id, date)
 {
     this.id = id
     this.date = date
-    this.userName = user
     // arn:aws:iam::123456:mfa/name
-    this.name = this.id.split(":").pop()
+    this.name = this.id.indexOf('arn:aws') == 0 ? this.id.split(/[:\/]+/).pop() : this.id;
 
     this.toString = function() {
         return this.name
@@ -1015,7 +1015,7 @@ var ew_model = {
     getModel: function(name)
     {
         if (!this.hasOwnProperty(name)) debug('model ' + name + ' not found');
-        return this[name];
+        return name ? this[name] : null;
     },
 
     // Return list or initiate refresh if it is empty, perform search if arguments specified
@@ -1033,7 +1033,7 @@ var ew_model = {
     // Update model list and notify components
     set: function(name, list)
     {
-        log('set model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records')
         this.progress[name] = 0;
         this[name] = list;
         this.notifyComponents(name);
@@ -1045,6 +1045,19 @@ var ew_model = {
         return this.findObject(this.getModel(model), id, field);
     },
 
+    // Remove object from the model
+    add: function(name, obj)
+    {
+        var list = this.getModel(name);
+        if (list) list.push(obj);
+    },
+
+    // Remove object from the model
+    remove: function(name, id, field)
+    {
+        return this.removeObject(name, id, field);
+    },
+
     // Update field of an object in the model
     update: function(model, id, field, value)
     {
@@ -1052,6 +1065,12 @@ var ew_model = {
         var obj = this.findObject(this.getModel(model), id);
         if (obj) {
             obj[field] = value;
+            // Additional fields
+            if (arguments.length > 4) {
+                for (var i = 4; i < arguments.length; i+= 2) {
+                    obj[arguments[i]] = arguments[i + 1];
+                }
+            }
         }
         return obj;
     },
@@ -1254,11 +1273,7 @@ var ew_model = {
     {
         var comps = this.components[interest] || [];
         for (var i in comps) {
-            if (comps[i].isVisible()) {
-                comps[i].notifyModelChanged(interest);
-            } else {
-                comps[i].display([]);
-            }
+            comps[i].modelChanged(interest);
         }
     },
 
@@ -1388,7 +1403,7 @@ var ew_model = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "GetLoginProfile", ],
+                   actionIgnore: ["DescribeAlarms", "DescribeLoadBalancers", "ListServerCertificates" ],
                  },
             ];
     },

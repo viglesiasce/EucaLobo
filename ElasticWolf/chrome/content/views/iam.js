@@ -1,62 +1,3 @@
-var ew_VMFATreeView = {
-    model: ["vmfas", "users"],
-
-    menuChanged: function()
-    {
-        var item = this.getSelected();
-        $('ew.vmfas.contextmenu.delete').disabled = item == null;
-        $('ew.vmfas.contextmenu.assign').disabled = !item || item.userName;
-        $('ew.vmfas.contextmenu.unassign').disabled = !item || !item.userName;
-    },
-
-    addDevice: function()
-    {
-        var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        var values = ew_session.promptInput('Create Virtual MFA device', [{label:"Device Name"}, {label:"Device Path"}]);
-        if (!values) return;
-        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
-            me.refresh()
-            var png = "data:image/png;base64," + obj.qrcode;
-            ew_session.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
-        });
-    },
-
-    deleteDevice: function()
-    {
-        var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        if (!confirm('Delete Virtual MFA device ' + item.id)) return;
-        ew_session.controller.deleteVirtualMFADevice(item.id, function(){ me.refresh() });
-    },
-
-    assignDevice: function()
-    {
-        var me = this;
-        var item = this.getSelected();
-        if (!item || item.userName) return;
-        var users = ew_model.get('users');
-        var idx = ew_session.promptList("User name", "Select user to assign this device to", users);
-        if (idx < 0) return;
-        var values = ew_session.promptInput('Assign MFA device', [{label:"Auth Code 1"}, {label:"Auth Code 2"}]);
-        if (!values) return;
-        ew_session.controller.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh() });
-    },
-
-    unassignDevice: function()
-    {
-        var me = this;
-        var item = this.getSelected();
-        if (!item || !item.userName) return;
-        if (!confirm('Deactivate MFA device from user ' + item.userName)) return;
-        ew_session.controller.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
-    },
-};
-ew_VMFATreeView.__proto__ = TreeView;
-ew_VMFATreeView.register();
-
 
 var ew_UsersTreeView = {
     model: [ "users", "groups"],
@@ -72,7 +13,7 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.deleteKey").disabled = !item || !item.accessKeys || !item.accessKeys.length;
         $("ew.users.contextmenu.enableVMFA").disabled = !item;
         $("ew.users.contextmenu.enableMFA").disabled = !item;
-        $("ew.users.contextmenu.resyncMFA").disabled = !item || !item.mfaDevices || item.mfaDevices.length;
+        $("ew.users.contextmenu.resyncMFA").disabled = !item || !item.mfaDevices || !item.mfaDevices.length;
         $("ew.users.contextmenu.deactivateMFA").disabled = !item || !item.mfaDevices || !item.mfaDevices.length;
         $("ew.users.contextmenu.addPolicy").disabled = !item;
         $("ew.users.contextmenu.editPolicy").disabled = !item || !item.policies || !item.policies.length;
@@ -118,9 +59,12 @@ var ew_UsersTreeView = {
     addUser: function()
     {
         var me = this;
-        var values = ew_session.promptInput('Create User', [{ label: "User Name"}, { label: "Path"} ]);
+        var values = ew_session.promptInput('Create User', [{ label: "User Name",required:1}, { label: "Path"} ]);
         if (values) {
-            ew_session.controller.createUser(values[0], values[1], function() { me.refresh() })
+            ew_session.controller.createUser(values[0], values[1], function(user) {
+                ew_session.model.add('users', user);
+                me.invalidate();
+            })
         }
     },
 
@@ -130,7 +74,9 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm("Delete user?")) return;
-        ew_session.controller.deleteUser(item.name, function() { me.refresh() });
+        ew_session.controller.deleteUser(item.name, function() {
+            if (ew_session.model.remove('users', item.name, 'name')) me.invalidate(); else me.refresh();
+        });
     },
 
     renameUser: function()
@@ -138,9 +84,12 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Rename User', [{ label: "New User Name", value: item.name } , { label: "New Path", value: item.path} ]);
+        var values = ew_session.promptInput('Rename User', [{label: "New User Name", value: item.name} , {label: "New Path", value: item.path} ]);
         if (!values) return;
-        ew_session.controller.updateUser(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() { me.refresh() })
+        ew_session.controller.updateUser(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() {
+            ew_session.model.update('users', item.name, 'name', values[0], 'path', values[1]);
+            me.invalidate();
+        })
     },
 
     setPassword: function(update)
@@ -148,12 +97,15 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var pw = ew_session.promptForPassword("Password", "Enter password for " + item.name);
-        if (!pw) return;
+        var values = ew_session.promptInput('Set Password', [{ label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
+        if (!values) return;
+        if (values[0] != values[1]) {
+            return alert('New entered passwords mismatch')
+        }
         if (update) {
-            ew_session.controller.updateLoginProfile(item.name, pw, function() { me.refresh() })
+            ew_session.controller.updateLoginProfile(item.name, values[0], function() { })
         } else {
-            ew_session.controller.createLoginProfile(item.name, pw, function() { me.refresh() })
+            ew_session.controller.createLoginProfile(item.name, values[0], function() { item.loginProfileDate = new Date(); })
         }
     },
 
@@ -174,7 +126,9 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm("Delete password for user " + item.name + "?")) return;
-        ew_session.controller.deleteLoginProfile(item.name, function() { me.refresh() });
+        ew_session.controller.deleteLoginProfile(item.name, function() {
+            item.loginProfileDate = null;
+        });
     },
 
     addGroup: function()
@@ -185,7 +139,10 @@ var ew_UsersTreeView = {
         var list = ew_model.get('groups');
         var idx = ew_session.promptList("Group", "Select group to add this user to", list, ["name"]);
         if (idx < 0) return;
-        ew_session.controller.addUserToGroup(item.name, list[idx].name, function() { me.refresh() });
+        ew_session.controller.addUserToGroup(item.name, list[idx].name, function() {
+            item.groups = null;
+            me.selectionChanged();
+        });
     },
 
     addPolicy: function()
@@ -195,10 +152,13 @@ var ew_UsersTreeView = {
         if (!item) return;
         var name = prompt("Enter new policy name");
         if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
+        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}';
         text = ew_session.promptForText('Enter policy permissions',text);
         if (text) {
-            ew_session.controller.putUserPolicy(item.name, name, text);
+            ew_session.controller.putUserPolicy(item.name, name, text, function() {
+                item.policies = null;
+                me.selectionChanged();
+            });
         }
     },
 
@@ -241,7 +201,7 @@ var ew_UsersTreeView = {
         }
         ew_session.controller.deleteUserPolicy(item.name, item.policies[idx], text, function() {
             item.policies = null;
-            this.selectionChanged();
+            me.selectionChanged();
         });
     },
 
@@ -250,10 +210,10 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        ew_session.controller.createAccessKey(user, function(user, key, secret) {
+        ew_session.controller.createAccessKey(item.name, function(key) {
             item.accessKeys = null;
-            this.selectionChanged();
-            ew_AccessKeysTreeView.saveAccessKey(user, key, secret);
+            me.selectionChanged();
+            ew_AccessKeysTreeView.saveAccessKey(item.name, key.id, key.secret);
         });
     },
 
@@ -272,9 +232,9 @@ var ew_UsersTreeView = {
         } else {
             if (!confirm('Delete access key ' + item.accessKeys[idx] + '?')) return;
         }
-        ew_session.controller.deleteAccessKey(item.accessKeys[idx].id, function() {
+        ew_session.controller.deleteAccessKey(item.accessKeys[idx].id, item.name, function() {
             item.accessKeys = null;
-            this.selectionChanged();
+            me.selectionChanged();
         });
     },
 
@@ -283,13 +243,14 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Create Virtual MFA device', [{label:"Name"}, {label:"Device Path"}]);
-        if (!values) return;
-        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
+        ew_session.controller.createVirtualMFADevice(item.name, null, function(obj) {
             var png = "data:image/png;base64," + obj.qrcode;
-            values = ew_session.promptInput('Enable MFA device', [{ label: "Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+            values = ew_session.promptInput('Activate MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
             if (!values) return;
-            ew_session.controller.enableMFADevice(item.name, obj.id, values[3], values[4], function() { me.refresh() });
+            ew_session.controller.enableMFADevice(item.name, obj.id, values[3], values[4], function() {
+                item.mfaDevices = null;
+                me.selectionChanged();
+            });
         });
     },
 
@@ -298,9 +259,12 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = ew_session.promptInput('Enable MFA device', [{label:"Serial Number"}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+        var values = ew_session.promptInput('Activate MFA device', [{label:"Serial Number",required:1}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
         if (!values) return;
-        ew_session.controller.enableMFADevice(item.name, values[0], values[1], values[2], function() { me.refresh() });
+        ew_session.controller.enableMFADevice(item.name, values[0], values[1], values[2], function() {
+            item.mfaDevices = null;
+            me.selectionChanged();
+        });
     },
 
     resyncMFA: function()
@@ -310,9 +274,12 @@ var ew_UsersTreeView = {
         if (!item || !item.mfaDevices || !item.mfaDevices.length) {
             return alert('No devices to resync');
         }
-        var values = ew_session.promptInput('Resync MFA device', [{label:"Serial Number"}, {label:"Auth Code 1"}, {label:"Auth Code 2"}]);
+        var values = ew_session.promptInput('Resync MFA device', [{label:"Serial Number",required:1}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
         if (!values) return;
-        ew_session.controller.resyncMFADevice(item.name, values[0], values[1], values[2], function() { me.refresh() });
+        ew_session.controller.resyncMFADevice(item.name, values[0], values[1], values[2], function() {
+            item.mfaDevices = null;
+            me.selectionChanged();
+        });
     },
 
     deactivateMFA: function()
@@ -330,8 +297,12 @@ var ew_UsersTreeView = {
             if (!confirm('Deactivate MFA device ' + item.mfaDevices[idx] + '?')) return;
         }
         ew_session.controller.deactivateMFADevice(item.name, item.mfaDevices[idx].id, function() {
+            // Remove Virtual MFA device
+            if (item.mfaDevices[idx].id.indexOf('arn:aws') == 0) {
+                ew_session.controller.deleteVirtualMFADevice(item.mfaDevices[idx].id);
+            }
             item.mfaDevices = null;
-            this.selectionChanged();
+            me.selectionChanged();
         });
     },
 
@@ -361,7 +332,7 @@ var ew_GroupsTreeView = {
         if (item.users) {
             ew_GroupUsersTreeView.display(item.users);
         } else {
-            ew_session.controller.getGroup(item.name, function(list) { ew_GroupUsersTreeView.display(list); });
+            ew_session.controller.getGroup(item.name, function(group) { ew_GroupUsersTreeView.display(group.users); });
         }
         if (!item.policies) {
             ew_session.controller.listGroupPolicies(item.name, function(list) { me.menuChanged() })
@@ -387,7 +358,10 @@ var ew_GroupsTreeView = {
         }
         var idx = ew_session.promptList("User name", "Select user to add to " + item.name, list);
         if (idx < 0) return;
-        ew_session.controller.addUserToGroup(users[idx].name, item.name, function() { me.refresh() });
+        ew_session.controller.addUserToGroup(users[idx].name, item.name, function() {
+            item.users = null;
+            me.selectionChanged();
+        });
     },
 
     deleteUser: function()
@@ -398,15 +372,21 @@ var ew_GroupsTreeView = {
         var user = ew_GroupUsersTreeView.getSelected()
         if (!user) return;
         if (!confirm("Remove user " + user.name + " from group " + item.name + "?")) return;
-        ew_session.controller.removeUserFromGroup(user.name, item.name, function() { me.refresh() });
+        ew_session.controller.removeUserFromGroup(user.name, item.name, function() {
+            item.users = null;
+            me.selectionChanged();
+        });
     },
 
     addGroup: function()
     {
         var me = this;
-        var values = ew_session.promptInput('Create Group', [{label:"Group Name"}, {label:"Path"}]);
+        var values = ew_session.promptInput('Create Group', [{label:"Group Name",required:1}, {label:"Path"}]);
         if (values) {
-            ew_session.controller.createGroup(values[0], values[1], function() { me.refresh() })
+            ew_session.controller.createGroup(values[0], values[1], function(group) {
+                ew_session.model.add('groups', group)
+                me.selectionChanged();
+            })
         }
     },
 
@@ -416,7 +396,10 @@ var ew_GroupsTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm("Delete group?")) return;
-        ew_session.controller.deleteGroup(item.name, function() { me.refresh() });
+        ew_session.controller.deleteGroup(item.name, function() {
+            ew_session.model.remove('groups', item.name, 'name');
+            me.invalidate();
+        });
     },
 
     renameGroup: function()
@@ -426,7 +409,10 @@ var ew_GroupsTreeView = {
         if (!item) return;
         var values = ew_session.promptInput('Rename Group', [{label:"New Group Name"}, {label:"New Path"}], [ item.name, item.path ]);
         if (!values) return;
-        ew_session.controller.updateGroup(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() { me.refresh() })
+        ew_session.controller.updateGroup(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() {
+            ew_session.model.update('groups', item.name, 'name', values[0], 'path', values[1]);
+            me.invalidate();
+        })
     },
 
     addPolicy: function()
@@ -436,10 +422,13 @@ var ew_GroupsTreeView = {
         if (!item) return;
         var name = prompt("Enter new policy name");
         if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": [""],\n    "Resource": ""\n  }\n ]\n}';
+        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}';
         text = ew_session.promptForText('Enter policy permissions',text);
         if (text) {
-            ew_session.controller.putGroupPolicy(item.name, name, text);
+            ew_session.controller.putGroupPolicy(item.name, name, text, function() {
+                item.policies = null;
+                me.selectionChanged();
+            });
         }
     },
 
@@ -479,7 +468,10 @@ var ew_GroupsTreeView = {
         } else
         if (!confirm('Delete policy ' + item.policies[idx])) return;
 
-        ew_session.controller.deleteGroupPolicy(item.name, item.policies[idx], text, function() { item.policies = null; });
+        ew_session.controller.deleteGroupPolicy(item.name, item.policies[idx], text, function() {
+            item.policies = null;
+            me.selectionChanged();
+        });
     },
 };
 
@@ -493,7 +485,7 @@ var ew_GroupUsersTreeView = {
     {
         var item = this.getSelected();
         if (!item) return;
-        // Non visible views do not get updates so if we never show users list we need to updte manually
+        // Non visible views do not get updates so if we never show users list we need to update manually
         if (ew_UsersTreeView.rowCount > 0) {
             ew_UsersTreeView.select(item);
         } else {
@@ -501,12 +493,6 @@ var ew_GroupUsersTreeView = {
             if (user) {
                 ew_UsersTreeView.updateUser(user);
             }
-        }
-
-        // Replace with actual users from the model to show all properties
-        for (var i in this.treeList) {
-            var user = ew_model.find('users', this.treeList[i].id);
-            if (user) this.treeList[i] = user;
         }
     },
 };
@@ -675,10 +661,10 @@ var ew_AccessKeysTreeView = {
 
     createAccessKey : function () {
         var me = this;
-        ew_session.controller.createAccessKey(null, function(user, key, secret) {
+        ew_session.controller.createAccessKey(null, function(key) {
             me.refresh()
-            // Alwayse save my own access keys
-            me.saveAccessKey(user, key, secret, true);
+            // Always save my own access keys
+            me.saveAccessKey("", key.id, key.secret, true);
         });
     },
 
@@ -729,7 +715,7 @@ var ew_AccessKeysTreeView = {
             ew_session.deletePassword('AccessKey:' + key.id)
             me.refresh();
         }
-        ew_session.controller.deleteAccessKey(key.name, wrap);
+        ew_session.controller.deleteAccessKey(key.id, null, wrap);
     },
 
     exportSelected  : function () {
@@ -814,28 +800,138 @@ var ew_CertsTreeView = {
 ew_CertsTreeView.__proto__ = TreeView;
 ew_CertsTreeView.register();
 
+var ew_ServerCertsTreeView = {
+    model: "serverCerts",
+
+    createCert : function () {
+        var me = this;
+        var values = ew_session.promptInput("Server Certificate", [{label:"Certificate Name (must be unique):",required:1},{label:"Path"}]);
+        if (!values) return;
+        var body = ew_session.generateCertificate(values[0]);
+        if (!body) return alert("Could not generate new X509 certificate");
+        var pkey = FileIO.toString(this.getPrivateKeyFile(values[0]));
+        if (!pkey) return alert("Could not read provate key file");
+        alert('The server certificate ' + values[0] + ' was created and will be uploaded within 30 seconds to avoid errors related to difference between AWS server and your computer clocks...');
+
+        setTimeout(function() { ew_session.controller.uploadServerCertificate(values[0], body, pkey, values[1], null, function() { me.refresh() }); }, 30000);
+    },
+
+    uploadCert : function (user) {
+        var me = this;
+        var values = ew_session.promptInput("Server Certificate", [{label:"Certificate Name (must be unique):",required:1},{label:"Path"},{label:"Certificate PEM file",type:"file",required:1},{label:"Private Key PEM file:",type:"file",required:1},{label:"Certificate chain PEM file:",type:"file"}]);
+        if (!values) return;
+        var body = FileIO.toString(values[2]);
+        var pkey = FileIO.toString(values[3]);
+        var chain = FileIO.toString(values[4]);
+        ew_session.controller.uploadServerCertificate(values[0], body, pkey, values[1], chain, function() { me.refresh(); });
+    },
+
+    saveCert : function () {
+        var item = this.getSelected();
+        if (item == null) return;
+        var file = ew_session.promptForFile("Select the file to save certificate to:", true, item.name + ".pem");
+        if (file) {
+            ew_session.controller.getServerCertificate(item.name, function(obj) {
+                FileIO.write(FileIO.open(file), obj.body);
+            });
+        }
+    },
+
+    deleteCert  : function () {
+        var item = this.getSelected();
+        if (item == null) return;
+        if (!confirm("Delete certificate "+item.id+"?")) return;
+
+        var me = this;
+        ew_session.controller.deleteServerCertificate(item.name, function() { me.refresh(); });
+    },
+};
+ew_ServerCertsTreeView.__proto__ = TreeView;
+ew_ServerCertsTreeView.register();
+
+var ew_VMFATreeView = {
+    model: ["vmfas", "users"],
+
+    menuChanged: function()
+    {
+        var item = this.getSelected();
+        $('ew.vmfas.contextmenu.delete').disabled = item == null;
+        $('ew.vmfas.contextmenu.assign').disabled = !item || item.userName;
+        $('ew.vmfas.contextmenu.unassign').disabled = !item || !item.userName;
+    },
+
+    addDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        var values = ew_session.promptInput('Create Virtual MFA device', [{label:"Device Name",required:1}, {label:"Device Path"}]);
+        if (!values) return;
+        ew_session.controller.createVirtualMFADevice(values[0], values[1], function(obj) {
+            me.refresh()
+            var png = "data:image/png;base64," + obj.qrcode;
+            ew_session.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
+        });
+    },
+
+    deleteDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        if (!confirm('Delete Virtual MFA device ' + item.id)) return;
+        ew_session.controller.deleteVirtualMFADevice(item.id, function(){ me.refresh() });
+    },
+
+    assignDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item || item.userName) return;
+        var users = ew_model.get('users');
+        var idx = ew_session.promptList("User name", "Select user to assign this device to", users);
+        if (idx < 0) return;
+        var values = ew_session.promptInput('Assign MFA device', [{label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
+        if (!values) return;
+        ew_session.controller.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh() });
+    },
+
+    unassignDevice: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item || !item.userName) return;
+        if (!confirm('Deactivate MFA device from user ' + item.userName)) return;
+        ew_session.controller.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
+    },
+};
+ew_VMFATreeView.__proto__ = TreeView;
+ew_VMFATreeView.register();
+
 
 var ew_PasswordPolicyView = {
     obj: null,
     rowCount: 0,
 
-    refresh: function() {
+    activate: function() {
+        this.refresh();
     },
 
-    activate: function() {
+    refresh: function() {
         var me = this;
         ew_session.controller.getAccountPasswordPolicy(function(obj) {
             me.obj = obj;
             for (var p in obj) {
-                var e = $('ew.' + p)
+                var e = $('ew.' + p);
                 if (!e) continue;
-                if (e.tagName == 'textbox') e.value = obj[p]; else e.checked = obj[p];
+                if (e.tagName == 'textbox') e.value = obj[p]; else e.checked = obj[p] == "true";
             }
+            $("ew.DisableAccountPasswordPolicy").hidden = obj.disabled;
+            $("ew.SaveAccountPasswordPolicy").setAttribute('label', obj.disabled ? "Enable and Save" : "Save");
         });
     },
 
     deactivate: function() {
-        this.refresh();
     },
 
     display: function() {
@@ -844,12 +940,79 @@ var ew_PasswordPolicyView = {
     invalidate: function() {
     },
 
+    disable: function()
+    {
+        var me = this;
+        if (!confirm('Disable account password policy?')) return;
+        ew_session.controller.deleteAccountPasswordPolicy(function() { me.refresh() });
+    },
+
     save: function() {
         for (var p in this.obj) {
             var e = $('ew.' + p)
             if (!e) continue;
             this.obj[p] = e.tagName == 'textbox' ? e.value : e.checked;
-            ew_session.controller.updateAccountPasswordPolicy(function() { alert('Password policy has been updated') });
         }
+        ew_session.controller.updateAccountPasswordPolicy(this.obj, function() { alert('Password policy has been updated') });
     },
+};
+
+var ew_AccountSummaryView = {
+    rowCount: 0,
+
+    activate: function() {
+        this.refresh();
+    },
+
+    refresh: function() {
+        var me = this;
+        var e = $('ew.iam.accountId').value = ew_session.user.accountId || "";
+        ew_session.controller.listAccountAliases(function(alias) {
+            $('ew.iam.alias').value = alias;
+            $('ew.iam.alias.create').label = alias == "" ? "Create Alias" : "Change Alias";
+            $('ew.iam.alias.delete').hidden = alias == "";
+            $('ew.iam.console').value = alias != "" ? "https://" + alias + ".signin.aws.amazon.com/console" : "";
+        });
+        ew_session.controller.getAccountSummary(function(list) {
+            for (var i in list) {
+                var e = $('ew.iam.' + list[i].key);
+                if (!e) continue;
+                switch (list[i].key) {
+                case "AccountMFAEnabled":
+                    list[i].value = list[i].value == "1" ? "Yes" : "No";
+                    break;
+                }
+                e.value = list[i].value;
+            }
+        });
+    },
+
+    deactivate: function() {
+    },
+
+    display: function() {
+    },
+
+    invalidate: function() {
+    },
+
+    showConsole: function()
+    {
+        ew_session.displayUrl($('ew.iam.console').value);
+    },
+
+    createAlias: function()
+    {
+        var name = prompt('Account alias:');
+        if (!name) return;
+        ew_session.controller.createAccountAlias(name, function() { me.refresh() });
+    },
+
+    deleteAlias: function()
+    {
+        var me = this;
+        if (!confirm('Delete account alias?')) return;
+        ew_session.controller.deleteAccountAlias(('ew.iam.alias').value, function() { me.refresh() });
+    },
+
 };

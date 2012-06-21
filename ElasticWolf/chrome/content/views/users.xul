@@ -18,8 +18,8 @@
                 <menuitem id="ew.users.contextmenu.createKey" oncommand="ew_UsersTreeView.createAccessKey();" label="Create Access Key" />
                 <menuitem id="ew.users.contextmenu.deleteKey" oncommand="ew_UsersTreeView.deleteAccessKey();" label="Delete Access Key" />
                 <menuseparator />
-                <menuitem id="ew.users.contextmenu.enableMFA" oncommand="ew_UsersTreeView.enableMFA();" label="Enable MFA Device" />
-                <menuitem id="ew.users.contextmenu.enableVMFA" oncommand="ew_UsersTreeView.createVMFA();" label="Enable Virtual MFA Device" />
+                <menuitem id="ew.users.contextmenu.enableMFA" oncommand="ew_UsersTreeView.enableMFA();" label="Activate MFA Device" />
+                <menuitem id="ew.users.contextmenu.enableVMFA" oncommand="ew_UsersTreeView.createVMFA();" label="Activate Virtual MFA Device" />
                 <menuitem id="ew.users.contextmenu.resyncMFA" oncommand="ew_UsersTreeView.resyncMFA();" label="Resync MFA Device" />
                 <menuitem id="ew.users.contextmenu.deactivateMFA" oncommand="ew_UsersTreeView.deactivateMFA();" label="Deactivate MFA Device" />
                 <menuseparator />

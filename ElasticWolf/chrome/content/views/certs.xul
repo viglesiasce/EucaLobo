@@ -30,6 +30,42 @@
                 <treechildren id="certs.tree.children" context="certs.tree.contextmenu" />
             </tree>
         </groupbox>
+
+        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
+        <grippy />
+        </splitter>
+
+        <groupbox flex="1" id="serverCerts.tree.holder" orient="vertical">
+            <caption label="Server Certificates" />
+            <popupset>
+                <menupopup id="serverCerts.tree.contextmenu">
+                    <menuitem oncommand="ew_ServerCertsTreeView.createCert()" label="&ew.certs.create.tip;" />
+                    <menuitem oncommand="ew_ServerCertsTreeView.deleteCert();" label="&ew.certs.delete.tip;" />
+                    <menuitem oncommand="ew_ServerCertsTreeView.saveCert();" label="&ew.certs.save.tip;" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.serverCerts.search" size="15" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_ServerCertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_ServerCertsTreeView.createCert();" />
+                <toolbarbutton image="images/import.png" tooltiptext="&ew.certs.upload.tip;" oncommand="ew_ServerCertsTreeView.uploadCert();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="&ew.certs.delete.tip;" oncommand="ew_ServerCertsTreeView.deleteCert();" />
+                <toolbarbutton image="images/download.png" tooltiptext="&ew.certs.save.tip;" oncommand="ew_ServerCertsTreeView.saveCert();" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.serverCerts.view" flex="1">
+                <treecols>
+                  <treecol id="certs.id" label="&ew.certs.name.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                  <splitter class="tree-splitter" />
+                  <treecol id="certs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                  <splitter class="tree-splitter" />
+                  <treecol id="certs.path" label="Path" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                  <splitter class="tree-splitter" />
+                  <treecol id="certs.date" label="Date" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                  <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="serverSerts.tree.children" context="certs.tree.contextmenu" />
+            </tree>
+        </groupbox>
     </vbox>
     </tabpanel>
 </overlay>

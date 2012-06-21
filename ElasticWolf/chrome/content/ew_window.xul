@@ -33,6 +33,7 @@
 <?xul-overlay href="chrome://ew/content/views/policy.xul"?>
 <?xul-overlay href="chrome://ew/content/views/vmfa.xul"?>
 <?xul-overlay href="chrome://ew/content/views/alarms.xul"?>
+<?xul-overlay href="chrome://ew/content/views/iam.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_session.initialize()">
@@ -100,7 +101,7 @@
    </toolbox>
 
   <hbox flex="1">
-    <tree id="ew.menu" seltype="single" style="min-width:180px;" onclick="ew_menu.selectionChanged()" hidecolumnpicker="true" flex="1">
+    <tree id="ew.menu" seltype="single" style="min-width:180px;" onclick="ew_menu.selectionChanged(event)" ondblclick="ew_menu.openClose(event)" hidecolumnpicker="true" flex="1">
     <treecols>
       <treecol id="name" label="Navigation" primary="true" flex="1" persist="width ordinal hidden" />
     </treecols>
@@ -122,20 +123,18 @@
        <treechildren>
          <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /> <treecell label="" value="ew.tabs.credential.info" properties="info" /> </treerow></treeitem>
          <treeitem><treerow><treecell label="Access Keys/Keypairs" value="ew.tabs.access" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Signing Certificates" value="ew.tabs.cert" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="IAM" src="images/iam.png" />
+         <treecell label="IAM" src="images/iam.png" value="ew.tabs.iam.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Users" value="ew.tabs.users" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Groups" value="ew.tabs.groups" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Virtual MFA Devices" value="ew.tabs.vmfa" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Certificates" value="ew.tabs.cert" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Change Console Password" value="ew.tabs.password" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -213,6 +212,7 @@
       <tabpanel id="ew.tabs.credential"/>
       <tabpanel id="ew.tabs.endpoint"/>
       <tabpanel id="ew.tabs.policy"/>
+      <tabpanel id="ew.tabs.iam.folder"/>
       <tabpanel id="ew.tabs.vmfa"/>
       <tabpanel id="ew.tabs.instance"/>
       <tabpanel id="ew.tabs.image"/>

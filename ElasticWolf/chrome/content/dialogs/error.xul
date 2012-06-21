@@ -6,15 +6,22 @@
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   buttons="accept"
   ondialogaccept="return true;"
-  onload="init();"
+  onload="init()"
+  onunload="return done()"
   title="Error">
 
   <script type="application/x-javascript">
   function init() {
-      setup(window.arguments[0], window.arguments[1]);
+      window.setup = setup;
+      this.rc = window.arguments[0];
+      setup(this.rc);
   }
-  function setup(msg, rc) {
-      document.getElementById("ew.message").value = msg;
+  function done() {
+      this.rc.session.winError = null;
+      return true;
+  }
+  function setup(rc) {
+      document.getElementById("ew.message").value = rc.msg;
       document.getElementById("ew.errCode").value = rc.errCode;
       document.getElementById("ew.errString").value = rc.errString;
       document.getElementById("ew.requestId").value = rc.requestId;

@@ -5,7 +5,8 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <tabpanel id="ew.tabs.policy" flex="1">
     <groupbox flex="1" align="center">
-    <caption label="Password Policy" />
+    <caption label="Account Password Policy" style="text-align:center;" />
+    <description style="padding:20px;">A password policy is a set of rules that define the type of password an IAM user can set.</description>
     <grid>
             <columns>
                 <column />
@@ -49,7 +50,8 @@
                     </hbox>
                 </row>
                 <row>
-                    <button label="Save" oncommand="ew_PasswordPolicyView.save()" />
+                    <button label="Disable" id="ew.DisableAccountPasswordPolicy" oncommand="ew_PasswordPolicyView.disable()" />
+                    <button label="Save" id="ew.SaveAccountPasswordPolicy" oncommand="ew_PasswordPolicyView.save()" />
                 </row>
             </rows>
         </grid>

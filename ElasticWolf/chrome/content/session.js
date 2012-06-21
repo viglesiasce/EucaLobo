@@ -351,6 +351,21 @@ var ew_session = {
         window.openDialog("chrome://ew/content/dialogs/help.xul", null, "chrome,centerscreen,modal,resizable", this);
     },
 
+    displayUrl: function(url)
+    {
+        if (!url) return;
+        try {
+          var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+          var uri = io.newURI(url, null, null);
+          var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService)
+          var launcher = eps.getProtocolHandlerInfo('http');
+          launcher.preferredAction = Components.interfaces.nsIHandlerInfo.useSystemDefault;
+          launcher.launchWithURI(uri, null);
+        } catch (e) {
+          alert(e);
+        }
+    },
+
     // Create cert with private and public keys for given key name
     generateCertificate : function(keyname)
     {
@@ -1126,12 +1141,12 @@ var ew_session = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls
         if (rc.hasErrors) {
-            this.errorCount++;
             if (this.errorCount < this.errorMax) {
                 if (this.actionIgnore.indexOf(rc.action) == -1) {
                     this.errorDialog("Server responded with an error for " + rc.action, rc)
                 }
             }
+            this.errorCount++;
         } else {
             this.errorCount = 0;
             // Pass the result or the whole response object if it is null
@@ -1185,14 +1200,14 @@ var ew_session = {
     errorDialog : function(msg, rsp)
     {
         if (!rsp) rsp = {};
-        var rc = { value:null, action: rsp.action || "", errCode: rsp.errCode || "", errString: rsp.errString || "", requestId: rsp.requestId || "" };
+        var rc = { session: this, msg: msg, value:null, action: rsp.action || "", errCode: rsp.errCode || "", errString: rsp.errString || "", requestId: rsp.requestId || "" };
         // Reuse the same window
         if (!this.winError || !this.winError.setup) {
-            this.winError = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable", msg, rc);
+            this.winError = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable", rc);
         } else
         if (this.winError.setup) {
+            this.winError.setup.call(this.winError, rc);
             this.winError.focus();
-            this.winError.setup.call(this.winError, msg, rc);
         }
     },
 

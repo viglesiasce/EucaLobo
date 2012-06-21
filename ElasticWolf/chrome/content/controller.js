@@ -53,7 +53,7 @@ var ew_controller = {
                         if (val) list.push(callback ? callback(val) : val);
                     }
                 } else {
-                    list.push(callback ? cgallback(items[i]) : items[i]);
+                    list.push(callback ? callback(items[i]) : items[i]);
                 }
             }
         }
@@ -2375,6 +2375,40 @@ var ew_controller = {
         response.result = list;
     },
 
+    listAccountAliases : function(callback)
+    {
+        ew_session.queryIAM("ListAccountAliases", [], this, false, "onCompleteListAccountAliases", callback);
+    },
+
+    onCompleteListAccountAliases : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = getNodeValue(xmlDoc, "AccountAliases", "member");
+    },
+
+    createAccountAlias: function(name, callback)
+    {
+        ew_session.queryIAM("CreateAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
+    },
+
+    deleteAccountAlias: function(name, callback)
+    {
+        ew_session.queryIAM("DeleteAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
+    },
+
+    getAccountSummary: function(callback)
+    {
+        ew_session.queryIAM("GetAccountSummary", [], this, false, "onCompleteGetAccountSummary", callback);
+    },
+
+    onCompleteGetAccountSummary: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var items = this.getItems(xmlDoc, "SummaryMap", "entry", ["key", "value"]);
+
+        response.result = items;
+    },
+
     createAccessKey : function(name, callback)
     {
         var params = []
@@ -2398,9 +2432,11 @@ var ew_controller = {
         response.result = new AccessKey(key, secret, status, user);
     },
 
-    deleteAccessKey : function(id, callback)
+    deleteAccessKey : function(id, user, callback)
     {
-        ew_session.queryIAM("DeleteAccessKey", [ [ "AccessKeyId", id ] ], this, false, "onComplete", callback);
+        var params = [ [ "AccessKeyId", id ] ];
+        if (user) params.push(["UserName", user])
+        ew_session.queryIAM("DeleteAccessKey", params, this, false, "onComplete", callback);
     },
 
     listAccessKeys : function(user, callback)
@@ -2421,39 +2457,11 @@ var ew_controller = {
         for (var i = 0; i < items.length; i++) {
             var id = getNodeValue(items[i], "AccessKeyId");
             var status = getNodeValue(items[i], "Status");
-            list.push(new AccessKey(id, "", status, user));
+            var date = getNodeValue(items[i], "CreateDate");
+            list.push(new AccessKey(id, "", status, user, date));
         }
 
         ew_model.update('users', getParam(params, 'UserName'), 'accessKeys', list)
-
-        response.result = list;
-    },
-
-    listMFADevices : function(user, callback)
-    {
-        var params = [];
-        if (user) params.push(["UserName", user]);
-        ew_session.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
-    },
-
-    onCompleteListMFADevices : function(response)
-    {
-        var xmlDoc = response.responseXML;
-        var params = response.params;
-
-        var user = getNodeValue(xmlDoc, "UserName");
-        if (!user) user = getParam(params, 'UserName');
-        if (!user) user = ew_session.user.name;
-
-        var list = new Array();
-        var items = xmlDoc.getElementsByTagName("member");
-        for (var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "SerialNumber");
-            var date = getNodeValue(items[i], "EnableDate");
-            list.push(new MFADevice(id, date, user));
-        }
-
-        ew_model.update('users', user, 'mfaDevices', list)
 
         response.result = list;
     },
@@ -2498,6 +2506,33 @@ var ew_controller = {
         response.result = obj;
     },
 
+    deleteVirtualMFADevice: function(serial, callback)
+    {
+        ew_session.queryIAM("DeleteVirtualMFADevice", [ ["SerialNumber", serial] ], this, false, "onComplete", callback);
+    },
+
+    listMFADevices : function(user, callback)
+    {
+        var params = [];
+        if (user) params.push(["UserName", user]);
+        ew_session.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
+    },
+
+    onCompleteListMFADevices : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var params = response.params;
+
+        var list = this.getItems(xmlDoc, "MFADevices", "member", ["SerialNumber", "EnableDate"], function(obj) { return new MFADevice(obj.SerialNumber, obj.EnableDate)});
+
+        var user = getNodeValue(xmlDoc, "UserName");
+        if (!user) user = getParam(params, 'UserName');
+        if (!user) user = ew_session.user.name;
+        ew_model.update('users', user, 'mfaDevices', list)
+
+        response.result = list;
+    },
+
     enableMFADevice: function(user, serial, auth1, auth2, callback)
     {
         ew_session.queryIAM("EnableMFADevice", [["UserName", user], ["SerialNumber", serial], ["AuthenticationCode1", auth1], ["AuthenticationCode2", auth2] ], this, false, "onComplete", callback);
@@ -2513,14 +2548,18 @@ var ew_controller = {
         ew_session.queryIAM("DeactivateMFADevice", [["UserName", user], ["SerialNumber", serial] ], this, false, "onComplete", callback);
     },
 
-    deleteVirtualMFADevice: function(serial, callback)
-    {
-        ew_session.queryIAM("DeleteVirtualMFADevice", [ ["SerialNumber", serial] ], this, false, "onComplete", callback);
-    },
-
     listUsers : function(callback)
     {
         ew_session.queryIAM("ListUsers", [], this, false, "onCompleteListUsers", callback);
+    },
+
+    unpackUser: function(item)
+    {
+        var id = getNodeValue(item, "UserId");
+        var name = getNodeValue(item, "UserName");
+        var path = getNodeValue(item, "Path");
+        var arn = getNodeValue(item, "Arn");
+        return new User(id, name, path, arn)
     },
 
     onCompleteListUsers : function(response)
@@ -2531,28 +2570,9 @@ var ew_controller = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "UserId");
-            var name = getNodeValue(items[i], "UserName");
-            var path = getNodeValue(items[i], "Path");
-            var arn = getNodeValue(items[i], "Arn");
-            list.push(new User(id, name, path, arn));
+            list.push(this.unpackUser(items[i]));
         }
-
-        // Top level list need to update the model
-        switch (response.action) {
-        case 'ListUsers':
-            ew_model.set('users', list);
-            break;
-
-        case "GetGroup":
-            for (var i in list) {
-                var user = ew_model.find('users', list[i].id);
-                if (user) list[i] = user;
-            }
-            ew_model.update('groups', getParam(params, 'GroupName'), 'users', list)
-            break;
-        }
-
+        ew_model.set('users', list);
         response.result = list;
     },
 
@@ -2566,13 +2586,7 @@ var ew_controller = {
     onCompleteGetUser : function(response)
     {
         var xmlDoc = response.responseXML;
-
-        var id = getNodeValue(xmlDoc, "UserId");
-        var name = getNodeValue(xmlDoc, "UserName");
-        var path = getNodeValue(xmlDoc, "Path");
-        var arn = getNodeValue(xmlDoc, "Arn");
-
-        response.result = new User(id, name, path, arn);
+        response.result = this.unpackUser(xmlDoc);
     },
 
     getUserPolicy : function(user, policy, callback)
@@ -2585,16 +2599,20 @@ var ew_controller = {
         ew_session.queryIAM("PutUserPolicy", [ ["UserName", user], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
+    deleteUserPolicy : function(user, policy, callback)
+    {
+        ew_session.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+    },
+
     onCompleteGetPolicy : function(response)
     {
         var xmlDoc = response.responseXML;
-
         response.result = decodeURIComponent(getNodeValue(xmlDoc, "PolicyDocument"));
     },
 
     createUser : function(name, path, callback)
     {
-        ew_session.queryIAM("CreateUser", [ ["UserName", name], [ "Path", path || "/"] ], this, false, "onComplete", callback);
+        ew_session.queryIAM("CreateUser", [ ["UserName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetUser", callback);
     },
 
     deleteUser : function(name, callback)
@@ -2613,12 +2631,14 @@ var ew_controller = {
     {
         var xmlDoc = response.responseXML;
 
-        // It is valid not to have it
-        response.hasErrors = false;
         var name = getNodeValue(xmlDoc, "UserName");
         var date = getNodeValue(xmlDoc, "CreateDate");
-        ew_model.update('users', name, 'loginProfileDate', date)
 
+        // It is valid not to have it
+        if (!response.hasErrors) {
+            ew_model.update('users', name, 'loginProfileDate', date)
+        }
+        response.hasErrors = false;
         response.result = date;
     },
 
@@ -2650,11 +2670,6 @@ var ew_controller = {
         ew_session.queryIAM("ListUserPolicies", [ ["UserName", user]], this, false, "onCompleteListPolicies", callback);
     },
 
-    deleteUserPolicy : function(user, policy, callback)
-    {
-        ew_session.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
-    },
-
     changePassword : function(oldPw, newPw, callback)
     {
         ew_session.queryIAM("ChangePassword", [ ["OldPassword", oldPw], [ "NewPassword", newPw ] ], this, false, "onComplete", callback);
@@ -2680,6 +2695,15 @@ var ew_controller = {
         ew_session.queryIAM("ListGroupsForUser", [ ["UserName", user]], this, false, "onCompleteListGroups", callback);
     },
 
+    unpackGroup: function(item)
+    {
+        var path = getNodeValue(item, "Path");
+        var name = getNodeValue(item, "GroupName");
+        var id = getNodeValue(item, "GroupId");
+        var arn = getNodeValue(item, "Arn");
+        return new UserGroup(id, name, path, arn);
+    },
+
     onCompleteListGroups : function(response)
     {
         var xmlDoc = response.responseXML;
@@ -2688,11 +2712,7 @@ var ew_controller = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
-            var path = getNodeValue(items[i], "Path");
-            var name = getNodeValue(items[i], "GroupName");
-            var id = getNodeValue(items[i], "GroupId");
-            var arn = getNodeValue(items[i], "Arn");
-            list.push(new UserGroup(id, name, path, arn));
+            list.push(this.unpackGroup(items[i]));
         }
 
         // Update model directly
@@ -2756,7 +2776,7 @@ var ew_controller = {
 
     createGroup : function(name, path, callback)
     {
-        ew_session.queryIAM("CreateGroup", [ ["GroupName", name], [ "Path", path || "/"] ], this, false, "onComplete", callback);
+        ew_session.queryIAM("CreateGroup", [ ["GroupName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetGroup", callback);
     },
 
     deleteGroup : function(name, callback)
@@ -2766,7 +2786,27 @@ var ew_controller = {
 
     getGroup : function(name, callback)
     {
-        ew_session.queryIAM("GetGroup", [ ["GroupName", name]], this, false, "onCompleteListUsers", callback);
+        ew_session.queryIAM("GetGroup", [ ["GroupName", name]], this, false, "onCompleteGetGroup", callback);
+    },
+
+    onCompleteGetGroup : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var group = this.unpackGroup(xmlDoc);
+        // User real object from the model
+        var obj = ew_model.find('groups', group.id);
+        if (!obj) obj = group;
+
+        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(obj) { return new User(obj.UserId, obj.UserName, obj.Path, obj.Arn); });
+
+        // Update with real users from the model so we can share between users and groups screens
+        for (var i in users) {
+            var user = ew_model.find('users', users[i].id);
+            if (user) users[i] = user;
+        }
+        obj.users = users;
+        response.result = obj;
     },
 
     updateGroup: function(name, newname, newpath, callback)
@@ -2784,8 +2824,9 @@ var ew_controller = {
 
     onCompleteGetPasswordPolicy: function(response)
     {
+        debug(response.responseText)
         var xmlDoc = response.responseXML;
-        var obj = {};
+        var obj = { MinimumPasswordLength: null, RequireUppercaseCharacters: null, RequireLowercaseCharacters: null, RequireNumbers: null, RequireSymbols: null, AllowUsersToChangePassword: null };
 
         // It is ok not to have a policy
         if (!response.hasErrors) {
@@ -2796,6 +2837,7 @@ var ew_controller = {
             obj.RequireSymbols = getNodeValue(xmlDoc, 'RequireSymbols');
             obj.AllowUsersToChangePassword = getNodeValue(xmlDoc, 'AllowUsersToChangePassword');
         } else {
+            obj.disabled = true;
             response.hasErrors = false;
         }
         response.result = obj;
@@ -2808,6 +2850,11 @@ var ew_controller = {
             params.push([ p, obj[p]])
         }
         ew_session.queryIAM("UpdateAccountPasswordPolicy", params, this, false, "onComplete", callback);
+    },
+
+    deleteAccountPasswordPolicy: function(callback)
+    {
+        ew_session.queryIAM("DeleteAccountPasswordPolicy", [], this, false, "onComplete", callback);
     },
 
     importKeypair : function(name, keyMaterial, callback)
@@ -2854,11 +2901,11 @@ var ew_controller = {
         ew_session.queryIAM("UpdateSigningCertificate", [ [ "CertificateId", id ], ["Status", status] ], this, false, "onComplete", callback);
     },
 
-    uploadServerCertificate : function(name, body, privatekey, path, chain, callback)
+    uploadServerCertificate : function(name, body, privateKey, path, chain, callback)
     {
         var params = [ ["ServerCertificateName", name]];
         params.push([ "CertificateBody", body ]);
-        params.push(["PrivateKey", privatekey ]);
+        params.push(["PrivateKey", privateKey ]);
         if (path) params.push([["Path", user]])
         if (chain) params.push(["CertificateChain", chain])
         ew_session.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
@@ -2908,11 +2955,10 @@ var ew_controller = {
     onCompleteListServerCertificates : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
-        var items = xmlDoc.getElementsByTagName("ServerCertificateMetadata");
+        var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
-            list.push(this.unpackServerCertificte(items[i]));
+            list.push(this.unpackServerCertificate(items[i]));
         }
         ew_model.set('serverCerts', list);
         response.result = list;

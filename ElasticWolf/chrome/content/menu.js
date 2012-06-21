@@ -8,9 +8,9 @@ var ew_menu = {
 
             { name: "ew.tabs.policy",        views: [ { view: ew_PasswordPolicyView } ] },
 
-            { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
+            { name: "ew.tabs.iam.folder",    views: [ { view: ew_AccountSummaryView } ] },
 
-            { name: "ew.tabs.password",      call: ew_UsersTreeView.changePassword },
+            { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
@@ -22,7 +22,8 @@ var ew_menu = {
             { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeysTreeView },
                                                       { id: "ew.keypairs.view", view: ew_KeypairsTreeView, } ], },
 
-            { name: "ew.tabs.cert",          views: [  { id: "ew.certs.view", view: ew_CertsTreeView } ] },
+            { name: "ew.tabs.cert",          views: [  { id: "ew.certs.view", view: ew_CertsTreeView },
+                                                       { id: "ew.serverCerts.view", view: ew_ServerCertsTreeView }] },
 
             { name: "ew.tabs.users",         views: [ { id: "ew.users.view", view: ew_UsersTreeView, }, ] },
 
@@ -149,15 +150,11 @@ var ew_menu = {
 
         // Activate and refresh if no records yet
         for (var i in tab.views) {
-            log('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount)
+            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount)
             tab.views[i].view.activate();
             // Assign new filter list and refresh contents
             tab.views[i].view.filterList = tab.views[i].filterList;
-            if (tab.views[i].view.rowCount == 0) {
-                tab.views[i].view.refresh();
-            } else {
-                tab.views[i].view.invalidate();
-            }
+            tab.views[i].view.invalidate();
         }
         // Non view tabs cannot be selected
         if (tab.call) {
@@ -191,19 +188,19 @@ var ew_menu = {
         return -1;
     },
 
-    selectionChanged: function()
+    openClose: function(event)
     {
         var id = this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns[0]);
-        switch (id) {
-        case "":
+        if (id == "" || id.indexOf(".folder") > 0) {
             var label = this.tree.view.getCellText(this.tree.currentIndex, this.tree.columns[0]).replace(/[()]+/g, '');
-            this.tree.view.toggleOpenState(this.tree.currentIndex);
             this.tree.view.setCellText(this.tree.currentIndex, this.tree.columns[0], this.tree.view.isContainerOpen(this.tree.currentIndex) ? label : "(" + label + ")");
-            break;
-
-        default:
-            ew_session.selectTab(id);
         }
+    },
+
+    selectionChanged: function(event)
+    {
+        var id = this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns[0]);
+        ew_session.selectTab(id);
     },
 
     update: function() {
