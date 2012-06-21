@@ -135,6 +135,7 @@
          <treeitem><treerow><treecell label="Groups" value="ew.tabs.groups" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Certificates" value="ew.tabs.cert" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
+         <treeitem hidden="true" class="advanced"><treerow><treecell label="Virtual MFA Devices" value="ew.tabs.vmfa" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 

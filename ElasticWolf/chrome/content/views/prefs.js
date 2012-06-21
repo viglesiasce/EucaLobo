@@ -37,6 +37,7 @@ var ew_PrefsView = {
        this.getPrefs("ew.accesskey.save")
        this.getPrefs("ew.http.timeout", 15000);
        this.getPrefs("ew.prompt.open.port", true);
+       this.getPrefs("ew.advanced.mode", false);
        // Optional debugging support
        $('ew.venkman').hidden = typeof start_venkman != 'function';
    },
@@ -66,8 +67,10 @@ var ew_PrefsView = {
        this.setPrefs("ew.idle.action");
        this.setPrefs("ew.http.timeout", 5000, 3600000);
        this.setPrefs("ew.prompt.open.port");
+       this.setPrefs("ew.advanced.mode");
 
        ew_session.setIdleTimer();
+       ew_menu.update();
        this.rowCount = 0;
    },
 

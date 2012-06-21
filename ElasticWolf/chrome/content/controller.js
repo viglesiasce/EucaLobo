@@ -2481,7 +2481,8 @@ var ew_controller = {
             var serial = getNodeValue(items[i], "SerialNumber");
             var arn = getNodeValue(items[i], "Arn");
             var date = getNodeValue(items[i], "EnableDate");
-            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop()));
+            var user = getNodeValue(items[i], "UserName");
+            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop()), user);
         }
         ew_model.set('vmfas', list);
         response.result = list;

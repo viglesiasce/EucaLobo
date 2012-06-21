@@ -211,6 +211,11 @@ var ew_menu = {
             var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
             this.tree.view.setCellText(idx, this.tree.columns[0], label);
         }
+        var advanced = ew_session.getBoolPrefs("ew.advanced.mode", false);
+        var items = document.getElementsByClassName("advanced");
+        for (var i = 0; i < items.length; i++) {
+            items[i].hidden = !advanced;
+        }
     },
 
 };

@@ -130,10 +130,11 @@ function UserGroup(id, name, path, arn)
     }
 }
 
-function MFADevice(id, date)
+function MFADevice(id, date, user)
 {
     this.id = id
     this.date = date
+    this.userName = user || "";
     // arn:aws:iam::123456:mfa/name
     this.name = this.id.indexOf('arn:aws') == 0 ? this.id.split(/[:\/]+/).pop() : this.id;
 

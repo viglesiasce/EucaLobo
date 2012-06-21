@@ -220,6 +220,10 @@
                     <checkbox id="ew.prompt.open.port" />
                 </row>
                 <row>
+                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enabled more advanced and not often used features" />
+                    <checkbox id="ew.advanced.mode" />
+                </row>
+                <row>
                     <label control="ew.http.timeout" value="HTTP timeout(ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
                     <textbox id="ew.http.timeout" type="number" size="5" maxlength="5"/>
                 </row>
