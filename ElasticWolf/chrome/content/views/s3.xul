@@ -10,7 +10,8 @@
                 <popupset>
                     <menupopup id="ew.s3Buckets.contextmenu">
                         <menuitem id="ew.s3Buckets.back" oncommand="ew_S3BucketsTreeView.back()" label="Back" />
-                        <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayDetails()" label="Show contents" />
+                        <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayInfo()" label="Show Info" />
+                        <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayDetails()" label="Show Contents" />
                         <menuseparator />
                         <menuitem oncommand="ew_S3BucketsTreeView.refresh()" label="&ew.refresh.tip;" />
                         <menuitem id="ew.s3Buckets.create" oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
@@ -32,6 +33,7 @@
                     <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder" />
                     <toolbarbutton image="images/credentials.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageAcls();" tooltiptext="Manage ACLs" />
                     <toolbarbutton image="images/web.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageWebsite();" tooltiptext="Manage Website config" />
+                    <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.displayInfo();" tooltiptext="Show Info" />
                     <toolbarbutton image="images/download.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.download();" tooltiptext="Download file" />
                     <toolbarbutton image="images/upload.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.upload();" tooltiptext="Upload file" />
                     <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.edit();" tooltiptext="Edit text file" />

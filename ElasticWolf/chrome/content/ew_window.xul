@@ -45,7 +45,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/crypto.js" />
   <script type="application/x-javascript" src="chrome://ew/content/interfaces.js" />
   <script type="application/x-javascript" src="chrome://ew/content/model.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/controller.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/api.js" />
   <script type="application/x-javascript" src="chrome://ew/content/session.js" />
 
   <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
@@ -205,14 +205,10 @@
        </treerow>
       </treeitem>
 
-      <treeitem container="true" open="true">
+      <treeitem container="true" open="true" hidden="true">
        <treerow>
-         <treecell label="Push Notification Service" src="images/sns.png" />
+         <treecell label="Push Notification Service" value="ew.tabs.sns" src="images/sns.png" />
        </treerow>
-       <treechildren>
-          <treeitem><treerow><treecell label="Subscriptions" value="ew.tabs.subscription" /></treerow></treeitem>
-          <treeitem><treerow><treecell label="Topics" value="ew.tabs.topic" /></treerow></treeitem>
-       </treechildren>
       </treeitem>
 
       <treeitem container="true" empty="true">

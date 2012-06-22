@@ -19,17 +19,17 @@ var ew_NetworkInterfacesTreeView = {
         if (rc.ok) {
             var me = this;
             if (eni.sourceDestCheck != rc.sourceDestCheck) {
-                ew_session.controller.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", rc.SourceDestCheck, function() { me.refresh(); });
+                this.session.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", rc.SourceDestCheck, function() { me.refresh(); });
             }
             if (eni.descr != rc.descr) {
-                ew_session.controller.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
+                this.session.api.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
             }
             if (eni.groups.toString() != rc.groups.toString()) {
                 var attrs = [];
                 for (var i in rc.groups) {
                     attrs.push(['SecurityGroupId.' + (i + 1), rc.groups[i]]);
                 }
-                ew_session.controller.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
+                this.session.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
             }
         }
     },
@@ -40,7 +40,7 @@ var ew_NetworkInterfacesTreeView = {
         openDialog('chrome://ew/content/dialogs/details_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_session, rc);
         if (rc.ok) {
             var me = this;
-            ew_session.controller.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
+            this.session.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
         }
     },
 
@@ -49,7 +49,7 @@ var ew_NetworkInterfacesTreeView = {
         var eni = this.getSelected();
         if (!eni || !confirm("Delete Network Interface " + eni.id + "?")) return;
         var me = this;
-        ew_session.controller.deleteNetworkInterface(eni.id, function() { me.refresh(); });
+        this.session.api.deleteNetworkInterface(eni.id, function() { me.refresh(); });
     },
 
     attachInterface : function()
@@ -63,7 +63,7 @@ var ew_NetworkInterfacesTreeView = {
         openDialog('chrome://ew/content/dialogs/attach_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_session, eni, rc);
         if (rc.ok) {
             var me = this;
-            ew_session.controller.attachNetworkInterface(eni.id, rc.instanceId, rc.deviceIndex, function() { me.refresh();});
+            this.session.api.attachNetworkInterface(eni.id, rc.instanceId, rc.deviceIndex, function() { me.refresh();});
         }
     },
 
@@ -87,10 +87,9 @@ var ew_NetworkInterfacesTreeView = {
             if (!confirm("Detach interface " + eni.id + " (" + eni.descr + ") from " + instance.toString() +  "?")) return;
         }
         var me = this;
-        ew_session.controller.detachNetworkInterface(eni.attachment.id, force, function() { me.refresh(); });
+        this.session.api.detachNetworkInterface(eni.attachment.id, force, function() { me.refresh(); });
     },
 
 };
 ew_NetworkInterfacesTreeView.__proto__ = TreeView;
-ew_NetworkInterfacesTreeView.register();
 

@@ -55,7 +55,7 @@
                     <splitter class="tree-splitter" />
                     <treecol id="user.accessKeys" label="Access Keys" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="user.mfaDevices" label="MFA Devices" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="user.mfaDevices" label="MFA Device" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.users.children" context="ew.users.contextmenu" />

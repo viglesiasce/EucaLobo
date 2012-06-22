@@ -100,20 +100,27 @@ var ew_menu = {
             { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
     ],
 
-    init: function() {
+    init: function(session)
+    {
+        this.session = session;
         this.tree = $('ew.menu')
         for (var i in this.tabs) {
             // Because owner refers to the real panel need to skip it
             if (this.tabs[i].owner) continue;
             for (var v in this.tabs[i].views) {
                 var id = this.tabs[i].views[v].id;
-                if (!id) continue;
+                // Not TreeView, just assign the session
+                if (!id) {
+                    this.tabs[i].views[v].view.session = this.session;
+                    continue;
+                }
                 var tree = $(id);
                 if (!tree) {
                     debug('view not found ' + id);
                     continue;
                 }
-                this.tabs[i].views[v].view.init(tree, this.tabs[i]);
+                // Init with session
+                this.tabs[i].views[v].view.init(tree, this.tabs[i], this.session);
             }
         }
     },
@@ -205,18 +212,18 @@ var ew_menu = {
     selectionChanged: function(event)
     {
         var id = this.tree.view.getCellValue(this.tree.currentIndex, this.tree.columns[0]);
-        ew_session.selectTab(id);
+        this.session.selectTab(id);
     },
 
     update: function() {
         var idx = this.getMenu("ew.tabs.credential")
         if (idx > 0) {
-            var cred = ew_session.getActiveCredentials();
-            var endpoint = ew_session.getActiveEndpoint();
+            var cred = this.session.getActiveCredentials();
+            var endpoint = this.session.getActiveEndpoint();
             var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
             this.tree.view.setCellText(idx, this.tree.columns[0], label);
         }
-        var advanced = ew_session.getBoolPrefs("ew.advanced.mode", false);
+        var advanced = this.session.getBoolPrefs("ew.advanced.mode", false);
         var items = document.getElementsByClassName("advanced");
         for (var i = 0; i < items.length; i++) {
             items[i].hidden = !advanced;

@@ -34,7 +34,6 @@ var ew_PrefsView = {
        this.getPrefs("ew.http.enabled", true);
        this.getPrefs("ew.idle.timeout");
        this.getPrefs("ew.idle.action");
-       this.getPrefs("ew.accesskey.save")
        this.getPrefs("ew.http.timeout", 15000);
        this.getPrefs("ew.prompt.open.port", true);
        this.getPrefs("ew.advanced.mode", false);
@@ -63,7 +62,6 @@ var ew_PrefsView = {
        this.setPrefs("ew.debug.enabled");
        this.setPrefs("ew.http.enabled");
        this.setPrefs("ew.idle.timeout");
-       this.setPrefs("ew.accesskey.save")
        this.setPrefs("ew.idle.action");
        this.setPrefs("ew.http.timeout", 5000, 3600000);
        this.setPrefs("ew.prompt.open.port");

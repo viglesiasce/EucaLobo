@@ -1,5 +1,5 @@
 
-var ew_controller = {
+var ew_api = {
     session: null,
 
     // Main callback on request complete, if callback specified in the form onComplete:id,
@@ -198,7 +198,7 @@ var ew_controller = {
             list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags));
         }
 
-        ew_model.set('volumes', list);
+        this.session.model.set('volumes', list);
         response.result = list;
     },
 
@@ -229,7 +229,7 @@ var ew_controller = {
             list.push(new Snapshot(id, volumeId, status, startTime, progress, volumeSize, description, ownerId, ownerAlias, tags));
         }
 
-        ew_model.set('snapshots', list);
+        this.session.model.set('snapshots', list);
         response.result = list;
     },
 
@@ -294,7 +294,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new Vpc(id, cidr, state, dhcpopts, tags));
         }
-        ew_model.set('vpcs', list);
+        this.session.model.set('vpcs', list);
         response.result = list;
     },
 
@@ -329,7 +329,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new Subnet(id, vpcId, cidrBlock, state, availableIp, availabilityZone, tags));
         }
-        ew_model.set('subnets', list);
+        this.session.model.set('subnets', list);
         response.result = list;
     },
 
@@ -380,7 +380,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new DhcpOptions(id, options.join("; "), tags));
         }
-        ew_model.set('dhcpOptions', list);
+        this.session.model.set('dhcpOptions', list);
         response.result = list;
     },
 
@@ -499,7 +499,7 @@ var ew_controller = {
             list.push(new NetworkAcl(id, vpcId, dflt, entryList, assocList));
         }
 
-        ew_model.set('networkAcls', list);
+        this.session.model.set('networkAcls', list);
         response.result = list;
     },
 
@@ -530,7 +530,7 @@ var ew_controller = {
             }
             list.push(new VpnGateway(id, availabilityZone, state, type, attachments));
         }
-        ew_model.set('vpnGateways', list);
+        this.session.model.set('vpnGateways', list);
         response.result = list;
     },
 
@@ -564,7 +564,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new CustomerGateway(id, ipAddress, bgpAsn, state, type, tags));
         }
-        ew_model.set('customerGateways', list);
+        this.session.model.set('customerGateways', list);
         response.result = list;
     },
 
@@ -600,7 +600,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new InternetGateway(id, vpcId, tags));
         }
-        ew_model.set('internetGateways', list);
+        this.session.model.set('internetGateways', list);
         response.result = list;
     },
 
@@ -658,7 +658,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new VpnConnection(id, vgwId, cgwId, type, state, config, tags));
         }
-        ew_model.set('vpnConnections', list);
+        this.session.model.set('vpnConnections', list);
         response.result = list;
     },
 
@@ -759,7 +759,7 @@ var ew_controller = {
             var ami = this.unpackImage(item);
             if (ami) list.push(ami);
         }
-        ew_model.set('images', list);
+        this.session.model.set('images', list);
         response.result = list;
     },
 
@@ -790,7 +790,7 @@ var ew_controller = {
             list.push(new LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy));
         }
 
-        ew_model.set('offerings', list);
+        this.session.model.set('offerings', list);
         response.result = list;
     },
 
@@ -824,7 +824,7 @@ var ew_controller = {
             list.push(new ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy));
         }
 
-        ew_model.set('reservedInstances', list);
+        this.session.model.set('reservedInstances', list);
         response.result = list;
     },
 
@@ -988,12 +988,12 @@ var ew_controller = {
             }
         }
 
-        ew_model.set('instances', list);
+        this.session.model.set('instances', list);
         response.result = list;
     },
 
     runMoreInstances: function(instance, count, callback) {
-        ew_session.controller.describeInstanceAttribute(instance.id, "userData", function(data) {
+        this.session.api.describeInstanceAttribute(instance.id, "userData", function(data) {
             this.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName,
                               instance.groups, data, null, instance.instanceType, instance.availabilityZone,
                               instance.tenancy, instance.subnetId, null, instance.monitoringStatus != "", callback);
@@ -1103,7 +1103,7 @@ var ew_controller = {
                 var endTime = getNodeValue(event, "notAfter");
                 list.push(new InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime));
             }
-            var instance = ew_model.find('instances', instanceId);
+            var instance = this.session.model.find('instances', instanceId);
             if (instance) instance.events = list;
         }
     },
@@ -1235,7 +1235,7 @@ var ew_controller = {
             list.push(this.unpackBundleTask(item));
         }
 
-        ew_model.set('bundleTasks', list);
+        this.session.model.set('bundleTasks', list);
         response.result = list;
     },
 
@@ -1264,7 +1264,7 @@ var ew_controller = {
             var date = getNodeValue(items[i], "CreationDate");
             list.push(new S3Bucket(name, date, owner));
         }
-        ew_model.set('s3Buckets', list);
+        this.session.model.set('s3Buckets', list);
 
         response.result = list;
     },
@@ -1301,7 +1301,7 @@ var ew_controller = {
             }
             list.push(new S3BucketAcl(id, type, name, perms));
         }
-        var obj = ew_model.getS3Bucket(bucket)
+        var obj = this.session.model.getS3Bucket(bucket)
         if (obj) obj.acls = list; else obj = { acls: list };
 
         response.result = list;
@@ -1316,7 +1316,7 @@ var ew_controller = {
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-        var obj = ew_model.getS3Bucket(bucket);
+        var obj = this.session.model.getS3Bucket(bucket);
         if (obj) obj.acls = null; else obj = { acls: list };
 
         response.result = obj;
@@ -1325,7 +1325,7 @@ var ew_controller = {
     // Without callback it uses sync mode and returns region
     getS3BucketLocation : function(bucket, callback)
     {
-        ew_session.queryS3("GET", bucket, "", "?location", {}, null, this, callback ? false : true, "onCompleteGetS3BucketLocation", callback);
+        return ew_session.queryS3("GET", bucket, "", "?location", {}, null, this, callback ? false : true, "onCompleteGetS3BucketLocation", callback);
     },
 
     onCompleteGetS3BucketLocation : function(response)
@@ -1334,9 +1334,8 @@ var ew_controller = {
         var bucket = response.params[0];
 
         var region = getNodeValue(xmlDoc, "LocationConstraint");
-        var obj = ew_model.getS3Bucket(bucket)
+        var obj = this.session.model.getS3Bucket(bucket)
         if (obj) obj.region = region;
-
         response.result = region;
     },
 
@@ -1361,7 +1360,7 @@ var ew_controller = {
             var owner = getNodeValue(items[i], "ID")
             list.push(new S3BucketKey(bucket, id, type, size, mtime, owner, etag));
         }
-        var obj = ew_model.getS3Bucket(bucket);
+        var obj = this.session.model.getS3Bucket(bucket);
         if (obj) obj.keys = list; else obj = { keys: list };
 
         response.result = obj;
@@ -1453,7 +1452,7 @@ var ew_controller = {
             }
             list.push(new S3BucketAcl(id, type, name, perms));
         }
-        var obj = ew_model.getS3BucketKey(bucket, key)
+        var obj = this.session.model.getS3BucketKey(bucket, key)
         if (obj) obj.acls = list;
 
         response.result = obj;
@@ -1470,7 +1469,7 @@ var ew_controller = {
         var bucket = response.params[0];
         var key = response.params[1];
 
-        var obj = ew_model.getS3BucketKey(bucket, key)
+        var obj = this.session.model.getS3BucketKey(bucket, key)
         if (obj) obj.acls = null;
 
         response.result = obj;
@@ -1485,7 +1484,7 @@ var ew_controller = {
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-        var obj = ew_model.getS3Bucket(bucket);
+        var obj = this.session.model.getS3Bucket(bucket);
         if (!obj) obj = {};
 
         if (response.hasErrors) {
@@ -1538,7 +1537,7 @@ var ew_controller = {
             list.push(new KeyPair(name, fp));
         }
 
-        ew_model.set('keypairs', list);
+        this.session.model.set('keypairs', list);
         response.result = list;
     },
 
@@ -1605,7 +1604,7 @@ var ew_controller = {
             var tags = this.getTags(item);
             list.push(new RouteTable(id, vpcId, routes, associations, tags));
         }
-        ew_model.set('routeTables', list);
+        this.session.model.set('routeTables', list);
         response.result = list;
     },
 
@@ -1756,7 +1755,7 @@ var ew_controller = {
             list.push(new NetworkInterface(id, status, descr, subnetId, vpcId, azone, mac, ip, check, groups, attachment, association, tags));
         }
 
-        ew_model.set('networkInterfaces', list);
+        this.session.model.set('networkInterfaces', list);
         response.result = list;
     },
 
@@ -1821,7 +1820,7 @@ var ew_controller = {
             list.push(new SecurityGroup(groupId, ownerId, groupName, groupDescription, vpcId, ipPermissionsList, tags));
         }
 
-        ew_model.set('securityGroups', list);
+        this.session.model.set('securityGroups', list);
         response.result = list;
     },
 
@@ -1939,7 +1938,7 @@ var ew_controller = {
             list.push(new AvailabilityZone(name, state));
         }
 
-        ew_model.set('availabilityZones', list);
+        this.session.model.set('availabilityZones', list);
         response.result = list;
     },
 
@@ -1963,7 +1962,7 @@ var ew_controller = {
             var tags = this.getTags(items[i]);
             list.push(new EIP(publicIp, instanceid, allocId, assocId, domain, tags));
         }
-        ew_model.set('addresses', list);
+        this.session.model.set('addresses', list);
         response.result = list;
     },
 
@@ -2102,7 +2101,7 @@ var ew_controller = {
                 list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
             }
         }
-        ew_model.set('loadBalancers', list);
+        this.session.model.set('loadBalancers', list);
         response.result = list;
     },
 
@@ -2127,7 +2126,7 @@ var ew_controller = {
             list.push(new InstanceHealth(Description, State, InstanceId, ReasonCode));
         }
 
-        var elb = ew_model.find('loadBalancers', response.params[0][1]);
+        var elb = this.session.model.find('loadBalancers', response.params[0][1]);
         if (elb) elb.InstanceHealth = list;
 
         response.result = list;
@@ -2461,7 +2460,7 @@ var ew_controller = {
             list.push(new AccessKey(id, "", status, user, date));
         }
 
-        ew_model.update('users', getParam(params, 'UserName'), 'accessKeys', list)
+        this.session.model.update('users', getParam(params, 'UserName'), 'accessKeys', list)
 
         response.result = list;
     },
@@ -2476,17 +2475,17 @@ var ew_controller = {
     onCompleteListVirtualMFADevices : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = [];
-        var items = xmlDoc.getElementsByTagName("member");
+        var items = this.getItems(xmlDoc, "VirtualMFADevices", "member");
         for ( var i = 0; i < items.length; i++) {
             var serial = getNodeValue(items[i], "SerialNumber");
             var arn = getNodeValue(items[i], "Arn");
             var date = getNodeValue(items[i], "EnableDate");
             var user = getNodeValue(items[i], "UserName");
-            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop()), user);
+            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), user));
+            debug(i + " " + serial)
         }
-        ew_model.set('vmfas', list);
+        this.session.model.set('vmfas', list);
         response.result = list;
     },
 
@@ -2529,7 +2528,7 @@ var ew_controller = {
         var user = getNodeValue(xmlDoc, "UserName");
         if (!user) user = getParam(params, 'UserName');
         if (!user) user = ew_session.user.name;
-        ew_model.update('users', user, 'mfaDevices', list)
+        this.session.model.update('users', user, 'mfaDevices', list)
 
         response.result = list;
     },
@@ -2573,7 +2572,7 @@ var ew_controller = {
         for ( var i = 0; i < items.length; i++) {
             list.push(this.unpackUser(items[i]));
         }
-        ew_model.set('users', list);
+        this.session.model.set('users', list);
         response.result = list;
     },
 
@@ -2637,7 +2636,7 @@ var ew_controller = {
 
         // It is valid not to have it
         if (!response.hasErrors) {
-            ew_model.update('users', name, 'loginProfileDate', date)
+            this.session.model.update('users', name, 'loginProfileDate', date)
         }
         response.hasErrors = false;
         response.result = date;
@@ -2719,11 +2718,11 @@ var ew_controller = {
         // Update model directly
         switch (response.action) {
         case 'ListGroups':
-            ew_model.set('groups', list);
+            this.session.model.set('groups', list);
             break;
 
         case "ListGroupsForUser":
-            ew_model.update('users', getParam(params, 'UserName'), 'groups', list)
+            this.session.model.update('users', getParam(params, 'UserName'), 'groups', list)
             break;
         }
 
@@ -2749,11 +2748,11 @@ var ew_controller = {
         // Update model directly
         switch(response.action) {
         case "ListGroupPolicies":
-            ew_model.update('groups', getParam(params, 'GroupName'), 'policies', list)
+            this.session.model.update('groups', getParam(params, 'GroupName'), 'policies', list)
             break;
 
         case "ListUserPolicies":
-            ew_model.update('users', getParam(params, 'UserName'), 'policies', list)
+            this.session.model.update('users', getParam(params, 'UserName'), 'policies', list)
             break;
         }
 
@@ -2796,14 +2795,14 @@ var ew_controller = {
 
         var group = this.unpackGroup(xmlDoc);
         // User real object from the model
-        var obj = ew_model.find('groups', group.id);
+        var obj = this.session.model.find('groups', group.id);
         if (!obj) obj = group;
 
         var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(obj) { return new User(obj.UserId, obj.UserName, obj.Path, obj.Arn); });
 
         // Update with real users from the model so we can share between users and groups screens
         for (var i in users) {
-            var user = ew_model.find('users', users[i].id);
+            var user = this.session.model.find('users', users[i].id);
             if (user) users[i] = user;
         }
         obj.users = users;
@@ -2961,7 +2960,7 @@ var ew_controller = {
         for ( var i = 0; i < items.length; i++) {
             list.push(this.unpackServerCertificate(items[i]));
         }
-        ew_model.set('serverCerts', list);
+        this.session.model.set('serverCerts', list);
         response.result = list;
     },
 
@@ -3007,7 +3006,7 @@ var ew_controller = {
             alarms.push(new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, namespace, period, threshold, statistic, oper, metricName, evalPeriods, dims, actions));
         }
 
-        ew_model.set('alarms', alarms);
+        this.session.model.set('alarms', alarms);
 
         response.result = alarms;
     },
@@ -3091,7 +3090,7 @@ var ew_controller = {
         var xmlDoc = response.responseXML;
 
         var list = this.getItems(xmlDoc, "ListQueuesResult", "QueueUrl", null, function(node) { return new Queue(node.firstChild.nodeValue); });
-        ew_model.set('queues', list);
+        this.session.model.set('queues', list);
         response.result = list;
     },
 
@@ -3133,7 +3132,7 @@ var ew_controller = {
 
     deleteMessage : function(url, handle, callback)
     {
-        ew_session.querySQS(url, "DeleteMessage", [["ReceiptHandle", id]], this, false, "onComplete", callback);
+        ew_session.querySQS(url, "DeleteMessage", [["ReceiptHandle", handle]], this, false, "onComplete", callback);
     },
 
     receiveMessage : function(url, max, visibility, callback)
@@ -3151,9 +3150,9 @@ var ew_controller = {
         var items = this.getItems(xmlDoc, "ReceiveMessageResult", "Message");
         for (var i = 0; i < items.length; i++) {
             var id = getNodeValue(items[i], "MessageId");
-            var handle = getNodeValue(items[i], "RecepiptHandle");
+            var handle = getNodeValue(items[i], "ReceiptHandle");
             var body = getNodeValue(items[i], "Body");
-            var msg = new Message(id, body, handle);
+            var msg = new this.model.Message(id, body, handle, response.url);
 
             var attrs = items[i].getElementsByTagName('Attribute');
             for (var j = 0; j < attrs.length; j++) {
@@ -3177,7 +3176,7 @@ var ew_controller = {
 
     addPermission : function(url, label, actions, callback)
     {
-        if (!params) params = [ ["Label", label]];
+        var params = [ ["Label", label]];
         for (var i = 0; i < actions.length; i++) {
             params.push(["ActionName." + (i + 1), actions[i].name]);
             params.push(["AWSAccountId." + (i + 1), actions[i].id]);

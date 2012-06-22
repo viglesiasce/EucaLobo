@@ -37,19 +37,6 @@ function ServerCertificate(id, name, arn, path, date, body)
     }
 }
 
-function Message(id, body, handle)
-{
-    this.id = id;
-    this.body = body || "";
-    this.handle = handle;
-    this.size = this.body.length;
-    this.subject = this.body.substr(0, 32);
-
-    this.toString = function() {
-        return this.id;
-    }
-}
-
 function KeyPair(name, fingerprint, material)
 {
     this.name = name;
@@ -883,6 +870,7 @@ function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue,
 }
 
 var ew_model = {
+    session: null,
     components : {},
     progress: {},
     separator: " | ",
@@ -934,106 +922,106 @@ var ew_model = {
 
         switch (name) {
         case "queues":
-            ew_session.controller.listQueues();
+            this.session.api.listQueues();
             break;
         case "certs":
-            ew_session.controller.listSigningCertificates(null, function(list) { me.set(name, list); });
+            this.session.api.listSigningCertificates(null, function(list) { me.set(name, list); });
             break;
         case "serverCerts":
-            ew_session.controller.listServerCertificates();
+            this.session.api.listServerCertificates();
             break;
         case "accesskeys":
-            ew_session.controller.listAccessKeys(null, function(list) { me.set(name, list); });
+            this.session.api.listAccessKeys(null, function(list) { me.set(name, list); });
             break;
         case "alarms":
-            ew_session.controller.describeAlarms();
+            this.session.api.describeAlarms();
             break;
         case "vmfas":
-            ew_session.controller.listVirtualMFADevices();
+            this.session.api.listVirtualMFADevices();
             break;
         case "regions":
-            ew_session.controller.describeRegions();
+            this.session.api.describeRegions();
             break;
         case "instanceStatus":
-            ew_session.controller.describeInstanceStatus();
+            this.session.api.describeInstanceStatus();
             break;
         case "volumeStatus":
-            ew_session.controller.describeVolumeStatus();
+            this.session.api.describeVolumeStatus();
             break;
         case "volumes":
-            ew_session.controller.describeVolumes();
+            this.session.api.describeVolumes();
             break;
         case "images":
-            ew_session.controller.describeImages();
+            this.session.api.describeImages();
             break;
         case "snapshots":
-            ew_session.controller.describeSnapshots();
+            this.session.api.describeSnapshots();
             break;
         case "instances":
-            ew_session.controller.describeInstances();
+            this.session.api.describeInstances();
             break;
         case "keypairs":
-            ew_session.controller.describeKeypairs();
+            this.session.api.describeKeypairs();
             break;
         case "availabilityZones":
-            ew_session.controller.describeAvailabilityZones();
+            this.session.api.describeAvailabilityZones();
             break;
         case "securityGroups":
-            ew_session.controller.describeSecurityGroups();
+            this.session.api.describeSecurityGroups();
             break;
         case "addresses":
-            ew_session.controller.describeAddresses();
+            this.session.api.describeAddresses();
             break;
         case "bundleTasks":
-            ew_session.controller.describeBundleTasks();
+            this.session.api.describeBundleTasks();
             break;
         case "offerings":
-            ew_session.controller.describeLeaseOfferings();
+            this.session.api.describeLeaseOfferings();
             break;
         case "reservedInstances":
-            ew_session.controller.describeReservedInstances();
+            this.session.api.describeReservedInstances();
             break;
         case "loadBalancers":
-            ew_session.controller.describeLoadBalancers();
+            this.session.api.describeLoadBalancers();
             break;
         case "subnets":
-            ew_session.controller.describeSubnets();
+            this.session.api.describeSubnets();
             break;
         case "vpcs":
-            ew_session.controller.describeVpcs();
+            this.session.api.describeVpcs();
             break;
         case "dhcpOptions":
-            ew_session.controller.describeDhcpOptions();
+            this.session.api.describeDhcpOptions();
             break;
         case "vpnConnections":
-            ew_session.controller.describeVpnConnections();
+            this.session.api.describeVpnConnections();
             break;
         case "vpnGateways":
-            ew_session.controller.describeVpnGateways();
+            this.session.api.describeVpnGateways();
             break;
         case "customerGateways":
-            ew_session.controller.describeCustomerGateways();
+            this.session.api.describeCustomerGateways();
             break;
         case "internetGateways":
-            ew_session.controller.describeInternetGateways();
+            this.session.api.describeInternetGateways();
             break;
         case "routeTables":
-            ew_session.controller.describeRouteTables();
+            this.session.api.describeRouteTables();
             break;
         case "networkAcls":
-            ew_session.controller.describeNetworkAcls();
+            this.session.api.describeNetworkAcls();
             break;
         case "networkInterfaces":
-            ew_session.controller.describeNetworkInterfaces();
+            this.session.api.describeNetworkInterfaces();
             break;
         case "s3Buckets":
-            ew_session.controller.listS3Buckets();
+            this.session.api.listS3Buckets();
             break;
         case "users":
-            ew_session.controller.listUsers();
+            this.session.api.listUsers();
             break;
         case "groups":
-            ew_session.controller.listGroups();
+            this.session.api.listGroups();
             break;
         }
         return []
@@ -1081,9 +1069,9 @@ var ew_model = {
     },
 
     // Remove object from the model
-    remove: function(name, id, field)
+    remove: function(model, id, field)
     {
-        return this.removeObject(name, id, field);
+        return this.removeObject(this.getModel(model), id, field);
     },
 
     // Update field of an object in the model
@@ -1412,7 +1400,8 @@ var ew_model = {
                  { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
                  { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
                  { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
-                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' } ]
+                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
+               ]
     },
 
     getEC2Regions: function()
@@ -1459,6 +1448,20 @@ var ew_model = {
             if (types[i][arch]) list.push(types[i]);
         }
         return list;
+    },
+
+    Message: function(id, body, handle, url)
+    {
+        this.id = id;
+        this.body = body || "";
+        this.handle = handle;
+        this.url = url || "";
+        this.size = this.body.length;
+        this.subject = this.body.substr(0, 32);
+
+        this.toString = function() {
+            return this.id;
+        }
     },
 
 }

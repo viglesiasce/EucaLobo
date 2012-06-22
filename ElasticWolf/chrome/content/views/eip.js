@@ -16,7 +16,7 @@ var ew_ElasticIPTreeView = {
             vpc = ew_session.promptYesNo("Confirm", "Is this Elastic IP to be used for VPC?");
         }
         var me = this;
-        ew_session.controller.allocateAddress(vpc, function() { me.refresh() });
+        this.session.api.allocateAddress(vpc, function() { me.refresh() });
     },
 
     releaseAddress : function() {
@@ -25,7 +25,7 @@ var ew_ElasticIPTreeView = {
         if (!ew_session.promptYesNo("Confirm", "Release "+eip.publicIp+"?")) return;
 
         var me = this;
-        ew_session.controller.releaseAddress(eip, function() { me.refresh() });
+        this.session.api.releaseAddress(eip, function() { me.refresh() });
     },
 
     getUnassociatedInstances : function() {
@@ -77,7 +77,7 @@ var ew_ElasticIPTreeView = {
         }
 
         var me = this;
-        ew_session.controller.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
+        this.session.api.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
         return true;
     },
 
@@ -90,7 +90,7 @@ var ew_ElasticIPTreeView = {
         }
         if (!confirm("Disassociate "+eip.publicIp+" and instance "+eip.instanceId+"?")) return;
         var me = this;
-        ew_session.controller.disassociateAddress(eip, function() { me.refresh() });
+        this.session.api.disassociateAddress(eip, function() { me.refresh() });
     },
 
     copyPublicDnsToClipBoard : function(fieldName) {
@@ -106,4 +106,3 @@ var ew_ElasticIPTreeView = {
 };
 
 ew_ElasticIPTreeView.__proto__ = TreeView;
-ew_ElasticIPTreeView.register();

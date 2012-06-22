@@ -4,5 +4,4 @@ var ew_AlarmsTreeView = {
 };
 
 ew_AlarmsTreeView.__proto__ = TreeView;
-ew_AlarmsTreeView.register();
 

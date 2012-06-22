@@ -39,7 +39,7 @@ var ew_VpnConnectionTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_vpn_connection.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.createVpnConnection(retVal.type, retVal.cgwid, retVal.vgwid, function() { me.refresh();});
+            this.session.api.createVpnConnection(retVal.type, retVal.cgwid, retVal.vgwid, function() { me.refresh();});
         }
     },
 
@@ -51,12 +51,11 @@ var ew_VpnConnectionTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        ew_session.controller.deleteVpnConnection(vpn.id, function() { me.refresh()});
+        this.session.api.deleteVpnConnection(vpn.id, function() { me.refresh()});
     },
 };
 
 ew_VpnConnectionTreeView.__proto__ = TreeView;
-ew_VpnConnectionTreeView.register();
 
 var ew_CustomerGatewayTreeView = {
     model: 'customerGateways',
@@ -73,7 +72,7 @@ var ew_CustomerGatewayTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_customer_gateway.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.createCustomerGateway(retVal.type, retVal.ipaddress, retVal.bgpasn, function(id) { me.refresh(); });
+            this.session.api.createCustomerGateway(retVal.type, retVal.ipaddress, retVal.bgpasn, function(id) { me.refresh(); });
         }
     },
 
@@ -85,7 +84,7 @@ var ew_CustomerGatewayTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        ew_session.controller.deleteCustomerGateway(cgw.id, function(id) { me.refresh(); });
+        this.session.api.deleteCustomerGateway(cgw.id, function(id) { me.refresh(); });
     },
 
     createVpnConnection : function() {
@@ -98,7 +97,6 @@ var ew_CustomerGatewayTreeView = {
 };
 
 ew_CustomerGatewayTreeView.__proto__ = TreeView;
-ew_CustomerGatewayTreeView.register();
 
 var ew_VpnGatewayTreeView = {
     model: ['vpnGateways', 'vpcs'],
@@ -121,7 +119,7 @@ var ew_VpnGatewayTreeView = {
 
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.createVpnGateway(retVal.type, retVal.az, function() {me.refresh()});
+            this.session.api.createVpnGateway(retVal.type, retVal.az, function() {me.refresh()});
         }
     },
 
@@ -133,7 +131,7 @@ var ew_VpnGatewayTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        ew_session.controller.deleteVpnGateway(vgw.id, function() { me.refresh() });
+        this.session.api.deleteVpnGateway(vgw.id, function() { me.refresh() });
     },
 
     createVpnConnection : function() {
@@ -152,7 +150,6 @@ var ew_VpnGatewayTreeView = {
 };
 
 ew_VpnGatewayTreeView.__proto__ = TreeView;
-ew_VpnGatewayTreeView.register();
 
 var ew_VpnAttachmentTreeView = {
     name: "vpnattachments",
@@ -173,7 +170,7 @@ var ew_VpnAttachmentTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        ew_session.controller.detachVpnGatewayFromVpc(att.vgwId, att.vpcId, function() { me.refresh() });
+        this.session.api.detachVpnGatewayFromVpc(att.vgwId, att.vpcId, function() { me.refresh() });
     },
 
     attachToVpc : function(vpcid, vgwid)
@@ -182,10 +179,9 @@ var ew_VpnAttachmentTreeView = {
         window.openDialog("chrome://ew/content/dialogs/attach_vpn_gateway.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.attachVpnGatewayToVpc(retVal.vgwid, retVal.vpcid, function() { me.refresh() });
+            this.session.api.attachVpnGatewayToVpc(retVal.vgwid, retVal.vpcid, function() { me.refresh() });
         }
     },
 };
 
 ew_VpnAttachmentTreeView.__proto__ = TreeView;
-ew_VpnAttachmentTreeView.register();

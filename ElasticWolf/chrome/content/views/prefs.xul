@@ -212,10 +212,6 @@
                     <checkbox id="ew.http.enabled" />
                 </row>
                 <row>
-                    <label control="ew.accesskey.save" value="Save generated Access Keys:" tooltiptext="When creating new Access Keys for a user it is possible to store secrets locally in encrypted form for further access, otherwise only genereting new key in case secret is lost" />
-                    <checkbox id="ew.accesskey.save" />
-                </row>
-                <row>
                     <label control="ew.prompt.open.port" value="Ask about opening ports on instance launch" tooltiptext="When new instance is launched it may need inbound ports to be opened for access, use this to enable/disable confirmation popup about opening ports, if disabled, ports for access (RDP, SSH) will be open automatically if needed" />
                     <checkbox id="ew.prompt.open.port" />
                 </row>

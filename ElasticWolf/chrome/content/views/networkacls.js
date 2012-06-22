@@ -24,7 +24,7 @@ var ew_NetworkAclsTreeView = {
 
 
         var me = this;
-        ew_session.controller.createNetworkAcl(vpcs[rc].id, function() { me.refresh(); });
+        this.session.api.createNetworkAcl(vpcs[rc].id, function() { me.refresh(); });
 
     },
 
@@ -33,7 +33,7 @@ var ew_NetworkAclsTreeView = {
         var acl = this.getSelected();
         if (!acl || !confirm("Delete Network ACL " + acl.id + "?")) return;
         var me = this;
-        ew_session.controller.deleteNetworkAcl(acl.id, function() { me.refresh(); });
+        this.session.api.deleteNetworkAcl(acl.id, function() { me.refresh(); });
     },
 
     associateACL : function()
@@ -57,11 +57,10 @@ var ew_NetworkAclsTreeView = {
             alert("Could not find existing Subnet association");
             return
         }
-        ew_session.controller.ReplaceNetworkAclAssociation(assocId, acl.id, function() { ew_NetworkAclsTreeView.refresh() });
+        this.session.api.ReplaceNetworkAclAssociation(assocId, acl.id, function() { ew_NetworkAclsTreeView.refresh() });
     },
 };
 ew_NetworkAclsTreeView.__proto__ = TreeView;
-ew_NetworkAclsTreeView.register();
 
 var ew_NetworkAclAssociationsTreeView = {
 
@@ -81,7 +80,7 @@ var ew_NetworkAclRulesTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_networkaclentry.xul", null, "chrome,centerscreen,modal,resizable", acl, ew_session, retVal);
         if (retVal.ok) {
             debug(JSON.stringify(retVal))
-            ew_session.controller.createNetworkAclEntry(acl.id, retVal.num, retVal.proto, retVal.action, retVal.egress, retVal.cidr, retVal.var1, retVal.var2, function() { ew_NetworkAclsTreeView.refresh() });
+            this.session.api.createNetworkAclEntry(acl.id, retVal.num, retVal.proto, retVal.action, retVal.egress, retVal.cidr, retVal.var1, retVal.var2, function() { ew_NetworkAclsTreeView.refresh() });
         }
     },
 
@@ -90,7 +89,7 @@ var ew_NetworkAclRulesTreeView = {
         var item = this.getSelected();
         if (!item || !confirm("Delete ACL rule " + item.num + "?")) return;
         var acl = ew_NetworkAclsTreeView.getSelected();
-        ew_session.controller.deleteNetworkAclEntry(acl.id, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh() });
+        this.session.api.deleteNetworkAclEntry(acl.id, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh() });
     }
 
 };

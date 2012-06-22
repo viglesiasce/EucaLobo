@@ -10,7 +10,6 @@ var ew_ReservedInstancesTreeView = {
 };
 
 ew_ReservedInstancesTreeView.__proto__ = TreeView;
-ew_ReservedInstancesTreeView.register();
 
 var ew_LeaseOfferingsTreeView = {
     model: 'offerings',
@@ -41,7 +40,7 @@ var ew_LeaseOfferingsTreeView = {
                 // Edit: 0, Purchase: 1, Cancel: 2
                 if (button == 1) {
                     fRepeat = false;
-                    ew_session.controller.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
+                    this.session.api.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
                 } else
                  if (button == 0) {
                      // The user wants to edit the order
@@ -55,4 +54,3 @@ var ew_LeaseOfferingsTreeView = {
 };
 
 ew_LeaseOfferingsTreeView.__proto__ = TreeView;
-ew_LeaseOfferingsTreeView.register();

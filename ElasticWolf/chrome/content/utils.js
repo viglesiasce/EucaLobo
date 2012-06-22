@@ -179,6 +179,77 @@ Date.prototype.toISO8601String = function(format, offset)
     return str;
 }
 
+function formatDuration(duration)
+{
+    if (duration > 0) {
+        var h = Math.floor(duration/3600)
+        var m = Math.floor((duration - h * 3600) / 60)
+        if (h > 0) {
+            return h + " hour" + (h > 1 ? "s" :"") + (m > 0 ? (" " + m + " min" + (m > 1 ? "s" : "")) : "")
+        } else
+        if (m > 0) {
+            return m + " min" + (m > 1 ? "s" : "")
+        } else {
+            return Math.floor(duration) + " secs"
+        }
+    }
+    return ""
+}
+
+function formatSize(size)
+{
+    if (size > 1073741824) {
+        return Math.round(size / 1073741824) + "Gb";
+      } else
+    if (size > 1048576) {
+        return Math.round(size / 1048576) + "Mb";
+    } else
+    if (size > 1024) {
+        return Math.round(size/1024) + "Kb";
+    }
+    return size;
+}
+
+function formatJSON(obj, indent)
+{
+    if (!indent) indent = "";
+    var style = "    ";
+    var type = typeOf(obj);
+    var count = 0;
+    var text = type == "array" ? "[" : "{";
+
+    for (var p in obj) {
+        var val = obj[p];
+        if (count > 0) text += ",";
+        if (type == "array") {
+            text += ("\n" + indent + style);
+        } else {
+            text += ("\n" + indent + style + "\"" + p + "\"" + ": ");
+        }
+        switch (typeOf(val)) {
+        case "array":
+        case "object":
+            text += formatJSON(val, (indent + style));
+            break;
+        case "boolean":
+        case "number":
+            text += val.toString();
+            break;
+        case "null":
+            text += "null";
+            break;
+        case "string":
+            text += ("\"" + val + "\"");
+            break;
+        default:
+            text += ("unknown: " + typeof(val));
+        }
+        count++;
+    }
+    text += type == "array" ? ("\n" + indent + "]") : ("\n" + indent + "}");
+    return text;
+}
+
 function $(element)
 {
     if (arguments.length > 1) {
@@ -237,6 +308,18 @@ function className(o) {
     if ((t = Object.prototype.toString.call(o).slice(8,-1)) !== "Object") return t;
     if (o.constructor && typeof o.constructor === "function" && (t = o.constructor.className())) return t;
     return "Object";
+}
+
+function typeOf(v)
+{
+    if (typeof(v) == "object") {
+        if (v === null) return "null";
+        if (v.constructor == (new Array).constructor) return "array";
+        if (v.constructor == (new Date).constructor) return "date";
+        if (v.constructor == (new RegExp).constructor) return "regex";
+        return "object";
+    }
+    return typeof(v);
 }
 
 // Return value of the parameter in the list of parameters pairs

@@ -17,7 +17,7 @@ var ew_SecurityGroupsTreeView = {
                 me.refresh();
                 me.authorizeCommonProtocolsByUserRequest(retVal);
             }
-            ew_session.controller.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
+            this.session.api.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
         }
     },
 
@@ -46,10 +46,10 @@ var ew_SecurityGroupsTreeView = {
             }
 
             // 1st enable SSH
-            ew_session.controller.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
+            this.session.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
 
             // enable RDP and refresh the view
-            ew_session.controller.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
+            this.session.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
         } else {
             // User wants to customize the firewall...
             ew_PermissionsTreeView.grantPermission();
@@ -68,13 +68,12 @@ var ew_SecurityGroupsTreeView = {
         var wrap = function() {
             me.refresh();
         }
-        ew_session.controller.deleteSecurityGroup(group, wrap);
+        this.session.api.deleteSecurityGroup(group, wrap);
     },
 
 };
 
 ew_SecurityGroupsTreeView.__proto__ = TreeView;
-ew_SecurityGroupsTreeView.register();
 
 var ew_PermissionsTreeView = {
 
@@ -93,9 +92,9 @@ var ew_PermissionsTreeView = {
 
             var newPerm = retVal.newPerm;
             if (newPerm.cidrIp) {
-                ew_session.controller.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
+                this.session.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
             } else {
-                ew_session.controller.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
+                this.session.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
             }
         }
     },
@@ -121,9 +120,9 @@ var ew_PermissionsTreeView = {
         for (i in perms) {
             permission = perms[i];
             if (permission.cidrIp) {
-                ew_session.controller.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
+                this.session.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
             } else {
-                ew_session.controller.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
+                this.session.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
             }
         }
 

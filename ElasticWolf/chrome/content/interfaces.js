@@ -7,7 +7,6 @@ var TreeView = {
     treeBox : null,
     treeList : new Array(),
     selection : null,
-    registered : false,
     visible: false,
     atomService: null,
     properties: [],
@@ -32,7 +31,7 @@ var TreeView = {
     },
     getModel: function()
     {
-        return this.model ? ew_model.getModel(this.getModelName(this.model)) : null;
+        return this.model ? this.session.model.getModel(this.getModelName(this.model)) : null;
     },
     getData: function()
     {
@@ -118,7 +117,7 @@ var TreeView = {
     getCellText : function(idx, column)
     {
         var name = column.id.split(".").pop();
-        return idx >= this.rowCount ? "" : ew_model.modelValue(name, this.treeList[idx][name]);
+        return idx >= this.rowCount ? "" : this.session.model.modelValue(name, this.treeList[idx][name]);
     },
     getCellValue : function(idx, column)
     {
@@ -132,7 +131,7 @@ var TreeView = {
     },
     modelChanged : function(name) {
         log('model changed ' + this.getName())
-        if (this.visible || ew_model.getModel(name) == null) {
+        if (this.visible || this.session.model.getModel(name) == null) {
             this.invalidate();
         }
     },
@@ -206,15 +205,8 @@ var TreeView = {
             }
         }
         if (!sortField) return;
-        ew_model.sortObjects(this.treeList, sortField, ascending);
+        this.session.model.sortObjects(this.treeList, sortField, ascending);
         if (item) this.select(item);
-    },
-    register : function()
-    {
-        if (!this.registered) {
-            this.registered = true;
-            ew_model.registerInterest(this, this.model);
-        }
     },
     remove: function(obj, columns)
     {
@@ -270,7 +262,7 @@ var TreeView = {
     {
         var name = this.getModelName(this.model)
         if (name) {
-            ew_model.refresh(name);
+            this.session.model.refresh(name);
             this.refreshAll(force);
         } else {
             this.invalidate();
@@ -281,8 +273,8 @@ var TreeView = {
         log('refreshAll' + (force ? "force" : "") + ' ' + this.model)
         if (this.model instanceof Array) {
             for (var i = 1; i < this.model.length; i++) {
-                if (force || ew_model.getModel(this.model[i]) == null) {
-                    ew_model.refresh(this.model[i]);
+                if (force || this.session.model.getModel(this.model[i]) == null) {
+                    this.session.model.refresh(this.model[i]);
                 }
             }
         }
@@ -362,7 +354,7 @@ var TreeView = {
     searchChanged : function(event)
     {
         if (!this.searchElement) return;
-        ew_session.setStrPrefs(this.searchElement, $(this.searchElement).value);
+        this.session.setStrPrefs(this.searchElement, $(this.searchElement).value);
 
         if (this.searchTimer) {
             clearTimeout(this.searchTimer);
@@ -416,17 +408,17 @@ var TreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var tag = ew_session.promptForTag(item.tags);
+        var tag = this.session.promptForTag(item.tags);
         if (tag == null) return;
         // Replace tas in the object without reloading the whole list
-        ew_model.setTags(item, tag);
-        ew_session.setTags(item[this.tagId || "id"], item.tags, callback);
+        this.session.model.setTags(item, tag);
+        this.session.setTags(item[this.tagId || "id"], item.tags, callback);
     },
     copyToClipboard : function(name)
     {
         var item = this.getSelected();
         if (item) {
-            ew_session.copyToClipboard(item[name]);
+            this.session.copyToClipboard(item[name]);
         }
     },
     clicked: function(event)
@@ -435,7 +427,7 @@ var TreeView = {
         if (this.refreshTimer) {
             this.startRefreshTimer();
         }
-        if (ew_session.winDetails && event) {
+        if (this.session.winDetails && event) {
             this.displayDetails();
         }
     },
@@ -444,12 +436,12 @@ var TreeView = {
         var item = this.getSelected();
         if (item == null) return;
         var me = this;
-        var rc = { session: ew_session, item: item, title: className(item), }
-        if (!ew_session.winDetails) {
-            ew_session.winDetails = window.openDialog("chrome://ew/content/dialogs/details.xul", null, "chrome,centerscreen,modeless,resizable", rc);
+        var rc = { session: this.session, item: item, title: className(item), }
+        if (!this.session.winDetails) {
+            this.session.winDetails = window.openDialog("chrome://ew/content/dialogs/details.xul", null, "chrome,centerscreen,modeless,resizable", rc);
         } else
-        if (ew_session.winDetails.setup) {
-            ew_session.winDetails.setup.call(ew_session.winDetails, rc);
+        if (this.session.winDetails.setup) {
+            this.session.winDetails.setup.call(this.session.winDetails, rc);
         }
     },
     getInputItems: function()
@@ -476,11 +468,11 @@ var TreeView = {
         for (var i in items) {
             switch (items[i].type) {
             case "checkbox":
-                $(items[i].id).checked = ew_session.getBoolPrefs(items[i].id, false);
+                $(items[i].id).checked = this.session.getBoolPrefs(items[i].id, false);
                 break;
 
             default:
-                $(items[i].id).value = ew_session.getStrPrefs(items[i].id);
+                $(items[i].id).value = this.session.getStrPrefs(items[i].id);
             }
         }
     },
@@ -490,16 +482,17 @@ var TreeView = {
         for (var i in items) {
             switch (items[i].type) {
             case "checkbox":
-                ew_session.setBoolPrefs(items[i].id, items[i].checked);
+                this.session.setBoolPrefs(items[i].id, items[i].checked);
                 break;
 
             default:
-                ew_session.setStrPrefs(items[i].id, items[i].value);
+                this.session.setStrPrefs(items[i].id, items[i].value);
             }
         }
     },
-    init: function(tree, tab)
+    init: function(tree, tab, session)
     {
+        this.session = session;
         // Tree owner and tab object, tab with owner field refers to the primary tab object
         tree.view = this;
         this.tree = tree;
@@ -534,6 +527,10 @@ var TreeView = {
                 (function(v) { var me = v; popup.addEventListener('popupshowing', function(e) { e.stopPropagation();me.menuChanged(e); }, false); }(this));
                 (function(v) { var me = v; popup.addEventListener('popuphidden', function(e) { e.stopPropagation();me.menuHidden(e); }, false); }(this));
             }
+        }
+        // Register to receive model updates
+        if (this.model) {
+            ew_model.registerInterest(this, this.model);
         }
     },
 };

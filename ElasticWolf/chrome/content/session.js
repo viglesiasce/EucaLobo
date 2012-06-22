@@ -16,7 +16,7 @@ var ew_session = {
     disabled: false,
     prefs: null,
     locked: false,
-    controller : null,
+    api : null,
     model : null,
     user: {},
     credentials : null,
@@ -39,15 +39,17 @@ var ew_session = {
             this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
         }
 
-        ew_menu.init();
-        ew_controller.session = this;
-
+        this.api = ew_api;
         this.model = ew_model;
-        this.controller = ew_controller;
+        ew_api.model = ew_model;
+        ew_api.session = this;
+        ew_model.session = this;
+        ew_menu.init(this);
+
         this.credentials = this.getCredentials();
         this.getEndpoints();
 
-        document.title = ew_session.getAppName();
+        document.title = this.getAppName();
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
@@ -199,7 +201,7 @@ var ew_session = {
             this.model.invalidate();
             var me = this;
             // Retrieve current user info
-            this.controller.getUser(null, function(user) { me.user = user || {}; })
+            this.api.getUser(null, function(user) { me.user = user || {}; })
             ew_menu.update();
             return true;
         }
@@ -335,7 +337,7 @@ var ew_session = {
     {
         var me = this;
         // Merge with saved list of regions
-        this.controller.describeRegions(function(regions) {
+        this.api.describeRegions(function(regions) {
             for (var i in regions) {
                 if (me.getEndpoint(regions[i].name) == null) {
                     me.endpoints.push(regions[i]);
@@ -532,7 +534,7 @@ var ew_session = {
     // checked is list of initially selected item indexes
     promptList: function(title, msg, items, columns, width, multiple, checked)
     {
-        var params = { session: ew_session, listItems: items, checkedItems: checked, selectedIndex: -1, selectedItems: [], selectedIndexes: [], columns: columns, width: width, multiple: multiple, title: title, msg: msg };
+        var params = { session: this, listItems: items, checkedItems: checked, selectedIndex: -1, selectedItems: [], selectedIndexes: [], columns: columns, width: width, multiple: multiple, title: title, msg: msg };
         window.openDialog("chrome://ew/content/dialogs/select.xul", null, "chrome,centerscreen,modal,resizable", params);
         return params.multiple ? params.selectedItems : params.selectedIndex;
     },
@@ -545,7 +547,7 @@ var ew_session = {
     // all other properties will be additional attributes of the element
     promptInput: function(title, items, modeless)
     {
-        var params = { session: ew_session, title: title, items: items || [ "" ], values: null, modeless: modeless };
+        var params = { session: this, title: title, items: items || [ "" ], values: null, modeless: modeless };
         var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
         return modeless ? win : (params.ok ? params.values : null);
     },
@@ -721,7 +723,7 @@ var ew_session = {
 
         function wrap() {
             if (ntags.length > 0) {
-                me.controller.createTags(ntags, callback);
+                me.api.createTags(ntags, callback);
             } else
             if (callback) {
                 callback();
@@ -729,9 +731,9 @@ var ew_session = {
         }
 
         // Get existing tags and delete them all, then create new tags if exist
-        this.controller.describeTags(objs, function(described) {
+        this.api.describeTags(objs, function(described) {
             if (described.length) {
-                me.controller.deleteTags(described, wrap);
+                me.api.deleteTags(described, wrap);
             } else {
                 wrap();
             }
@@ -1234,7 +1236,7 @@ var ew_session = {
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.overrideMimeType('text/xml');
-        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this.controller, null, config || "");
+        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this.api, null, config || "");
     },
 
     queryCheckIP : function(type)
@@ -1367,7 +1369,7 @@ var ew_session = {
             } else {
                 msg = 'Unable to create directory ' + path + ", please choose another directory where to keep my files:"
             }
-            path = ew_session.promptForDir(msg);
+            path = this.promptForDir(msg);
             if (!path) return 0;
             this.setStrPrefs("ew.key.home", path);
         }

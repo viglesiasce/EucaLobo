@@ -21,9 +21,11 @@
           var title = rc.items[i].label || '';
           var type = rc.items[i].type || 'textbox';
           var value = rc.items[i].value || '';
-          var item = null, box = null;
+          var item = null;
           var row = document.createElement('row');
           row.setAttribute('flex', '1');
+          var box = document.createElement('box');
+          box.setAttribute('align','center');
           var label = document.createElement('label');
           label.setAttribute('value', title);
           label.setAttribute('class', 'header');
@@ -31,9 +33,8 @@
           switch (type) {
           case 'dir':
           case 'file':
-             box = document.createElement('box');
+             rc.items[i].nobox = 0;
              item = document.createElement('textbox');
-             box.appendChild(item);
              var button = document.createElement('button');
              button.setAttribute('label', "Browse");
              button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
@@ -62,12 +63,22 @@
               if (p == "type" || p == "label" || p == "value" || p == "fixed" || p == "file" || p == "required") continue;
               item.setAttribute(p, rc.items[i][p]);
           }
-          if (rc.items[i].fixed) {
-             box = document.createElement('box');
-             box.setAttribute('autostretch', 'never');
+          // Embed inside the box
+          if (!rc.items[i].nobox) {
              box.appendChild(item);
+          } else {
+             box = item;
           }
-          row.appendChild(box || item);
+          // This can apply to the box or the item
+          if (rc.items[i].fixed) {
+             box.setAttribute('autostretch', 'never');
+          }
+          if (rc.items[i].help) {
+             var help = document.createElement('label');
+             box.appendChild(help);
+             help.setAttribute('value', rc.items[i].help);
+          }
+          row.appendChild(box);
           rows.appendChild(row);
       }
     }

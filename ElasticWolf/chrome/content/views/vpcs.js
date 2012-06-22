@@ -19,7 +19,7 @@ var ew_VpcTreeView = {
         var cidr = prompt('CIDR block:');
         if (cidr) {
             var me = this;
-            ew_session.controller.createVpc(cidr, function() { me.refresh();});
+            this.session.api.createVpc(cidr, function() { me.refresh();});
         }
     },
 
@@ -48,7 +48,7 @@ var ew_VpcTreeView = {
         if (!confirm("Delete " + vpc.toString() + "?")) return;
 
         var me = this;
-        ew_session.controller.deleteVpc(vpc.id, function() { me.refresh()});
+        this.session.api.deleteVpc(vpc.id, function() { me.refresh()});
     },
 
     setDhcpOptions : function()
@@ -60,7 +60,7 @@ var ew_VpcTreeView = {
         window.openDialog("chrome://ew/content/dialogs/associate_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
         if (retVal.ok) {
             var me = this;
-            ew_session.controller.associateDhcpOptions(retVal.dhcpOptionsId, retVal.vpcId, function() { me.refresh() });
+            this.session.api.associateDhcpOptions(retVal.dhcpOptionsId, retVal.vpcId, function() { me.refresh() });
         }
     },
 
@@ -81,7 +81,6 @@ var ew_VpcTreeView = {
     },
 };
 ew_VpcTreeView.__proto__ = TreeView;
-ew_VpcTreeView.register();
 
 var ew_DhcpoptsTreeView = {
     model: "dhcpOptions",
@@ -96,7 +95,7 @@ var ew_DhcpoptsTreeView = {
         if (opts == null) return;
         if (!confirm("Delete " + opts.toString() + "?")) return;
         var me = this;
-        ew_session.controller.deleteDhcpOptions(opts.id, function() { me.refresh(); });
+        this.session.api.deleteDhcpOptions(opts.id, function() { me.refresh(); });
     },
 
     createDhcpOptions : function () {
@@ -108,9 +107,8 @@ var ew_DhcpoptsTreeView = {
                 me.refresh();
                 me.selectByImageId(id);
             }
-            ew_session.controller.createDhcpOptions(retVal.opts, function() { me.refresh(); });
+            this.session.api.createDhcpOptions(retVal.opts, function() { me.refresh(); });
         }
     },
 };
 ew_DhcpoptsTreeView.__proto__ = TreeView;
-ew_DhcpoptsTreeView.register();

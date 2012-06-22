@@ -20,7 +20,7 @@ var ew_SubnetsTreeView = {
         if (!confirm("Delete " + subnet.toString() + "?")) return;
 
         var me = this;
-        ew_session.controller.deleteSubnet(subnet.id, function() { me.refresh(); });
+        this.session.api.deleteSubnet(subnet.id, function() { me.refresh(); });
     },
 
     createSubnet : function(vpc)
@@ -36,7 +36,7 @@ var ew_SubnetsTreeView = {
                     ew_InternetGatewayTreeView.attachInternetGateway(retVal.vpcid, null);
                 }
             }
-            ew_session.controller.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(response) {
+            this.session.api.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(response) {
                 var id = getNodeValue(response.xmlDoc, "subnetId");
                 if (retVal.tag != '' && id) {
                     ew_session.setTags(id, retVal.tag, wrap);
@@ -107,7 +107,7 @@ var ew_SubnetsTreeView = {
         if (rc < 0) {
             return;
         }
-        ew_session.controller.ReplaceNetworkAclAssociation(subnet.aclAssocId, acl.id, function() { ew_SubnetsTreeView.refresh() });
+        this.session.api.ReplaceNetworkAclAssociation(subnet.aclAssocId, acl.id, function() { ew_SubnetsTreeView.refresh() });
     },
 
     associateRoute : function()
@@ -124,7 +124,7 @@ var ew_SubnetsTreeView = {
         if (rc < 0) {
             return;
         }
-        ew_session.controller.associateRouteTable(routes[rc].id, subnet.id, function () { ew_SubnetsTreeView.refresh(); });
+        this.session.api.associateRouteTable(routes[rc].id, subnet.id, function () { ew_SubnetsTreeView.refresh(); });
     },
 
     disassociateRoute: function()
@@ -133,12 +133,11 @@ var ew_SubnetsTreeView = {
         if (!subnet) return;
 
         if (!confirm("Delete route association " + subnet.routeId + "?")) return;
-        ew_session.controller.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
+        this.session.api.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
 
     },
 };
 ew_SubnetsTreeView.__proto__ = TreeView;
-ew_SubnetsTreeView.register();
 
 var ew_SubnetRoutesTreeView = {
 };

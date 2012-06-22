@@ -21,7 +21,7 @@
                 <toolbarbutton image="images/refresh.png" oncommand="ew_SQSTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add Queue" oncommand="ew_SQSTreeView.addQueue();" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete Queue" oncommand="ew_SQSTreeView.deleteQueue();" />
-                <toolbarbutton image="images/credentials.png" tooltiptext="Add Permission" oncommand="ew_SQSTreeView.addPermission);" />
+                <toolbarbutton image="images/credentials.png" tooltiptext="Add Permission" oncommand="ew_SQSTreeView.addPermission();" />
                 <toolbarbutton image="images/tools.png" tooltiptext="Configure Queue" oncommand="ew_SQSTreeView.configureQueue();" />
                 <toolbarbutton image="images/email.png" tooltiptext="Send a Message" oncommand="ew_SQSTreeView.sendMessage();" />
             </toolbar>
@@ -51,14 +51,8 @@
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.sqsmsg.search" size="15" />
-                <menulist id="ew.sqsmsg.max">
-                  <menupopup>
-                   <menuitem label="Read 5 msgs" value="5" />
-                   <menuitem label="Read 10 msgs" value="10" />
-                   <menuitem label="Read All msgs" value="0" />
-                  </menupopup>
-                </menulist>
-                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
+                <toolbarbutton image="images/download.png" oncommand="ew_SQSMsgTreeView.append();" tooltiptext="Read and add new messages the list" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete Message" oncommand="ew_SQSMsgTreeView.deleteMessage();" />
             </toolbar>
 

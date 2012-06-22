@@ -15,7 +15,7 @@ var ew_LoadbalancerTreeView = {
         if (elb.InstanceHealth) {
             ew_InstanceHealthTreeView.display(elb.InstanceHealth);
         } else {
-            ew_session.controller.describeInstanceHealth(elb.name, function(list) { ew_InstanceHealthTreeView.display(list); });
+            this.session.api.describeInstanceHealth(elb.name, function(list) { ew_InstanceHealthTreeView.display(list); });
         }
     },
 
@@ -24,7 +24,7 @@ var ew_LoadbalancerTreeView = {
         if (elb == null) return;
         if (!confirm("Delete Loadbalancer "+elb.name+"?")) return;
         var me = this;
-        ew_session.controller.deleteLoadBalancer(elb.name, function () { me.refresh() });
+        this.session.api.deleteLoadBalancer(elb.name, function () { me.refresh() });
     },
 
     create: function() {
@@ -33,10 +33,10 @@ var ew_LoadbalancerTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",ew_session,retVal);
         var me = this;
         if (retVal.ok) {
-            ew_session.controller.createLoadBalancer(retVal.name,retVal.Protocol,retVal.elbport,retVal.instanceport,retVal.Zone,retVal.subnetId,retVal.groups, function() {
-                ew_session.controller.configureHealthCheck(retVal.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold, function() {
+            this.session.api.createLoadBalancer(retVal.name,retVal.Protocol,retVal.elbport,retVal.instanceport,retVal.Zone,retVal.subnetId,retVal.groups, function() {
+                this.session.api.configureHealthCheck(retVal.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold, function() {
                     if (retVal.instances.length > 0) {
-                        ew_session.controller.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh() });
+                        this.session.api.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh() });
                     } else {
                         me.refresh();
                     }
@@ -52,7 +52,7 @@ var ew_LoadbalancerTreeView = {
         window.openDialog("chrome://ew/content/dialogs/configure_healthcheck.xul",null,"chrome,centerscreen,modal,resizable",elb,retVal);
         var me = this;
         if (retVal.ok) {
-            ew_session.controller.configureHealthCheck(elb.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold,function() { me.refresh(); });
+            this.session.api.configureHealthCheck(elb.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold,function() { me.refresh(); });
         }
     },
 
@@ -72,7 +72,7 @@ var ew_LoadbalancerTreeView = {
         for (var i in list) {
             instances.push(list[i].id)
         }
-        ew_session.controller.registerInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
+        this.session.api.registerInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
     },
 
     deregisterinstances : function(){
@@ -89,7 +89,7 @@ var ew_LoadbalancerTreeView = {
         for (var i in list) {
             instances.push(list[i].id)
         }
-        ew_session.controller.deregisterInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
+        this.session.api.deregisterInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
     },
 
     manageZones : function(enable) {
@@ -112,9 +112,9 @@ var ew_LoadbalancerTreeView = {
         }
         var me = this;
         if (enable) {
-            ew_session.controller.enableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
+            this.session.api.enableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
         } else {
-            ew_session.controller.disableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
+            this.session.api.disableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
         }
     },
 
@@ -126,10 +126,10 @@ var ew_LoadbalancerTreeView = {
 
         if (elb.APolicyName == "") {
             var policy = elb.CPolicyName;
-            ew_session.controller.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
+            this.session.api.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
         } else {
             var policy = elb.APolicyName;
-            ew_session.controller.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
+            this.session.api.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
         }
     },
 
@@ -140,7 +140,7 @@ var ew_LoadbalancerTreeView = {
         var cname = elb.CookieName;
         var policy = elb.APolicyName;
         if (cname){
-            ew_session.controller.DeleteLoadBalancerPolicy(elb.name,policy);
+            this.session.api.DeleteLoadBalancerPolicy(elb.name,policy);
         }
         var CookieName = prompt("Please provide your application cookie name:");
         if (CookieName == null) return;
@@ -150,7 +150,7 @@ var ew_LoadbalancerTreeView = {
             return;
         }
         var me = this;
-        ew_session.controller.CreateAppCookieSP(loadbalancername,CookieName,function() { me.refresh() });
+        this.session.api.CreateAppCookieSP(loadbalancername,CookieName,function() { me.refresh() });
     },
 
     loadbalancerstickness :function(){
@@ -160,7 +160,7 @@ var ew_LoadbalancerTreeView = {
         var policy = elb.CPolicyName;
         var CookieExpirationPeriod = elb.CookieExpirationPeriod;
         if (CookieExpirationPeriod){
-           ew_session.controller.DeleteLoadBalancerPolicy(elb.name,policy);
+           this.session.api.DeleteLoadBalancerPolicy(elb.name,policy);
         }
         var CookieExpirationPeriod = prompt("Please provide your Cookie Expiration Period:");
         if (CookieExpirationPeriod == null) return;
@@ -171,7 +171,7 @@ var ew_LoadbalancerTreeView = {
             return;
         }
         var me = this;
-        ew_session.controller.CreateLBCookieSP(loadbalancername,CookieExpirationPeriod, function() { me.refresh(); });
+        this.session.api.CreateLBCookieSP(loadbalancername,CookieExpirationPeriod, function() { me.refresh(); });
     },
 
     menuChanged : function(){
@@ -208,7 +208,7 @@ var ew_LoadbalancerTreeView = {
         for (var i in list) {
             groups.push(list[i].id)
         }
-        ew_session.controller.applySecurityGroupsToLoadBalancer(elb.name, groups, function() { me.refresh();});
+        this.session.api.applySecurityGroupsToLoadBalancer(elb.name, groups, function() { me.refresh();});
     },
 
     addSubnet: function()
@@ -232,7 +232,7 @@ var ew_LoadbalancerTreeView = {
         for (var i in list) {
             subnets.push(list[i].id)
         }
-        ew_session.controller.attachLoadBalancerToSubnets(elb.name, subnets, function() { me.refresh() });
+        this.session.api.attachLoadBalancerToSubnets(elb.name, subnets, function() { me.refresh() });
     },
 
     deleteSubnet: function()
@@ -252,11 +252,10 @@ var ew_LoadbalancerTreeView = {
         for (var i in list) {
             subnets.push(list[i].id)
         }
-        ew_session.controller.dettachLoadBalancerFromSubnets(elb.name, subnets, function() { me.refresh() });
+        this.session.api.dettachLoadBalancerFromSubnets(elb.name, subnets, function() { me.refresh() });
     },
 };
 ew_LoadbalancerTreeView.__proto__ = TreeView;
-ew_LoadbalancerTreeView.register();
 
 var ew_InstanceHealthTreeView = {
 };
@@ -266,4 +265,3 @@ var ew_AvailZoneTreeView = {
     model: 'availabilityZones',
 };
 ew_AvailZoneTreeView.__proto__ = TreeView;
-ew_AvailZoneTreeView.register();

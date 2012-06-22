@@ -112,7 +112,7 @@ var ew_AMIsTreeView = {
             if (retVal.name) {
                 retVal.tag += "Name:" + retVal.name;
             }
-            ew_session.controller.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
+            this.session.api.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
                                                retVal.securityGroups, retVal.userData, retVal.properties, retVal.instanceType,
                                                retVal.availabilityZone, retVal.tenancy, retVal.subnetId, retVal.ipAddress,
                                                retVal.monitoring, function(list) {
@@ -129,7 +129,7 @@ var ew_AMIsTreeView = {
     callRegisterImageInRegion : function(manifest, region)
     {
         var me = this;
-        ew_session.controller.registerImageInRegion(manifest, region, function() {
+        this.session.api.registerImageInRegion(manifest, region, function() {
             me.refresh();
             alert("Image with Manifest: " + manifest + " was registered");
         });
@@ -157,7 +157,7 @@ var ew_AMIsTreeView = {
                 return false;
             }
             var s3bucket = value.split('/')[0];
-            var region = ew_session.controller.getS3BucketLocation(s3bucket);
+            var region = this.session.api.getS3BucketLocation(s3bucket);
             callRegisterImageInRegion(value, region);
         }
     },
@@ -171,7 +171,7 @@ var ew_AMIsTreeView = {
         }
         if (!fDelete) return;
         var me = this;
-        ew_session.controller.deregisterImage(image.id, function() {me.refresh()});
+        this.session.api.deregisterImage(image.id, function() {me.refresh()});
     },
 
     migrateImage : function()
@@ -237,10 +237,10 @@ var ew_AMIsTreeView = {
             var me = this;
             var wrap = function()
             {
-                ew_session.controller.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
+                this.session.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
                 me.refresh();
             }
-            ew_session.controller.deregisterImage(ami, wrap);
+            this.session.api.deregisterImage(ami, wrap);
         }
     },
 
@@ -248,11 +248,10 @@ var ew_AMIsTreeView = {
     {
         var image = this.getSelected();
         if (image == null) return;
-        ew_session.controller.describeLaunchPermissions(this.image.id, function(list) {
+        this.session.api.describeLaunchPermissions(this.image.id, function(list) {
             window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_session, image, list);
         });
     },
 };
 
 ew_AMIsTreeView.__proto__ = TreeView;
-ew_AMIsTreeView.register();
