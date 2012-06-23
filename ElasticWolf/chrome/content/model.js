@@ -693,13 +693,14 @@ function ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices
     }
 }
 
-function Vpc(id, cidr, state, dhcpOptionsId, tags)
+function Vpc(id, cidr, state, dhcpOptionsId, tenancy, tags)
 {
     this.id = id;
     this.cidr = cidr;
     this.state = state;
     this.dhcpOptionsId = dhcpOptionsId;
     this.tags = tags;
+    this.instanceTenancy = tenancy;
     ew_model.processTags(this)
 
     this.toString = function() {
@@ -866,6 +867,20 @@ function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue,
 
     this.toString = function() {
         return this.name + em_model.separator + this.descr;
+    }
+}
+
+function Message(id, body, handle, url)
+{
+    this.id = id;
+    this.body = body || "";
+    this.handle = handle;
+    this.url = url || "";
+    this.size = this.body.length;
+    this.subject = this.body.substr(0, 32);
+
+    this.toString = function() {
+        return this.id;
     }
 }
 
@@ -1448,20 +1463,6 @@ var ew_model = {
             if (types[i][arch]) list.push(types[i]);
         }
         return list;
-    },
-
-    Message: function(id, body, handle, url)
-    {
-        this.id = id;
-        this.body = body || "";
-        this.handle = handle;
-        this.url = url || "";
-        this.size = this.body.length;
-        this.subject = this.body.substr(0, 32);
-
-        this.toString = function() {
-            return this.id;
-        }
     },
 
 }

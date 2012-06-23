@@ -740,6 +740,16 @@ var ew_session = {
         });
     },
 
+    // Wrapper around global debug with multiple parameters
+    debug: function()
+    {
+        var str = "";
+        for (var i = 0; i < arguments.length; i++) {
+            str += String(arguments[i]) + " ";
+        }
+        debug(str)
+    },
+
     copyToClipboard: function(text)
     {
         if (!text) return;

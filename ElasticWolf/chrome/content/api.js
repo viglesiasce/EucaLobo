@@ -291,16 +291,19 @@ var ew_api = {
             var cidr = getNodeValue(item, "cidrBlock");
             var state = getNodeValue(item, "state");
             var dhcpopts = getNodeValue(item, "dhcpOptionsId");
+            var tenancy = getNodeValue(item, "instanceTenancy");
             var tags = this.getTags(item);
-            list.push(new Vpc(id, cidr, state, dhcpopts, tags));
+            list.push(new Vpc(id, cidr, state, dhcpopts, tenancy, tags));
         }
         this.session.model.set('vpcs', list);
         response.result = list;
     },
 
-    createVpc : function(cidr, callback)
+    createVpc : function(cidr, tenancy, callback)
     {
-        ew_session.queryEC2("CreateVpc", [ [ "CidrBlock", cidr ] ], this, false, "onComplete", callback);
+        var params = [ [ "CidrBlock", cidr ] ];
+        if (tenancy) params.push([ "InstanceTenancy", tenancy ]);
+        ew_session.queryEC2("CreateVpc", params, this, false, "onComplete:vpcId", callback);
     },
 
     deleteVpc : function(id, callback)
@@ -3152,7 +3155,7 @@ var ew_api = {
             var id = getNodeValue(items[i], "MessageId");
             var handle = getNodeValue(items[i], "ReceiptHandle");
             var body = getNodeValue(items[i], "Body");
-            var msg = new this.model.Message(id, body, handle, response.url);
+            var msg = new Message(id, body, handle, response.url);
 
             var attrs = items[i].getElementsByTagName('Attribute');
             for (var j = 0; j < attrs.length; j++) {

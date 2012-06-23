@@ -180,7 +180,7 @@ var ew_S3BucketsTreeView = {
                 function(f) {
                      me.setStatus(f, 100);
                      try { if (me.win) me.win.close(); } catch(e) { debug(e) }
-                     me.win = ew_session.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + file,width:"100%",height:"100%",nobox:1 } ], true);
+                     me.win = ew_session.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + file,width:"100%",height:"100%",nobox:1,scale:1} ], true);
                 },
                 function(f, p) { me.setStatus(f, p); } )
         }

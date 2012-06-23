@@ -1,5 +1,5 @@
 var ew_VpcTreeView = {
-    model: [ "vpcs", "instances", "internetGateways", 'dhcpOptions' ],
+    model: [ "vpcs", "instances", "internetGateways", 'dhcpOptions', 'availabilityZones' ],
 
     menuChanged : function()
     {
@@ -16,10 +16,24 @@ var ew_VpcTreeView = {
 
     createVpc : function()
     {
-        var cidr = prompt('CIDR block:');
-        if (cidr) {
-            var me = this;
-            this.session.api.createVpc(cidr, function() { me.refresh();});
+        var me = this;
+        var inputs = [ {label:"VPC",help:"Specify IP block for a VPC and optionally name for easy navigation in the system",type:"section"},
+                       {label:'IP CIDR block:',required:1,help:"Example: 10.0.0.0/16"},
+                       {label:'Tenancy',type:'menulist',list:["default","dedicated"]},
+                       {label:'VPC Name:'},
+                       {label:"Subnets",type:"section",help:"Optonally, create one or both subnets in the new VPC:"},
+                       {label:'Public Subnet',help:"Example: 10.1.0.0/24"},
+                       {label:'Private Subnet',help:"Example: 10.2.0.0/24"},
+                       {label:'Availability Zone',type:'menulist',list: this.session.model.get('availabilityZones'),key:'name'},
+                       {label:"VPN Connection",type:"section",help:"Optonally, create VPN connection to your VPC:"},
+                       {label:'Customer Gateway IP'},
+                       ];
+
+        var values = this.session.promptInput("Create VPC", inputs);
+        if (values) {
+            this.session.api.createVpc(values[1], values[2], function(id) {
+                me.refresh();
+            });
         }
     },
 
@@ -28,20 +42,18 @@ var ew_VpcTreeView = {
         var vpc = this.getSelected();
         if (vpc == null) return;
 
-        var instances = ew_model.getInstances('vpcId', vpc.id, 'state', 'running');
+        var instances = this.session.model.get('instances','vpcId', vpc.id, 'state', 'running');
         if (instances.length) {
             alert("There is instance " + instances[0].toString() + " in this VPC");
             return;
         }
 
-        var subnets = ew_model.get('subnets');
+        var subnets = this.session.model.get('subnets', 'vpcId', vpc.id);
         for (var i in subnets) {
-            if (subnets[i].vpcId == vpc.id) {
-                var instances = ew_model.get('instances', 'subnetId', subnets[i].id, 'state', 'running');
-                if (instances.length) {
-                    alert("There is instance " + instances[0].toString() + " in subnet " + subnets[i].toString());
-                    return;
-                }
+            var instances = this.session.model.get('instances', 'subnetId', subnets[i].id, 'state', 'running');
+            if (instances.length) {
+                alert("There is instance " + instances[0].toString() + " in subnet " + subnets[i].toString());
+                return;
             }
         }
 

@@ -13,24 +13,25 @@
   <![CDATA[
 
     function init() {
+      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list'];
       this.rc = window.arguments[0];
       document.title = rc.title;
-      document.getElementById('title').label = rc.title;
-      var rows = document.getElementById('rows');
-      for (var i in rc.items) {
+      var parent = document.getElementById('main');
+      var rows = null;
+      for (var i = 0; i < rc.items.length; i++) {
           var title = rc.items[i].label || '';
           var type = rc.items[i].type || 'textbox';
           var value = rc.items[i].value || '';
           var item = null;
+
           var row = document.createElement('row');
-          row.setAttribute('flex', '1');
           var box = document.createElement('box');
-          box.setAttribute('align','center');
-          var label = document.createElement('label');
-          label.setAttribute('value', title);
-          label.setAttribute('class', 'header');
-          row.appendChild(label);
+
           switch (type) {
+          case 'section':
+               rows = createSection(parent, title, rc.items[i].help);
+               continue;
+
           case 'dir':
           case 'file':
              rc.items[i].nobox = 0;
@@ -46,6 +47,24 @@
              item.setAttribute('src', value);
              break;
 
+          case 'menulist':
+             item = document.createElement(type);
+             var popup = document.createElement('menupopup');
+             item.appendChild(popup);
+             if (!rc.items[i].required) {
+                 var e = document.createElement('menuitem');
+                 popup.appendChild(e);
+             }
+             for (var j in rc.items[i].list) {
+                 var obj = rc.items[i].list[j];
+                 var e = document.createElement('menuitem');
+                 e.setAttribute('label', obj.toString());
+                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
+                 popup.appendChild(e);
+             }
+             item.setAttribute('value', value);
+             break;
+
           case 'password':
           case 'number':
              item = document.createElement('textbox');
@@ -57,47 +76,129 @@
              item = document.createElement(type);
              item.setAttribute('value', value);
           }
+
           item.setAttribute('id', 'item' + i);
+
           for (var p in rc.items[i]) {
               // Ignore our reserved attributes
-              if (p == "type" || p == "label" || p == "value" || p == "fixed" || p == "file" || p == "required") continue;
+              if (reserved.indexOf(p) < -1) continue;
               item.setAttribute(p, rc.items[i][p]);
           }
+
+          // Optional title
+          if (!rc.items[i].notitle) {
+              var label = document.createElement('label');
+              label.setAttribute('value', title + (rc.items[i].required ? "*" : ""));
+              label.setAttribute('class', 'header');
+              row.appendChild(label);
+          }
+
           // Embed inside the box
           if (!rc.items[i].nobox) {
              box.appendChild(item);
           } else {
              box = item;
           }
+
           // This can apply to the box or the item
           if (rc.items[i].fixed) {
              box.setAttribute('autostretch', 'never');
           }
+
+          // For images scale the whole row
+          if (rc.items[i].scale) {
+              row.setAttribute('flex', '1');
+          }
+
+          // Text on the right
           if (rc.items[i].help) {
              var help = document.createElement('label');
-             box.appendChild(help);
              help.setAttribute('value', rc.items[i].help);
+             box.appendChild(help);
           }
           row.appendChild(box);
+
+          // First time, create the title
+          if (!rows) {
+              createHeader(parent, rc.title, rc.help);
+              rows = createGrid(parent);
+          }
           rows.appendChild(row);
+          rc.session.debug(i,type,item.id,rc.items[i].label);
       }
     }
 
     function browse(id, forDir) {
-      if (forDir) {
-         path = rc.session.promptForDir("Choose directory:");
-      } else {
-         path = rc.session.promptForFile("Choose file:");
-      }
-      if (path) {
-          document.getElementById(id).value = path;
-      }
+        if (forDir) {
+            path = rc.session.promptForDir("Choose directory:");
+        } else {
+            path = rc.session.promptForFile("Choose file:");
+        }
+        if (path) {
+            document.getElementById(id).value = path;
+        }
     }
 
+    function createHeader(parent, title, help)
+    {
+        var cap = document.createElement('label');
+        cap.setAttribute('style', 'font-weight:bold;text-align:center;padding-bottom:20px;');
+        cap.setAttribute('value', title);
+        parent.appendChild(cap);
+
+        if (help) {
+            parent.appendChild(createDescr(help));
+        }
+    }
+
+    function createSection(parent, title, descr)
+    {
+        var group = document.createElement('groupbox');
+        group.setAttribute('style', 'padding-bottom: 20px;');
+        var cap = document.createElement('caption');
+        cap.setAttribute('style', 'text-align:center');
+        cap.setAttribute('label', title);
+        group.appendChild(cap);
+
+        if (descr) {
+            group.appendChild(createDescr(descr));
+        }
+        parent.appendChild(group);
+        return createGrid(group);
+    }
+
+    function createGrid(parent)
+    {
+        var grid = document.createElement('grid');
+        grid.setAttribute('flex', '1');
+        var cols = document.createElement('columns');
+        cols.setAttribute('flex', '1');
+        var col = document.createElement('column');
+        cols.appendChild(col);
+        col = document.createElement('column');
+        col.setAttribute('flex', '1');
+        cols.appendChild(col);
+        grid.appendChild(cols);
+        var rows = document.createElement('rows');
+        rows.setAttribute('flex', '1');
+        grid.appendChild(rows);
+        parent.appendChild(grid);
+        return rows;
+    }
+
+    function createDescr(descr)
+    {
+        var text = document.createElement('description');
+        text.setAttribute('flex', '1');
+        text.setAttribute('style', 'white-space:pre-wrap;padding-bottom:20px;');
+        text.textContent = descr;
+        return text;
+    }
     function accept() {
       rc.values = [];
-      for (var i in rc.items) {
+      for (var i = 0; i < rc.items.length; i++) {
           var obj = document.getElementById('item' + i);
+          if (!obj) continue;
           var type = rc.items[i].type || 'textbox';
           switch(type) {
           case 'checkbox':
@@ -107,6 +208,7 @@
           default:
              rc.values[i] = obj.value;
           }
+
           // Make sure required fields are not empty
           if (rc.items[i].required && !rc.values[i]) {
              alert(rc.items[i].label + " is required");
@@ -118,16 +220,5 @@
     }
   ]]>
   </script>
-
-  <groupbox flex="1">
-  <caption id="title" style="text-align:center;"/>
-  <grid flex="1">
-   <columns flex="1">
-    <column />
-    <column flex="1" />
-   </columns>
-   <rows id="rows" flex="1">
-   </rows>
-  </grid>
-  </groupbox>
+  <vbox id="main" flex="1" />
 </dialog>
