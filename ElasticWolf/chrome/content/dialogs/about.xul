@@ -9,30 +9,23 @@
 
   <script type="application/x-javascript">
   function updateVersion() {
-    document.getElementById("ew.version").innerHTML = window.arguments[0].VERSION;
-    document.getElementById("ew.appurl").innerHTML = window.arguments[0].getAppUrl();
-    document.getElementById("ew.appname").innerHTML = window.arguments[0].getAppName();
-    document.getElementById("ew.appname1").innerHTML = window.arguments[0].getAppName();
-    document.getElementById("ew.appname2").innerHTML = window.arguments[0].getAppName();
+    session = window.arguments[0];
+    document.getElementById("ew.header").textContent = session.NAME + " version " + session.VERSION;
+    document.getElementById("ew.url").value = session.URL;
   }
   </script>
 
   <vbox flex="1">
     <groupbox>
-      <description class="header" >
-      <html:span id="ew.appname">APPNAME</html:span> version
-      <html:span id="ew.version">VERSION</html:span>
-      </description>
-      <description>
-      <html:p />
-      <html:span id="ew.appname1">APPNAME</html:span> (<html:span id="ew.appurl">URL</html:span>)
-       Console to Amazon Web Services (EC2/S3/...).
-      </description>
+      <description id="ew.header" class="header" />
+      <spacer />
+      <description>Console to Amazon Web Services (EC2/S3/...).</description>
+      <spacer />
+      <label id="ew.url" style="color:blue;" onclick="session.displayUrl(session.URL)"/>
     </groupbox>
+    <spacer />
     <vbox>
-      <description>
-      <html:span id="ew.appname2">APPNAME</html:span> is licensed under the Apache 2.0 license.
-      </description>
+      <description>Licensed under the Apache 2.0 license.</description>
     </vbox>
   </vbox>
 </dialog>

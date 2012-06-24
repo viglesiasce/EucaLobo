@@ -97,7 +97,7 @@
                 </toolbar>
                 <tree id="ew.subnetacls.view" enableColumnDrag="true" flex="1">
                     <treecols>
-                        <treecol id="rule.num" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
+                        <treecol id="rule.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="rule.proto" label="Protocol" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />

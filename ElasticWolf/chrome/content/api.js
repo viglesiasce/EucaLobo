@@ -338,7 +338,7 @@ var ew_api = {
 
     createSubnet : function(vpcId, cidr, az, callback)
     {
-        ew_session.queryEC2("CreateSubnet", [ [ "CidrBlock", cidr ], [ "VpcId", vpcId ], [ "AvailabilityZone", az ] ], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateSubnet", [ [ "CidrBlock", cidr ], [ "VpcId", vpcId ], [ "AvailabilityZone", az ] ], this, false, "onComplete:subnetId", callback);
     },
 
     deleteSubnet : function(id, callback)
@@ -415,7 +415,13 @@ var ew_api = {
 
     createNetworkAclEntry : function(aclId, num, proto, action, egress, cidr, var1, var2, callback)
     {
-        var params = [ [ "NetworkAclId", aclId ], [ "RuleNumber", num], ["Protocol", proto], ["RuleAction", action], ["Egress", egress], ["CidrBlock", cidr] ];
+        var params = [ [ "NetworkAclId", aclId ] ];
+        params.push([ "RuleNumber", num ]);
+        params.push([ "Protocol", proto ]);
+        params.push([ "RuleAction", action ]);
+        params.push([ "Egress", egress ]);
+        params.push([ "CidrBlock", cidr ]);
+
         switch (proto) {
         case "1":
             params.push([ "Icmp.Code", var1])
@@ -442,7 +448,7 @@ var ew_api = {
 
     createNetworkAcl : function(vpcId, callback)
     {
-        ew_session.queryEC2("CreateNetworkAcl", [ [ "VpcId", vpcId ] ], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateNetworkAcl", [ [ "VpcId", vpcId ] ], this, false, "onComplete:networkAclId", callback);
     },
 
     deleteNetworkAcl : function(id, callback)
@@ -488,7 +494,6 @@ var ew_api = {
                 if (from != "" && to != "") {
                     portList.push([from, to])
                 }
-
                 entryList.push(new NetworkAclEntry(num, proto, action, egress, cidr, icmpList, portList))
             }
 
@@ -499,7 +504,8 @@ var ew_api = {
                 var subnet = getNodeValue(assoc[j], "subnetId");
                 assocList.push(new NetworkAclAssociation(aid, acl, subnet))
             }
-            list.push(new NetworkAcl(id, vpcId, dflt, entryList, assocList));
+            var tags = this.getTags(item);
+            list.push(new NetworkAcl(id, vpcId, dflt, entryList, assocList, tags));
         }
 
         this.session.model.set('networkAcls', list);
@@ -528,8 +534,8 @@ var ew_api = {
             for ( var j = 0; j < atttags.length; j++) {
                 var vpcId = getNodeValue(atttags[j], "vpcId");
                 var attstate = getNodeValue(atttags[j], "state");
-                var att = new VpnGatewayAttachment(vpcId, id, attstate)
-                attachments.push(att)
+                var att = new VpnGatewayAttachment(vpcId, id, attstate);
+                attachments.push(att);
             }
             list.push(new VpnGateway(id, availabilityZone, state, type, attachments));
         }
@@ -539,7 +545,17 @@ var ew_api = {
 
     createVpnGateway : function(type, az, callback)
     {
-        ew_session.queryEC2("CreateVpnGateway", [ [ "Type", type ], [ "AvailabilityZone", az ] ], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateVpnGateway", [ [ "Type", type ], [ "AvailabilityZone", az ] ], this, false, "onComplete:vpnGatewayId", callback);
+    },
+
+    attachVpnGatewayToVpc : function(vgwid, vpcid, callback)
+    {
+        ew_session.queryEC2("AttachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
+    },
+
+    detachVpnGatewayFromVpc : function(vgwid, vpcid, callback)
+    {
+        ew_session.queryEC2("DetachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
     },
 
     deleteVpnGateway : function(id, callback)
@@ -573,7 +589,7 @@ var ew_api = {
 
     createCustomerGateway : function(type, ip, asn, callback)
     {
-        ew_session.queryEC2("CreateCustomerGateway", [ [ "Type", type ], [ "IpAddress", ip ], [ "BgpAsn", asn ] ], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateCustomerGateway", [ [ "Type", type ], [ "IpAddress", ip ], [ "BgpAsn", asn ] ], this, false, "onComplete:customerGatewayId", callback);
     },
 
     deleteCustomerGateway : function(id, callback)
@@ -609,7 +625,7 @@ var ew_api = {
 
     createInternetGateway : function(callback)
     {
-        ew_session.queryEC2("CreateInternetGateway", [], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateInternetGateway", [], this, false, "onComplete:internetGatewayId", callback);
     },
 
     deleteInternetGateway : function(id, callback)
@@ -667,22 +683,12 @@ var ew_api = {
 
     createVpnConnection : function(type, cgwid, vgwid, callback)
     {
-        ew_session.queryEC2("CreateVpnConnection", [ [ "Type", type ], [ "CustomerGatewayId", cgwid ], [ "VpnGatewayId", vgwid ] ], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateVpnConnection", [ [ "Type", type ], [ "CustomerGatewayId", cgwid ], [ "VpnGatewayId", vgwid ] ], this, false, "onComplete:vpnConnectionId", callback);
     },
 
     deleteVpnConnection : function(id, callback)
     {
         ew_session.queryEC2("DeleteVpnConnection", [ [ "VpnConnectionId", id ] ], this, false, "onComplete", callback);
-    },
-
-    attachVpnGatewayToVpc : function(vgwid, vpcid, callback)
-    {
-        ew_session.queryEC2("AttachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
-    },
-
-    detachVpnGatewayFromVpc : function(vgwid, vpcid, callback)
-    {
-        ew_session.queryEC2("DetachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
     },
 
     unpackImage: function(item)
@@ -1613,7 +1619,7 @@ var ew_api = {
 
     createRouteTable : function(vpcId, callback)
     {
-        ew_session.queryEC2("CreateRouteTable", [["VpcId", vpcId]], this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateRouteTable", [["VpcId", vpcId]], this, false, "onComplete:routeTableId", callback);
     },
 
     deleteRouteTable : function(tableId, callback)
@@ -1645,7 +1651,7 @@ var ew_api = {
 
     associateRouteTable : function(tableId, subnetId, callback)
     {
-        ew_session.queryEC2("AssociateRouteTable", [["RouteTableId", tableId], ["SubnetId", subnetId]], this, false, "onComplete", callback);
+        ew_session.queryEC2("AssociateRouteTable", [["RouteTableId", tableId], ["SubnetId", subnetId]], this, false, "onComplete:associationId", callback);
     },
 
     disassociateRouteTable : function(assocId, callback)
@@ -1667,7 +1673,7 @@ var ew_api = {
                 params.push(["SecurityGroupId."+(i+1), groups[i]]);
             }
         }
-        ew_session.queryEC2("CreateNetworkInterface", params, this, false, "onComplete", callback);
+        ew_session.queryEC2("CreateNetworkInterface", params, this, false, "onComplete:networkInterfaceId", callback);
     },
 
     deleteNetworkInterface : function(id, callback)
@@ -1835,7 +1841,7 @@ var ew_api = {
         if (vpcId && vpcId != "") {
             params.push([ "VpcId", vpcId ])
         }
-        ew_session.queryEC2("CreateSecurityGroup", params, this, false, "onComplete", callback, null);
+        ew_session.queryEC2("CreateSecurityGroup", params, this, false, "onComplete:groupId", callback, null);
     },
 
     deleteSecurityGroup : function(group, callback)
@@ -1972,7 +1978,7 @@ var ew_api = {
     allocateAddress : function(vpc, callback)
     {
         var params = vpc ? [["Domain", "vpc"]] : []
-        ew_session.queryEC2("AllocateAddress", params, this, false, "onComplete", callback);
+        ew_session.queryEC2("AllocateAddress", params, this, false, "onComplete:allocationId", callback);
     },
 
     releaseAddress : function(eip, callback)
@@ -1990,7 +1996,7 @@ var ew_api = {
         if (networkInterfaceId) {
             params.push([ 'NetworkInterfaceId', networkInterfaceId ])
         }
-        ew_session.queryEC2("AssociateAddress", params, this, false, "onComplete", callback);
+        ew_session.queryEC2("AssociateAddress", params, this, false, "onComplete:associationId", callback);
     },
 
     disassociateAddress : function(eip, callback)

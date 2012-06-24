@@ -66,7 +66,6 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/loadbalancers.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/networkacls.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/enis.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/subnets.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/s3.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/cloudwatch.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/credentials.js" />
@@ -78,6 +77,7 @@
   </stringbundleset>
 
   <keyset>
+    <key id="refresh" key="r" modifiers="meta" oncommand="ew_session.reload();"/>
     <key id="exit" key="q" modifiers="control" oncommand="ew_session.quit();"/>
     <key id="quit" key="q" modifiers="meta" oncommand="ew_session.quit();"/>
     <key id="prefs" key="," modifiers="meta" oncommand="ew_session.selectTab('ew.tabs.prefs');"/>

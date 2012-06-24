@@ -285,6 +285,7 @@ function NetworkAclAssociation(id, acl, subnet)
 
 function NetworkAclEntry(num, proto, action, egress, cidr, icmp, ports)
 {
+    this.id = num == 32767 ? "*" : num;
     this.num = num
     this.proto = proto
     this.action = action
@@ -297,13 +298,16 @@ function NetworkAclEntry(num, proto, action, egress, cidr, icmp, ports)
     }
 }
 
-function NetworkAcl(id, vpcId, dflt, rules, assocs)
+function NetworkAcl(id, vpcId, dflt, rules, assocs, tags)
 {
     this.id = id
     this.vpcId = vpcId
     this.dflt = dflt
     this.rules = rules
     this.associations = assocs
+    this.tags = tags
+    ew_model.processTags(this);
+
     this.toString = function() {
         return this.id + ew_model.separator + (dflt ? "default" : "") + " (" + ew_model.modelValue("vpcId", this.vpcId) + ")";
     }
@@ -548,7 +552,7 @@ function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
     this.srcGroup = srcGroup;
     if (srcGroup) {
         this.srcGroup.toString = function() {
-            return srcGroup.id + ew_model.separator + srcGroup.name;
+            return ew_model.modelValue('groupId', srcGroup.id);
         }
     }
     this.cidrIp = cidrIp;
@@ -704,7 +708,7 @@ function Vpc(id, cidr, state, dhcpOptionsId, tenancy, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        return this.cidr + ew_model.separator + this.id;
+        return this.cidr + ew_model.separator + (this.name ? this.name + ew_model.separator : "") + this.id;
     }
 }
 
@@ -720,7 +724,7 @@ function Subnet(id, vpcId, cidr, state, availableIp, availabilityZone, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        return this.cidr + ew_model.separator + this.id + ew_model.separator + this.availableIp + ew_model.separator + this.availabilityZone;
+        return this.cidr + ew_model.separator + (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.availableIp + ew_model.separator + this.availabilityZone;
     }
 }
 
@@ -748,7 +752,7 @@ function VpnConnection(id, vgwId, cgwId, type, state, config, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        return this.id + ew_model.separator + this.state + " (" + ew_model.modelValue("vgwId", this.vgwId) + ")";
+        return (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.state + " (" + ew_model.modelValue("vgwId", this.vgwId) + ")";
     }
 }
 
@@ -775,7 +779,7 @@ function VpnGateway(id, availabilityZone, state, type, attachments, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        var text = this.id + ew_model.separator + this.state
+        var text = (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.state
         for (var i in this.attachments) {
             text += ", " + this.attachments[i].toString();
         }
@@ -804,7 +808,7 @@ function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        return this.ipAddress + ew_model.separator + this.bgpAsn;
+        return this.ipAddress + ew_model.separator + this.bgpAsn + (this.name ? ew_model.separator + this.name : "");
     }
 }
 
@@ -924,122 +928,124 @@ var ew_model = {
     queues: null,
 
     // Refresh model list by name, this is primary interface to use in the lists and trees
-    refresh: function(name)
+    refresh: function()
     {
-        var now = (new Date).getTime();
-        if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
-            log('refresh: ' + name + ' in progress')
-            return;
-        }
-        log('refresh model ' + name)
-        this.progress[name] = now;
-        var me = this;
+        for (var i = 0; i < arguments.length; i++) {
+            var name = arguments[i];
+            var now = (new Date).getTime();
+            if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
+                log('refresh: ' + name + ' in progress')
+                return;
+            }
+            log('refresh model ' + name)
+            this.progress[name] = now;
+            var me = this;
 
-        switch (name) {
-        case "queues":
-            this.session.api.listQueues();
-            break;
-        case "certs":
-            this.session.api.listSigningCertificates(null, function(list) { me.set(name, list); });
-            break;
-        case "serverCerts":
-            this.session.api.listServerCertificates();
-            break;
-        case "accesskeys":
-            this.session.api.listAccessKeys(null, function(list) { me.set(name, list); });
-            break;
-        case "alarms":
-            this.session.api.describeAlarms();
-            break;
-        case "vmfas":
-            this.session.api.listVirtualMFADevices();
-            break;
-        case "regions":
-            this.session.api.describeRegions();
-            break;
-        case "instanceStatus":
-            this.session.api.describeInstanceStatus();
-            break;
-        case "volumeStatus":
-            this.session.api.describeVolumeStatus();
-            break;
-        case "volumes":
-            this.session.api.describeVolumes();
-            break;
-        case "images":
-            this.session.api.describeImages();
-            break;
-        case "snapshots":
-            this.session.api.describeSnapshots();
-            break;
-        case "instances":
-            this.session.api.describeInstances();
-            break;
-        case "keypairs":
-            this.session.api.describeKeypairs();
-            break;
-        case "availabilityZones":
-            this.session.api.describeAvailabilityZones();
-            break;
-        case "securityGroups":
-            this.session.api.describeSecurityGroups();
-            break;
-        case "addresses":
-            this.session.api.describeAddresses();
-            break;
-        case "bundleTasks":
-            this.session.api.describeBundleTasks();
-            break;
-        case "offerings":
-            this.session.api.describeLeaseOfferings();
-            break;
-        case "reservedInstances":
-            this.session.api.describeReservedInstances();
-            break;
-        case "loadBalancers":
-            this.session.api.describeLoadBalancers();
-            break;
-        case "subnets":
-            this.session.api.describeSubnets();
-            break;
-        case "vpcs":
-            this.session.api.describeVpcs();
-            break;
-        case "dhcpOptions":
-            this.session.api.describeDhcpOptions();
-            break;
-        case "vpnConnections":
-            this.session.api.describeVpnConnections();
-            break;
-        case "vpnGateways":
-            this.session.api.describeVpnGateways();
-            break;
-        case "customerGateways":
-            this.session.api.describeCustomerGateways();
-            break;
-        case "internetGateways":
-            this.session.api.describeInternetGateways();
-            break;
-        case "routeTables":
-            this.session.api.describeRouteTables();
-            break;
-        case "networkAcls":
-            this.session.api.describeNetworkAcls();
-            break;
-        case "networkInterfaces":
-            this.session.api.describeNetworkInterfaces();
-            break;
-        case "s3Buckets":
-            this.session.api.listS3Buckets();
-            break;
-        case "users":
-            this.session.api.listUsers();
-            break;
-        case "groups":
-            this.session.api.listGroups();
-            break;
+            switch (name) {
+            case "queues":
+                this.session.api.listQueues();
+                break;
+            case "certs":
+                this.session.api.listSigningCertificates(null, function(list) { me.set(name, list); });
+                break;
+            case "serverCerts":
+                this.session.api.listServerCertificates();
+                break;
+            case "accesskeys":
+                this.session.api.listAccessKeys(null, function(list) { me.set(name, list); });
+                break;
+            case "alarms":
+                this.session.api.describeAlarms();
+                break;
+            case "vmfas":
+                this.session.api.listVirtualMFADevices();
+                break;
+            case "regions":
+                this.session.api.describeRegions();
+                break;
+            case "instanceStatus":
+                this.session.api.describeInstanceStatus();
+                break;
+            case "volumeStatus":
+                this.session.api.describeVolumeStatus();
+                break;
+            case "volumes":
+                this.session.api.describeVolumes();
+                break;
+            case "images":
+                this.session.api.describeImages();
+                break;
+            case "snapshots":
+                this.session.api.describeSnapshots();
+                break;
+            case "instances":
+                this.session.api.describeInstances();
+                break;
+            case "keypairs":
+                this.session.api.describeKeypairs();
+                break;
+            case "availabilityZones":
+                this.session.api.describeAvailabilityZones();
+                break;
+            case "securityGroups":
+                this.session.api.describeSecurityGroups();
+                break;
+            case "addresses":
+                this.session.api.describeAddresses();
+                break;
+            case "bundleTasks":
+                this.session.api.describeBundleTasks();
+                break;
+            case "offerings":
+                this.session.api.describeLeaseOfferings();
+                break;
+            case "reservedInstances":
+                this.session.api.describeReservedInstances();
+                break;
+            case "loadBalancers":
+                this.session.api.describeLoadBalancers();
+                break;
+            case "subnets":
+                this.session.api.describeSubnets();
+                break;
+            case "vpcs":
+                this.session.api.describeVpcs();
+                break;
+            case "dhcpOptions":
+                this.session.api.describeDhcpOptions();
+                break;
+            case "vpnConnections":
+                this.session.api.describeVpnConnections();
+                break;
+            case "vpnGateways":
+                this.session.api.describeVpnGateways();
+                break;
+            case "customerGateways":
+                this.session.api.describeCustomerGateways();
+                break;
+            case "internetGateways":
+                this.session.api.describeInternetGateways();
+                break;
+            case "routeTables":
+                this.session.api.describeRouteTables();
+                break;
+            case "networkAcls":
+                this.session.api.describeNetworkAcls();
+                break;
+            case "networkInterfaces":
+                this.session.api.describeNetworkInterfaces();
+                break;
+            case "s3Buckets":
+                this.session.api.listS3Buckets();
+                break;
+            case "users":
+                this.session.api.listUsers();
+                break;
+            case "groups":
+                this.session.api.listGroups();
+                break;
+            }
         }
-        return []
     },
 
     // Return direct list
@@ -1130,6 +1136,7 @@ var ew_model = {
                       igwId: this.internetGateways,
                       dhcpOptionsId: this.dhcpOptions,
                       networkInterfaceId: this.networkInterfaces,
+                      groupId: this.securityGroups,
                       groups: this.securityGroups,
                       subnets: this.subnets };
 

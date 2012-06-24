@@ -14,12 +14,12 @@ var ew_session = {
     HOST  : 'chrome://ew/',
 
     disabled: false,
-    prefs: null,
     locked: false,
     api : null,
     model : null,
     user: {},
     credentials : null,
+    prefs: null,
     cmdline: null,
     endpoints: null,
     timers: {},
@@ -57,26 +57,28 @@ var ew_session = {
         this.selectTab(this.getStrPrefs("ew.tab.current"));
 
         // Parse command line
-        this.cmdLine = window.arguments[0].QueryInterface(Components.interfaces.nsICommandLine);
+        this.cmdLine = window.arguments ? window.arguments[0].QueryInterface(Components.interfaces.nsICommandLine) : null;
 
         // Passing credentials
-        var name = this.cmdLine.handleFlagWithParam('name', true);
-        var key = this.cmdLine.handleFlagWithParam('key', true);
-        var secret = this.cmdLine.handleFlagWithParam('secret', true);
-        var endpoint = this.cmdLine.handleFlagWithParam('endpoint', true);
-        var token = this.cmdLine.handleFlagWithParam('token', true);
-        if (key && key != '' && secret && secret != '') {
-            var cred = new Credential(name || 'AWS', key, secret, endpoint, token);
-            this.switchCredentials(cred);
-        } else
+        if (this.cmdLine) {
+            var name = this.cmdLine.handleFlagWithParam('name', true);
+            var key = this.cmdLine.handleFlagWithParam('key', true);
+            var secret = this.cmdLine.handleFlagWithParam('secret', true);
+            var endpoint = this.cmdLine.handleFlagWithParam('endpoint', true);
+            var token = this.cmdLine.handleFlagWithParam('token', true);
+            if (key && key != '' && secret && secret != '') {
+                var cred = new Credential(name || 'AWS', key, secret, endpoint, token);
+                this.switchCredentials(cred);
+            } else
 
-        if (endpoint && endpoint != '') {
-            var e = new Endpoint("", endpoint);
-            this.switchEndpoints(e);
+            if (endpoint && endpoint != '') {
+                var e = new Endpoint("", endpoint);
+                this.switchEndpoints(e);
+            }
+
+            // Disable credentials management
+            this.locked = this.cmdLine.handleFlag('lock', true);
         }
-
-        // Disable credentials management
-        this.locked = this.cmdLine.handleFlag('lock', true);
 
         // Check for pin
         this.promptForPin();
@@ -112,6 +114,13 @@ var ew_session = {
              }
         };
         idleService.addIdleObserver(this.idleObserver, this.idleObserver.timeout);
+    },
+
+    reload: function()
+    {
+        if (!this.locked && !this.disabled) {
+            window.location.reload();
+        }
     },
 
     quit: function()
@@ -769,11 +778,6 @@ var ew_session = {
         return this.NAME;
     },
 
-    getAppUrl: function()
-    {
-        return this.URL
-    },
-
     getUserAgent: function ()
     {
         return this.getAppName() + "/" + this.VERSION;
@@ -794,7 +798,7 @@ var ew_session = {
         if (!this.isEnabled()) return null;
 
         ver = parseFloat(this.VERSION) + 0.01
-        var url = this.getAppUrl()
+        var url = this.URL;
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
