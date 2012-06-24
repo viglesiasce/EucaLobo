@@ -50,6 +50,8 @@ var ew_session = {
         this.getEndpoints();
 
         document.title = this.getAppName();
+        document.getElementById("ew.header").value = this.NAME + " version " + this.VERSION;
+        document.getElementById("ew.url").value = this.URL;
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
@@ -353,16 +355,6 @@ var ew_session = {
                 }
             }
         });
-    },
-
-    displayAbout : function()
-    {
-        window.openDialog("chrome://ew/content/dialogs/about.xul", null, "chrome,centerscreen,modal,resizable", this);
-    },
-
-    displayHelp : function()
-    {
-        window.openDialog("chrome://ew/content/dialogs/help.xul", null, "chrome,centerscreen,modal,resizable", this);
     },
 
     displayUrl: function(url, protocol)
@@ -783,9 +775,9 @@ var ew_session = {
         return this.getAppName() + "/" + this.VERSION;
     },
 
-    isGovCloud : function()
+    isGovCloud : function(url)
     {
-        return String(this.urls.EC2).indexOf("us-gov") > -1;
+        return String(url || this.urls.EC2).indexOf("us-gov") > -1;
     },
 
     isEnabled: function()

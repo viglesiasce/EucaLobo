@@ -124,7 +124,6 @@
               rows = createGrid(parent);
           }
           rows.appendChild(row);
-          rc.session.debug(i,type,item.id,rc.items[i].label);
       }
     }
 

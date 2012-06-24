@@ -22,18 +22,25 @@ var ew_CredentialsTreeView = {
         return ew_session.getCredentials()
     },
 
+    addCredentials : function()
+    {
+        var values = this.session.promptInput('Credentials', [{label:"Credentials Name:",required:1}, {label:"AWS Access Key:",required:1}, {label:"AWS Secret Access Key:",type:'password',required:1}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.session.getEndpoints(),key:'url'}, {label:"Security Token:",multiline:true,rows:3}]);
+        if (!values) return;
+        var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
+        ew_session.saveCredentials(cred);
+        this.display(ew_session.getCredentials());
+    },
+
     editCredentials : function()
     {
         var cred = this.getSelected();
         if (!cred) return;
-        var rc = { ok: null, endpoints: ew_session.getEndpoints(), obj: cred };
-        window.openDialog("chrome://ew/content/dialogs/manage_credentials.xul", null, "chrome,centerscreen, modal, resizable", rc);
-        if (rc.ok) {
-            ew_session.removeCredentials(cred);
-            var cred = new Credential(rc.name, rc.accessKey, rc.secretKey, rc.url, rc.securityToken);
-            ew_session.saveCredentials(cred);
-            this.display(ew_session.getCredentials());
-        }
+        var values = this.session.promptInput('Credentials', [{label:"Credentials Name:",required:1,value:cred.name}, {label:"AWS Access Key:",required:1,value:cred.accessKey}, {label:"AWS Secret Access Key:",type:'password',required:1,value:cred.secretKey}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.session.getEndpoints(),key:'url',value:cred.url}, {label:"Security Token:",multiline:true,rows:3,value:cred.securityToken}]);
+        if (!values) return;
+        ew_session.removeCredentials(cred);
+        var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
+        ew_session.saveCredentials(cred);
+        this.display(ew_session.getCredentials());
     },
 
     deleteCredentials : function()
@@ -45,21 +52,10 @@ var ew_CredentialsTreeView = {
         this.display(ew_session.getCredentials());
     },
 
-    addCredentials : function()
-    {
-        var rc = { ok: null, endpoints: ew_session.getEndpoints() };
-        window.openDialog("chrome://ew/content/dialogs/manage_credentials.xul", null, "chrome,centerscreen, modal, resizable", rc);
-        if (rc.ok) {
-            var cred = new Credential(rc.name, rc.accessKey, rc.secretKey, rc.url, rc.securityToken);
-            ew_session.saveCredentials(cred);
-            this.display(ew_session.getCredentials());
-        }
-    },
-
     filter: function(list)
     {
         for (var i in list) {
-            list[i].status = list[i].accessKey == ew_session.accessKey ? "Current" : "";
+            list[i].status = list[i].accessKey == ew_session.accessKey ? "Active" : "";
         }
         return TreeView.filter.call(this, list);
     },
@@ -70,6 +66,7 @@ var ew_CredentialsTreeView = {
         if (!cred) return;
         ew_session.switchCredentials(cred);
         this.invalidate();
+        ew_EndpointsTreeView.invalidate();
     },
 };
 ew_CredentialsTreeView.__proto__ = TreeView;
@@ -95,6 +92,16 @@ var ew_EndpointsTreeView = {
    switchEndpoint : function() {
        var item = this.getSelected();
        if (!item) return;
+       var active = ew_session.getActiveEndpoint();
+
+       if (item.url != active.url) {
+           if (this.session.isGovCloud()) {
+               return alert('Cannot change endpoints in GovCloud region');
+           }
+           if (this.session.isGovCloud(item.url)) {
+               return alert('Cannot use this credentials in GovCloud region');
+           }
+       }
        ew_session.switchEndpoints(item.name);
        this.invalidate();
    },
@@ -119,7 +126,7 @@ var ew_EndpointsTreeView = {
    {
        var endpoint = ew_session.getActiveEndpoint();
        for (var i in list) {
-           list[i].status = endpoint && list[i].url == endpoint.url ? "Current" : "";
+           list[i].status = endpoint && list[i].url == endpoint.url ? "Active" : "";
        }
        return TreeView.filter.call(this, list);
    },

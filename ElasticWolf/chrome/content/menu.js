@@ -1,6 +1,9 @@
 var ew_menu = {
     // Order of te tabs should match order of tabpanels
     tabs: [
+            { name: "ew.tabs.ew",             },
+            { name: "ew.tabs.help",            },
+
             { name: "ew.tabs.prefs",         views: [ { view: ew_PrefsView } ] },
 
             { name: "ew.tabs.credential",    views: [ { id: "ew.credentials.view", view: ew_CredentialsTreeView },
@@ -152,11 +155,16 @@ var ew_menu = {
         // Activate new tab
         var idx = this.getMenu(name);
         if (idx == -1) {
-            debug('menu not found ' + name)
-            return false;
+            // Try directly if this panel not in the menu
+            var panel = $(name);
+            if (!panel) {
+                debug('menu not found ' + name)
+                return false;
+            }
+        } else {
+            this.tree.currentIndex = idx;
+            this.tree.view.selection.select(idx);
         }
-        this.tree.currentIndex = idx;
-        this.tree.view.selection.select(idx);
         this.current = name;
         $("ew.tabs").selectedPanel = $(tab.owner || name);
 

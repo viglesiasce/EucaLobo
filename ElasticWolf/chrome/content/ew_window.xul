@@ -95,8 +95,8 @@
     </menu>
     <menu label="Help">
       <menupopup>
-       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.displayAbout();"/>
-       <menuitem label="Templates Format" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.displayHelp();"/>
+       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.selectTab('ew.tabs.ew');"/>
+       <menuitem label="Templates Format" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.selectTab('ew.tabs.help');"/>
       </menupopup>
     </menu>
    </menubar>
@@ -111,7 +111,7 @@
     <treechildren>
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Elastic Wolf" src="images/logo.png" />
+         <treecell label="Elastic Wolf" src="images/logo.png" value="ew.tabs.ew" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Preferences" value="ew.tabs.prefs" /></treerow></treeitem>
@@ -259,6 +259,44 @@
       <tabpanel id="ew.tabs.availzone"/>
       <tabpanel id="ew.tabs.s3"/>
       <tabpanel id="ew.tabs.alarm"/>
+      <tabpanel id="ew.tabs.ew">
+       <vbox flex="1">
+         <groupbox flex="1">
+           <description id="ew.header" class="header" />
+           <spacer />
+           <description>Console to Amazon Web Services (EC2/S3/...).</description>
+           <spacer />
+           <label id="ew.url" style="color:blue;" onclick="session.displayUrl(session.URL)"/>
+           <spacer />
+           <description>Licensed under the Apache 2.0 license.</description>
+         </groupbox>
+       </vbox>
+      </tabpanel>
+      <tabpanel id="ew.tabs.help">
+       <vbox flex="1">
+        <description>These template items are used in configuring paths and parameterrs to the command line tools</description>
+        <hbox>
+         <vbox>
+            <description>${home} - Your home directory.</description>
+            <description>${keyhome} - Directory where to keep private and public key files.</description>
+            <description>${keyname} - The EC2 keypair name the instance was launched with.</description>
+            <description>${host} - The public DNS name / IP address of the EC2 instance.</description>
+            <description>${dnsName} - The public DNS name of the EC2 instance.</description>
+            <description>${privateDnsName} - The private DNS name of the EC2 instance.</description>
+         </vbox>
+         <spacer flex="1"/>
+         <vbox>
+            <description>${ipAddress} - The IP address name of the EC2 instance.</description>
+            <description>${privateIpAddress} - The private IP address name of the EC2 instance.</description>
+            <description>${name} - The "Name" tag of the EC2 instance.</description>
+            <description>${login} - The configured SSH user name.</description>
+            <description>${key} - The (interpolated) EC2 private key template.</description>
+            <description>${user} - The configured account name.</description>
+            <description>${pass} - The Administrator password for a Windows instance.</description>
+         </vbox>
+        </hbox>
+       </vbox>
+      </tabpanel>
     </tabpanels>
     </tabbox>
   </hbox>

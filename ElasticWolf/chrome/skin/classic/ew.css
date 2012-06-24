@@ -77,7 +77,7 @@ treechildren::-moz-tree-row {
     color: #000000;
 }
 
-treechildren::-moz-tree-row(selected) {
+treechildren::-moz-tree-row(selected,focus) {
     background-color: #ADCAEB;
 }
 
