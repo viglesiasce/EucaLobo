@@ -1,10 +1,113 @@
 
-var ew_VpcTreeView = {
-    model: [ "vpcs", "instances", "internetGateways", 'dhcpOptions', 'availabilityZones' ],
+var ew_VpcsTreeView = {
+    model: [ "vpcs", "subnets", "securityGroups", "routeTables", "networkAcls", "instances", "internetGateways", 'dhcpOptions', 'availabilityZones', 'vpnGateways', 'customerGateways', 'vpnConnections' ],
 
     menuChanged : function()
     {
         document.getElementById("ew.vpcs.contextmenu").disabled = (this.getSelected() == null);
+    },
+
+    selectionChanged: function()
+    {
+        var vpc = this.getSelected();
+        if (vpc == null) return;
+
+        var list = [];
+        var tables = this.session.model.get('routeTables','vpcId', vpc.id);
+        var igws = this.session.model.get('internetGateways','vpcId', vpc.id);
+        var acls = this.session.model.get('networkAcls','vpcId', vpc.id);
+        var enis = this.session.model.get('networkInterfaces','vpcId', vpc.id);
+        var vgws = this.session.model.get('vpnGateways');
+        var vpns = this.session.model.get('vpnConnections');
+        var cgws = this.session.model.get('customerGateways');
+        var subnets = this.session.model.get('subnets','vpcId', vpc.id);
+        var instances = this.session.model.get('instances','vpcId', vpc.id);
+        var groups = this.session.model.get('securityGroups','vpcId', vpc.id);
+
+        if (subnets.length) {
+            list.push({ name: "Subnets" })
+            for (var i in subnets) {
+                list.push({ name: "    " + subnets[i].toString() });
+                var found = false;
+                for (var j in tables) {
+                    for (var k in tables[j].associations) {
+                        if (tables[j].associations[k].subnetId == subnets[i].id) {
+                            if (!found) {
+                                found = true;
+                                list.push({ name: "        Routes"})
+                            }
+                            for (n in tables[j].routes) {
+                                list.push({ name: "            " + tables[j].routes[n].toString() });
+                            }
+                            break;
+                        }
+                    }
+                }
+                found = false;
+                for (var j in acls) {
+                    for (var k in acls[j].associations) {
+                        if (acls[j].associations[k].subnetId == subnets[i].id) {
+                            if (!found) {
+                                found = true;
+                                list.push({ name: "        Network ACLs"})
+                            }
+                            for (n in acls[j].rules) {
+                                list.push({ name: "            " + acls[j].rules[n].toString() })
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this.listToInfo(igws, "Internet Gateways", list);
+        this.listToInfo(instances, "Instances", list);
+        this.listToInfo(groups, "Security Groups", list);
+        this.listToInfo(enis, "Network Interfaces", list);
+
+        if (vgws.length) {
+            var found = false;
+            for (var i in vgws) {
+                for (var j in vgws[i].attachments) {
+                    if (vgws[i].attachments[j].vpcId == vpc.id) {
+                        if (!found) {
+                            found = true;
+                            list.push({ name: "VPN Gateways" })
+                        }
+                        list.push({ name: "    " + vgws[i].toString() })
+                    }
+                }
+            }
+        }
+
+        if (vpns.length) {
+            var found = false;
+            for (var i in vpns) {
+                for (var j in vgws) {
+                    if (vgws[j].id != vpns[i].vgwId) continue;
+                    for (var k in vgws[j].attachments) {
+                        if (vgws[j].attachments[k].vpcId == vpc.id) {
+                            if (!found) {
+                                found = true;
+                                list.push({ name: "VPN Connections" })
+                            }
+                            list.push({ name: "    " + vpns[i].toString() })
+                        }
+                    }
+                }
+            }
+        }
+        ew_VpcsInfoTreeView.display(list);
+    },
+
+    listToInfo: function(items, title, list)
+    {
+        if (items.length) {
+            list.push({ name: title })
+            for (var i in items) {
+                list.push({ name: "    " + items[i].toString() });
+            }
+        }
     },
 
     createSubnet : function()
@@ -126,7 +229,18 @@ var ew_VpcTreeView = {
         ew_InternetGatewayTreeView.attachInternetGateway(vpc.id, null);
     },
 };
-ew_VpcTreeView.__proto__ = TreeView;
+ew_VpcsTreeView.__proto__ = TreeView;
+
+ew_VpcsInfoTreeView = {
+
+    cycleHeader : function(col) {
+
+    },
+    sort : function() {
+
+    },
+};
+ew_VpcsInfoTreeView.__proto__ = TreeView;
 
 var ew_DhcpoptsTreeView = {
     model: "dhcpOptions",

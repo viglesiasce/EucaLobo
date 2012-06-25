@@ -1059,7 +1059,7 @@ var ew_session = {
                 rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
             }
         }
-        strSig += (bucket ? "/" + bucket : "") + "/" + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+        strSig += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
 
         params["Authorization"] = "AWS " + this.accessKey + ":" + b64_hmac_sha1(this.secretKey, strSig);
         params["User-Agent"] = this.getUserAgent();
@@ -1067,7 +1067,7 @@ var ew_session = {
 
         debug("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
 
-        return { method: method, url: url + "/" + key + path, headers: params, sig: strSig, time: curTime }
+        return { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, sig: strSig, time: curTime }
     },
 
     queryS3Impl : function(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
@@ -1325,15 +1325,16 @@ var ew_session = {
 
     getMimeType: function(file)
     {
-        if (!file || file.indexOf('.') == -1) return null;
+        if (!file || file.indexOf('.') == -1) return "";
         try {
             var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-            var url = ioService.newURI('file://' + file, null, null);
+            var url = ioService.newURI('file://' + (file[0] != '/' ? '/' : '') + file, null, null);
             var mService = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService);
-            return mService.getTypeFromURI(url);
+            var type = mService.getTypeFromURI(url);
+            return type || "";
         }
-        catch(e) {}
-        return null;
+        catch(e) { debug('Error: ' + file + ":" + e) }
+        return "";
     },
 
     getDirSeparator : function()

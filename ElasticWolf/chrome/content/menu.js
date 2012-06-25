@@ -63,7 +63,8 @@ var ew_menu = {
 
             { name: "ew.tabs.bundletask",    views: [ { id: "ew.bundleTasks.view", view: ew_BundleTasksTreeView } ], },
 
-            { name: "ew.tabs.vpc",           views: [ { id: "ew.vpcs.view", view: ew_VpcTreeView }, ] },
+            { name: "ew.tabs.vpc",           views: [ { id: "ew.vpcs.view", view: ew_VpcsTreeView },
+                                                      { id: "ew.vpcsinfo.view", view: ew_VpcsInfoTreeView } ] },
 
             { name: "ew.tabs.dhcp",          views: [ { id: "ew.dhcpOptions.view", view: ew_DhcpoptsTreeView } ], },
 

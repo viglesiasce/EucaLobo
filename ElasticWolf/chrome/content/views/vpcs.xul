@@ -8,24 +8,24 @@
                 <caption label="&ew.captions.vpcs.vpcs.label;" />
                 <popupset>
                     <menupopup id="ew.vpcs.contextmenu" >
-                        <menuitem oncommand="ew_VpcTreeView.tag(event);" label="Add Tag" />
+                        <menuitem oncommand="ew_VpcsTreeView.tag(event);" label="Add Tag" />
                         <menuseparator />
-                        <menuitem oncommand="ew_VpcTreeView.createSubnet();" label="&ew.vpc.contextmenu.createsubnet.label;" />
-                        <menuitem oncommand="ew_VpcTreeView.attachToInternetGateway();" label="&ew.vpc.contextmenu.attachigw.label;" />
-                        <menuitem oncommand="ew_VpcTreeView.attachToVpnGateway();" label="&ew.vpc.contextmenu.attachvpngw.label;" />
-                        <menuitem oncommand="ew_VpcTreeView.setDhcpOptions();" label="&ew.vpc.contextmenu.setdhcpoptions.label;" />
-                        <menuitem oncommand="ew_VpcTreeView.deleteVpc();" label="&ew.vpc.contextmenu.delete.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.createSubnet();" label="&ew.vpc.contextmenu.createsubnet.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.attachToInternetGateway();" label="&ew.vpc.contextmenu.attachigw.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.attachToVpnGateway();" label="&ew.vpc.contextmenu.attachvpngw.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.setDhcpOptions();" label="&ew.vpc.contextmenu.setdhcpoptions.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.deleteVpc();" label="&ew.vpc.contextmenu.delete.label;" />
                         <menuseparator />
-                        <menuitem oncommand="ew_VpcTreeView.copyToClipboard('id');" label="&ew.vpc.contextmenu.copyvpcid.label;" />
+                        <menuitem oncommand="ew_VpcsTreeView.copyToClipboard('id');" label="&ew.vpc.contextmenu.copyvpcid.label;" />
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
                         <textbox id="ew.vpcs.search" size="15" type="autocomplete" autocompletesearch="form-history" />
-                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcTreeView.createVpc()" tooltiptext="&ew.createvpc.tip;" />
-                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcTreeView.deleteVpc()" tooltiptext="&ew.deletevpc.tip;" />
-                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VpcTreeView.tag();" tooltiptext="Add Tag" />
+                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcsTreeView.createVpc()" tooltiptext="&ew.createvpc.tip;" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpcsTreeView.deleteVpc()" tooltiptext="&ew.deletevpc.tip;" />
+                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VpcsTreeView.tag();" tooltiptext="Add Tag" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.vpcs.view" seltype="single" enableColumnDrag="true" flex="1">
@@ -46,6 +46,21 @@
                     <treechildren context="ew.vpcs.contextmenu" />
                 </tree>
             </groupbox>
+
+            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
+            <grippy />
+            </splitter>
+
+            <groupbox flex="1" orient="vertical">
+            <caption label="VPC Summary" />
+            <tree enableColumnDrag="true" id="ew.vpcsinfo.view" hidecolumnpicker="true" flex="1">
+                <treecols>
+                    <treecol id="vpc.name" label=" " flex="1" />
+                </treecols>
+                <treechildren id="ew.vpcsinfo.children" />
+            </tree>
+            </groupbox>
+
         </vbox>
     </tabpanel>
 </overlay>

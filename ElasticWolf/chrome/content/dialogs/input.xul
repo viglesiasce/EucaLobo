@@ -107,6 +107,7 @@
 
           // For images scale the whole row
           if (rc.items[i].scale) {
+              box.setAttribute('flex', '1');
               row.setAttribute('flex', '1');
           }
 

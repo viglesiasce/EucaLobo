@@ -1287,7 +1287,7 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-
+        debug(response.responseText)
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("Grant");
         for ( var i = 0; i < items.length; i++) {
@@ -1298,6 +1298,9 @@ var ew_api = {
             var name = getNodeValue(items[i], "DisplayName");
             var perms = getNodeValue(items[i], "Permission");
             switch (type) {
+            case "CanonicalUser":
+                break;
+
             case "AmazonCustomerByEmail":
                 id = email
                 name = email
@@ -1370,7 +1373,12 @@ var ew_api = {
             list.push(new S3BucketKey(bucket, id, type, size, mtime, owner, etag));
         }
         var obj = this.session.model.getS3Bucket(bucket);
-        if (obj) obj.keys = list; else obj = { keys: list };
+        if (obj) {
+            obj.keys = list;
+        } else {
+            obj = new S3Bucket(bucket);
+            obj.keys = list;
+        }
 
         response.result = obj;
     },
@@ -1449,6 +1457,9 @@ var ew_api = {
             var name = getNodeValue(items[i], "DisplayName");
             var perms = getNodeValue(items[i], "Permission");
             switch (type) {
+            case "CanonicalUser":
+                break;
+
             case "AmazonCustomerByEmail":
                 id = email
                 name = email

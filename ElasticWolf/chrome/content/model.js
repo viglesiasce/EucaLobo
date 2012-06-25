@@ -294,7 +294,7 @@ function NetworkAclEntry(num, proto, action, egress, cidr, icmp, ports)
     this.icmp = icmp ? icmp : []
     this.ports = ports ? ports : []
     this.toString = function() {
-        return this.num + ew_model.separator + this.proto + ew_model.separator + this.action + ew_model.separator + (this.egress ? "Egress" + ew_model.separator : "") + this.cidr;
+        return this.id + ew_model.separator + this.proto + ew_model.separator + this.action + ew_model.separator + (this.egress ? "Egress" + ew_model.separator : "") + this.cidr;
     }
 }
 
@@ -752,7 +752,8 @@ function VpnConnection(id, vgwId, cgwId, type, state, config, tags)
     ew_model.processTags(this)
 
     this.toString = function() {
-        return (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.state + " (" + ew_model.modelValue("vgwId", this.vgwId) + ")";
+        return (this.name ? this.name + ew_model.separator : "") + this.id + ew_model.separator + this.state + ew_model.separator +
+               ew_model.modelValue("vgwId", this.vgwId) + ew_model.separator + ew_model.modelValue('cgwId', this.cgwId);
     }
 }
 
