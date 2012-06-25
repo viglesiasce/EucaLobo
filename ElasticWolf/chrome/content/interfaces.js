@@ -163,11 +163,8 @@ var TreeView = {
         var name = column.id.split(".").pop();
         if (idx < 0 || idx >= this.rowCount || this.properties.indexOf(name) == -1) return;
         var value = String(this.treeList[idx][name]).replace(/[ -.:]+/g,'_').toLowerCase();
-        if (!this.atomService) {
-            this.atomService = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-        }
         // Use CSS entry if exists:  treechildren::-moz-tree-cell(name_value) {}
-        prop.AppendElement(this.atomService.getAtom(this.getName() + "_" + value));
+        prop.AppendElement(this.getAtom(this.getName() + "_" + value));
     },
     getColumnProperties : function(column, element, prop)
     {
@@ -175,6 +172,13 @@ var TreeView = {
     getLevel : function(idx)
     {
         return 0;
+    },
+    getAtom: function(name)
+    {
+        if (!this.atomService) {
+            this.atomService = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+        }
+        return this.atomService.getAtom(name);
     },
     cycleHeader : function(col)
     {

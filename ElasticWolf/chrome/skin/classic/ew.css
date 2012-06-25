@@ -81,11 +81,11 @@ treechildren::-moz-tree-row(selected,focus) {
     background-color: #ADCAEB;
 }
 
-treechildren::-moz-tree-cell(credentials_current) {
+treechildren::-moz-tree-cell(credentials_active) {
     background-color: #C3DDC3;
 }
 
-treechildren::-moz-tree-cell(endpoints_current) {
+treechildren::-moz-tree-cell(endpoints_active) {
     background-color: #C3DDC3;
 }
 
@@ -104,6 +104,10 @@ treechildren::-moz-tree-cell-text(selected) {
 treechildren::-moz-tree-cell-text(container) {
      font-weight: bold;
      padding-left: 2px;
+}
+
+treechildren::-moz-tree-cell-text(bold) {
+     font-weight: bold;
 }
 
 treechildren::-moz-tree-indentation {

@@ -25,7 +25,7 @@ var ew_VpcsTreeView = {
         var groups = this.session.model.get('securityGroups','vpcId', vpc.id);
 
         if (subnets.length) {
-            list.push({ name: "Subnets" })
+            list.push({ name: "Subnets", folder: 1 })
             for (var i in subnets) {
                 list.push({ name: "    " + subnets[i].toString() });
                 var found = false;
@@ -34,7 +34,7 @@ var ew_VpcsTreeView = {
                         if (tables[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "        Routes"})
+                                list.push({ name: "        Routes", folder: 1})
                             }
                             for (n in tables[j].routes) {
                                 list.push({ name: "            " + tables[j].routes[n].toString() });
@@ -49,7 +49,7 @@ var ew_VpcsTreeView = {
                         if (acls[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "        Network ACLs"})
+                                list.push({ name: "        Network ACLs", folder: 1 })
                             }
                             for (n in acls[j].rules) {
                                 list.push({ name: "            " + acls[j].rules[n].toString() })
@@ -72,7 +72,7 @@ var ew_VpcsTreeView = {
                     if (vgws[i].attachments[j].vpcId == vpc.id) {
                         if (!found) {
                             found = true;
-                            list.push({ name: "VPN Gateways" })
+                            list.push({ name: "VPN Gateways", folder: 1 })
                         }
                         list.push({ name: "    " + vgws[i].toString() })
                     }
@@ -89,7 +89,7 @@ var ew_VpcsTreeView = {
                         if (vgws[j].attachments[k].vpcId == vpc.id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "VPN Connections" })
+                                list.push({ name: "VPN Connections", folder: 1 })
                             }
                             list.push({ name: "    " + vpns[i].toString() })
                         }
@@ -103,7 +103,7 @@ var ew_VpcsTreeView = {
     listToInfo: function(items, title, list)
     {
         if (items.length) {
-            list.push({ name: title })
+            list.push({ name: title, folder: 1 })
             for (var i in items) {
                 list.push({ name: "    " + items[i].toString() });
             }
@@ -238,6 +238,12 @@ ew_VpcsInfoTreeView = {
     },
     sort : function() {
 
+    },
+    getCellProperties : function(idx, column, prop)
+    {
+        if (this.treeList[idx].folder) {
+            prop.AppendElement(this.getAtom("bold"));
+        }
     },
 };
 ew_VpcsInfoTreeView.__proto__ = TreeView;
