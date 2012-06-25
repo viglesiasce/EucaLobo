@@ -79,7 +79,7 @@ var ew_VpcsTreeView = {
                 }
             }
         }
-
+        var gws = [];
         if (vpns.length) {
             var found = false;
             for (var i in vpns) {
@@ -87,12 +87,29 @@ var ew_VpcsTreeView = {
                     if (vgws[j].id != vpns[i].vgwId) continue;
                     for (var k in vgws[j].attachments) {
                         if (vgws[j].attachments[k].vpcId == vpc.id) {
+                            gws.push(vpns[i].cgwId); // Remember customer gateways
                             if (!found) {
                                 found = true;
                                 list.push({ name: "VPN Connections", folder: 1 })
                             }
                             list.push({ name: "    " + vpns[i].toString() })
+
                         }
+                    }
+                }
+            }
+        }
+
+        if (cgws.length) {
+            var found = false;
+            for (var i in cgws) {
+                for (var j in gws) {
+                    if (gws[j] == cgws[i].id) {
+                        if (!found) {
+                            found = true;
+                            list.push({ name: "Customer Gateways", folder: 1 })
+                        }
+                        list.push({ name: "    " + cgws[i].toString()})
                     }
                 }
             }
