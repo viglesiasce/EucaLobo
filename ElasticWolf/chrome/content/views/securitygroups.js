@@ -7,7 +7,8 @@ var ew_SecurityGroupsTreeView = {
         ew_PermissionsTreeView.display(group.permissions);
     },
 
-    createNewGroup : function () {
+    createNewGroup : function ()
+    {
         var retVal = {ok:null,name:null,description:null,vpcId:null};
         window.openDialog("chrome://ew/content/dialogs/create_security_group.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
         if (retVal.ok) {
@@ -23,17 +24,15 @@ var ew_SecurityGroupsTreeView = {
 
     authorizeCommonProtocolsByUserRequest : function(retVal)
     {
-        var result = {ipAddress:"0.0.0.0"};
         var cidr = null;
         // Determine the CIDR for the protocol authorization request
         switch (retVal.enableProtocolsFor) {
         case "host":
-            result.ipAddress = this.core.api.queryCheckIP();
-            cidr = result.ipAddress.trim() + "/32";
+            var ipAddress = this.core.api.queryCheckIP();
+            cidr = ipAddress.trim() + "/32";
             break;
         case "network":
-            result.ipAddress = this.core.api.queryCheckIP("block");
-            cidr = result.ipAddress.trim();
+            cidr = this.core.api.queryCheckIP("block");
             break;
         default:
             cidr = null;

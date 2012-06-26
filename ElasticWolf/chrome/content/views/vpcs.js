@@ -60,6 +60,18 @@ var ew_VpcsTreeView = {
                 }
             }
         }
+
+        var found = false;
+        for (var j in tables) {
+            if (!tables[j].associations.length) {
+                if (!found) {
+                    found = true;
+                    list.push({ name: "Route Tables", folder: 1})
+                }
+                list.push({ name: "     " + tables[j].toString() });
+            }
+        }
+
         this.listToInfo(igws, "Internet Gateways", list);
         this.listToInfo(instances, "Instances", list);
         this.listToInfo(groups, "Security Groups", list);
@@ -320,27 +332,41 @@ var ew_SubnetsTreeView = {
         this.core.api.deleteSubnet(subnet.id, function() { me.refresh(); });
     },
 
-    createSubnet : function(vpc)
+    createSubnet : function(vpcId)
     {
-        var retVal = { ok : null, cidr : null, vpcid : vpc, az : null, tag: '' };
-        window.openDialog("chrome://ew/content/dialogs/create_subnet.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
+        var subnet = this.getSelected();
+        var azones = this.core.queryModel('availabilityZones');
+        var vpcs = this.core.queryModel('vpcs');
 
-        if (retVal.ok) {
-            var me = this;
-            function wrap() {
+        var values = this.core.promptInput('Create Subnet', [{label:'VPC',type:'menulist',list:vpcs,value:vpcId || (subnet && subnet.vpcId)},
+                                                             {label:'Subnet CIDR Block',type:'cidr',required:1} ,
+                                                             {label:'Subnet Name'} ,
+                                                             {label:'Availability zone',type:'menulist',list:azones,empty:1},
+                                                             {label:'Public Subnet?',type:'checkbox'}]);
+
+        if (!values) return;
+        var igws = this.core.queryModel('internetGateways','vpcId', values[0]);
+
+        var me = this;
+        function wrap() {
+            if (values[4]) {
+                me.core.api.createInternetGateway(function(igwId) {
+                    me.core.api.attachInternetGateway(igwId, values[0], function() {
+                        me.refresh();
+                        me.core.refreshModel('internetGateways');
+                    });
+                });
+            } else {
                 me.refresh();
-                if (confirm('If this subnet will be a "public" subnet (one where instances can communicate to or from the Internet), please attach / create Internet Gateway.\nDo you want to do it now?')) {
-                    ew_InternetGatewayTreeView.attachInternetGateway(retVal.vpcid, null);
-                }
             }
-            this.core.api.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(id) {
-                if (retVal.tag != '' && id) {
-                    me.core.setTags(id, retVal.tag, wrap);
-                } else {
-                    wrap();
-                }
-            });
         }
+        this.core.api.createSubnet(values[0], values[1], values[3], function(subnetId) {
+            if (values[2] && subnetId) {
+                me.core.setTags(subnetId, values[2], wrap);
+            } else {
+                wrap();
+            }
+        });
     },
 
     selectionChanged: function(event)
@@ -351,7 +377,7 @@ var ew_SubnetsTreeView = {
         ew_SubnetAclRulesTreeView.display(subnet.rules);
         ew_RouteTablesTreeView.select({ id: subnet.tableId });
         ew_NetworkAclsTreeView.select({ id: subnet.aclId });
-        ew_NetworkAclAssociationsTreeView.select({ subnetId: subnet.id }, ['subnetId'])
+        ew_NetworkAclAssociationsTreeView.select({ subnetId: subnet.id }, ['subnetId']);
         ew_RouteAssociationsTreeView.select({ subnetId: subnet.id }, ['subnetId'])
     },
 
@@ -455,11 +481,17 @@ var ew_InternetGatewayTreeView = {
     destroy : function()
     {
         var igw = this.getSelected();
-        if (igw == null) return;
-        if (!this.core.promptYesNo("Confirm", "Delete Internet Gateway " + igw.id + "?")) return;
+        if (!igw) return;
+        if (!this.core.promptYesNo("Confirm", (igw.vpcId ? "Detach and " : "") + "Delete Internet Gateway " + igw.id + "?")) return;
 
         var me = this;
-        this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+        if (igw.vpcId) {
+            this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {
+                me.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+            });
+        } else {
+            this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+        }
     },
 
     attach: function(vpcid, igwid, selected)
@@ -477,7 +509,7 @@ var ew_InternetGatewayTreeView = {
             var me = this;
             if (retVal.igwnew) {
                 this.core.api.createInternetGateway(function(id) {
-                    this.core.api.attachInternetGateway(id, retVal.vpcid, function() {me.refresh()});
+                    me.core.api.attachInternetGateway(id, retVal.vpcid, function() {me.refresh()});
                 });
             } else {
                 this.core.api.attachInternetGateway(retVal.igwid, retVal.vpcid, function() {me.refresh()});

@@ -11,12 +11,8 @@ var ew_ElasticIPTreeView = {
     },
 
     allocateAddress : function() {
-        var vpc = true
-        if (!this.core.isGovCloud()) {
-            vpc = this.core.promptYesNo("Confirm", "Is this Elastic IP to be used for VPC?");
-        }
         var me = this;
-        this.core.api.allocateAddress(vpc, function() { me.refresh() });
+        this.core.api.allocateAddress(this.core.isVpcMode(), function() { me.refresh() });
     },
 
     releaseAddress : function() {

@@ -180,18 +180,16 @@ var ew_Authorizer = {
   },
 
   getHostAddress : function() {
-      var retVal = {ipAddress:"0.0.0.0"};
-      retVal.ipAddress = this.core.api.queryCheckIP();
+      var ipAddress = this.core.api.queryCheckIP();
       var hostIP = document.getElementById("ew.source.host");
-      hostIP.value = retVal.ipAddress.replace(/\s/g,'') + "/32";
+      hostIP.value = ipAddress.replace(/\s/g,'') + "/32";
       document.getElementById("ew.hostnet.group").selectedIndex = 0;
   },
 
   getHostNetwork : function() {
-      var retVal = {ipAddress:"0.0.0.0"};
-      retVal.ipAddress = this.core.api.queryCheckIP("block");
+      var ipAddress = this.core.api.queryCheckIP("block");
       var hostSubnet = document.getElementById("ew.source.range");
-      hostSubnet.value = retVal.ipAddress.replace(/\s/g,'');
+      hostSubnet.value = ipAddress.replace(/\s/g,'');
       document.getElementById("ew.hostnet.group").selectedIndex = 1;
   },
 

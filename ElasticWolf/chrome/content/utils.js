@@ -1,3 +1,10 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+var fieldSeparator = " | ";
+
 var protPortMap = {
     any: "-1",
     other: "-1",
@@ -250,6 +257,7 @@ function formatJSON(obj, indent)
     return text;
 }
 
+// Return element by name, if given more than 1 arguments, return list of elements
 function $(element)
 {
     if (arguments.length > 1) {
@@ -261,6 +269,7 @@ function $(element)
     return document.getElementById(String(element));
 }
 
+// Sleep without blocking the UI main thread
 function sleep(ms)
 {
     var thread = Components.classes["@mozilla.org/thread-manager;1"].getService(Components.interfaces.nsIThreadManager).currentThread;
@@ -270,6 +279,7 @@ function sleep(ms)
     }
 }
 
+// Loop until file appear or timeout expired
 function waitForFile(file, ms)
 {
     var thread = Components.classes["@mozilla.org/thread-manager;1"].getService(Components.interfaces.nsIThreadManager).currentThread;
@@ -280,6 +290,7 @@ function waitForFile(file, ms)
     return FileIO.exists(file);
 }
 
+// Needed by venkman
 function toOpenWindowByType(inType, uri)
 {
     window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
@@ -345,6 +356,7 @@ function getNodeValue(item, nodeName, childName)
     }
 }
 
+// From the list of objects return simple list with only specified propetties from each object
 function plainList(list, id)
 {
     var nlist = [];
@@ -354,6 +366,7 @@ function plainList(list, id)
     return nlist;
 }
 
+// Eliminate duplicates in the list
 function uniqueList(list, id)
 {
     var nlist = new Array();
@@ -480,11 +493,6 @@ function isMacOS(platform)
 function isEbsRootDeviceType(rootDeviceType)
 {
     return (rootDeviceType == 'ebs');
-}
-
-function isVpc(instance)
-{
-    return (instance.vpcId != '');
 }
 
 function secondsToDays(secs)

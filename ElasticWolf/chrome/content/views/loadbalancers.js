@@ -78,7 +78,7 @@ var ew_LoadbalancerTreeView = {
         this.core.api.configureHealthCheck(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });
     },
 
-    registerinstances : function(){
+    registerInstances : function(){
         var elb = this.getSelected();
         if (elb == null) return;
         var instances = [];
@@ -97,7 +97,7 @@ var ew_LoadbalancerTreeView = {
         this.core.api.registerInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
     },
 
-    deregisterinstances : function(){
+    deregisterInstances : function(){
         var elb = this.getSelected();
         if (elb == null) return;
         var instances = [];
@@ -156,75 +156,56 @@ var ew_LoadbalancerTreeView = {
         this.core.api.setLoadBalancerListenerSSLCertificate(elb.name, values[0], values[1], function() { me.refresh() });
     },
 
-    disablestickness :function(){
+    disableStickness :function()
+    {
         var elb = this.getSelected();
         if (elb == null) return;
         if (!confirm("Disable stickiness for Load balancer " + elb.name+"?")) return;
         var me = this;
 
-        if (elb.APolicyName == "") {
-            var policy = elb.CPolicyName;
-            this.core.api.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
-        } else {
-            var policy = elb.APolicyName;
-            this.core.api.DeleteLoadBalancerPolicy(elb.name,policy, function() { me.refresh(); });
+        if (elb.LBPolicyName) {
+            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.LBPolicyName, function() { me.refresh(); });
+        }
+        if (elb.AppPolicyName) {
+            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.AppPolicyName, function() { me.refresh(); });
         }
     },
 
-    applicationsticknesss :function(){
+    applicationSticknesss :function()
+    {
         var elb = this.getSelected();
         if (elb == null) return;
-        var loadbalancername = elb.name;
-        var cname = elb.CookieName;
-        var policy = elb.APolicyName;
-        if (cname){
-            this.core.api.DeleteLoadBalancerPolicy(elb.name,policy);
+        if (elb.AppCookieName) {
+            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.AppPolicyName);
         }
-        var CookieName = prompt("Please provide your application cookie name:");
-        if (CookieName == null) return;
-        CookieName = CookieName.trim();
-        if (!CookieName) {
-            alert('Invalid cookie name.');
-            return;
-        }
+        var name = prompt("Please provide your application cookie name:");
+        if (!name) return;
         var me = this;
-        this.core.api.CreateAppCookieSP(loadbalancername,CookieName,function() { me.refresh() });
+        this.core.api.createAppCookieStickinessPolicy(elb.name, elb.AppPolicyName || elb.name + "-APolicy", name,function() { me.refresh() });
     },
 
-    loadbalancerstickness :function(){
+    loadbalancerStickness :function()
+    {
         var elb = this.getSelected();
         if (elb == null) return;
-        var loadbalancername = elb.name;
-        var policy = elb.CPolicyName;
-        var CookieExpirationPeriod = elb.CookieExpirationPeriod;
-        if (CookieExpirationPeriod){
-           this.core.api.DeleteLoadBalancerPolicy(elb.name,policy);
+        if (elb.LBCookieExpirationPeriod) {
+           this.core.api.deleteLoadBalancerPolicy(elb.name, elb.LBPolicyName);
         }
-        var CookieExpirationPeriod = prompt("Please provide your Cookie Expiration Period:");
-        if (CookieExpirationPeriod == null) return;
-        CookieExpirationPeriod = CookieExpirationPeriod.trim();
-
-        if (!/^[0-9]+$/.test(CookieExpirationPeriod)) {
+        var period = prompt("Please provide your Cookie Expiration Period in seconds:");
+        if (!period) return;
+        if (!/^[0-9]+$/.test(period)) {
             alert('Cookie expiration period must be long integer.');
             return;
         }
         var me = this;
-        this.core.api.CreateLBCookieSP(loadbalancername,CookieExpirationPeriod, function() { me.refresh(); });
+        this.core.api.createLBCookieStickinessPolicy(elb.name, elb.LBPolicyName || elb.name + "-CPolicy", period, function() { me.refresh(); });
     },
 
     menuChanged : function(){
         var elb = this.getSelected();
-        if (elb == null) return;
+        if (!elb) return;
         var menu = document.getElementById("loadbalancer.tree.contextmenu");
-        document.getElementById("loadbalancer.context.appstickness").disabled = !elb.CookieName ? true : false;
-        document.getElementById("loadbalancer.context.lbstickness").disabled = !elb.CookieExpirationPeriod ? true : false;
-        if (!elb.CookieName && !elb.CookieExpirationPeriod) {
-            document.getElementById("loadbalancer.context.disablestickness").disabled = true;
-            document.getElementById("loadbalancer.context.lbstickness").disabled = false;
-            document.getElementById("loadbalancer.context.appstickness").disabled = false;
-        } else {
-            document.getElementById("loadbalancer.context.disablestickness").disabled = false;
-        }
+        document.getElementById("loadbalancer.context.disablestickness").disabled = !elb.CookieName && !elb.CookieExpirationPeriod;
         document.getElementById("loadbalancer.context.instances").disabled = elb.Instances.length == 0 ? true : false;
         document.getElementById("loadbalancer.context.disablezones").disabled = elb.zones.length > 1 ? false : true;
         document.getElementById("loadbalancer.context.enableezones").disabled = elb.vpcId != '' ? true : false;

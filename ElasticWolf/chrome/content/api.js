@@ -380,7 +380,7 @@ var ew_api = {
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
         xmlhttp.overrideMimeType('text/plain');
-        return this.sendRequest(xmlhttp, url, null, true, "checkip", null, null, function(response) { response.result = String(response.responseText).trim(); }, type);
+        return this.sendRequest(xmlhttp, url, null, true, "checkip", "onCompleteResponseText", this);
     },
 
     download: function(url, headers, filename, callback, progresscb)
@@ -566,6 +566,11 @@ var ew_api = {
     onComplete : function(response, id)
     {
         if (id) response.result = getNodeValue(response.responseXML, id);
+    },
+
+    onCompleteResponseText : function(response, id)
+    {
+        response.result = response.responseText;
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -2115,7 +2120,7 @@ var ew_api = {
         var fp = getNodeValue(xmlDoc, "keyFingerprint");
         var material = getNodeValue(xmlDoc, "keyMaterial");
 
-        response.result = new Keypair(name, fp, material);
+        response.result = new KeyPair(name, fp, material);
     },
 
     deleteKeypair : function(name, callback)
@@ -2139,6 +2144,7 @@ var ew_api = {
             var routes = [], associations = []
             var id = getNodeValue(item, "routeTableId");
             var vpcId = getNodeValue(item, "vpcId");
+            var main = getNodeValue(item, "main");
 
             var routeItems = item.getElementsByTagName("routeSet")[0].childNodes;
             for ( var j = 0; routeItems && j < routeItems.length; j++) {
@@ -2163,7 +2169,7 @@ var ew_api = {
                 }
             }
             var tags = this.getTags(item);
-            list.push(new RouteTable(id, vpcId, routes, associations, tags));
+            list.push(new RouteTable(id, vpcId, main, routes, associations, tags));
         }
         this.core.setModel('routeTables', list);
         response.result = list;
@@ -2589,12 +2595,13 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
         var list = new Array();
-        var items = xmlDoc.getElementsByTagName("member");
+        var items = this.getItems(xmlDoc, "LoadBalancerDescriptions", "member");
         for ( var i = 0; i < items.length; i++) {
             var LoadBalancerName = getNodeValue(items[i], "LoadBalancerName");
             var CreatedTime = getNodeValue(items[i], "CreatedTime");
             var DNSName = getNodeValue(items[i], "DNSName");
             var hostName = getNodeValue(items[i], "CanonicalHostedZoneName");
+            var zoneId = getNodeValue(items[i], "CanonicalHostedZoneNameID");
             var Instances = new Array();
             var InstanceId = items[i].getElementsByTagName("InstanceId");
             for ( var j = 0; j < InstanceId.length; j++) {
@@ -2608,14 +2615,12 @@ var ew_api = {
                 var InstancePort = getNodeValue(listener[k], "InstancePort");
             }
 
-            var HealthCheck = items[i].getElementsByTagName("HealthCheck");
-            for ( var k = 0; k < HealthCheck.length; k++) {
-                var Interval = getNodeValue(HealthCheck[k], "Interval");
-                var Timeout = getNodeValue(HealthCheck[k], "Timeout");
-                var HealthyThreshold = getNodeValue(HealthCheck[k], "HealthyThreshold");
-                var UnhealthyThreshold = getNodeValue(HealthCheck[k], "UnhealthyThreshold");
-                var Target = getNodeValue(HealthCheck[k], "Target");
-            }
+            var Target = getNodeValue(items[i], "HealthCheck", "Target");
+            var Interval = getNodeValue(items[i], "HealthCheck", "Interval");
+            var Timeout = getNodeValue(items[i], "HealthCheck", "Timeout");
+            var HealthyThreshold = getNodeValue(items[i], "HealthCheck", "HealthyThreshold");
+            var UnhealthyThreshold = getNodeValue(items[i], "HealthCheck", "UnhealthyThreshold");
+            var HealthCheck = new LoadBalancerHealthCheck(Target, Interval, Timeout, HealthyThreshold, UnhealthyThreshold);
 
             var azones = new Array();
             var AvailabilityZones = items[i].getElementsByTagName("AvailabilityZones");
@@ -2638,9 +2643,8 @@ var ew_api = {
                 var CPolicyName = getNodeValue(LBCookieStickinessPolicies[k], "PolicyName");
             }
 
-            var securityGroups = items[i].getElementsByTagName("SecurityGroups");
             var groupList = [];
-
+            var securityGroups = items[i].getElementsByTagName("SecurityGroups");
             if (securityGroups[0] && securityGroups[0].childNodes.length > 0) {
                 var securityGroupMembers = securityGroups[0].getElementsByTagName("member");
                 for ( var k = 0; k < securityGroupMembers.length; k++) {
@@ -2648,23 +2652,22 @@ var ew_api = {
                 }
             }
 
+            var srcGroup = getNodeValue(items[i], "SourceSecurityGroup", "GroupName");
             var vpcId = getNodeValue(items[i], "VPCId");
-            var subnets = items[i].getElementsByTagName("Subnets");
-            var subnetList = [];
 
+            var subnetList = [];
+            var subnets = items[i].getElementsByTagName("Subnets");
             if (subnets[0] && subnets[0].childNodes.length > 0) {
                 var subnetMembers = subnets[0].getElementsByTagName("member");
                 for ( var k = 0; k < subnetMembers.length; k++) {
                     subnetList.push(subnetMembers[k].firstChild.nodeValue);
                 }
             }
-
-            if (LoadBalancerName != '' && CreatedTime != '') {
-                list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
-            }
+            list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, zoneId, Instances, Protocol, LoadBalancerPort, InstancePort, HealthCheck, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, srcGroup, groupList));
         }
         this.core.setModel('loadBalancers', list);
         response.result = list;
+        debug(response.responseText)
     },
 
     describeInstanceHealth : function(LoadBalancerName, callback)
@@ -2804,12 +2807,8 @@ var ew_api = {
         this.queryELB("DisableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
     },
 
-    createAppCookieStickinessPolicy : function(LoadBalancerName, CookieName, callback)
+    createAppCookieStickinessPolicy : function(LoadBalancerName, PolicyName, CookieName, callback)
     {
-        var uniqueid = new Date;
-        var id = uniqueid.getTime();
-
-        var PolicyName = "AWSConsolePolicy-" + id;
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "CookieName", CookieName ]);
@@ -2817,12 +2816,8 @@ var ew_api = {
         this.queryELB("CreateAppCookieStickinessPolicy", params, this, false, "onComplete", callback);
     },
 
-    createLBCookieStickinessPolicy : function(LoadBalancerName, CookieExpirationPeriod, callback)
+    createLBCookieStickinessPolicy : function(LoadBalancerName, PolicyName, CookieExpirationPeriod, callback)
     {
-        var uniqueid = new Date;
-        var id = uniqueid.getTime();
-
-        var PolicyName = "AWSConsolePolicy-" + id;
         var params = []
         params.push([ "CookieExpirationPeriod", CookieExpirationPeriod ]);
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -2830,12 +2825,11 @@ var ew_api = {
         this.queryELB("CreateLBCookieStickinessPolicy", params, this, false, "onComplete", callback);
     },
 
-    deleteLoadBalancerPolicy : function(LoadBalancerName, policy, callback)
+    deleteLoadBalancerPolicy : function(LoadBalancerName, PolicyName, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
-
-        params.push([ "PolicyName", policy ]);
+        params.push([ "PolicyName", PolicyName ]);
         this.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
     },
 
@@ -2935,14 +2929,6 @@ var ew_api = {
             params.push([ "LoadBalancerPorts.member." + (i + 1), LoadBalancerPorts[i] ]);
         }
         this.queryELB("DeleteLoadBalancerListeners", params, this, false, "onComplete", callback);
-    },
-
-    deleteLoadBalancerPolicy: function(LoadBalancerName, PolicyName, callbcak)
-    {
-        var params = []
-        params.push([ "LoadBalancerName", LoadBalancerName ]);
-        params.push([ "PolicyName", PolicyName]);
-        this.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
     },
 
     uploadServerCertificate : function(ServerCertificateName, CertificateBody, PrivateKey, Path, callback)

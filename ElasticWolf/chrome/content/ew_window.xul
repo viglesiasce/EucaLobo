@@ -92,7 +92,7 @@
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
-            { name: "ew.tabs.vpcinstance",   views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: false }] } ],
+            { name: "ew.tabs.instance.vpc",  views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: false }] } ],
               owner: "ew.tabs.instance"      },
 
             { name: "ew.tabs.image",         views: [ { id: "ew.images.view", view: ew_AMIsTreeView } ], },
@@ -111,13 +111,13 @@
             { name: "ew.tabs.securitygroup", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: true }] },
                                                       { id: "ew.permissions.view", view: ew_PermissionsTreeView }], },
 
-            { name: "ew.tabs.vpcgroup",      views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: false }] },
+            { name: "ew.tabs.securitygroup.vpc", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: false }] },
                                                       { id: "ew.permissions.view", view: ew_PermissionsTreeView }],
               owner: "ew.tabs.securitygroup" },
 
             { name: "ew.tabs.eip",           views: [ { id: "ew.eip.view", view: ew_ElasticIPTreeView, filterList: [ { name: "domain", value: "standard" }] }], },
 
-            { name: "ew.tabs.vpceip",        views: [ { id: "ew.eip.view", view: ew_ElasticIPTreeView, filterList: [ { name: "domain", value: "vpc" }] }],
+            { name: "ew.tabs.eip.vpc",       views: [ { id: "ew.eip.view", view: ew_ElasticIPTreeView, filterList: [ { name: "domain", value: "vpc" }] }],
               owner: "ew.tabs.eip"           },
 
             { name: "ew.tabs.volume",        views: [ { id: "ew.volumes.view", view: ew_VolumeTreeView }], },
@@ -127,8 +127,8 @@
             { name: "ew.tabs.loadbalancer",  views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: true }] },
                                                       { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }], },
 
-            { name: "ew.tabs.vpcelb",        views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: false }] },
-                                                      { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }],
+            { name: "ew.tabs.loadbalancer.vpc", views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: false }] },
+                                                         { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }],
               owner: "ew.tabs.loadbalancer"  },
 
             { name: "ew.tabs.bundletask",    views: [ { id: "ew.bundleTasks.view", view: ew_BundleTasksTreeView } ], },
@@ -280,15 +280,15 @@
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.vpc.label;" value="ew.tabs.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.subnet.label;" value="ew.tabs.subnet" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.vpcinstance" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.vpcgroup" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance.vpc" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.acl.label;" value="ew.tabs.acl" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.dhcp.label;" value="ew.tabs.dhcp" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.routing.label;" value="ew.tabs.routing" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.igw.label;" value="ew.tabs.igw" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.vpceip" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eni.label;" value="ew.tabs.eni" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.vpcelb" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.vgw.label;" value="ew.tabs.vgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.cgw.label;" value="ew.tabs.cgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.vpn.label;" value="ew.tabs.vpn" /></treerow></treeitem>

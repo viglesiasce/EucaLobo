@@ -22,7 +22,6 @@ var ew_core = {
     cmdline: null,
     components : {},
     progress: {},
-    separator: " | ",
 
     // Model objects
     model: {
@@ -234,6 +233,8 @@ var ew_core = {
             // Assign new filter list and refresh contents
             tab.views[i].view.filterList = tab.views[i].filterList;
             tab.views[i].view.invalidate();
+            // Focus the first view
+            if (i == 0 && tab.views[i].view.focus) tab.views[i].view.focus();
         }
         // Non view tabs cannot be selected
         if (tab.call) {
@@ -243,6 +244,13 @@ var ew_core = {
 
         this.setStrPrefs("ew.tab.current", name);
         return true;
+    },
+
+    // Returns true if the current tab is in VPC display mode
+    isVpcMode: function()
+    {
+        var tab = this.core.getCurrentTab();
+        return tab && tab.name.indexOf('.vpc') > 0 ? true : false;
     },
 
     isViewVisible: function(view)

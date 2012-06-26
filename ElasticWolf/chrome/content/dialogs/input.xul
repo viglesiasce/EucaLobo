@@ -78,8 +78,11 @@
              item.setAttribute('size', rc.items[i].size || 5);
              break;
 
+          case 'cidr':
+          case 'ip':
+          case 'email':
           case 'textbox':
-             item = document.createElement(type);
+             item = document.createElement('textbox');
              item.setAttribute('value', value);
              item.setAttribute('size', rc.items[i].size || 45);
              break;
@@ -221,10 +224,38 @@
              rc.values[i] = obj.checked;
              break;
 
+          case 'cidr':
+             rc.values[i] = obj.value;
+             if (!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+/.test(obj.value)) {
+                 alert('Invalid CIDR Block');
+                 return false;
+             }
+             break;
+
+          case 'email':
+             rc.values[i] = obj.value;
+             if (!/([^@]+)@([^@]+)/.test(obj.value)) {
+                 alert('Invalid Email Address');
+                 return false;
+             }
+             break;
+
+          case 'ip':
+             rc.values[i] = obj.value;
+             if (!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/.test(obj.value)) {
+                 alert('Invalid IP Address');
+                 return false;
+             }
+             break;
+
           default:
              rc.values[i] = obj.value;
           }
-
+          // Custom validator
+          if (rc.items[i].validate && !rc.items[i].validate(obj.value)) {
+              alert(rc.items[i].label + " has invalid data");
+              return false;
+          }
           // Make sure required fields are not empty
           if (rc.items[i].required && !rc.values[i]) {
              alert(rc.items[i].label + " is required");

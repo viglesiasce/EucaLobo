@@ -30,7 +30,8 @@ var ew_RouteTablesTreeView = {
     deleteSelected : function()
     {
         var table = this.getSelected();
-        if (!table || !confirm("Delete route table " + table.id + "?")) return;
+        if (!table || table.main == "true") return;
+        if (!confirm("Delete route table " + table.id + "?")) return;
         var me = this;
         this.core.api.deleteRouteTable(table.id, function() { me.refresh() });
     },
@@ -57,7 +58,8 @@ var ew_RoutesTreeView = {
     deleteRoute : function()
     {
         var item = this.getSelected();
-        if (!item || !confirm("Delete route  " + item.cidr + "?")) return;
+        if (!item || item.gatewayId == "local") return;
+        if (!confirm("Delete route  " + item.cidr + "?")) return;
         this.core.api.deleteRoute(item.tableId, item.cidr, function() {ew_RouteTablesTreeView.refresh(true); });
     },
 };

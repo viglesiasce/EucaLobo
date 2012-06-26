@@ -419,10 +419,11 @@ var ew_InstancesTreeView = {
             }
             return;
         }
+
         var eips = [];
         for (var i in eipList) {
             var eip = eipList[i];
-            if ((isVpc(instance) && eip.domain != "vpc") || (!isVpc(instance) && eip.domain == "vpc")) continue;
+            if ((instance.vpcId != '' && eip.domain != "vpc") || (instance.vpcId == '' && eip.domain == "vpc")) continue;
             eips.push(eip)
         }
         var idx = this.core.promptList("Associate EIP with Instance", "Which EIP would you like to associate with " + instance.toString() + "?", eips);

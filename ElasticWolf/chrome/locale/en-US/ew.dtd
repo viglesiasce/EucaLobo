@@ -601,6 +601,7 @@
 <!ENTITY ew.loadbalancer.dnsname.label "DNS Name">
 <!ENTITY ew.loadbalancer.instances.label "Instances">
 <!ENTITY ew.loadbalancer.zone.label "Availability Zones">
+<!ENTITY ew.loadbalancer.HealthCheck.label "HealthCheck">
 <!ENTITY ew.loadbalancer.Interval.label "Interval">
 <!ENTITY ew.loadbalancer.Timeout.label "Timeout">
 <!ENTITY ew.loadbalancer.HealthyThreshold.label "Healthy">

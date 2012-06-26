@@ -22,6 +22,8 @@
                    <splitter class="tree-splitter" />
                    <treecol id="routeTable.vpcId" label="VPC Id" flex="1" persist="width ordinal hidden sortDirection" />
                    <splitter class="tree-splitter" />
+                   <treecol id="route.main" label="Main" flex="1" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
                </treecols>
                <treechildren context="ew.routetables.contextmenu" />
           </tree>
@@ -44,6 +46,7 @@
                         <treecol id="route.cidr" label="CIDR" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="route.state" label="State" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                         <treecol id="route.gatewayId" label="Gateway" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="route.instanceId" label="Instance" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />

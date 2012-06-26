@@ -511,10 +511,11 @@ var ew_KeypairsTreeView = {
         var me = this;
         this.core.api.createKeypair(name, function(keypair) {
             // Save key in the file
-            var file = this.core.getPrivateKeyFile(name);
+            var file = me.core.getPrivateKeyFile(name);
             var fp = FileIO.open(file)
             FileIO.write(fp, keypair.material + "\n\n", "");
             me.refresh();
+            me.core.alertDialog('Keypair Created', 'KeyPair ' + name + ' is saved in the ' + file);
         });
     },
 
