@@ -51,7 +51,7 @@
     }
 
     function init() {
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         document.getElementById("ew.route.title").value = this.retVal.title;

@@ -18,57 +18,32 @@ var ew_InstancesTreeView = {
         return TreeView.filter.call(this, nlist);
     },
 
-    showBundleDialog : function() {
+    showBundleDialog : function()
+    {
+        var me = this;
         var retVal = {ok:null,bucketName:null,prefix:null};
         var instance = this.getSelected();
         if (instance == null) return;
 
-        do {
-            var bucketReg = null;
-            window.openDialog("chrome://ew/content/dialogs/bundle_instance.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_session, retVal);
-            if (retVal.ok) {
-                // Create the bucket if it doesn't exist
-                retVal.ok = this.session.api.createS3Bucket(retVal.bucketName);
-            } else {
-                // The user doesn't want to proceed!
-                // If you get rid of this, the dialog keeps popping back up!
-                break;
-            }
+        window.openDialog("chrome://ew/content/dialogs/bundle_instance.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_core, retVal);
+        if (!retVal.ok) return;
+        this.core.api.createS3Bucket(retVal.bucketName);
 
-            if (retVal.ok) {
-                bucketReg = this.session.api.getS3BucketLocation(retVal.bucketName) || ew_session.region;
-                retVal.ok = (ew_session.region == bucketReg);
-                if (!retVal.ok) {
-                    alert ("You must specify a bucket in the '" + ew_session.region + "'. Please try again");
-                    retVal.bucketName = "";
-                }
-            }
-
-            // Determine whether the user owns the specified bucket
-            if (retVal.ok) {
-                retVal.ok = this.session.api.writeS3KeyInBucket(retVal.bucketName, retVal.prefix + ".manifest.xml", "ew-write-test", bucketReg);
-                if (!retVal.ok) {
-                    alert ("ERROR: It appears that you don't have write permissions on the bucket: " + retVal.bucketName);
-                }
-            }
-        } while (!retVal.ok);
-
-        if (retVal.ok) {
-            this.session.api.bundleInstance(instance.id, retVal.bucketName, retVal.prefix, ew_session.getActiveCredentials(), function() {
-                ew_model.refresh('bundleTasks');
-                ew_session.selectTab('ew.tabs.bundletask');
-            });
-        }
+        this.core.api.bundleInstance(instance.id, retVal.bucketName, retVal.prefix, this.core.getActiveCredentials(), function() {
+            me.core.refreshModel('bundleTasks');
+            me.core.selectTab('ew.tabs.bundletask');
+        });
     },
 
-    showCreateImageDialog : function() {
+    showCreateImageDialog : function()
+    {
         var retVal = {ok:null,amiName:null,amiDescription:null,noReboot:null};
         var instance = this.getSelected();
         if (instance == null) return;
 
-        window.openDialog("chrome://ew/content/dialogs/create_image.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_image.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_core, retVal);
         if (retVal.ok) {
-            this.session.api.createImage(instance.id, retVal.amiName, retVal.amiDescription, retVal.noReboot, function(id) {
+            this.core.api.createImage(instance.id, retVal.amiName, retVal.amiDescription, retVal.noReboot, function(id) {
                 alert("A new AMI is being created and will be available in a moment.\n\nThe AMI ID is: "+id);
             });
         }
@@ -86,7 +61,7 @@ var ew_InstancesTreeView = {
         if (!this.isInstanceReadyToUse(instance)) return;
 
         // Determine if there is actually an EBS volume to attach to
-        var volumes = ew_session.model.get('volumes');
+        var volumes = this.core.queryModel('volumes');
         if (volumes == null || volumes.length == 0) {
             // There are no volumes to attach to.
             var fRet = confirm ("Would you like to create a new EBS volume to attach to this instance?");
@@ -94,19 +69,19 @@ var ew_InstancesTreeView = {
                 fRet = ew_VolumeTreeView.createVolume();
             }
             if (fRet) {
-                volumes = ew_session.model.get('volumes');
+                volumes = this.core.queryModel('volumes');
             } else {
                 return;
             }
         }
 
         var retVal = {ok:null, volumeId:null, device:null, windows: isWindows(instance.platform) };
-        window.openDialog("chrome://ew/content/dialogs/attach_ebs_volume.xul",null, "chrome,centerscreen,modal,resizable", ew_session, instance, retVal);
+        window.openDialog("chrome://ew/content/dialogs/attach_ebs_volume.xul",null, "chrome,centerscreen,modal,resizable", ew_core, instance, retVal);
         if (retVal.ok) {
             ew_VolumeTreeView.attachEBSVolume(retVal.volumeId,instance.id,retVal.device);
             ew_VolumeTreeView.refresh();
             ew_VolumeTreeView.select({ id: retVal.volumeId });
-            ew_session.selectTab('ew.tabs.volume')
+            this.core.selectTab('ew.tabs.volume')
         }
     },
 
@@ -119,10 +94,10 @@ var ew_InstancesTreeView = {
         }
 
         // Determine if there is actually an EIP to associate with
-        var eipList = ew_session.model.get('addresses');
+        var eipList = this.core.queryModel('addresses');
         if (!eipList) {
             if (confirm ("Would you like to create a new Elastic IP to associate with this instance?")) {;
-                ew_session.selectTab('ew.tabs.eip');
+                this.core.selectTab('ew.tabs.eip');
                 ew_ElasticIPTreeView.allocateAddress();
             }
             return;
@@ -133,16 +108,16 @@ var ew_InstancesTreeView = {
             if ((isVpc(instance) && eip.domain != "vpc") || (!isVpc(instance) && eip.domain == "vpc")) continue;
             eips.push(eip)
         }
-        var idx = ew_session.promptList("Associate EIP with Instance", "Which EIP would you like to associate with " + instance.toString() + "?", eips);
+        var idx = this.core.promptList("Associate EIP with Instance", "Which EIP would you like to associate with " + instance.toString() + "?", eips);
         if (idx < 0) return;
         var eip = eips[idx];
 
         if (eip.instanceId) {
-            if (!this.session.promptYesNo("Confirm", "Address " + eip.publicIp + " is already mapped to an instance, continue?")) {
+            if (!this.core.promptYesNo("Confirm", "Address " + eip.publicIp + " is already mapped to an instance, continue?")) {
                 return false;
             }
         }
-        this.session.api.associateAddress(eip, instance.id, null, function() { me.refresh() });
+        this.core.api.associateAddress(eip, instance.id, null, function() { me.refresh() });
     },
 
     retrieveRSAKeyFromKeyFile : function(keyFile, fSilent)
@@ -238,9 +213,9 @@ var ew_InstancesTreeView = {
 
     promptForKeyFile : function(keyName)
     {
-        var keyFile = ew_session.promptForFile("Select the EC2 Private Key File for key: " + keyName);
+        var keyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + keyName);
         if (keyFile) {
-            ew_session.setLastEC2PrivateKeyFile(keyFile);
+            this.core.setLastEC2PrivateKeyFile(keyFile);
         }
         log("getkey: " + keyName + "=" + keyFile);
         return keyFile;
@@ -256,7 +231,7 @@ var ew_InstancesTreeView = {
 
         var password = "";
         var fSuccess = true;
-        var output = this.session.api.getConsoleOutput(instance.id);
+        var output = this.core.api.getConsoleOutput(instance.id);
 
         if (output == null || output.length == 0) {
             alert ("This instance is currently being configured. Please try again in a short while...");
@@ -267,7 +242,7 @@ var ew_InstancesTreeView = {
         var passwordHex = this.decodePassword(output, fSilent);
         if (!passwordHex) return;
 
-        var prvKeyFile = ew_session.getPrivateKeyFile(instance.keyName);
+        var prvKeyFile = this.core.getPrivateKeyFile(instance.keyName);
         log("Private Key File: " + prvKeyFile);
 
         while (fSuccess) {
@@ -282,7 +257,7 @@ var ew_InstancesTreeView = {
 
             if (!fSuccess) {
                 // Has a default key file been saved for this user account?
-                var savedKeyFile = ew_session.getLastEC2PrivateKeyFile();
+                var savedKeyFile = this.core.getLastEC2PrivateKeyFile();
                 if (savedKeyFile.length > 0 && prvKeyFile != savedKeyFile) {
                     prvKeyFile = savedKeyFile;
                     log("Using default private key file");
@@ -311,7 +286,7 @@ var ew_InstancesTreeView = {
 
                 // Display the admin password to the user
                 if ((password != null) && (password.length > 0)) {
-                    ew_session.copyToClipboard(password);
+                    this.core.copyToClipboard(password);
                     if (!fSilent) {
                         alert ("Instance Administrator Password [" + password + "] has been saved to clipboard");
                     }
@@ -398,7 +373,7 @@ var ew_InstancesTreeView = {
         }
 
         var me = this;
-        this.session.api.runMoreInstances(instance, count, function() { me.refresh()});
+        this.core.api.runMoreInstances(instance, count, function() { me.refresh()});
     },
 
     terminateInstance : function() {
@@ -407,82 +382,87 @@ var ew_InstancesTreeView = {
         if (!confirm("Terminate " + instances.length + " instance(s)?")) return;
 
         var me = this;
-        this.session.api.terminateInstances(instances, function() { me.refresh()});
+        this.core.api.terminateInstances(instances, function() { me.refresh()});
     },
 
-    stopInstance : function(force) {
+    stopInstance : function(force)
+    {
         var instances = this.getSelectedAll();
         if (instances.length == 0) return;
         if (!confirm("Stop " + instances.length + " instance(s)?")) return;
 
         var me = this;
-        this.session.api.stopInstances(instances, force, function() { me.refresh()});
+        this.core.api.stopInstances(instances, force, function() { me.refresh()});
     },
 
-    changeUserData: function() {
+    changeUserData: function()
+    {
+        var me = this;
         var instance = this.getSelected();
-        if (instance == null) return;
+        if (!instance) return;
 
-        var returnValue = {accepted:false , result:null};
-        this.session.api.describeInstanceAttribute(instance.id, "userData", function(value) {
-            var text = ew_session.promptForText('Instance User Data:', (value ? Base64.decode(value) : ''));
-            if (text == null) return;
-
-            this.session.api.modifyInstanceAttribute(instance.id, 'UserData', Base64.encode(text));
+        this.core.api.describeInstanceAttribute(instance.id, "userData", function(value) {
+            var text = me.core.promptForText('Instance User Data:', (value ? Base64.decode(value) : ''));
+            if (!text) return;
+            me.core.api.modifyInstanceAttribute(instance.id, 'UserData', Base64.encode(text));
         });
     },
 
-    changeInstanceType: function() {
+    changeInstanceType: function()
+    {
         var instance = this.getSelected();
         if (!instance) return;
         var me = this;
-        this.session.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
-            var idx = ew_session.promptList('Instance Type', 'Select instance type:', instanceTypes );
+        this.core.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
+            var idx = me.core.promptList('Instance Type', 'Select instance type:', instanceTypes );
             if (idx == -1) return;
-            this.session.api.modifyInstanceAttribute(instance.id, 'InstanceType', instanceTypes[idx], function() { me.refresh() });
+            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', instanceTypes[idx], function() { me.refresh() });
         });
     },
 
-    changeTerminationProtection : function() {
+    changeTerminationProtection : function()
+    {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
         var me = this;
 
-        this.session.api.describeInstanceAttribute(instances[0].id, "disableApiTermination", function(value) {
+        this.core.api.describeInstanceAttribute(instances[0].id, "disableApiTermination", function(value) {
             value = (value == "true")
             if (confirm((value ? "Disable" : "Enable") + " Termination Protection?")) {
                 for (var i = 0; i < instances.length; i++) {
-                  this.session.api.modifyInstanceAttribute(instances[i].id, "DisableApiTermination", !value);
+                    me.core.api.modifyInstanceAttribute(instances[i].id, "DisableApiTermination", !value);
                 }
             }
         });
     },
 
-    changeSourceDestCheck : function() {
+    changeSourceDestCheck : function()
+    {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
         var me = this;
 
-        this.session.api.describeInstanceAttribute(instances[0].id, "sourceDestCheck", function(value) {
+        this.core.api.describeInstanceAttribute(instances[0].id, "sourceDestCheck", function(value) {
             value = (value == "true")
             if (confirm((value ? "Disable" : "Enable") + " source/destination checking?")) {
                 for (var i = 0; i < instances.length; i++) {
-                  this.session.api.modifyInstanceAttribute(instances[i].id, "SourceDesctCheck", !value);
+                    me.core.api.modifyInstanceAttribute(instances[i].id, "SourceDesctCheck", !value);
                 }
             }
         });
     },
 
-    changeShutdownBehaviour : function(value) {
+    changeShutdownBehaviour : function(value)
+    {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
         var me = this;
 
-        this.session.api.describeInstanceAttribute(instances[0].id, "instanceInitiatedShutdownBehavior", function(value) {
+        this.core.api.describeInstanceAttribute(instances[0].id, "instanceInitiatedShutdownBehavior", function(value) {
             value = value == "stop" ? "terminate" : "stop";
             if (confirm("Change instance initiated shutdown behaviour to " + value + " for "+instances.length+" instance(s)?")) {
                 for (var i = 0; i < instances.length; i++) {
-                    this.session.api.modifyInstanceAttribute(instances[i].id, "InstanceInitiatedShutdownBehavior", value);
+                    me.core.api.modifyInstanceAttribute(instances[i].id, "InstanceInitiatedShutdownBehavior", value);
                 }
             }
         });
@@ -494,7 +474,7 @@ var ew_InstancesTreeView = {
         if (instances.length == 0) return;
         if (!confirm("Start monitoring "+instances.length+" instance(s)?")) return;
         var me = this;
-        this.session.api.monitorInstances(instances, function() { me.refresh(); });
+        this.core.api.monitorInstances(instances, function() { me.refresh(); });
     },
 
     stopMonitoring: function()
@@ -503,7 +483,7 @@ var ew_InstancesTreeView = {
         if (instances.length == 0) return;
         if (!confirm("Stop monitoring "+instances.length+" instance(s)?")) return;
         var me = this;
-        this.session.api.unmonitorInstances(instances, function() { me.refresh(); });
+        this.core.api.unmonitorInstances(instances, function() { me.refresh(); });
     },
 
     rebootInstance: function()
@@ -512,20 +492,22 @@ var ew_InstancesTreeView = {
         if (instances.length == 0) return;
         if (!confirm("Reboot "+instances.length+" instance(s)?")) return;
         var me = this;
-        this.session.api.rebootInstances(instances, function() { me.refresh(); });
+        this.core.api.rebootInstances(instances, function() { me.refresh(); });
     },
 
-    startInstance : function() {
+    startInstance : function()
+    {
         var instances = this.getSelectedAll();
         if (instances.length == 0) return;
         var me = this;
-        this.session.api.startInstances(instances, function() {me.refresh()});
+        this.core.api.startInstances(instances, function() {me.refresh()});
     },
 
-    isInstanceReadyToUse : function(instance) {
+    isInstanceReadyToUse : function(instance)
+    {
         var ret = false;
         if (isWindows(instance.platform)) {
-            var output = this.session.api.getConsoleOutput(instance.id);
+            var output = this.core.api.getConsoleOutput(instance.id);
             // Parse the response to determine whether the instance is ready to use
             ret = output.indexOf("Windows is Ready to use") >= 0;
         } else {
@@ -541,7 +523,7 @@ var ew_InstancesTreeView = {
     {
         var instance = this.getSelected();
         if (!instance) return;
-        var output = this.session.api.getConsoleOutput(instance.id);
+        var output = this.core.api.getConsoleOutput(instance.id);
         window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", output);
     },
 
@@ -554,8 +536,8 @@ var ew_InstancesTreeView = {
     {
         var fAdd = true;
         var openCIDR = "0.0.0.0/0";
-        var hostCIDR = ew_session.queryCheckIP() + "/32";
-        var networkCIDR = ew_session.queryCheckIP("block");
+        var hostCIDR = this.core.api.queryCheckIP() + "/32";
+        var networkCIDR = this.core.api.queryCheckIP("block");
 
         debug("Host: " + hostCIDR + ", net:" + networkCIDR)
 
@@ -598,12 +580,12 @@ var ew_InstancesTreeView = {
 
         if (fAdd) {
             var result = false;
-            if (ew_session.getBoolPrefs("ew.prompt.open.port", true)) {
+            if (this.core.getBoolPrefs("ew.prompt.open.port", true)) {
                 port = port.toString();
-                var msg = ew_session.getAppName() + " needs to open " + transport.toUpperCase() + " port " + port + " (" + protocol + ") to continue. Click Ok to authorize this action";
+                var msg = this.core.getAppName() + " needs to open " + transport.toUpperCase() + " port " + port + " (" + protocol + ") to continue. Click Ok to authorize this action";
                 var check = {value: false};
-                result = ew_session.promptConfirm("EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
-                ew_session.setBoolPrefs("ew.prompt.open.port", !check.value);
+                result = this.core.promptConfirm("EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
+                this.core.setBoolPrefs("ew.prompt.open.port", !check.value);
             } else {
                 result = true;
             }
@@ -616,7 +598,7 @@ var ew_InstancesTreeView = {
                 // Authorize first available group
                 for (var i in groups) {
                     if (groups[i]) {
-                        this.session.api.authorizeSourceCIDR('Ingress', groups[i], transport, port, port, hostCIDR, wrap);
+                        this.core.api.authorizeSourceCIDR('Ingress', groups[i], transport, port, port, hostCIDR, wrap);
                         result = true
                         break;
                     }
@@ -642,7 +624,7 @@ var ew_InstancesTreeView = {
     openConnectionPort : function(instance)
     {
         // Get the group in which this instance was launched
-        var groups = ew_model.get('securityGroups');
+        var groups = this.core.queryModel('securityGroups');
         var instGroups = new Array(instance.groups.length);
         for (var j in instance.groups) {
             instGroups[j] = null;
@@ -667,8 +649,8 @@ var ew_InstancesTreeView = {
     // ipType: 0 - private, 1 - public, 2 - elastic, 3 - public or elastic, 4 - dns name
     connectTo : function(instance, ipType)
     {
-        var args = ew_session.getSSHArgs();
-        var cmd = ew_session.getSSHCommand();
+        var args = this.core.getSSHArgs();
+        var cmd = this.core.getSSHCommand();
 
         var hostname = !ipType ? instance.privateIpAddress :
                        ipType == 1 || ipType == 3 ? instance.ipAddress :
@@ -689,8 +671,8 @@ var ew_InstancesTreeView = {
         }
 
         if (isWindows(instance.platform)) {
-            args = ew_session.getRDPArgs();
-            cmd = ew_session.getRDPCommand();
+            args = this.core.getRDPArgs();
+            cmd = this.core.getRDPCommand();
             if (isMac(navigator.platform)) {
                 // On Mac OS X, we use a totally different connection mechanism that isn't particularly extensible
                 this.getAdminPassword(instance);
@@ -714,7 +696,7 @@ var ew_InstancesTreeView = {
         } else
 
         if (args.indexOf("${key}") >= 0) {
-            var keyFile = ew_session.getPrivateKeyFile(instance.keyName);
+            var keyFile = this.core.getPrivateKeyFile(instance.keyName);
             if (!FileIO.exists(keyFile)) {
                 keyFile = this.promptForKeyFile(instance.keyName);
             }
@@ -725,7 +707,7 @@ var ew_InstancesTreeView = {
             params.push(["key", keyFile])
         }
 
-        if (args.indexOf("${login}") >= 0 && ew_session.getStrPrefs("ew.ssh.user") == "") {
+        if (args.indexOf("${login}") >= 0 && this.core.getStrPrefs("ew.ssh.user") == "") {
             var login = prompt("Please provide SSH user name:");
             if (login && login != "") {
                 params.push(["login", login])
@@ -733,15 +715,15 @@ var ew_InstancesTreeView = {
         }
 
         // Common substitution
-        args = ew_session.getArgsProcessed(args, params, hostname);
+        args = this.core.getArgsProcessed(args, params, hostname);
 
-        ew_session.launchProcess(cmd, args);
+        this.core.launchProcess(cmd, args);
 
     },
 
     rdpToMac : function(hostname, cmd)
     {
-        var filename = ew_session.getHome() + "/" + ew_session.getAppName() + "/" + hostname + ".rdp";
+        var filename = this.core.getHome() + "/" + this.core.getAppName() + "/" + hostname + ".rdp";
         var config = FileIO.open(filename)
 
         if (!config.exists()) {
@@ -760,7 +742,7 @@ var ew_InstancesTreeView = {
             FileIO.write(config, xml);
         }
 
-        ew_session.launchProcess(cmd, [filename]);
+        this.core.launchProcess(cmd, [filename]);
     },
 
     isRefreshable : function()

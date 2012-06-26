@@ -13,16 +13,16 @@ var ew_VpcsTreeView = {
         if (vpc == null) return;
 
         var list = [];
-        var tables = this.session.model.get('routeTables','vpcId', vpc.id);
-        var igws = this.session.model.get('internetGateways','vpcId', vpc.id);
-        var acls = this.session.model.get('networkAcls','vpcId', vpc.id);
-        var enis = this.session.model.get('networkInterfaces','vpcId', vpc.id);
-        var vgws = this.session.model.get('vpnGateways');
-        var vpns = this.session.model.get('vpnConnections');
-        var cgws = this.session.model.get('customerGateways');
-        var subnets = this.session.model.get('subnets','vpcId', vpc.id);
-        var instances = this.session.model.get('instances','vpcId', vpc.id);
-        var groups = this.session.model.get('securityGroups','vpcId', vpc.id);
+        var tables = this.core.queryModel('routeTables','vpcId', vpc.id);
+        var igws = this.core.queryModel('internetGateways','vpcId', vpc.id);
+        var acls = this.core.queryModel('networkAcls','vpcId', vpc.id);
+        var enis = this.core.queryModel('networkInterfaces','vpcId', vpc.id);
+        var vgws = this.core.queryModel('vpnGateways');
+        var vpns = this.core.queryModel('vpnConnections');
+        var cgws = this.core.queryModel('customerGateways');
+        var subnets = this.core.queryModel('subnets','vpcId', vpc.id);
+        var instances = this.core.queryModel('instances','vpcId', vpc.id);
+        var groups = this.core.queryModel('securityGroups','vpcId', vpc.id);
 
         if (subnets.length) {
             list.push({ name: "Subnets", folder: 1 })
@@ -145,29 +145,29 @@ var ew_VpcsTreeView = {
                        {label:"Subnets",type:"section",help:"Optonally, create one or both subnets in the new VPC:"},
                        {label:'Public Subnet',help:"Example: 10.1.0.0/24"},
                        {label:'Private Subnet',help:"Example: 10.2.0.0/24"},
-                       {label:'Availability Zone',type:'menulist',list: this.session.model.get('availabilityZones'),key:'name'},
+                       {label:'Availability Zone',type:'menulist',list: this.core.queryModel('availabilityZones'),key:'name'},
                        {label:"VPN Connection",type:"section",help:"Optonally, create VPN connection to your VPC:"},
                        {label:'Customer Gateway IP'},
                        {label:'BGP ASN',value:65000},
                        ];
 
-        var values = this.session.promptInput("Create VPC", inputs);
+        var values = this.core.promptInput("Create VPC", inputs);
         if (values) {
-            this.session.api.createVpc(values[1], values[2], function(vpcId) {
+            this.core.api.createVpc(values[1], values[2], function(vpcId) {
                 if (values[3]) {
-                    me.session.setTags(vpcId, "Name:" + values[3], function() { me.refresh() });
+                    me.core.setTags(vpcId, "Name:" + values[3], function() { me.refresh() });
                 } else {
                     me.refresh();
                 }
 
                 // Public subnet
                 if (values[5]) {
-                    me.session.api.createSubnet(vpcId, values[5], values[7], function(subnetId) {
-                        me.session.api.createInternetGateway(function(igwId) {
-                            me.session.api.attachInternetGateway(igwId, vpcId, function() {
-                                me.session.api.createRouteTable(vpcId, function(tableId) {
-                                    me.session.api.associateRouteTable(tableId, subnetId, function() {
-                                        me.session.api.createRoute(tableId, "0.0.0.0/0", igwId, null, null, function() {
+                    me.core.api.createSubnet(vpcId, values[5], values[7], function(subnetId) {
+                        me.core.api.createInternetGateway(function(igwId) {
+                            me.core.api.attachInternetGateway(igwId, vpcId, function() {
+                                me.core.api.createRouteTable(vpcId, function(tableId) {
+                                    me.core.api.associateRouteTable(tableId, subnetId, function() {
+                                        me.core.api.createRoute(tableId, "0.0.0.0/0", igwId, null, null, function() {
                                             ew_SubnetsTreeView.refresh(true);
                                         });
                                     });
@@ -179,18 +179,18 @@ var ew_VpcsTreeView = {
 
                 // Private subnet
                 if (values[6]) {
-                    me.session.api.createSubnet(vpcId, values[6], values[7], function(id) {
+                    me.core.api.createSubnet(vpcId, values[6], values[7], function(id) {
                         ew_SubnetsTreeView.refresh(true);
                     });
                 }
 
                 // VPN
                 if (values[9] && values[10]) {
-                    me.session.api.createCustomerGateway("ipsec.1", values[9], values[10], function(cgwId) {
-                        me.session.api.createVpnGateway("ipsec.1", values[7], function(vgwId) {
-                            me.session.api.attachVpnGatewayToVpc(vgwId, vpcId, function() {
-                                me.session.api.createVpnConnection("ipsec.1", cgwId, vgwId, function(vpnId) {
-                                    me.session.model.refresh('vpnGateways', 'customerGateways', 'vpnConnections');
+                    me.core.api.createCustomerGateway("ipsec.1", values[9], values[10], function(cgwId) {
+                        me.core.api.createVpnGateway("ipsec.1", values[7], function(vgwId) {
+                            me.core.api.attachVpnGatewayToVpc(vgwId, vpcId, function() {
+                                me.core.api.createVpnConnection("ipsec.1", cgwId, vgwId, function(vpnId) {
+                                    me.refreshModel('vpnGateways', 'customerGateways', 'vpnConnections');
                                 });
                             });
                         });
@@ -205,7 +205,7 @@ var ew_VpcsTreeView = {
         var vpc = this.getSelected();
         if (vpc == null) return;
 
-        var instances = this.session.model.get('instances','vpcId', vpc.id, 'state', 'running');
+        var instances = this.core.queryModel('instances','vpcId', vpc.id, 'state', 'running');
         if (instances.length) {
             alert("There is instance " + instances[0].toString() + " in this VPC");
             return;
@@ -214,7 +214,7 @@ var ew_VpcsTreeView = {
         if (!confirm("Delete " + vpc.toString() + ", make sure you deleted all Instances, Subnets, Securty Groups, Gateways, VPN Connections, Route Tables, Network ACLs?")) return;
 
         var me = this;
-        this.session.api.deleteVpc(vpc.id, function() { me.refresh()});
+        this.core.api.deleteVpc(vpc.id, function() { me.refresh()});
     },
 
     setDhcpOptions : function()
@@ -223,10 +223,10 @@ var ew_VpcsTreeView = {
         if (vpc == null) return;
 
         var retVal = { ok : null, vpcId : vpc.id, dhcpOptionsId : null};
-        window.openDialog("chrome://ew/content/dialogs/associate_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/associate_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
         if (retVal.ok) {
             var me = this;
-            this.session.api.associateDhcpOptions(retVal.dhcpOptionsId, retVal.vpcId, function() { me.refresh() });
+            this.core.api.associateDhcpOptions(retVal.dhcpOptionsId, retVal.vpcId, function() { me.refresh() });
         }
     },
 
@@ -278,19 +278,19 @@ var ew_DhcpoptsTreeView = {
         if (opts == null) return;
         if (!confirm("Delete " + opts.toString() + "?")) return;
         var me = this;
-        this.session.api.deleteDhcpOptions(opts.id, function() { me.refresh(); });
+        this.core.api.deleteDhcpOptions(opts.id, function() { me.refresh(); });
     },
 
     createDhcpOptions : function () {
         var retVal = {ok:null, opts:null}
-        window.openDialog("chrome://ew/content/dialogs/create_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
         if (retVal.ok) {
             var me = this;
             var wrap = function(id) {
                 me.refresh();
                 me.selectByImageId(id);
             }
-            this.session.api.createDhcpOptions(retVal.opts, function() { me.refresh(); });
+            this.core.api.createDhcpOptions(retVal.opts, function() { me.refresh(); });
         }
     },
 };
@@ -310,7 +310,7 @@ var ew_SubnetsTreeView = {
         var subnet = this.getSelected();
         if (subnet == null) return;
 
-        var instances = ew_model.get('instances', 'subnetId', subnet.id, 'state', 'running');
+        var instances = this.core.queryModel('instances', 'subnetId', subnet.id, 'state', 'running');
         if (instances.length) {
             alert("There is instance " + instances[0].toString() + " in this subnet");
             return false
@@ -319,13 +319,13 @@ var ew_SubnetsTreeView = {
         if (!confirm("Delete " + subnet.toString() + "?")) return;
 
         var me = this;
-        this.session.api.deleteSubnet(subnet.id, function() { me.refresh(); });
+        this.core.api.deleteSubnet(subnet.id, function() { me.refresh(); });
     },
 
     createSubnet : function(vpc)
     {
         var retVal = { ok : null, cidr : null, vpcid : vpc, az : null, tag: '' };
-        window.openDialog("chrome://ew/content/dialogs/create_subnet.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_subnet.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
 
         if (retVal.ok) {
             var me = this;
@@ -335,9 +335,9 @@ var ew_SubnetsTreeView = {
                     ew_InternetGatewayTreeView.attachInternetGateway(retVal.vpcid, null);
                 }
             }
-            this.session.api.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(id) {
+            this.core.api.createSubnet(retVal.vpcid, retVal.cidr, retVal.az, function(id) {
                 if (retVal.tag != '' && id) {
-                    ew_session.setTags(id, retVal.tag, wrap);
+                    me.core.setTags(id, retVal.tag, wrap);
                 } else {
                     wrap();
                 }
@@ -359,8 +359,8 @@ var ew_SubnetsTreeView = {
 
     display: function(list)
     {
-        var tables = ew_model.get('routeTables');
-        var acls = ew_model.get('networkAcls');
+        var tables = this.core.queryModel('routeTables');
+        var acls = this.core.queryModel('networkAcls');
         for (var k in list) {
             if (tables) {
                 for (var i in tables) {
@@ -396,16 +396,16 @@ var ew_SubnetsTreeView = {
         var subnet = this.getSelected();
         if (!subnet) return;
 
-        var acls = ew_model.get('networkAcls', 'vpcId', subnet.vpcId);
+        var acls = this.core.queryModel('networkAcls', 'vpcId', subnet.vpcId);
         if (!acls.length) {
             alert("No ACLs available, try later")
             return;
         }
-        var rc = ew_session.promptList("Replace Network ACL", "Select ACL", acls, [ "id", "vpcId" ]);
+        var rc = this.core.promptList("Replace Network ACL", "Select ACL", acls, [ "id", "vpcId" ]);
         if (rc < 0) {
             return;
         }
-        this.session.api.ReplaceNetworkAclAssociation(subnet.aclAssocId, acl.id, function() { ew_SubnetsTreeView.refresh() });
+        this.core.api.ReplaceNetworkAclAssociation(subnet.aclAssocId, acl.id, function() { ew_SubnetsTreeView.refresh() });
     },
 
     associateRoute : function()
@@ -413,16 +413,16 @@ var ew_SubnetsTreeView = {
         var subnet = this.getSelected();
         if (!subnet) return;
 
-        var routes = ew_session.model.get('routeTables');
+        var routes = this.core.queryModel('routeTables');
         if (!routes) {
             alert("No route tables available, try later")
             return;
         }
-        var rc = ew_session.promptList("Associate Route Table", "Select route table", routes, [ "id", "vpcId" ]);
+        var rc = this.core.promptList("Associate Route Table", "Select route table", routes, [ "id", "vpcId" ]);
         if (rc < 0) {
             return;
         }
-        this.session.api.associateRouteTable(routes[rc].id, subnet.id, function () { ew_SubnetsTreeView.refresh(); });
+        this.core.api.associateRouteTable(routes[rc].id, subnet.id, function () { ew_SubnetsTreeView.refresh(); });
     },
 
     disassociateRoute: function()
@@ -431,7 +431,7 @@ var ew_SubnetsTreeView = {
         if (!subnet) return;
 
         if (!confirm("Delete route association " + subnet.routeId + "?")) return;
-        this.session.api.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
+        this.core.api.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
 
     },
 };
@@ -451,17 +451,17 @@ var ew_InternetGatewayTreeView = {
     create : function()
     {
         var me = this;
-        this.session.api.createInternetGateway(function(){me.refresh()});
+        this.core.api.createInternetGateway(function(){me.refresh()});
     },
 
     destroy : function()
     {
         var igw = this.getSelected();
         if (igw == null) return;
-        if (!ew_session.promptYesNo("Confirm", "Delete Internet Gateway " + igw.id + "?")) return;
+        if (!this.core.promptYesNo("Confirm", "Delete Internet Gateway " + igw.id + "?")) return;
 
         var me = this;
-        this.session.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+        this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
     },
 
     attach: function(vpcid, igwid, selected)
@@ -474,15 +474,15 @@ var ew_InternetGatewayTreeView = {
     attachInternetGateway : function(vpcid, igwid)
     {
         var retVal = { ok : null, igwnew : 0, igwid : igwid, vpcid : vpcid }
-        window.openDialog("chrome://ew/content/dialogs/attach_internet_gateway.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/attach_internet_gateway.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
         if (retVal.ok) {
             var me = this;
             if (retVal.igwnew) {
-                this.session.api.createInternetGateway(function(id) {
-                    this.session.api.attachInternetGateway(id, retVal.vpcid, function() {me.refresh()});
+                this.core.api.createInternetGateway(function(id) {
+                    this.core.api.attachInternetGateway(id, retVal.vpcid, function() {me.refresh()});
                 });
             } else {
-                this.session.api.attachInternetGateway(retVal.igwid, retVal.vpcid, function() {me.refresh()});
+                this.core.api.attachInternetGateway(retVal.igwid, retVal.vpcid, function() {me.refresh()});
             }
         }
     },
@@ -491,9 +491,9 @@ var ew_InternetGatewayTreeView = {
     {
         var igw = this.getSelected();
         if (igw == null) return;
-        if (!ew_session.promptYesNo("Confirm", "Detach Internet Gateway " + igw.id + " from " + igw.vpcId + "?")) return;
+        if (!this.core.promptYesNo("Confirm", "Detach Internet Gateway " + igw.id + " from " + igw.vpcId + "?")) return;
         var me = this;
-        this.session.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
+        this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
     },
 };
 ew_InternetGatewayTreeView.__proto__ = TreeView;

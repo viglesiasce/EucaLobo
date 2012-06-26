@@ -1,6 +1,544 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
 
 var ew_api = {
-    session: null,
+    EC2_API_VERSION: '2012-06-01',
+    ELB_API_VERSION: '2011-11-15',
+    IAM_API_VERSION: '2010-05-08',
+    CW_API_VERSION: '2010-08-01',
+    STS_API_VERSION: '2011-06-15',
+    SQS_API_VERSION: '2011-10-01',
+    SIG_VERSION: '2',
+
+    core: null,
+    timers: {},
+    urls: {},
+    versions: {},
+    region: "",
+    accessKey: "",
+    secretKey: "",
+    securityToken: "",
+    httpCount: 0,
+    errorCount: 0,
+    errorMax: 3,
+
+    isEnabled: function()
+    {
+        return this.core.isEnabled();
+    },
+
+    showBusy : function(fShow)
+    {
+        if (fShow) {
+            this.httpCount++;
+            window.setCursor("wait");
+        } else {
+            --this.httpCount;
+            if (this.httpCount <= 0) {
+                window.setCursor("auto");
+            }
+        }
+    },
+
+    setCredentials : function (accessKey, secretKey, securityToken)
+    {
+        this.errorCount = 0;
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
+        this.securityToken = typeof securityToken == "string" ? securityToken : "";
+        debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
+    },
+
+    setEndpoint : function (endpoint)
+    {
+        if (!endpoint) return;
+        this.errorCount = 0;
+        this.region = endpoint.name;
+        this.urls.EC2 = endpoint.url;
+        this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
+        this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
+        this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
+        this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
+        this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
+        this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
+        this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
+        this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
+        this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
+        this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
+        this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
+        this.actionIgnore = endpoint.actionIgnore || [];
+        debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
+    },
+
+    getTimerKey: function()
+    {
+        return String(Math.random()) + ":" + String(new Date().getTime());
+    },
+
+    startTimer : function(key, expr)
+    {
+        var timeout = this.core.getIntPrefs("ew.http.timeout", 15000, 5000, 3600000);
+        var timer = window.setTimeout(expr, timeout);
+        this.timers[key] = timer;
+    },
+
+    stopTimer : function(key, timeout)
+    {
+        if (this.timers[key]) {
+            window.clearTimeout(this.timers[key]);
+        }
+        this.timers[key] = null;
+        return true;
+    },
+
+    getXmlHttp : function()
+    {
+        var xmlhttp = null;
+        if (typeof XMLHttpRequest != 'undefined') {
+            try {
+                xmlhttp = new XMLHttpRequest();
+            } catch (e) {
+                debug('Error: ' + e);
+            }
+        }
+        return xmlhttp;
+    },
+
+    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
+    {
+        if (!this.isEnabled()) return null;
+
+        return this.queryEC2Impl(action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion);
+    },
+
+    queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
+    },
+
+    queryIAM : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.IAM, this.versions.IAM);
+    },
+
+    queryCloudWatch : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW);
+    },
+
+    querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS);
+    },
+
+    querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
+    },
+
+    downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
+    {
+        if (!this.isEnabled()) return null;
+
+        var req = this.queryS3Prepare(method, bucket, key, path, params, null);
+        return this.download(req.url, req.headers, file, callback, progresscb);
+    },
+
+    uploadS3: function(bucket, key, path, params, filename, callback, progresscb)
+    {
+        if (!this.isEnabled()) return null;
+
+        var file = FileIO.streamOpen(filename);
+        if (!file) {
+            alert('Cannot open ' + filename)
+            return false;
+        }
+        var length = file[1].available();
+        params["Content-Length"] = length;
+
+        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return null;
+        }
+        xmlhttp.open(req.method, req.url, true);
+        for (var p in req.headers) {
+            xmlhttp.setRequestHeader(p, req.headers[p]);
+        }
+        xmlhttp.send(file[1]);
+
+        var timer = setInterval(function() {
+            try {
+                var a = length - file[1].available();
+                if (progresscb) progresscb(filename, Math.round(a / length * 100));
+            }
+            catch(e) {
+                debug('Error: ' + e);
+                this.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
+            }
+        }, 300);
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState != 4) return;
+            FileIO.streamClose(file);
+            clearInterval(timer);
+            if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
+                if (progresscb) progresscb(filename, 100);
+                if (callback) callback(filename);
+            } else {
+                var rsp = this.createResponseError(xmlhttp);
+                this.core.errorDialog("S3 responded with an error for "+ bucket + "/" + key + path, rsp);
+            }
+        };
+        return true;
+    },
+
+    queryS3 : function (method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
+    {
+        if (!this.isEnabled()) return null;
+
+        return this.queryS3Impl(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback);
+    },
+
+    queryEC2Impl : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
+    {
+        var curTime = new Date();
+        var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
+
+        var url = apiURL ? apiURL : this.urls.EC2;
+        var sigValues = new Array();
+        sigValues.push(new Array("Action", action));
+        sigValues.push(new Array("AWSAccessKeyId", this.accessKey));
+        sigValues.push(new Array("SignatureVersion", sigVersion ? sigVersion : this.SIG_VERSION));
+        sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
+        sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
+        sigValues.push(new Array("Timestamp", formattedTime));
+        if (this.securityToken != "") sigValues.push(new Array("SecurityToken", this.securityToken));
+
+        // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
+        for (var i = 0; i < params.length; i++) {
+            sigValues.push(params[i]);
+        }
+
+        // Parse the url
+        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+        var uri = io.newURI(url, null, null);
+
+        var strSig = "";
+        var queryParams = "";
+
+        function encode(str) {
+            str = encodeURIComponent(str);
+            var efunc = function(m) { return m == '!' ? '%21' : m == "'" ? '%27' : m == '(' ? '%28' : m == ')' ? '%29' : m == '*' ? '%2A' : m; }
+            return str.replace(/[!'()*~]/g, efunc);
+        }
+
+        if (this.sigVersion == "1") {
+            function sigParamCmp(x, y) {
+                if (x[0].toLowerCase() < y[0].toLowerCase ()) return -1;
+                if (x[0].toLowerCase() > y[0].toLowerCase()) return 1;
+                return 0;
+            }
+            sigValues.sort(sigParamCmp);
+            for (var i = 0; i < sigValues.length; i++) {
+                strSig += sigValues[i][0] + sigValues[i][1];
+                queryParams += (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
+            }
+        }  else {
+            sigValues.sort();
+            strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
+            for (var i = 0; i < sigValues.length; i++) {
+                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
+                strSig += item;
+                queryParams += item;
+            }
+        }
+        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(this.secretKey, strSig));
+
+        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSig);
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return null;
+        }
+        xmlhttp.open("POST", url, !isSync);
+        xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
+        xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xmlhttp.setRequestHeader("Content-Length", queryParams.length);
+        xmlhttp.setRequestHeader("Connection", "close");
+
+        return this.sendRequest(xmlhttp, url, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
+    },
+
+    queryS3Prepare : function(method, bucket, key, path, params, content)
+    {
+        var curTime = new Date().toUTCString();
+        var url = this.core.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + this.core.getS3Region(this.region || "").url;
+
+        if (!params) params = {}
+
+        // Required headers
+        if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
+        if (!params["Content-Type"]) params["Content-Type"] = "binary/octet-stream; charset=UTF-8";
+        if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
+        if (this.securityToken != "") params["x-amz-security-token"] = this.securityToken;
+
+        // Without media type mozilla changes encoding and signatures do not match
+        if (params["Content-Type"] && params["Content-Type"].indexOf("charset=") == -1) {
+            params["Content-Type"] += "; charset=UTF-8";
+        }
+
+        // Construct the string to sign and query string
+        var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";
+
+        // Amazon canonical headers
+        var headers = []
+        for (var p in params) {
+            if (/X-AMZ-/i.test(p)) {
+                var value = params[p]
+                if (value instanceof Array) {
+                    value = value.join(',');
+                }
+                headers.push(p.toString().toLowerCase() + ':' + value);
+            }
+        }
+        if (headers.length) {
+            strSig += headers.sort().join('\n') + "\n"
+        }
+
+        // Split query string for subresources, supported are:
+        var resources = ["acl", "lifecycle", "location", "logging", "notification", "partNumber", "policy", "requestPayment", "torrent",
+                         "uploadId", "uploads", "versionId", "versioning", "versions", "website",
+                         "delete",
+                         "response-content-type", "response-content-language", "response-expires",
+                         "response-cache-control", "response-content-disposition", "response-content-encoding" ]
+        var rclist = []
+        var query = parseQuery(path)
+        for (var p in query) {
+            p = p.toLowerCase();
+            if (resources.indexOf(p) != -1) {
+                rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
+            }
+        }
+        strSig += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+
+        params["Authorization"] = "AWS " + this.accessKey + ":" + b64_hmac_sha1(this.secretKey, strSig);
+        params["User-Agent"] = this.core.getUserAgent();
+        params["Connection"] = "close";
+
+        debug("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+
+        return { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, sig: strSig, time: curTime }
+    },
+
+    queryS3Impl : function(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
+    {
+        var req = this.queryS3Prepare(method, bucket, key, path, params, content);
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            debug("Could not create xmlhttp object");
+            return null;
+        }
+        xmlhttp.open(req.method, req.url, !isSync);
+
+        for (var p in req.headers) {
+            xmlhttp.setRequestHeader(p, req.headers[p]);
+        }
+
+        return this.sendRequest(xmlhttp, req.url, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
+    },
+
+    queryVpnConnectionStylesheets : function(stylesheet, config)
+    {
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return;
+        }
+        if (!stylesheet) stylesheet = "customer-gateway-config-formats.xml";
+        var url = 'https://ec2-downloads.s3.amazonaws.com/2009-07-15/' + stylesheet;
+        xmlhttp.open("GET", url, false);
+        xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
+        xmlhttp.overrideMimeType('text/xml');
+        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this, null, config || "");
+    },
+
+    queryCheckIP : function(type)
+    {
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return;
+        }
+        var url = "http://checkip.amazonaws.com/" + (type || "");
+        xmlhttp.open("GET", url, false);
+        xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
+        xmlhttp.overrideMimeType('text/plain');
+        return this.sendRequest(xmlhttp, url, null, true, "checkip", null, null, function(response) { response.result = String(response.responseText).trim(); }, type);
+    },
+
+    download: function(url, headers, filename, callback, progresscb)
+    {
+        if (!this.isEnabled()) return null;
+
+        debug('download: ' + url + '| ' + JSON.stringify(headers) + '| ' + filename)
+
+        try {
+          FileIO.remove(filename);
+          var file = FileIO.open(filename);
+          if (!file || !FileIO.create(file)) {
+              alert('Cannot create ' + filename)
+              return false;
+          }
+
+          var io = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI(url, null, null);
+          var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Components.interfaces.nsIWebBrowserPersist);
+          persist.persistFlags = Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
+          persist.progressListener = {
+            onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress) {
+                var percent = (aCurTotalProgress/aMaxTotalProgress) * 100;
+                if (progresscb) progresscb(filename, percent);
+            },
+            onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
+                debug("download: " + filename + " " + aStateFlags + " " + aStatus)
+                if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP) {
+                    if (callback) callback(filename);
+                }
+            }
+          }
+
+          var hdrs = "";
+          for (var p in headers) {
+              hdrs += p + ":" + headers[p] + "\n";
+          }
+          persist.saveURI(io, null, null, null, hdrs, file);
+          return true;
+
+        } catch (e) {
+          alert(e);
+        }
+        return false;
+    },
+
+    sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
+    {
+        debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
+        var me = this;
+
+        var xhr = xmlhttp;
+        // Generate random timer
+        var timerKey = this.getTimerKey();
+        this.startTimer(timerKey, function() { xhr.abort() });
+        this.showBusy(true);
+
+        if (isSync) {
+            xmlhttp.onreadystatechange = function() {}
+        } else {
+            xmlhttp.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    me.showBusy(false);
+                    me.stopTimer(timerKey);
+                    me.handleResponse(xhr, url, isSync, action, handlerMethod, handlerObj, callback, params);
+                }
+            }
+        }
+
+        try {
+            xmlhttp.send(content);
+        } catch(e) {
+            debug('xmlhttp error:' + url + ", " + e)
+            this.showBusy(false);
+            this.stopTimer(timerKey);
+            this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
+            return false;
+        }
+
+        // In sync mode the result is always returned
+        if (isSync) {
+            this.showBusy(false);
+            this.stopTimer(timerKey);
+            return this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
+        }
+        return true;
+    },
+
+    handleResponse : function(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params)
+    {
+        log(xmlhttp.responseText);
+
+        var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
+                 this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
+                 this.createResponseError(xmlhttp, url, isSync, action, handlerMethod, callback, params);
+
+        // Response callback is called in all cases, some errors can be ignored
+        if (handlerObj) {
+            handlerObj.onResponseComplete(rc);
+        }
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + this.errorCount + ' ' + rc.errCode + ' ' + rc.errString);
+
+        // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
+        // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
+        if (rc.hasErrors) {
+            if (this.errorCount < this.errorMax) {
+                if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
+                    this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+                }
+            }
+            this.errorCount++;
+        } else {
+            this.errorCount = 0;
+            // Pass the result and the whole response object if it is null
+            if (callback) {
+                callback(rc.result, rc);
+            }
+        }
+        return rc.result;
+    },
+
+    // Extract standard AWS error code and message
+    createResponseError : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
+    {
+        var rc = this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params);
+        rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
+        rc.errString = "An unknown error occurred, please check connectivity";
+        rc.requestId = "";
+        rc.hasErrors = true;
+
+        if (xmlhttp) {
+            if (xmlhttp.responseXML) {
+                rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
+                rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
+                rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
+            }
+            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url)
+        }
+        return rc;
+    },
+
+    createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
+    {
+        return { xmlhttp: xmlhttp,
+                 responseXML: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
+                 responseText: xmlhttp ? xmlhttp.responseText : '',
+                 status : xmlhttp.status,
+                 url: url,
+                 action: action,
+                 method: handlerMethod,
+                 isSync: isSync,
+                 hasErrors: false,
+                 params: params,
+                 callback: callback,
+                 result: null,
+                 errCode: "",
+                 errString: "",
+                 requestId: "" };
+    },
 
     // Main callback on request complete, if callback specified in the form onComplete:id,
     // then response will put value of the node 'id' in the result
@@ -76,20 +614,20 @@ var ew_api = {
     registerImageInRegion : function(manifestPath, region, callback)
     {
         // The image's region is the same as the active region
-        if (ew_session.region == region) {
+        if (this.core.region == region) {
             return this.registerImage(manifestPath, callback);
         }
 
-        var endpoint = ew_session.getEndpoint(region)
+        var endpoint = this.core.getEndpoint(region)
         if (!endpoint) {
             return alert('Cannot determine endpoint url for ' + region);
         }
-        ew_session.queryEC2InRegion(region, "RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback, endpoint.url);
+        this.queryEC2InRegion(region, "RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback, endpoint.url);
     },
 
     registerImage : function(manifestPath, callback)
     {
-        ew_session.queryEC2("RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback);
+        this.queryEC2("RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback);
     },
 
     registerImageFromSnapshot : function(snapshotId, amiName, amiDescription, architecture, kernelId, ramdiskId, deviceName, deleteOnTermination, callback)
@@ -106,17 +644,17 @@ var ew_api = {
         params.push([ 'BlockDeviceMapping.1.Ebs.SnapshotId', snapshotId ]);
         params.push([ 'BlockDeviceMapping.1.Ebs.DeleteOnTermination', deleteOnTermination ]);
 
-        ew_session.queryEC2("RegisterImage", params, this, false, "onComplete", callback);
+        this.queryEC2("RegisterImage", params, this, false, "onComplete", callback);
     },
 
     deregisterImage : function(imageId, callback)
     {
-        ew_session.queryEC2("DeregisterImage", [ [ "ImageId", imageId ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeregisterImage", [ [ "ImageId", imageId ] ], this, false, "onComplete", callback);
     },
 
     createSnapshot : function(volumeId, callback)
     {
-        ew_session.queryEC2("CreateSnapshot", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
+        this.queryEC2("CreateSnapshot", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
     },
 
     attachVolume : function(volumeId, instanceId, device, callback)
@@ -125,7 +663,7 @@ var ew_api = {
         if (volumeId != null) params.push([ "VolumeId", volumeId ]);
         if (instanceId != null) params.push([ "InstanceId", instanceId ]);
         if (device != null) params.push([ "Device", device ]);
-        ew_session.queryEC2("AttachVolume", params, this, false, "onComplete", callback);
+        this.queryEC2("AttachVolume", params, this, false, "onComplete", callback);
     },
 
     createVolume : function(size, snapshotId, zone, callback)
@@ -134,32 +672,32 @@ var ew_api = {
         if (size != null) params.push([ "Size", size ]);
         if (snapshotId != null) params.push([ "SnapshotId", snapshotId ]);
         if (zone != null) params.push([ "AvailabilityZone", zone ]);
-        ew_session.queryEC2("CreateVolume", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateVolume", params, this, false, "onComplete", callback);
     },
 
     deleteSnapshot : function(snapshotId, callback)
     {
-        ew_session.queryEC2("DeleteSnapshot", [ [ "SnapshotId", snapshotId ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteSnapshot", [ [ "SnapshotId", snapshotId ] ], this, false, "onComplete", callback);
     },
 
     deleteVolume : function(volumeId, callback)
     {
-        ew_session.queryEC2("DeleteVolume", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteVolume", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
     },
 
     detachVolume : function(volumeId, callback)
     {
-        ew_session.queryEC2("DetachVolume", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
+        this.queryEC2("DetachVolume", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
     },
 
     forceDetachVolume : function(volumeId, callback)
     {
-        ew_session.queryEC2("DetachVolume", [ [ "VolumeId", volumeId ], [ "Force", true ] ], this, false, "onComplete", callback);
+        this.queryEC2("DetachVolume", [ [ "VolumeId", volumeId ], [ "Force", true ] ], this, false, "onComplete", callback);
     },
 
     describeVolumes : function(callback)
     {
-        ew_session.queryEC2("DescribeVolumes", [], this, false, "onCompleteDescribeVolumes", callback);
+        this.queryEC2("DescribeVolumes", [], this, false, "onCompleteDescribeVolumes", callback);
     },
 
     onCompleteDescribeVolumes : function(response)
@@ -198,13 +736,13 @@ var ew_api = {
             list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags));
         }
 
-        this.session.model.set('volumes', list);
+        this.core.setModel('volumes', list);
         response.result = list;
     },
 
     describeSnapshots : function(callback)
     {
-        ew_session.queryEC2("DescribeSnapshots", [], this, false, "onCompleteDescribeSnapshots", callback);
+        this.queryEC2("DescribeSnapshots", [], this, false, "onCompleteDescribeSnapshots", callback);
     },
 
     onCompleteDescribeSnapshots : function(response)
@@ -229,12 +767,12 @@ var ew_api = {
             list.push(new Snapshot(id, volumeId, status, startTime, progress, volumeSize, description, ownerId, ownerAlias, tags));
         }
 
-        this.session.model.set('snapshots', list);
+        this.core.setModel('snapshots', list);
         response.result = list;
     },
 
     describeSnapshotAttribute: function(id, callback) {
-        ew_session.queryEC2("DescribeSnapshotAttribute", [ ["SnapshotId", id], ["Attribute", "createVolumePermission"] ], this, false, "onCompleteDescribeSnapshotAttribute", callback);
+        this.queryEC2("DescribeSnapshotAttribute", [ ["SnapshotId", id], ["Attribute", "createVolumePermission"] ], this, false, "onCompleteDescribeSnapshotAttribute", callback);
     },
 
     onCompleteDescribeSnapshotAttribute : function(response)
@@ -272,12 +810,12 @@ var ew_api = {
                 params.push(["CreateVolumePermission.Remove." + (i + 1) + "." + remove[i][0], remove[i][1] ])
             }
         }
-        ew_session.queryEC2("ModifySnapshotAttribute", params, this, false, "onComplete", callback);
+        this.queryEC2("ModifySnapshotAttribute", params, this, false, "onComplete", callback);
     },
 
     describeVpcs : function(callback)
     {
-        ew_session.queryEC2("DescribeVpcs", [], this, false, "onCompleteDescribeVpcs", callback);
+        this.queryEC2("DescribeVpcs", [], this, false, "onCompleteDescribeVpcs", callback);
     },
 
     onCompleteDescribeVpcs : function(response)
@@ -295,7 +833,7 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new Vpc(id, cidr, state, dhcpopts, tenancy, tags));
         }
-        this.session.model.set('vpcs', list);
+        this.core.setModel('vpcs', list);
         response.result = list;
     },
 
@@ -303,17 +841,17 @@ var ew_api = {
     {
         var params = [ [ "CidrBlock", cidr ] ];
         if (tenancy) params.push([ "InstanceTenancy", tenancy ]);
-        ew_session.queryEC2("CreateVpc", params, this, false, "onComplete:vpcId", callback);
+        this.queryEC2("CreateVpc", params, this, false, "onComplete:vpcId", callback);
     },
 
     deleteVpc : function(id, callback)
     {
-        ew_session.queryEC2("DeleteVpc", [ [ "VpcId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteVpc", [ [ "VpcId", id ] ], this, false, "onComplete", callback);
     },
 
     describeSubnets : function(callback)
     {
-        ew_session.queryEC2("DescribeSubnets", [], this, false, "onCompleteDescribeSubnets", callback);
+        this.queryEC2("DescribeSubnets", [], this, false, "onCompleteDescribeSubnets", callback);
     },
 
     onCompleteDescribeSubnets : function(response)
@@ -332,23 +870,23 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new Subnet(id, vpcId, cidrBlock, state, availableIp, availabilityZone, tags));
         }
-        this.session.model.set('subnets', list);
+        this.core.setModel('subnets', list);
         response.result = list;
     },
 
     createSubnet : function(vpcId, cidr, az, callback)
     {
-        ew_session.queryEC2("CreateSubnet", [ [ "CidrBlock", cidr ], [ "VpcId", vpcId ], [ "AvailabilityZone", az ] ], this, false, "onComplete:subnetId", callback);
+        this.queryEC2("CreateSubnet", [ [ "CidrBlock", cidr ], [ "VpcId", vpcId ], [ "AvailabilityZone", az ] ], this, false, "onComplete:subnetId", callback);
     },
 
     deleteSubnet : function(id, callback)
     {
-        ew_session.queryEC2("DeleteSubnet", [ [ "SubnetId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteSubnet", [ [ "SubnetId", id ] ], this, false, "onComplete", callback);
     },
 
     describeDhcpOptions : function(callback)
     {
-        ew_session.queryEC2("DescribeDhcpOptions", [], this, false, "onCompleteDescribeDhcpOptions", callback);
+        this.queryEC2("DescribeDhcpOptions", [], this, false, "onCompleteDescribeDhcpOptions", callback);
     },
 
     onCompleteDescribeDhcpOptions : function(response)
@@ -383,13 +921,13 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new DhcpOptions(id, options.join("; "), tags));
         }
-        this.session.model.set('dhcpOptions', list);
+        this.core.setModel('dhcpOptions', list);
         response.result = list;
     },
 
     associateDhcpOptions : function(dhcpOptionsId, vpcId, callback)
     {
-        ew_session.queryEC2("AssociateDhcpOptions", [ [ "DhcpOptionsId", dhcpOptionsId ], [ "VpcId", vpcId ] ], this, false, "onComplete", callback);
+        this.queryEC2("AssociateDhcpOptions", [ [ "DhcpOptionsId", dhcpOptionsId ], [ "VpcId", vpcId ] ], this, false, "onComplete", callback);
     },
 
     createDhcpOptions : function(opts, callback)
@@ -405,12 +943,12 @@ var ew_api = {
             }
         }
 
-        ew_session.queryEC2("CreateDhcpOptions", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateDhcpOptions", params, this, false, "onComplete", callback);
     },
 
     deleteDhcpOptions : function(id, callback)
     {
-        ew_session.queryEC2("DeleteDhcpOptions", [ [ "DhcpOptionsId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteDhcpOptions", [ [ "DhcpOptionsId", id ] ], this, false, "onComplete", callback);
     },
 
     createNetworkAclEntry : function(aclId, num, proto, action, egress, cidr, var1, var2, callback)
@@ -433,32 +971,32 @@ var ew_api = {
             params.push(["PortRange.To", var2])
             break;
         }
-        ew_session.queryEC2("CreateNetworkAclEntry", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateNetworkAclEntry", params, this, false, "onComplete", callback);
     },
 
     deleteNetworkAclEntry : function(aclId, num, egress, callback)
     {
-        ew_session.queryEC2("DeleteNetworkAclEntry", [ [ "NetworkAclId", aclId ], ["RuleNumber", num], ["Egress", egress] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteNetworkAclEntry", [ [ "NetworkAclId", aclId ], ["RuleNumber", num], ["Egress", egress] ], this, false, "onComplete", callback);
     },
 
     ReplaceNetworkAclAssociation: function(assocId, aclId, callback)
     {
-        ew_session.queryEC2("ReplaceNetworkAclAssociation", [ [ "AssociationId", assocId ], ["NetworkAclId", aclId] ], this, false, "onComplete", callback);
+        this.queryEC2("ReplaceNetworkAclAssociation", [ [ "AssociationId", assocId ], ["NetworkAclId", aclId] ], this, false, "onComplete", callback);
     },
 
     createNetworkAcl : function(vpcId, callback)
     {
-        ew_session.queryEC2("CreateNetworkAcl", [ [ "VpcId", vpcId ] ], this, false, "onComplete:networkAclId", callback);
+        this.queryEC2("CreateNetworkAcl", [ [ "VpcId", vpcId ] ], this, false, "onComplete:networkAclId", callback);
     },
 
     deleteNetworkAcl : function(id, callback)
     {
-        ew_session.queryEC2("DeleteNetworkAcl", [ [ "NetworkAclId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteNetworkAcl", [ [ "NetworkAclId", id ] ], this, false, "onComplete", callback);
     },
 
     describeNetworkAcls : function(callback)
     {
-        ew_session.queryEC2("DescribeNetworkAcls", [], this, false, "onCompleteDescribeNetworkAcls", callback);
+        this.queryEC2("DescribeNetworkAcls", [], this, false, "onCompleteDescribeNetworkAcls", callback);
     },
 
     onCompleteDescribeNetworkAcls : function(response)
@@ -508,13 +1046,13 @@ var ew_api = {
             list.push(new NetworkAcl(id, vpcId, dflt, entryList, assocList, tags));
         }
 
-        this.session.model.set('networkAcls', list);
+        this.core.setModel('networkAcls', list);
         response.result = list;
     },
 
     describeVpnGateways : function(callback)
     {
-        ew_session.queryEC2("DescribeVpnGateways", [], this, false, "onCompleteDescribeVpnGateways", callback);
+        this.queryEC2("DescribeVpnGateways", [], this, false, "onCompleteDescribeVpnGateways", callback);
     },
 
     onCompleteDescribeVpnGateways : function(response)
@@ -539,33 +1077,33 @@ var ew_api = {
             }
             list.push(new VpnGateway(id, availabilityZone, state, type, attachments));
         }
-        this.session.model.set('vpnGateways', list);
+        this.core.setModel('vpnGateways', list);
         response.result = list;
     },
 
     createVpnGateway : function(type, az, callback)
     {
-        ew_session.queryEC2("CreateVpnGateway", [ [ "Type", type ], [ "AvailabilityZone", az ] ], this, false, "onComplete:vpnGatewayId", callback);
+        this.queryEC2("CreateVpnGateway", [ [ "Type", type ], [ "AvailabilityZone", az ] ], this, false, "onComplete:vpnGatewayId", callback);
     },
 
     attachVpnGatewayToVpc : function(vgwid, vpcid, callback)
     {
-        ew_session.queryEC2("AttachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
+        this.queryEC2("AttachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
     },
 
     detachVpnGatewayFromVpc : function(vgwid, vpcid, callback)
     {
-        ew_session.queryEC2("DetachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
+        this.queryEC2("DetachVpnGateway", [ [ "VpnGatewayId", vgwid ], [ "VpcId", vpcid ] ], this, false, "onComplete", callback);
     },
 
     deleteVpnGateway : function(id, callback)
     {
-        ew_session.queryEC2("DeleteVpnGateway", [ [ "VpnGatewayId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteVpnGateway", [ [ "VpnGatewayId", id ] ], this, false, "onComplete", callback);
     },
 
     describeCustomerGateways : function(callback)
     {
-        ew_session.queryEC2("DescribeCustomerGateways", [], this, false, "onCompleteDescribeCustomerGateways", callback);
+        this.queryEC2("DescribeCustomerGateways", [], this, false, "onCompleteDescribeCustomerGateways", callback);
     },
 
     onCompleteDescribeCustomerGateways : function(response)
@@ -583,23 +1121,23 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new CustomerGateway(id, ipAddress, bgpAsn, state, type, tags));
         }
-        this.session.model.set('customerGateways', list);
+        this.core.setModel('customerGateways', list);
         response.result = list;
     },
 
     createCustomerGateway : function(type, ip, asn, callback)
     {
-        ew_session.queryEC2("CreateCustomerGateway", [ [ "Type", type ], [ "IpAddress", ip ], [ "BgpAsn", asn ] ], this, false, "onComplete:customerGatewayId", callback);
+        this.queryEC2("CreateCustomerGateway", [ [ "Type", type ], [ "IpAddress", ip ], [ "BgpAsn", asn ] ], this, false, "onComplete:customerGatewayId", callback);
     },
 
     deleteCustomerGateway : function(id, callback)
     {
-        ew_session.queryEC2("DeleteCustomerGateway", [ [ "CustomerGatewayId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteCustomerGateway", [ [ "CustomerGatewayId", id ] ], this, false, "onComplete", callback);
     },
 
     describeInternetGateways : function(callback)
     {
-        ew_session.queryEC2("DescribeInternetGateways", [], this, false, "onCompleteDescribeInternetGateways", callback);
+        this.queryEC2("DescribeInternetGateways", [], this, false, "onCompleteDescribeInternetGateways", callback);
     },
 
     onCompleteDescribeInternetGateways : function(response)
@@ -619,33 +1157,33 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new InternetGateway(id, vpcId, tags));
         }
-        this.session.model.set('internetGateways', list);
+        this.core.setModel('internetGateways', list);
         response.result = list;
     },
 
     createInternetGateway : function(callback)
     {
-        ew_session.queryEC2("CreateInternetGateway", [], this, false, "onComplete:internetGatewayId", callback);
+        this.queryEC2("CreateInternetGateway", [], this, false, "onComplete:internetGatewayId", callback);
     },
 
     deleteInternetGateway : function(id, callback)
     {
-        ew_session.queryEC2("DeleteInternetGateway", [ [ "InternetGatewayId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteInternetGateway", [ [ "InternetGatewayId", id ] ], this, false, "onComplete", callback);
     },
 
     attachInternetGateway : function(igwid, vpcid, callback)
     {
-        ew_session.queryEC2("AttachInternetGateway", [["InternetGatewayId", igwid], ["VpcId", vpcid]], this, false, "onComplete", callback);
+        this.queryEC2("AttachInternetGateway", [["InternetGatewayId", igwid], ["VpcId", vpcid]], this, false, "onComplete", callback);
     },
 
     detachInternetGateway : function(igwid, vpcid, callback)
     {
-        ew_session.queryEC2("DetachInternetGateway", [["InternetGatewayId", igwid], ["VpcId", vpcid]], this, false, "onComplete", callback);
+        this.queryEC2("DetachInternetGateway", [["InternetGatewayId", igwid], ["VpcId", vpcid]], this, false, "onComplete", callback);
     },
 
     describeVpnConnections : function(callback)
     {
-        ew_session.queryEC2("DescribeVpnConnections", [], this, false, "onCompleteDescribeVpnConnections", callback);
+        this.queryEC2("DescribeVpnConnections", [], this, false, "onCompleteDescribeVpnConnections", callback);
     },
 
     onCompleteDescribeVpnConnections : function(response)
@@ -677,18 +1215,18 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new VpnConnection(id, vgwId, cgwId, type, state, config, tags));
         }
-        this.session.model.set('vpnConnections', list);
+        this.core.setModel('vpnConnections', list);
         response.result = list;
     },
 
     createVpnConnection : function(type, cgwid, vgwid, callback)
     {
-        ew_session.queryEC2("CreateVpnConnection", [ [ "Type", type ], [ "CustomerGatewayId", cgwid ], [ "VpnGatewayId", vgwid ] ], this, false, "onComplete:vpnConnectionId", callback);
+        this.queryEC2("CreateVpnConnection", [ [ "Type", type ], [ "CustomerGatewayId", cgwid ], [ "VpnGatewayId", vgwid ] ], this, false, "onComplete:vpnConnectionId", callback);
     },
 
     deleteVpnConnection : function(id, callback)
     {
-        ew_session.queryEC2("DeleteVpnConnection", [ [ "VpnConnectionId", id ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteVpnConnection", [ [ "VpnConnectionId", id ] ], this, false, "onComplete", callback);
     },
 
     unpackImage: function(item)
@@ -729,7 +1267,7 @@ var ew_api = {
 
     describeImage : function(imageId, callback)
     {
-        ew_session.queryEC2("DescribeImages", [ [ "ImageId", imageId ] ], this, false, "onCompleteDescribeImage", callback);
+        this.queryEC2("DescribeImages", [ [ "ImageId", imageId ] ], this, false, "onCompleteDescribeImage", callback);
     },
 
     onCompleteDescribeImage : function(response)
@@ -743,7 +1281,7 @@ var ew_api = {
     {
         var noRebootVal = noReboot ? "true" : "false";
 
-        ew_session.queryEC2("CreateImage", [ [ "InstanceId", instanceId ], [ "Name", amiName ], [ "Description", amiDescription ], [ "NoReboot", noRebootVal ] ], this, false, "onCompleteCreateImage", callback);
+        this.queryEC2("CreateImage", [ [ "InstanceId", instanceId ], [ "Name", amiName ], [ "Description", amiDescription ], [ "NoReboot", noRebootVal ] ], this, false, "onCompleteCreateImage", callback);
     },
 
     onCompleteCreateImage: function(response)
@@ -754,7 +1292,7 @@ var ew_api = {
 
     describeImages : function( callback)
     {
-        ew_session.queryEC2("DescribeImages", [], this, false, "onCompleteDescribeImages", callback);
+        this.queryEC2("DescribeImages", [], this, false, "onCompleteDescribeImages", callback);
     },
 
     onCompleteDescribeImages : function(response)
@@ -768,13 +1306,13 @@ var ew_api = {
             var ami = this.unpackImage(item);
             if (ami) list.push(ami);
         }
-        this.session.model.set('images', list);
+        this.core.setModel('images', list);
         response.result = list;
     },
 
     describeLeaseOfferings : function(callback)
     {
-        ew_session.queryEC2("DescribeReservedInstancesOfferings", [], this, false, "onCompleteDescribeLeaseOfferings", callback);
+        this.queryEC2("DescribeReservedInstancesOfferings", [], this, false, "onCompleteDescribeLeaseOfferings", callback);
     },
 
     onCompleteDescribeLeaseOfferings : function(response)
@@ -799,13 +1337,13 @@ var ew_api = {
             list.push(new LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy));
         }
 
-        this.session.model.set('offerings', list);
+        this.core.setModel('offerings', list);
         response.result = list;
     },
 
     describeReservedInstances : function(callback)
     {
-        ew_session.queryEC2("DescribeReservedInstances", [], this, false, "onCompleteDescribeReservedInstances", callback);
+        this.queryEC2("DescribeReservedInstances", [], this, false, "onCompleteDescribeReservedInstances", callback);
     },
 
     onCompleteDescribeReservedInstances : function(response)
@@ -833,18 +1371,18 @@ var ew_api = {
             list.push(new ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy));
         }
 
-        this.session.model.set('reservedInstances', list);
+        this.core.setModel('reservedInstances', list);
         response.result = list;
     },
 
     purchaseOffering : function(id, count, callback)
     {
-        ew_session.queryEC2("PurchaseReservedInstancesOffering", [ [ "ReservedInstancesOfferingId", id ], [ "InstanceCount", count ] ], this, false, "onComplete", callback);
+        this.queryEC2("PurchaseReservedInstancesOffering", [ [ "ReservedInstancesOfferingId", id ], [ "InstanceCount", count ] ], this, false, "onComplete", callback);
     },
 
     describeLaunchPermissions : function(imageId, callback)
     {
-        ew_session.queryEC2("DescribeImageAttribute", [ [ "ImageId", imageId ], [ "Attribute", "launchPermission" ] ], this, false, "onCompleteDescribeLaunchPermissions", callback);
+        this.queryEC2("DescribeImageAttribute", [ [ "ImageId", imageId ], [ "Attribute", "launchPermission" ] ], this, false, "onCompleteDescribeLaunchPermissions", callback);
     },
 
     onCompleteDescribeLaunchPermissions : function(response)
@@ -876,7 +1414,7 @@ var ew_api = {
         } else {
             params.push([ "UserId.1", name ]);
         }
-        ew_session.queryEC2("ModifyImageAttribute", params, this, false, "onComplete", callback);
+        this.queryEC2("ModifyImageAttribute", params, this, false, "onComplete", callback);
     },
 
     revokeLaunchPermission : function(imageId, name, callback)
@@ -890,7 +1428,7 @@ var ew_api = {
         } else {
             params.push([ "UserId.1", name ]);
         }
-        ew_session.queryEC2("ModifyImageAttribute", params, this, false, "onComplete", callback);
+        this.queryEC2("ModifyImageAttribute", params, this, false, "onComplete", callback);
     },
 
     resetLaunchPermissions : function(imageId, callback)
@@ -898,12 +1436,12 @@ var ew_api = {
         var params = []
         params.push([ "ImageId", imageId ]);
         params.push([ "Attribute", "launchPermission" ]);
-        ew_session.queryEC2("ResetImageAttribute", params, this, false, "onComplete", callback);
+        this.queryEC2("ResetImageAttribute", params, this, false, "onComplete", callback);
     },
 
     describeInstances : function(callback)
     {
-        ew_session.queryEC2("DescribeInstances", [], this, false, "onCompleteDescribeInstances", callback);
+        this.queryEC2("DescribeInstances", [], this, false, "onCompleteDescribeInstances", callback);
     },
 
     onCompleteDescribeInstances : function(response)
@@ -997,15 +1535,17 @@ var ew_api = {
             }
         }
 
-        this.session.model.set('instances', list);
+        this.core.setModel('instances', list);
         response.result = list;
     },
 
-    runMoreInstances: function(instance, count, callback) {
-        this.session.api.describeInstanceAttribute(instance.id, "userData", function(data) {
-            this.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName,
-                              instance.groups, data, null, instance.instanceType, instance.availabilityZone,
-                              instance.tenancy, instance.subnetId, null, instance.monitoringStatus != "", callback);
+    runMoreInstances: function(instance, count, callback)
+    {
+        var me = this;
+        this.describeInstanceAttribute(instance.id, "userData", function(data) {
+            me.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName,
+                            instance.groups, data, null, instance.instanceType, instance.availabilityZone,
+                            instance.tenancy, instance.subnetId, null, instance.monitoringStatus != "", callback);
         });
     },
 
@@ -1058,7 +1598,7 @@ var ew_api = {
             }
         }
 
-        ew_session.queryEC2("RunInstances", params, this, false, "onCompleteRunInstances", callback);
+        this.queryEC2("RunInstances", params, this, false, "onCompleteRunInstances", callback);
     },
 
     onCompleteRunInstances : function(response)
@@ -1071,7 +1611,7 @@ var ew_api = {
 
     describeInstanceAttribute : function(instanceId, attribute, callback)
     {
-        ew_session.queryEC2("DescribeInstanceAttribute", [[ "InstanceId", instanceId ], [ "Attribute", attribute ]], this, false, "onCompleteDescribeInstanceAttribute", callback);
+        this.queryEC2("DescribeInstanceAttribute", [[ "InstanceId", instanceId ], [ "Attribute", attribute ]], this, false, "onCompleteDescribeInstanceAttribute", callback);
     },
 
     onCompleteDescribeInstanceAttribute : function(response)
@@ -1084,11 +1624,11 @@ var ew_api = {
 
     modifyInstanceAttribute : function(instanceId, name, value, callback)
     {
-        ew_session.queryEC2("ModifyInstanceAttribute", [ [ "InstanceId", instanceId ], [ name + ".Value", value ] ], this, false, "onComplete", callback);
+        this.queryEC2("ModifyInstanceAttribute", [ [ "InstanceId", instanceId ], [ name + ".Value", value ] ], this, false, "onComplete", callback);
     },
 
     describeInstanceStatus : function (callback) {
-        ew_session.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
+        this.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
     },
 
     onCompleteDescribeInstanceStatus : function (response) {
@@ -1112,7 +1652,7 @@ var ew_api = {
                 var endTime = getNodeValue(event, "notAfter");
                 list.push(new InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime));
             }
-            var instance = this.session.model.find('instances', instanceId);
+            var instance = this.core.findModel('instances', instanceId);
             if (instance) instance.events = list;
         }
     },
@@ -1123,7 +1663,7 @@ var ew_api = {
         for ( var i in instances) {
             params.push([ "InstanceId." + (i + 1), instances[i].id ]);
         }
-        ew_session.queryEC2("TerminateInstances", params, this, false, "onCompleteRunInstances", callback);
+        this.queryEC2("TerminateInstances", params, this, false, "onCompleteRunInstances", callback);
     },
 
     stopInstances : function(instances, force, callback)
@@ -1135,7 +1675,7 @@ var ew_api = {
         if (force == true) {
             params.push([ "Force", "true" ]);
         }
-        ew_session.queryEC2("StopInstances", params, this, false, "onCompleteRunInstances", callback);
+        this.queryEC2("StopInstances", params, this, false, "onCompleteRunInstances", callback);
     },
 
     startInstances : function(instances, callback)
@@ -1144,7 +1684,7 @@ var ew_api = {
         for ( var i in instances) {
             params.push([ "InstanceId." + (i + 1), instances[i].id ]);
         }
-        ew_session.queryEC2("StartInstances", params, this, false, "onCompleteRunInstances", callback);
+        this.queryEC2("StartInstances", params, this, false, "onCompleteRunInstances", callback);
     },
 
     monitorInstances: function(instances, callback)
@@ -1153,7 +1693,7 @@ var ew_api = {
         for ( var i in instances) {
             params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
         }
-        ew_session.queryEC2("MonitorInstances", params, this, false, "onComplete", callback);
+        this.queryEC2("MonitorInstances", params, this, false, "onComplete", callback);
     },
 
     unmonitorInstances: function(instances, callback)
@@ -1162,7 +1702,7 @@ var ew_api = {
         for ( var i in instances) {
             params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
         }
-        ew_session.queryEC2("UnmonitorInstances", params, this, false, "onComplete", callback);
+        this.queryEC2("UnmonitorInstances", params, this, false, "onComplete", callback);
     },
 
     bundleInstance : function(instanceId, bucket, prefix, activeCred, callback)
@@ -1181,7 +1721,7 @@ var ew_api = {
         params.push([ "Storage.S3.UploadPolicy", s3polb64 ]);
         params.push([ "Storage.S3.UploadPolicySignature", policySig ]);
 
-        ew_session.queryEC2("BundleInstance", params, this, false, "onCompleteBundleInstance", callback);
+        this.queryEC2("BundleInstance", params, this, false, "onCompleteBundleInstance", callback);
     },
 
     onCompleteBundleInstance : function(response)
@@ -1198,7 +1738,7 @@ var ew_api = {
         var params = []
         params.push([ "BundleId", id ]);
 
-        ew_session.queryEC2("CancelBundleTask", params, this, false, "onComplete", callback);
+        this.queryEC2("CancelBundleTask", params, this, false, "onComplete", callback);
     },
 
     unpackBundleTask : function(item)
@@ -1231,7 +1771,7 @@ var ew_api = {
 
     describeBundleTasks : function(callback)
     {
-        ew_session.queryEC2("DescribeBundleTasks", [], this, false, "onCompleteDescribeBundleTasks", callback);
+        this.queryEC2("DescribeBundleTasks", [], this, false, "onCompleteDescribeBundleTasks", callback);
     },
 
     onCompleteDescribeBundleTasks : function(response)
@@ -1244,7 +1784,7 @@ var ew_api = {
             list.push(this.unpackBundleTask(item));
         }
 
-        this.session.model.set('bundleTasks', list);
+        this.core.setModel('bundleTasks', list);
         response.result = list;
     },
 
@@ -1253,12 +1793,12 @@ var ew_api = {
         if (region) {
             content = "<CreateBucketConstraint><LocationConstraint>" + region + "</LocationConstraint></CreateBucketConstraint>";
         }
-        ew_session.queryS3("PUT", bucket, "", "", params, content, this, false, "onComplete", callback);
+        this.queryS3("PUT", bucket, "", "", params, content, this, false, "onComplete", callback);
     },
 
     listS3Buckets : function(callback)
     {
-        ew_session.queryS3("GET", "", "", "", {}, content, this, false, "onCompleteListS3Buckets", callback);
+        this.queryS3("GET", "", "", "", {}, content, this, false, "onCompleteListS3Buckets", callback);
     },
 
     onCompleteListS3Buckets : function(response)
@@ -1273,21 +1813,21 @@ var ew_api = {
             var date = getNodeValue(items[i], "CreationDate");
             list.push(new S3Bucket(name, date, owner));
         }
-        this.session.model.set('s3Buckets', list);
+        this.core.setModel('s3Buckets', list);
 
         response.result = list;
     },
 
     getS3BucketAcl : function(bucket, callback)
     {
-        ew_session.queryS3("GET", bucket, "", "?acl", {}, content, this, false, "onCompleteGetS3BucketAcl", callback);
+        this.queryS3("GET", bucket, "", "?acl", {}, content, this, false, "onCompleteGetS3BucketAcl", callback);
     },
 
     onCompleteGetS3BucketAcl : function(response)
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-        debug(response.responseText)
+
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("Grant");
         for ( var i = 0; i < items.length; i++) {
@@ -1313,7 +1853,7 @@ var ew_api = {
             }
             list.push(new S3BucketAcl(id, type, name, perms));
         }
-        var obj = this.session.model.getS3Bucket(bucket)
+        var obj = this.core.getS3Bucket(bucket)
         if (obj) obj.acls = list; else obj = { acls: list };
 
         response.result = list;
@@ -1321,14 +1861,14 @@ var ew_api = {
 
     setS3BucketAcl : function(bucket, content, callback)
     {
-        ew_session.queryS3("PUT", bucket, "", "?acl", {}, content, this, false, "onCompleteSetS3BucketAcl", callback);
+        this.queryS3("PUT", bucket, "", "?acl", {}, content, this, false, "onCompleteSetS3BucketAcl", callback);
     },
 
     onCompleteSetS3BucketAcl : function(response)
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-        var obj = this.session.model.getS3Bucket(bucket);
+        var obj = this.core.getS3Bucket(bucket);
         if (obj) obj.acls = null; else obj = { acls: list };
 
         response.result = obj;
@@ -1337,7 +1877,7 @@ var ew_api = {
     // Without callback it uses sync mode and returns region
     getS3BucketLocation : function(bucket, callback)
     {
-        return ew_session.queryS3("GET", bucket, "", "?location", {}, null, this, callback ? false : true, "onCompleteGetS3BucketLocation", callback);
+        return this.queryS3("GET", bucket, "", "?location", {}, null, this, callback ? false : true, "onCompleteGetS3BucketLocation", callback);
     },
 
     onCompleteGetS3BucketLocation : function(response)
@@ -1346,14 +1886,15 @@ var ew_api = {
         var bucket = response.params[0];
 
         var region = getNodeValue(xmlDoc, "LocationConstraint");
-        var obj = this.session.model.getS3Bucket(bucket)
+        var obj = this.core.getS3Bucket(bucket)
         if (obj) obj.region = region;
         response.result = region;
     },
 
+    // Return list in syn cmode
     listS3BucketKeys : function(bucket, params, callback)
     {
-        ew_session.queryS3("GET", bucket, "", "", {}, null, this, false, "onCompleteListS3BucketKeys", callback);
+        this.queryS3("GET", bucket, "", "", params, null, this, callback ? false : true, "onCompleteListS3BucketKeys", callback);
     },
 
     onCompleteListS3BucketKeys : function(response)
@@ -1372,7 +1913,7 @@ var ew_api = {
             var owner = getNodeValue(items[i], "ID")
             list.push(new S3BucketKey(bucket, id, type, size, mtime, owner, etag));
         }
-        var obj = this.session.model.getS3Bucket(bucket);
+        var obj = this.core.getS3Bucket(bucket);
         if (obj) {
             obj.keys = list;
         } else {
@@ -1385,27 +1926,27 @@ var ew_api = {
 
     deleteS3Bucket : function(bucket, params, callback)
     {
-        ew_session.queryS3("DELETE", bucket, "", "", params, null, this, false, "onComplete", callback);
+        this.queryS3("DELETE", bucket, "", "", params, null, this, callback ? false : true, "onComplete", callback);
     },
 
     createS3BucketKey : function(bucket, key, params, data, callback)
     {
-        ew_session.queryS3("PUT", bucket, key, "", params, data, this, false, "onComplete", callback);
+        this.queryS3("PUT", bucket, key, "", params, data, this, callback ? false : true, "onComplete", callback);
     },
 
     deleteS3BucketKey : function(bucket, key, params, callback)
     {
-        ew_session.queryS3("DELETE", bucket, key, "", params, null, this, false, "onComplete", callback);
+        this.queryS3("DELETE", bucket, key, "", params, null, this, callback ? false : true, "onComplete", callback);
     },
 
     getS3BucketKey : function(bucket, key, path, params, file, callback, progresscb)
     {
-        ew_session.downloadS3("GET", bucket, key, path, params, file, callback, progresscb);
+        this.downloadS3("GET", bucket, key, path, params, file, callback, progresscb);
     },
 
     readS3BucketKey : function(bucket, key, path, params, callback)
     {
-        ew_session.queryS3("GET", bucket, key, path, {}, null, this, false, "onCompleteReadS3BucketKey", callback);
+        this.queryS3("GET", bucket, key, path, {}, null, this, callback ? false : true, "onCompleteReadS3BucketKey", callback);
     },
 
     onCompleteReadS3BucketKey : function(response)
@@ -1415,13 +1956,13 @@ var ew_api = {
 
     putS3BucketKey : function(bucket, key, path, params, text, callback)
     {
-        if (!params["Content-Type"]) params["Content-Type"] = ew_session.getMimeType(key);
-        ew_session.queryS3("PUT", bucket, key, path, params, text, this, false, "onComplete", callback);
+        if (!params["Content-Type"]) params["Content-Type"] = this.core.getMimeType(key);
+        this.queryS3("PUT", bucket, key, path, params, text, this, false, "onComplete", callback);
     },
 
     initS3BucketKeyUpload : function(bucket, key, params, callback)
     {
-        ew_session.queryS3("POST", bucket, key, "?uploads", params, null, this, false, "onCompleteInitS3BucketKeyUpload", callback);
+        this.queryS3("POST", bucket, key, "?uploads", params, null, this, false, "onCompleteInitS3BucketKeyUpload", callback);
     },
 
     onCompleteInitS3BucketKeyUpload : function(response)
@@ -1432,13 +1973,13 @@ var ew_api = {
 
     uploadS3BucketFile : function(bucket, key, path, params, file, callback, progresscb)
     {
-        if (!params["Content-Type"]) params["Content-Type"] = ew_session.getMimeType(key);
-        ew_session.uploadS3(bucket, key, path, params, file, callback, progresscb);
+        if (!params["Content-Type"]) params["Content-Type"] = this.core.getMimeType(key);
+        this.uploadS3(bucket, key, path, params, file, callback, progresscb);
     },
 
     getS3BucketKeyAcl : function(bucket, key, callback)
     {
-        ew_session.queryS3("GET", bucket, key, "?acl", {}, null, this, false, "onCompleteGetS3BucketKeyAcl", callback);
+        this.queryS3("GET", bucket, key, "?acl", {}, null, this, callback ? false : true, "onCompleteGetS3BucketKeyAcl", callback);
     },
 
     onCompleteGetS3BucketKeyAcl : function(response)
@@ -1472,7 +2013,7 @@ var ew_api = {
             }
             list.push(new S3BucketAcl(id, type, name, perms));
         }
-        var obj = this.session.model.getS3BucketKey(bucket, key)
+        var obj = this.core.getS3BucketKey(bucket, key)
         if (obj) obj.acls = list;
 
         response.result = obj;
@@ -1480,7 +2021,7 @@ var ew_api = {
 
     setS3BucketKeyAcl : function(bucket, key, content, callback)
     {
-        ew_session.queryS3("PUT", bucket, key, "?acl", {}, content, this, false, "onCompleteSetS3BucketKeyAcl", callback);
+        this.queryS3("PUT", bucket, key, "?acl", {}, content, this, callback ? false : true, "onCompleteSetS3BucketKeyAcl", callback);
     },
 
     onCompleteSetS3BucketKeyAcl : function(response)
@@ -1489,7 +2030,7 @@ var ew_api = {
         var bucket = response.params[0];
         var key = response.params[1];
 
-        var obj = this.session.model.getS3BucketKey(bucket, key)
+        var obj = this.core.getS3BucketKey(bucket, key)
         if (obj) obj.acls = null;
 
         response.result = obj;
@@ -1497,14 +2038,14 @@ var ew_api = {
 
     getS3BucketWebsite : function(bucket, callback)
     {
-        ew_session.queryS3("GET", bucket, "", "?website", {}, null, this, false, "onCompleteGetS3BucketWebsite", callback);
+        this.queryS3("GET", bucket, "", "?website", {}, null, this, callback ? false : true, "onCompleteGetS3BucketWebsite", callback);
     },
 
     onCompleteGetS3BucketWebsite : function(response)
     {
         var xmlDoc = response.responseXML;
         var bucket = response.params[0];
-        var obj = this.session.model.getS3Bucket(bucket);
+        var obj = this.core.getS3Bucket(bucket);
         if (!obj) obj = {};
 
         if (response.hasErrors) {
@@ -1532,17 +2073,17 @@ var ew_api = {
             content += '<ErrorDocument><Key>' + error + '</Key></ErrorDocument>';
         }
         content += '</WebsiteConfiguration>';
-        ew_session.queryS3("PUT", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
+        this.queryS3("PUT", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
     },
 
     deleteS3BucketWebsite : function(bucket, callback)
     {
-        ew_session.queryS3("DELETE", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
+        this.queryS3("DELETE", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
     },
 
     describeKeypairs : function(callback)
     {
-        ew_session.queryEC2("DescribeKeyPairs", [], this, false, "onCompleteDescribeKeypairs", callback);
+        this.queryEC2("DescribeKeyPairs", [], this, false, "onCompleteDescribeKeypairs", callback);
     },
 
     onCompleteDescribeKeypairs : function(response)
@@ -1557,13 +2098,13 @@ var ew_api = {
             list.push(new KeyPair(name, fp));
         }
 
-        this.session.model.set('keypairs', list);
+        this.core.setModel('keypairs', list);
         response.result = list;
     },
 
     createKeypair : function(name, callback)
     {
-        ew_session.queryEC2("CreateKeyPair", [ [ "KeyName", name ] ], this, false, "onCompleteCreateKeyPair", callback);
+        this.queryEC2("CreateKeyPair", [ [ "KeyName", name ] ], this, false, "onCompleteCreateKeyPair", callback);
     },
 
     onCompleteCreateKeyPair : function(response)
@@ -1579,12 +2120,12 @@ var ew_api = {
 
     deleteKeypair : function(name, callback)
     {
-        ew_session.queryEC2("DeleteKeyPair", [ [ "KeyName", name ] ], this, false, "onComplete", callback);
+        this.queryEC2("DeleteKeyPair", [ [ "KeyName", name ] ], this, false, "onComplete", callback);
     },
 
     describeRouteTables : function(callback)
     {
-        ew_session.queryEC2("DescribeRouteTables", [], this, false, "onCompleteDescribeRouteTables", callback);
+        this.queryEC2("DescribeRouteTables", [], this, false, "onCompleteDescribeRouteTables", callback);
     },
 
     onCompleteDescribeRouteTables : function(response)
@@ -1624,18 +2165,18 @@ var ew_api = {
             var tags = this.getTags(item);
             list.push(new RouteTable(id, vpcId, routes, associations, tags));
         }
-        this.session.model.set('routeTables', list);
+        this.core.setModel('routeTables', list);
         response.result = list;
     },
 
     createRouteTable : function(vpcId, callback)
     {
-        ew_session.queryEC2("CreateRouteTable", [["VpcId", vpcId]], this, false, "onComplete:routeTableId", callback);
+        this.queryEC2("CreateRouteTable", [["VpcId", vpcId]], this, false, "onComplete:routeTableId", callback);
     },
 
     deleteRouteTable : function(tableId, callback)
     {
-        ew_session.queryEC2("DeleteRouteTable", [["RouteTableId", tableId]], this, false, "onComplete", callback);
+        this.queryEC2("DeleteRouteTable", [["RouteTableId", tableId]], this, false, "onComplete", callback);
     },
 
     createRoute : function(tableId, cidr, gatewayId, instanceId, networkInterfaceId, callback)
@@ -1652,22 +2193,22 @@ var ew_api = {
         if (networkInterfaceId) {
             params.push(["NetworkInterfaceId", networkInterfaceId]);
         }
-        ew_session.queryEC2("CreateRoute", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateRoute", params, this, false, "onComplete", callback);
     },
 
     deleteRoute : function(tableId, cidr, callback)
     {
-        ew_session.queryEC2("DeleteRoute", [["RouteTableId", tableId], ["DestinationCidrBlock", cidr]], this, false, "onComplete", callback);
+        this.queryEC2("DeleteRoute", [["RouteTableId", tableId], ["DestinationCidrBlock", cidr]], this, false, "onComplete", callback);
     },
 
     associateRouteTable : function(tableId, subnetId, callback)
     {
-        ew_session.queryEC2("AssociateRouteTable", [["RouteTableId", tableId], ["SubnetId", subnetId]], this, false, "onComplete:associationId", callback);
+        this.queryEC2("AssociateRouteTable", [["RouteTableId", tableId], ["SubnetId", subnetId]], this, false, "onComplete:associationId", callback);
     },
 
     disassociateRouteTable : function(assocId, callback)
     {
-        ew_session.queryEC2("DisassociateRouteTable", [["AssociationId", assocId]], this, false, "onComplete", callback);
+        this.queryEC2("DisassociateRouteTable", [["AssociationId", assocId]], this, false, "onComplete", callback);
     },
 
     createNetworkInterface : function(subnetId, ip, descr, groups, callback)
@@ -1684,17 +2225,17 @@ var ew_api = {
                 params.push(["SecurityGroupId."+(i+1), groups[i]]);
             }
         }
-        ew_session.queryEC2("CreateNetworkInterface", params, this, false, "onComplete:networkInterfaceId", callback);
+        this.queryEC2("CreateNetworkInterface", params, this, false, "onComplete:networkInterfaceId", callback);
     },
 
     deleteNetworkInterface : function(id, callback)
     {
-        ew_session.queryEC2("DeleteNetworkInterface", [["NetworkInterfaceId", id]], this, false, "onComplete", callback);
+        this.queryEC2("DeleteNetworkInterface", [["NetworkInterfaceId", id]], this, false, "onComplete", callback);
     },
 
     modifyNetworkInterfaceAttribute : function (id, name, value, callback)
     {
-        ew_session.queryEC2("ModifyNetworkInterfaceAttribute", [ ["NetworkInterfaceId", id], [name + ".Value", value] ], this, false, "onComplete", callback);
+        this.queryEC2("ModifyNetworkInterfaceAttribute", [ ["NetworkInterfaceId", id], [name + ".Value", value] ], this, false, "onComplete", callback);
     },
 
     modifyNetworkInterfaceAttributes : function (id, attributes, callback)
@@ -1704,12 +2245,12 @@ var ew_api = {
             params.push(attributes[i]);
         }
 
-        ew_session.queryEC2("ModifyNetworkInterfaceAttribute", params, this, false, "onComplete", callback);
+        this.queryEC2("ModifyNetworkInterfaceAttribute", params, this, false, "onComplete", callback);
     },
 
     attachNetworkInterface : function (id, instanceId, deviceIndex, callback)
     {
-        ew_session.queryEC2("AttachNetworkInterface", [["NetworkInterfaceId", id], ["InstanceId", instanceId], ["DeviceIndex", deviceIndex]], this, false, "onComplete", callback);
+        this.queryEC2("AttachNetworkInterface", [["NetworkInterfaceId", id], ["InstanceId", instanceId], ["DeviceIndex", deviceIndex]], this, false, "onComplete", callback);
     },
 
     detachNetworkInterface : function (attachmentId, force, callback)
@@ -1720,12 +2261,12 @@ var ew_api = {
             params.push(['Force', force]);
         }
 
-        ew_session.queryEC2("DetachNetworkInterface", params, this, false, "onComplete", callback);
+        this.queryEC2("DetachNetworkInterface", params, this, false, "onComplete", callback);
     },
 
     describeNetworkInterfaces : function(callback)
     {
-        ew_session.queryEC2("DescribeNetworkInterfaces", [], this, false, "onCompleteDescribeNetworkInterfaces", callback);
+        this.queryEC2("DescribeNetworkInterfaces", [], this, false, "onCompleteDescribeNetworkInterfaces", callback);
     },
 
     onCompleteDescribeNetworkInterfaces : function(response)
@@ -1775,13 +2316,13 @@ var ew_api = {
             list.push(new NetworkInterface(id, status, descr, subnetId, vpcId, azone, mac, ip, check, groups, attachment, association, tags));
         }
 
-        this.session.model.set('networkInterfaces', list);
+        this.core.setModel('networkInterfaces', list);
         response.result = list;
     },
 
     describeSecurityGroups : function(callback)
     {
-        ew_session.queryEC2("DescribeSecurityGroups", [], this, false, "onCompleteDescribeSecurityGroups", callback);
+        this.queryEC2("DescribeSecurityGroups", [], this, false, "onCompleteDescribeSecurityGroups", callback);
     },
 
     parsePermissions: function(type, list, items)
@@ -1840,7 +2381,7 @@ var ew_api = {
             list.push(new SecurityGroup(groupId, ownerId, groupName, groupDescription, vpcId, ipPermissionsList, tags));
         }
 
-        this.session.model.set('securityGroups', list);
+        this.core.setModel('securityGroups', list);
         response.result = list;
     },
 
@@ -1852,13 +2393,13 @@ var ew_api = {
         if (vpcId && vpcId != "") {
             params.push([ "VpcId", vpcId ])
         }
-        ew_session.queryEC2("CreateSecurityGroup", params, this, false, "onComplete:groupId", callback, null);
+        this.queryEC2("CreateSecurityGroup", params, this, false, "onComplete:groupId", callback, null);
     },
 
     deleteSecurityGroup : function(group, callback)
     {
         var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        ew_session.queryEC2("DeleteSecurityGroup", params, this, false, "onComplete", callback);
+        this.queryEC2("DeleteSecurityGroup", params, this, false, "onComplete", callback);
     },
 
     authorizeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
@@ -1868,7 +2409,7 @@ var ew_api = {
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
         params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
-        ew_session.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
+        this.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     revokeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
@@ -1878,7 +2419,7 @@ var ew_api = {
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
         params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
-        ew_session.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
+        this.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     authorizeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
@@ -1893,7 +2434,7 @@ var ew_api = {
             params.push([ "IpPermissions.1.Groups.1.GroupName", srcGroup.name ]);
             params.push([ "IpPermissions.1.Groups.1.UserId", srcGroup.ownerId ]);
         }
-        ew_session.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
+        this.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     revokeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
@@ -1908,7 +2449,7 @@ var ew_api = {
             params.push([ "IpPermissions.1.Groups.1.GroupName", srcGroup.name ]);
             params.push([ "IpPermissions.1.Groups.1.UserId", srcGroup.ownerId ]);
         }
-        ew_session.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
+        this.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     rebootInstances : function(instances, callback)
@@ -1917,13 +2458,13 @@ var ew_api = {
         for ( var i in instances) {
             params.push([ "InstanceId." + (i + 1), instances[i].id ]);
         }
-        ew_session.queryEC2("RebootInstances", params, this, false, "onComplete", callback);
+        this.queryEC2("RebootInstances", params, this, false, "onComplete", callback);
     },
 
     // Without callback the request will be sync and the result will be cnsole output
     getConsoleOutput : function(instanceId, callback)
     {
-        return ew_session.queryEC2("GetConsoleOutput", [ [ "InstanceId", instanceId ] ], this, callback ? false : true, "onCompleteGetConsoleOutput", callback);
+        return this.queryEC2("GetConsoleOutput", [ [ "InstanceId", instanceId ] ], this, callback ? false : true, "onCompleteGetConsoleOutput", callback);
     },
 
     onCompleteGetConsoleOutput : function(response)
@@ -1943,7 +2484,7 @@ var ew_api = {
 
     describeAvailabilityZones : function(callback)
     {
-        ew_session.queryEC2("DescribeAvailabilityZones", [], this, false, "onCompleteDescribeAvailabilityZones", callback);
+        this.queryEC2("DescribeAvailabilityZones", [], this, false, "onCompleteDescribeAvailabilityZones", callback);
     },
 
     onCompleteDescribeAvailabilityZones : function(response)
@@ -1958,13 +2499,13 @@ var ew_api = {
             list.push(new AvailabilityZone(name, state));
         }
 
-        this.session.model.set('availabilityZones', list);
+        this.core.setModel('availabilityZones', list);
         response.result = list;
     },
 
     describeAddresses : function(callback)
     {
-        ew_session.queryEC2("DescribeAddresses", [], this, false, "onCompleteDescribeAddresses", callback);
+        this.queryEC2("DescribeAddresses", [], this, false, "onCompleteDescribeAddresses", callback);
     },
 
     onCompleteDescribeAddresses : function(response)
@@ -1982,20 +2523,20 @@ var ew_api = {
             var tags = this.getTags(items[i]);
             list.push(new EIP(publicIp, instanceid, allocId, assocId, domain, tags));
         }
-        this.session.model.set('addresses', list);
+        this.core.setModel('addresses', list);
         response.result = list;
     },
 
     allocateAddress : function(vpc, callback)
     {
         var params = vpc ? [["Domain", "vpc"]] : []
-        ew_session.queryEC2("AllocateAddress", params, this, false, "onComplete:allocationId", callback);
+        this.queryEC2("AllocateAddress", params, this, false, "onComplete:allocationId", callback);
     },
 
     releaseAddress : function(eip, callback)
     {
         var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]]
-        ew_session.queryEC2("ReleaseAddress", params, this, false, "onComplete", callback);
+        this.queryEC2("ReleaseAddress", params, this, false, "onComplete", callback);
     },
 
     associateAddress : function(eip, instanceId, networkInterfaceId, callback)
@@ -2007,18 +2548,18 @@ var ew_api = {
         if (networkInterfaceId) {
             params.push([ 'NetworkInterfaceId', networkInterfaceId ])
         }
-        ew_session.queryEC2("AssociateAddress", params, this, false, "onComplete:associationId", callback);
+        this.queryEC2("AssociateAddress", params, this, false, "onComplete:associationId", callback);
     },
 
     disassociateAddress : function(eip, callback)
     {
         var params = eip.associationId ? [["AssociationId", eip.associationId]] : [[ 'PublicIp', eip.publicIp ]]
-        ew_session.queryEC2("DisassociateAddress", params, this, false, "onComplete", callback);
+        this.queryEC2("DisassociateAddress", params, this, false, "onComplete", callback);
     },
 
     describeRegions : function(callback)
     {
-        ew_session.queryEC2("DescribeRegions", [], this, false, "onCompleteDescribeRegions", callback);
+        this.queryEC2("DescribeRegions", [], this, false, "onCompleteDescribeRegions", callback);
     },
 
     onCompleteDescribeRegions : function(response)
@@ -2041,7 +2582,7 @@ var ew_api = {
 
     describeLoadBalancers : function(callback)
     {
-        ew_session.queryELB("DescribeLoadBalancers", [], this, false, "onCompleteDescribeLoadBalancers", callback);
+        this.queryELB("DescribeLoadBalancers", [], this, false, "onCompleteDescribeLoadBalancers", callback);
     },
 
     onCompleteDescribeLoadBalancers : function(response)
@@ -2121,7 +2662,7 @@ var ew_api = {
                 list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
             }
         }
-        this.session.model.set('loadBalancers', list);
+        this.core.setModel('loadBalancers', list);
         response.result = list;
     },
 
@@ -2129,7 +2670,7 @@ var ew_api = {
     {
         var params =[ [ "LoadBalancerName", LoadBalancerName ] ];
 
-        ew_session.queryELB("DescribeInstanceHealth", params, this, false, "onCompleteDescribeInstanceHealth", callback);
+        this.queryELB("DescribeInstanceHealth", params, this, false, "onCompleteDescribeInstanceHealth", callback);
     },
 
     onCompleteDescribeInstanceHealth : function(response)
@@ -2146,7 +2687,7 @@ var ew_api = {
             list.push(new InstanceHealth(Description, State, InstanceId, ReasonCode));
         }
 
-        var elb = this.session.model.find('loadBalancers', response.params[0][1]);
+        var elb = this.core.findModel('loadBalancers', response.params[0][1]);
         if (elb) elb.InstanceHealth = list;
 
         response.result = list;
@@ -2157,7 +2698,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
 
-        ew_session.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     createLoadBalancer : function(LoadBalancerName, Protocol, elbport, instanceport, Zone, subnet, groups, callback)
@@ -2177,7 +2718,7 @@ var ew_api = {
         }
         params.push([ "Listeners.member.LoadBalancerPort", elbport ]);
         params.push([ "Listeners.member.InstancePort", instanceport ]);
-        ew_session.queryELB("CreateLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("CreateLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     configureHealthCheck : function(LoadBalancerName, Target, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, callback)
@@ -2190,7 +2731,7 @@ var ew_api = {
         params.push([ "HealthCheck.HealthyThreshold", HealthyThreshold ]);
         params.push([ "HealthCheck.UnhealthyThreshold", UnhealthyThreshold ]);
 
-        ew_session.queryELB("ConfigureHealthCheck", params, this, false, "onComplete", callback);
+        this.queryELB("ConfigureHealthCheck", params, this, false, "onComplete", callback);
     },
 
     registerInstancesWithLoadBalancer : function(LoadBalancerName, instances, callback)
@@ -2200,7 +2741,7 @@ var ew_api = {
         for (var i = 0; i < instances.length; i++) {
             params.push([ "Instances.member." + (i + 1) + ".InstanceId", instances[i] ]);
         }
-        ew_session.queryELB("RegisterInstancesWithLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("RegisterInstancesWithLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     deregisterInstancesWithLoadBalancer : function(LoadBalancerName, instances, callback)
@@ -2210,7 +2751,7 @@ var ew_api = {
         for (var i = 0; i < instances.length; i++) {
             params.push([ "Instances.member." + (i + 1) + ".InstanceId", instances[i] ]);
         }
-        ew_session.queryELB("DeregisterInstancesFromLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("DeregisterInstancesFromLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     enableAvailabilityZonesForLoadBalancer : function(LoadBalancerName, Zones, callback)
@@ -2220,7 +2761,7 @@ var ew_api = {
         for (var i = 0; i < Zones.length; i++) {
             params.push([ "AvailabilityZones.member." + (i + 1), Zones[i] ]);
         }
-        ew_session.queryELB("EnableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("EnableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     disableAvailabilityZonesForLoadBalancer : function(LoadBalancerName, Zones, callback)
@@ -2230,7 +2771,7 @@ var ew_api = {
         for (var i = 0 ; i < Zones.length; i++) {
             params.push([ "AvailabilityZones.member." + (i + 1), Zones[i] ]);
         }
-        ew_session.queryELB("DisableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("DisableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     createAppCookieStickinessPolicy : function(LoadBalancerName, CookieName, callback)
@@ -2243,7 +2784,7 @@ var ew_api = {
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "CookieName", CookieName ]);
         params.push([ "PolicyName", PolicyName ]);
-        ew_session.queryELB("CreateAppCookieStickinessPolicy", params, this, false, "onComplete", callback);
+        this.queryELB("CreateAppCookieStickinessPolicy", params, this, false, "onComplete", callback);
     },
 
     createLBCookieStickinessPolicy : function(LoadBalancerName, CookieExpirationPeriod, callback)
@@ -2256,7 +2797,7 @@ var ew_api = {
         params.push([ "CookieExpirationPeriod", CookieExpirationPeriod ]);
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "PolicyName", PolicyName ]);
-        ew_session.queryELB("CreateLBCookieStickinessPolicy", params, this, false, "onComplete", callback);
+        this.queryELB("CreateLBCookieStickinessPolicy", params, this, false, "onComplete", callback);
     },
 
     deleteLoadBalancerPolicy : function(LoadBalancerName, policy, callback)
@@ -2265,7 +2806,7 @@ var ew_api = {
         params.push([ "LoadBalancerName", LoadBalancerName ]);
 
         params.push([ "PolicyName", policy ]);
-        ew_session.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
+        this.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
     },
 
     applySecurityGroupsToLoadBalancer : function (loadBalancerName, groups, callback)
@@ -2275,7 +2816,7 @@ var ew_api = {
             var group = groups[i];
             params.push(["SecurityGroups.member." + (i + 1), group]);
         }
-        ew_session.queryELB("ApplySecurityGroupsToLoadBalancer", params, this, false, "onComplete", callback);
+        this.queryELB("ApplySecurityGroupsToLoadBalancer", params, this, false, "onComplete", callback);
     },
 
     attachLoadBalancerToSubnets : function(LoadBalancerName, subnets, callback)
@@ -2285,7 +2826,7 @@ var ew_api = {
         for (var i = 0; i < subnets.length; i++) {
             params.push(["Subnets.member." + (i + 1), subnets[i]]);
         }
-        ew_session.queryELB("AttachLoadBalancerToSubnets", params, this, false, "onComplete", callback);
+        this.queryELB("AttachLoadBalancerToSubnets", params, this, false, "onComplete", callback);
     },
 
     detachLoadBalancerFromSubnets : function(LoadBalancerName, subnets, callback)
@@ -2295,7 +2836,7 @@ var ew_api = {
         for (var i = 0; i < subnets.length; i++) {
             params.push(["Subnets.member." + (i + 1), subnets[i]]);
         }
-        ew_session.queryELB("DetachLoadBalancerFromSubnets", params, this, false, "onComplete", callback);
+        this.queryELB("DetachLoadBalancerFromSubnets", params, this, false, "onComplete", callback);
     },
 
     uploadServerCertificate : function(ServerCertificateName, CertificateBody, PrivateKey, Path, callback)
@@ -2305,7 +2846,7 @@ var ew_api = {
         params.push([ "CertificateBody", CertificateBody ]);
         params.push([ "PrivateKey", PrivateKey ]);
         if (Path != null) params.push([ "Path", Path ]);
-        ew_session.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
+        this.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
     },
 
     createTags : function(tags, callback)
@@ -2318,7 +2859,7 @@ var ew_api = {
             params.push([ "Tag." + (i + 1) + ".Value", tags[i].value ]);
         }
 
-        ew_session.queryEC2("CreateTags", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateTags", params, this, false, "onComplete", callback);
     },
 
     deleteTags : function(tags, callback)
@@ -2330,7 +2871,7 @@ var ew_api = {
             params.push([ "Tag." + (i + 1) + ".Key", tags[i].name ]);
         }
 
-        ew_session.queryEC2("DeleteTags", params, this, false, "onComplete", callback);
+        this.queryEC2("DeleteTags", params, this, false, "onComplete", callback);
     },
 
     describeTags : function(ids, callback)
@@ -2343,7 +2884,7 @@ var ew_api = {
             params.push([ "Filter." + (i + 1) + ".Value.1", ids[i] ]);
         }
 
-        ew_session.queryEC2("DescribeTags", params, this, false, "onCompleteDescribeTags", callback);
+        this.queryEC2("DescribeTags", params, this, false, "onCompleteDescribeTags", callback);
     },
 
     onCompleteDescribeTags : function(response)
@@ -2364,7 +2905,7 @@ var ew_api = {
     },
 
     describeVolumeStatus : function (callback) {
-        ew_session.queryEC2("DescribeVolumeStatus", [], this, false, "onCompleteDescribeVolumeStatus", callback);
+        this.queryEC2("DescribeVolumeStatus", [], this, false, "onCompleteDescribeVolumeStatus", callback);
     },
 
     onCompleteDescribeVolumeStatus : function (response) {
@@ -2398,7 +2939,7 @@ var ew_api = {
 
     listAccountAliases : function(callback)
     {
-        ew_session.queryIAM("ListAccountAliases", [], this, false, "onCompleteListAccountAliases", callback);
+        this.queryIAM("ListAccountAliases", [], this, false, "onCompleteListAccountAliases", callback);
     },
 
     onCompleteListAccountAliases : function(response)
@@ -2409,17 +2950,17 @@ var ew_api = {
 
     createAccountAlias: function(name, callback)
     {
-        ew_session.queryIAM("CreateAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
+        this.queryIAM("CreateAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
     },
 
     deleteAccountAlias: function(name, callback)
     {
-        ew_session.queryIAM("DeleteAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
+        this.queryIAM("DeleteAccountAlias", [ ["AccountAlias", name]], this, false, "onComplete", callback);
     },
 
     getAccountSummary: function(callback)
     {
-        ew_session.queryIAM("GetAccountSummary", [], this, false, "onCompleteGetAccountSummary", callback);
+        this.queryIAM("GetAccountSummary", [], this, false, "onCompleteGetAccountSummary", callback);
     },
 
     onCompleteGetAccountSummary: function(response)
@@ -2435,7 +2976,7 @@ var ew_api = {
         if (name) {
             params.push([ "UserName", name ])
         }
-        ew_session.queryIAM("CreateAccessKey", params, this, false, "onCompleteCreateAccessKey", callback);
+        this.queryIAM("CreateAccessKey", params, this, false, "onCompleteCreateAccessKey", callback);
     },
 
     onCompleteCreateAccessKey : function(response)
@@ -2455,14 +2996,14 @@ var ew_api = {
     {
         var params = [ [ "AccessKeyId", id ] ];
         if (user) params.push(["UserName", user])
-        ew_session.queryIAM("DeleteAccessKey", params, this, false, "onComplete", callback);
+        this.queryIAM("DeleteAccessKey", params, this, false, "onComplete", callback);
     },
 
     listAccessKeys : function(user, callback)
     {
         var params = [];
         if (user) params.push(["UserName", user]);
-        ew_session.queryIAM("ListAccessKeys", params, this, false, "onCompleteListAccessKeys", callback);
+        this.queryIAM("ListAccessKeys", params, this, false, "onCompleteListAccessKeys", callback);
     },
 
     onCompleteListAccessKeys : function(response)
@@ -2480,7 +3021,7 @@ var ew_api = {
             list.push(new AccessKey(id, "", status, user, date));
         }
 
-        this.session.model.update('users', getParam(params, 'UserName'), 'accessKeys', list)
+        this.core.updateModel('users', getParam(params, 'UserName'), 'accessKeys', list)
 
         response.result = list;
     },
@@ -2489,7 +3030,7 @@ var ew_api = {
     {
         var params = [];
         if (status) params.push(["AssignmentStatus", status]);
-        ew_session.queryIAM("ListVirtualMFADevices", [], this, false, "onCompleteListVirtualMFADevices", callback);
+        this.queryIAM("ListVirtualMFADevices", [], this, false, "onCompleteListVirtualMFADevices", callback);
     },
 
     onCompleteListVirtualMFADevices : function(response)
@@ -2505,13 +3046,13 @@ var ew_api = {
             list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), user));
             debug(i + " " + serial)
         }
-        this.session.model.set('vmfas', list);
+        this.core.setModel('vmfas', list);
         response.result = list;
     },
 
     createVirtualMFADevice : function(name, path, callback)
     {
-        ew_session.queryIAM("CreateVirtualMFADevice", [["VirtualMFADeviceName", name], [ "Path", path || "/" ]], this, false, "onCompleteCreateVirtualMFADevice", callback);
+        this.queryIAM("CreateVirtualMFADevice", [["VirtualMFADeviceName", name], [ "Path", path || "/" ]], this, false, "onCompleteCreateVirtualMFADevice", callback);
     },
 
     onCompleteCreateVirtualMFADevice : function(response)
@@ -2528,14 +3069,14 @@ var ew_api = {
 
     deleteVirtualMFADevice: function(serial, callback)
     {
-        ew_session.queryIAM("DeleteVirtualMFADevice", [ ["SerialNumber", serial] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteVirtualMFADevice", [ ["SerialNumber", serial] ], this, false, "onComplete", callback);
     },
 
     listMFADevices : function(user, callback)
     {
         var params = [];
         if (user) params.push(["UserName", user]);
-        ew_session.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
+        this.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
     },
 
     onCompleteListMFADevices : function(response)
@@ -2547,30 +3088,30 @@ var ew_api = {
 
         var user = getNodeValue(xmlDoc, "UserName");
         if (!user) user = getParam(params, 'UserName');
-        if (!user) user = ew_session.user.name;
-        this.session.model.update('users', user, 'mfaDevices', list)
+        if (!user) user = this.core.user.name;
+        this.core.updateModel('users', user, 'mfaDevices', list)
 
         response.result = list;
     },
 
     enableMFADevice: function(user, serial, auth1, auth2, callback)
     {
-        ew_session.queryIAM("EnableMFADevice", [["UserName", user], ["SerialNumber", serial], ["AuthenticationCode1", auth1], ["AuthenticationCode2", auth2] ], this, false, "onComplete", callback);
+        this.queryIAM("EnableMFADevice", [["UserName", user], ["SerialNumber", serial], ["AuthenticationCode1", auth1], ["AuthenticationCode2", auth2] ], this, false, "onComplete", callback);
     },
 
     resyncMFADevice: function(user, serial, auth1, auth2, callback)
     {
-        ew_session.queryIAM("ResyncMFADevice", [["UserName", user], ["SerialNumber", serial], ["AuthenticationCode1", auth1], ["AuthenticationCode2", auth2] ], this, false, "onComplete", callback);
+        this.queryIAM("ResyncMFADevice", [["UserName", user], ["SerialNumber", serial], ["AuthenticationCode1", auth1], ["AuthenticationCode2", auth2] ], this, false, "onComplete", callback);
     },
 
     deactivateMFADevice: function(user, serial, callback)
     {
-        ew_session.queryIAM("DeactivateMFADevice", [["UserName", user], ["SerialNumber", serial] ], this, false, "onComplete", callback);
+        this.queryIAM("DeactivateMFADevice", [["UserName", user], ["SerialNumber", serial] ], this, false, "onComplete", callback);
     },
 
     listUsers : function(callback)
     {
-        ew_session.queryIAM("ListUsers", [], this, false, "onCompleteListUsers", callback);
+        this.queryIAM("ListUsers", [], this, false, "onCompleteListUsers", callback);
     },
 
     unpackUser: function(item)
@@ -2592,7 +3133,7 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             list.push(this.unpackUser(items[i]));
         }
-        this.session.model.set('users', list);
+        this.core.setModel('users', list);
         response.result = list;
     },
 
@@ -2600,7 +3141,7 @@ var ew_api = {
     {
         var params = [];
         if (name) params.push(["UserName", user])
-        ew_session.queryIAM("GetUser", params, this, false, "onCompleteGetUser", callback);
+        this.queryIAM("GetUser", params, this, false, "onCompleteGetUser", callback);
     },
 
     onCompleteGetUser : function(response)
@@ -2611,17 +3152,17 @@ var ew_api = {
 
     getUserPolicy : function(user, policy, callback)
     {
-        ew_session.queryIAM("GetUserPolicy", [ ["UserName", user], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
+        this.queryIAM("GetUserPolicy", [ ["UserName", user], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
     },
 
     putUserPolicy: function(user, name, text, callback)
     {
-        ew_session.queryIAM("PutUserPolicy", [ ["UserName", user], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutUserPolicy", [ ["UserName", user], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
     deleteUserPolicy : function(user, policy, callback)
     {
-        ew_session.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
 
     onCompleteGetPolicy : function(response)
@@ -2632,19 +3173,19 @@ var ew_api = {
 
     createUser : function(name, path, callback)
     {
-        ew_session.queryIAM("CreateUser", [ ["UserName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetUser", callback);
+        this.queryIAM("CreateUser", [ ["UserName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetUser", callback);
     },
 
     deleteUser : function(name, callback)
     {
-        ew_session.queryIAM("DeleteUser", [ ["UserName", name] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteUser", [ ["UserName", name] ], this, false, "onComplete", callback);
     },
 
     getLoginProfile : function(name, callback)
     {
         var params = [];
         if (name) params.push(["UserName", name])
-        ew_session.queryIAM("GetLoginProfile", params, this, false, "onCompleteGetLoginProfile", callback);
+        this.queryIAM("GetLoginProfile", params, this, false, "onCompleteGetLoginProfile", callback);
     },
 
     onCompleteGetLoginProfile : function(response)
@@ -2656,7 +3197,7 @@ var ew_api = {
 
         // It is valid not to have it
         if (!response.hasErrors) {
-            this.session.model.update('users', name, 'loginProfileDate', date)
+            this.core.updateModel('users', name, 'loginProfileDate', date)
         }
         response.hasErrors = false;
         response.result = date;
@@ -2664,12 +3205,12 @@ var ew_api = {
 
     createLoginProfile : function(name, pwd, callback)
     {
-        ew_session.queryIAM("CreateLoginProfile", [ ["UserName", name], [ "Password", pwd ] ], this, false, "onComplete", callback);
+        this.queryIAM("CreateLoginProfile", [ ["UserName", name], [ "Password", pwd ] ], this, false, "onComplete", callback);
     },
 
     updateLoginProfile : function(name, pwd, callback)
     {
-        ew_session.queryIAM("UpdateLoginProfile", [ ["UserName", name], [ "Password", pwd ] ], this, false, "onComplete", callback);
+        this.queryIAM("UpdateLoginProfile", [ ["UserName", name], [ "Password", pwd ] ], this, false, "onComplete", callback);
     },
 
     updateUser : function(name, newname, newpath, callback)
@@ -2677,42 +3218,42 @@ var ew_api = {
         var params = [ ["UserName", name] ]
         if (newname) params.push([ "NewUserName", newname])
         if (newpath) params.push(["NewPath", newpath])
-        ew_session.queryIAM("UpdateUser", params, this, false, "onComplete", callback);
+        this.queryIAM("UpdateUser", params, this, false, "onComplete", callback);
     },
 
     deleteLoginProfile : function(name, callback)
     {
-        ew_session.queryIAM("DeleteLoginProfile", [ ["UserName", name] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteLoginProfile", [ ["UserName", name] ], this, false, "onComplete", callback);
     },
 
     listUserPolicies : function(user, callback)
     {
-        ew_session.queryIAM("ListUserPolicies", [ ["UserName", user]], this, false, "onCompleteListPolicies", callback);
+        this.queryIAM("ListUserPolicies", [ ["UserName", user]], this, false, "onCompleteListPolicies", callback);
     },
 
     changePassword : function(oldPw, newPw, callback)
     {
-        ew_session.queryIAM("ChangePassword", [ ["OldPassword", oldPw], [ "NewPassword", newPw ] ], this, false, "onComplete", callback);
+        this.queryIAM("ChangePassword", [ ["OldPassword", oldPw], [ "NewPassword", newPw ] ], this, false, "onComplete", callback);
     },
 
     addUserToGroup : function(user, group, callback)
     {
-        ew_session.queryIAM("AddUserToGroup", [ ["UserName", user], [ "GroupName", group ] ], this, false, "onComplete", callback);
+        this.queryIAM("AddUserToGroup", [ ["UserName", user], [ "GroupName", group ] ], this, false, "onComplete", callback);
     },
 
     removeUserFromGroup : function(user, group, callback)
     {
-        ew_session.queryIAM("RemoveUserFromGroup", [ ["UserName", user], [ "GroupName", group ] ], this, false, "onComplete", callback);
+        this.queryIAM("RemoveUserFromGroup", [ ["UserName", user], [ "GroupName", group ] ], this, false, "onComplete", callback);
     },
 
     listGroups : function(callback)
     {
-        ew_session.queryIAM("ListGroups", [], this, false, "onCompleteListGroups", callback);
+        this.queryIAM("ListGroups", [], this, false, "onCompleteListGroups", callback);
     },
 
     listGroupsForUser : function(user, callback)
     {
-        ew_session.queryIAM("ListGroupsForUser", [ ["UserName", user]], this, false, "onCompleteListGroups", callback);
+        this.queryIAM("ListGroupsForUser", [ ["UserName", user]], this, false, "onCompleteListGroups", callback);
     },
 
     unpackGroup: function(item)
@@ -2738,11 +3279,11 @@ var ew_api = {
         // Update model directly
         switch (response.action) {
         case 'ListGroups':
-            this.session.model.set('groups', list);
+            this.core.setModel('groups', list);
             break;
 
         case "ListGroupsForUser":
-            this.session.model.update('users', getParam(params, 'UserName'), 'groups', list)
+            this.core.updateModel('users', getParam(params, 'UserName'), 'groups', list)
             break;
         }
 
@@ -2751,7 +3292,7 @@ var ew_api = {
 
     listGroupPolicies : function(name, callback)
     {
-        ew_session.queryIAM("ListGroupPolicies", [ ["GroupName", name]], this, false, "onCompleteListPolicies", callback);
+        this.queryIAM("ListGroupPolicies", [ ["GroupName", name]], this, false, "onCompleteListPolicies", callback);
     },
 
     onCompleteListPolicies : function(response)
@@ -2768,11 +3309,11 @@ var ew_api = {
         // Update model directly
         switch(response.action) {
         case "ListGroupPolicies":
-            this.session.model.update('groups', getParam(params, 'GroupName'), 'policies', list)
+            this.core.updateModel('groups', getParam(params, 'GroupName'), 'policies', list)
             break;
 
         case "ListUserPolicies":
-            this.session.model.update('users', getParam(params, 'UserName'), 'policies', list)
+            this.core.updateModel('users', getParam(params, 'UserName'), 'policies', list)
             break;
         }
 
@@ -2781,32 +3322,32 @@ var ew_api = {
 
     getGroupPolicy : function(group, policy, callback)
     {
-        ew_session.queryIAM("GetGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
+        this.queryIAM("GetGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
     },
 
     deleteGroupPolicy : function(group, policy, callback)
     {
-        ew_session.queryIAM("DeleteGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
 
     putGroupPolicy: function(group, name, text, callback)
     {
-        ew_session.queryIAM("PutGroupPolicy", [ ["GroupName", group], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutGroupPolicy", [ ["GroupName", group], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
     createGroup : function(name, path, callback)
     {
-        ew_session.queryIAM("CreateGroup", [ ["GroupName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetGroup", callback);
+        this.queryIAM("CreateGroup", [ ["GroupName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetGroup", callback);
     },
 
     deleteGroup : function(name, callback)
     {
-        ew_session.queryIAM("DeleteGroup", [ ["GroupName", name] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteGroup", [ ["GroupName", name] ], this, false, "onComplete", callback);
     },
 
     getGroup : function(name, callback)
     {
-        ew_session.queryIAM("GetGroup", [ ["GroupName", name]], this, false, "onCompleteGetGroup", callback);
+        this.queryIAM("GetGroup", [ ["GroupName", name]], this, false, "onCompleteGetGroup", callback);
     },
 
     onCompleteGetGroup : function(response)
@@ -2815,14 +3356,14 @@ var ew_api = {
 
         var group = this.unpackGroup(xmlDoc);
         // User real object from the model
-        var obj = this.session.model.find('groups', group.id);
+        var obj = this.core.findModel('groups', group.id);
         if (!obj) obj = group;
 
         var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(obj) { return new User(obj.UserId, obj.UserName, obj.Path, obj.Arn); });
 
         // Update with real users from the model so we can share between users and groups screens
         for (var i in users) {
-            var user = this.session.model.find('users', users[i].id);
+            var user = this.core.findModel('users', users[i].id);
             if (user) users[i] = user;
         }
         obj.users = users;
@@ -2834,12 +3375,12 @@ var ew_api = {
         var params = [ ["GroupName", name] ]
         if (newname) params.push([ "NewGroupName", newname])
         if (newpath) params.push(["NewPath", newpath])
-        ew_session.queryIAM("UpdateGroup", params, this, false, "onComplete", callback);
+        this.queryIAM("UpdateGroup", params, this, false, "onComplete", callback);
     },
 
     getAccountPasswordPolicy: function(callback)
     {
-        ew_session.queryIAM("GetAccountPasswordPolicy", [], this, false, "onCompleteGetPasswordPolicy", callback);
+        this.queryIAM("GetAccountPasswordPolicy", [], this, false, "onCompleteGetPasswordPolicy", callback);
     },
 
     onCompleteGetPasswordPolicy: function(response)
@@ -2869,24 +3410,24 @@ var ew_api = {
         for (var p in obj) {
             params.push([ p, obj[p]])
         }
-        ew_session.queryIAM("UpdateAccountPasswordPolicy", params, this, false, "onComplete", callback);
+        this.queryIAM("UpdateAccountPasswordPolicy", params, this, false, "onComplete", callback);
     },
 
     deleteAccountPasswordPolicy: function(callback)
     {
-        ew_session.queryIAM("DeleteAccountPasswordPolicy", [], this, false, "onComplete", callback);
+        this.queryIAM("DeleteAccountPasswordPolicy", [], this, false, "onComplete", callback);
     },
 
     importKeypair : function(name, keyMaterial, callback)
     {
-        ew_session.queryEC2("ImportKeyPair", [ [ "KeyName", name ], [ "PublicKeyMaterial", keyMaterial ] ], this, false, "onComplete", callback);
+        this.queryEC2("ImportKeyPair", [ [ "KeyName", name ], [ "PublicKeyMaterial", keyMaterial ] ], this, false, "onComplete", callback);
     },
 
     listSigningCertificates : function(user, callback)
     {
         var params = [];
         if (user) params.push(["UserName", user]);
-        ew_session.queryIAM("ListSigningCertificates", params, this, false, "onCompleteListSigningCertificates", callback);
+        this.queryIAM("ListSigningCertificates", params, this, false, "onCompleteListSigningCertificates", callback);
     },
 
     onCompleteListSigningCertificates : function(response)
@@ -2908,17 +3449,17 @@ var ew_api = {
     {
         var params = [ [ "CertificateBody", body ] ];
         if (user) params.push([["UserName", user]])
-        ew_session.queryIAM("UploadSigningCertificate", params, this, false, "onComplete", callback);
+        this.queryIAM("UploadSigningCertificate", params, this, false, "onComplete", callback);
     },
 
     deleteSigningCertificate : function(id, callback)
     {
-        ew_session.queryIAM("DeleteSigningCertificate", [ [ "CertificateId", id ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteSigningCertificate", [ [ "CertificateId", id ] ], this, false, "onComplete", callback);
     },
 
     updateSigningCertificate : function(id, status, callback)
     {
-        ew_session.queryIAM("UpdateSigningCertificate", [ [ "CertificateId", id ], ["Status", status] ], this, false, "onComplete", callback);
+        this.queryIAM("UpdateSigningCertificate", [ [ "CertificateId", id ], ["Status", status] ], this, false, "onComplete", callback);
     },
 
     uploadServerCertificate : function(name, body, privateKey, path, chain, callback)
@@ -2928,12 +3469,12 @@ var ew_api = {
         params.push(["PrivateKey", privateKey ]);
         if (path) params.push([["Path", user]])
         if (chain) params.push(["CertificateChain", chain])
-        ew_session.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
+        this.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
     },
 
     deleteServerCertificate : function(name, callback)
     {
-        ew_session.queryIAM("DeleteServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onComplete", callback);
     },
 
     updateServerCertificate : function(name, newname, newpath, callback)
@@ -2941,12 +3482,12 @@ var ew_api = {
         var params = [ [ "ServerCertificateName", name ] ];
         if (newname) params.push(["NewServerCertificateName", newname]);
         if (newpath) params.push(["NewPath", newpath]);
-        ew_session.queryIAM("UpdateServerCertificate", params, this, false, "onComplete", callback);
+        this.queryIAM("UpdateServerCertificate", params, this, false, "onComplete", callback);
     },
 
     getServerCertificate : function(name, callback)
     {
-        ew_session.queryIAM("GetServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onCompleteGetServerCertificate", callback);
+        this.queryIAM("GetServerCertificate", [ [ "ServerCertificateName", name ] ], this, false, "onCompleteGetServerCertificate", callback);
     },
 
     unpackServerCertificate: function(item)
@@ -2969,7 +3510,7 @@ var ew_api = {
     listServerCertificates : function(callback)
     {
         var params = [];
-        ew_session.queryIAM("ListServerCertificates", params, this, false, "onCompleteListServerCertificates", callback);
+        this.queryIAM("ListServerCertificates", params, this, false, "onCompleteListServerCertificates", callback);
     },
 
     onCompleteListServerCertificates : function(response)
@@ -2980,13 +3521,13 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             list.push(this.unpackServerCertificate(items[i]));
         }
-        this.session.model.set('serverCerts', list);
+        this.core.setModel('serverCerts', list);
         response.result = list;
     },
 
     describeAlarms : function(callback)
     {
-        ew_session.queryCloudWatch("DescribeAlarms", [], this, false, "onCompleteDescribeAlarms", callback);
+        this.queryCloudWatch("DescribeAlarms", [], this, false, "onCompleteDescribeAlarms", callback);
     },
 
     onCompleteDescribeAlarms : function(response)
@@ -3026,7 +3567,7 @@ var ew_api = {
             alarms.push(new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, namespace, period, threshold, statistic, oper, metricName, evalPeriods, dims, actions));
         }
 
-        this.session.model.set('alarms', alarms);
+        this.core.setModel('alarms', alarms);
 
         response.result = alarms;
     },
@@ -3036,7 +3577,7 @@ var ew_api = {
         var params = [];
         if (duration) params.push(["DurationSeconds", duration]);
 
-        ew_session.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback);
+        this.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback);
     },
 
     getFederationToken : function (duration, name, policy, callback)
@@ -3045,7 +3586,7 @@ var ew_api = {
         if (duration) params.push(["DurationSeconds", duration]);
         if (policy) params.push(["Policy", policy]);
 
-        ew_session.querySTS("GetFederationToken", params, this, false, "onCompleteGetSessionToken", callback);
+        this.querySTS("GetFederationToken", params, this, false, "onCompleteGetSessionToken", callback);
     },
 
     onCompleteGetSessionToken : function(response)
@@ -3062,7 +3603,7 @@ var ew_api = {
         var secret = getNodeValue(item, "SecretAccessKey");
         var expire = getNodeValue(item, "Expiration");
         var name = getParam(params, "Name");
-        var obj = new TempAccessKey(key, secret, token, expire, name || ew_session.user.name, id || ew_session.user.id, arn || ew_session.user.arn);
+        var obj = new TempAccessKey(key, secret, token, expire, name || this.core.user.name, id || this.core.user.id, arn || this.core.user.arn);
 
         response.result = obj;
     },
@@ -3102,7 +3643,7 @@ var ew_api = {
 
     listQueues : function(callback)
     {
-        ew_session.querySQS(null, "ListQueues", [], this, false, "onCompleteListQueues", callback);
+        this.querySQS(null, "ListQueues", [], this, false, "onCompleteListQueues", callback);
     },
 
     onCompleteListQueues : function(response)
@@ -3110,13 +3651,13 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var list = this.getItems(xmlDoc, "ListQueuesResult", "QueueUrl", null, function(node) { return new Queue(node.firstChild.nodeValue); });
-        this.session.model.set('queues', list);
+        this.core.setModel('queues', list);
         response.result = list;
     },
 
     getQueueAttributes : function(url, callback)
     {
-        ew_session.querySQS(url, "GetQueueAttributes", [ ["AttributeName.1", "All"] ], this, false, "onCompleteGetQueueAttributes", callback);
+        this.querySQS(url, "GetQueueAttributes", [ ["AttributeName.1", "All"] ], this, false, "onCompleteGetQueueAttributes", callback);
     },
 
     onCompleteGetQueueAttributes : function(response)
@@ -3128,31 +3669,31 @@ var ew_api = {
 
     setQueueAttributes : function(url, name, value, callback)
     {
-        ew_session.querySQS(url, "SetQueueAttributes", [ ["Attribute.Name", name], ["Attribute.Value", value] ], this, false, "onComplete", callback);
+        this.querySQS(url, "SetQueueAttributes", [ ["Attribute.Name", name], ["Attribute.Value", value] ], this, false, "onComplete", callback);
     },
 
     createQueue : function(name, params, callback)
     {
         if (!params) params = [];
         params.push(["QueueName", name]);
-        ew_session.querySQS(null, "CreateQueue", params, this, false, "onComplete:QueueUrl", callback);
+        this.querySQS(null, "CreateQueue", params, this, false, "onComplete:QueueUrl", callback);
     },
 
     deleteQueue : function(url, callback)
     {
-        ew_session.querySQS(url, "DeleteQueue", [], this, false, "onComplete", callback);
+        this.querySQS(url, "DeleteQueue", [], this, false, "onComplete", callback);
     },
 
     sendMessage : function(url, body, delay, callback)
     {
         var params = [["MessageBody", body]];
         if (delay) params.push(["DelaySeconds", delay]);
-        ew_session.querySQS(url, "SendMessage", params, this, false, "onComplete:MessageId", callback);
+        this.querySQS(url, "SendMessage", params, this, false, "onComplete:MessageId", callback);
     },
 
     deleteMessage : function(url, handle, callback)
     {
-        ew_session.querySQS(url, "DeleteMessage", [["ReceiptHandle", handle]], this, false, "onComplete", callback);
+        this.querySQS(url, "DeleteMessage", [["ReceiptHandle", handle]], this, false, "onComplete", callback);
     },
 
     receiveMessage : function(url, max, visibility, callback)
@@ -3160,7 +3701,7 @@ var ew_api = {
         var params = [ [ "AttributeName", "All"] ];
         if (max) params.push(["MaxNumberOfMessages", max]);
         if (visibility) params.push(["VisibilityTimeout", visibility]);
-        ew_session.querySQS(url, "ReceiveMessage", params, this, false, "onCompleteReceiveMessage", callback);
+        this.querySQS(url, "ReceiveMessage", params, this, false, "onCompleteReceiveMessage", callback);
     },
 
     onCompleteReceiveMessage : function(response)
@@ -3201,11 +3742,11 @@ var ew_api = {
             params.push(["ActionName." + (i + 1), actions[i].name]);
             params.push(["AWSAccountId." + (i + 1), actions[i].id]);
         }
-        ew_session.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
+        this.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
     },
 
     removePermission : function(url, label, callback)
     {
-        ew_session.querySQS(url, "RemovePermission", [["Label", label]], this, false, "onComplete", callback);
+        this.querySQS(url, "RemovePermission", [["Label", label]], this, false, "onComplete", callback);
     },
 };

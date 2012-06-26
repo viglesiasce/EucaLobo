@@ -49,7 +49,7 @@
 
     function init() {
         this.id = window.arguments[0];
-        this.ew_session = window.arguments[1];
+        this.core = window.arguments[1];
         this.retVal = window.arguments[2];
 
         document.getElementById("ew.snapshotid").value = this.id;

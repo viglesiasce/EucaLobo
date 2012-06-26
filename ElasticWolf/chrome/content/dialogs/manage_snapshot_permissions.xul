@@ -16,7 +16,7 @@
     function init()
     {
         this.list = document.getElementById("ew.list");
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.image = window.arguments[1];
         this.items = window.arguments[2];
         this.display(this.items);
@@ -24,13 +24,13 @@
 
     function copyToClipboard(event)
     {
-        if (this.list.value) this.session.copyToClipboard(this.list.value);
+        if (this.list.value) this.core.copyToClipboard(this.list.value);
     }
 
     function refresh()
     {
         var me = this;
-        this.session.controller.describeSnapshotAttribute(this.image.id, function(list) { me.display(list); });
+        this.core.controller.describeSnapshotAttribute(this.image.id, function(list) { me.display(list); });
     }
 
     function add()
@@ -38,12 +38,12 @@
         var name = prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
-        this.session.controller.modifySnapshotAttribute(this.image.id, [ [ "UserId", name ]], null, function() { me.refresh(); });
+        this.core.controller.modifySnapshotAttribute(this.image.id, [ [ "UserId", name ]], null, function() { me.refresh(); });
     }
 
     function addPublic() {
         var me = this;
-        this.session.controller.modifySnapshotAttribute(image.id, [ [ "Group", "all" ]], null, function() { me.refresh(); });
+        this.core.controller.modifySnapshotAttribute(image.id, [ [ "Group", "all" ]], null, function() { me.refresh(); });
     }
 
     function remove()
@@ -52,7 +52,7 @@
         var item = this.items[this.list.selectedIndex];
         if (!confirm("Revoke permissions for " + item.type + ":" + item.id + " on AMI " + this.image.id + "?")) return;
         var me = this;
-        this.session.controller.modifySnapshotAttribute(this.image.id, null, [ [ item.type, item.id ]], function() { me.refresh(true); });
+        this.core.controller.modifySnapshotAttribute(this.image.id, null, [ [ item.type, item.id ]], function() { me.refresh(true); });
     }
 
     function display(items)

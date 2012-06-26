@@ -16,7 +16,7 @@
     function init()
     {
         this.list = document.getElementById("ew.list");
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.image = window.arguments[1];
         this.items = window.arguments[2];
         this.display(this.items);
@@ -24,13 +24,13 @@
 
     function copyToClipboard(event)
     {
-        if (this.list.value) this.session.copyToClipboard(this.list.value);
+        if (this.list.value) this.core.copyToClipboard(this.list.value);
     }
 
     function refresh()
     {
         var me = this;
-        this.session.controller.describeLaunchPermissions(this.image.id, function(list) { me.display(list); });
+        this.core.controller.describeLaunchPermissions(this.image.id, function(list) { me.display(list); });
     }
 
     function add(name)
@@ -38,7 +38,7 @@
         if (!name) name = prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
-        this.session.controller.addLaunchPermission(image.id, name, function() { me.refresh(); });
+        this.core.controller.addLaunchPermission(image.id, name, function() { me.refresh(); });
         if (this.list.value == "all") this.image.status = 'public';
     }
 
@@ -47,7 +47,7 @@
         if (!this.list.value) return;
         if (!confirm("Revoke launch permissions for " + name + " on AMI " + this.image.id + "?")) return;
         var me = this;
-        this.session.controller.revokeLaunchPermission(this.image.id, this.list.value, function() { me.refresh()});
+        this.core.controller.revokeLaunchPermission(this.image.id, this.list.value, function() { me.refresh()});
         if (this.list.value == "all") this.image.status = 'private';
     }
 
@@ -55,7 +55,7 @@
     {
         if (!confirm("Reset launch permissions for AMI " + image.id + "?")) return;
         var me = this;
-        this.session.controller.resetLaunchPermissions(this.image.id, function() { me.refresh(); });
+        this.core.controller.resetLaunchPermissions(this.image.id, function() { me.refresh(); });
     }
 
     function display(items)

@@ -30,15 +30,17 @@ var ew_BundleTasksTreeView = {
 
         if (!confirm("Cancel bundle task:  " + selected.id + "?")) return;
         var me = this;
-        this.session.api.cancelBundleTask(selected.id, function() { me.refresh() });
+        this.core.api.cancelBundleTask(selected.id, function() { me.refresh() });
     },
 
-    registerBundledImage : function (bucket, prefix) {
+    registerBundledImage : function (bucket, prefix)
+    {
+        var me = this;
         var manifestPath = bucket + "/" + prefix + ".manifest.xml";
-        var region = this.session.api.getS3BucketLocation(bucket);
-        this.session.api.registerImageInRegion(manifestPath, region, function() {
-            ew_model.refresh('images');
-            ew_session.selectTab('ew.tabs.image');
+        var region = this.core.api.getS3BucketLocation(bucket);
+        this.core.api.registerImageInRegion(manifestPath, region, function() {
+            me.core.modelRefresh('images');
+            me.core.selectTab('ew.tabs.image');
         });
     },
 

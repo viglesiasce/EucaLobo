@@ -423,7 +423,7 @@ function newWindow()
 
 function log(msg)
 {
-    if (ew_session.getBoolPrefs("ew.debug.enabled", false)) {
+    if (ew_core.getBoolPrefs("ew.debug.enabled", false)) {
         debug(msg)
     }
 }

@@ -18,12 +18,12 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var availZoneMenu = document.getElementById("ew.newvpngateway.az");
         availZoneMenu.appendItem("&lt;any&gt;", null);
-        var availZones = this.ew_session.model.get('availabilityZones');
+        var availZones = this.core.queryModel('availabilityZones');
         for (var i in availZones) {
             availZoneMenu.appendItem(availZones[i].name + " (" + availZones[i].state + ")", availZones[i].name);
         }

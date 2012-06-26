@@ -160,7 +160,7 @@ var ew_InstanceLauncher = {
         document.getElementById("ew.ipAddress").disabled = true;
 
         if (sel.value != null && sel.value != '') {
-            var subnets = this.session.model.get('subnets');
+            var subnets = this.core.queryModel('subnets');
             for ( var i in subnets) {
                 if (subnets[i].vpcId == sel.value && (az == "" || az == subnets[i].availabilityZone)) {
                     this.subnetMenu.appendItem(subnets[i].toString(), subnets[i].id)
@@ -176,13 +176,13 @@ var ew_InstanceLauncher = {
 
     loadUserDataFromFile : function(fBinary)
     {
-        var file = this.session.promptForFile("Load user data");
+        var file = this.core.promptForFile("Load user data");
         if (!file) return;
         var data = "";
         if (fBinary) {
-            data = "Base64:" + this.session.getBinaryFileContents(file, true);
+            data = "Base64:" + this.core.getBinaryFileContents(file, true);
         } else {
-            data = this.session.getFileContents(file)
+            data = this.core.getFileContents(file)
         }
         document.getElementById("ew.userdata").value = data;
     },
@@ -190,14 +190,14 @@ var ew_InstanceLauncher = {
     init : function()
     {
         this.image = window.arguments[0];
-        this.session = window.arguments[1];
+        this.core = window.arguments[1];
         this.retVal = window.arguments[2];
 
         // Get the list of keypair names visible to this user.
         // This will trigger a DescribeKeyPairs if the model
         // doesn't have any keypair info yet. If there are no keypairs,
         // this dialog shouldn't be initialized any further.
-        var keypairs = this.session.model.get('keypairs');
+        var keypairs = this.core.queryModel('keypairs');
         if (keypairs == null) {
             alert("Please create a keypair before launching an instance");
             return false;
@@ -213,7 +213,7 @@ var ew_InstanceLauncher = {
 
         var typeMenu = document.getElementById("ew.instancetypelist");
         // Add the instance sizes based on AMI architecture
-        var types = this.session.model.getInstanceTypes(this.image.arch);
+        var types = this.core.getInstanceTypes(this.image.arch);
         for (var i in types) {
             typeMenu.appendItem(types[i].name, types[i].id);
         }
@@ -234,7 +234,7 @@ var ew_InstanceLauncher = {
         // availability zones
         this.azMenu = document.getElementById("ew.azId");
         this.azMenu.appendItem("<any>", null);
-        var availZones = this.session.model.get('availabilityZones');
+        var availZones = this.core.queryModel('availabilityZones');
         for ( var i in availZones) {
             this.azMenu.appendItem(availZones[i].name + " (" + availZones[i].state + ")", availZones[i].name);
         }
@@ -254,7 +254,7 @@ var ew_InstanceLauncher = {
 
         // Get the list of security groups visible to this user. This will trigger a DescribeSecurityGroups
         // if the model doesn't have any info yet.
-        this.securityGroups = this.session.model.get('securityGroups');
+        this.securityGroups = this.core.queryModel('securityGroups');
         this.buildGroupList();
 
         var aki = this.image.aki;
@@ -263,7 +263,7 @@ var ew_InstanceLauncher = {
         // Populate the AKI and ARI lists
         var akiList = document.getElementById("ew.aki");
         var ariList = document.getElementById("ew.ari");
-        var images = this.session.model.get('images');
+        var images = this.core.queryModel('images');
         var akiRegex = regExs["aki"];
         var ariRegex = regExs["ari"];
         akiList.appendItem("");
@@ -289,7 +289,7 @@ var ew_InstanceLauncher = {
         }
 
         // Populate VPCs
-        var vpcs = this.session.model.get('vpcs');
+        var vpcs = this.core.queryModel('vpcs');
         this.vpcMenu.appendItem("", "");
         for (var i in vpcs) {
             this.vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);

@@ -33,7 +33,7 @@ var ew_S3BucketsTreeView = {
         var item = this.getSelected()
         if (item == null) return
         if (!this.path.length) {
-            this.session.api.getS3BucketLocation(item.name);
+            this.core.api.getS3BucketLocation(item.name);
         }
         TreeView.displayDetails.call(this);
     },
@@ -79,13 +79,13 @@ var ew_S3BucketsTreeView = {
     show: function()
     {
         if (!this.path.length) {
-            ew_S3BucketsTreeView.display(ew_model.get('s3Buckets'));
+            ew_S3BucketsTreeView.display(this.core.queryModel('s3Buckets'));
         } else {
-            var item = ew_model.getS3Bucket(this.path[0])
+            var item = this.core.getS3Bucket(this.path[0])
             if (item.keys && item.keys.length) {
                 ew_S3BucketsTreeView.display(item.keys);
             } else {
-                this.session.api.listS3BucketKeys(item.name, null, function(obj) {
+                this.core.api.listS3BucketKeys(item.name, null, function(obj) {
                     if (item.name == obj.name) {
                         ew_S3BucketsTreeView.display(obj.keys);
                     }
@@ -99,7 +99,7 @@ var ew_S3BucketsTreeView = {
         if (!this.path.length) {
             TreeView.refresh.call(this);
         } else {
-            var item = ew_model.getS3Bucket(this.path[0]);
+            var item = this.core.getS3Bucket(this.path[0]);
             item.keys = null;
             this.show();
         }
@@ -120,13 +120,13 @@ var ew_S3BucketsTreeView = {
     create: function() {
         var me = this;
         var retVal = { ok : null, name: null, region : null, params: {}, type: this.path.length ? "Folder" : "Bucket" }
-        window.openDialog("chrome://ew/content/dialogs/create_s3bucket.xul", null, "chrome,centerscreen,modal,resizable", this.session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_s3bucket.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
         if (retVal.ok) {
             if (!this.path.length) {
-                this.session.api.createS3Bucket(retVal.name, retVal.region, retVal.params, function() { me.refresh(true); });
+                this.core.api.createS3Bucket(retVal.name, retVal.region, retVal.params, function() { me.refresh(true); });
             } else {
-                this.session.model.getS3Bucket(this.path[0]).keys = []
-                this.session.api.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + '/' + retVal.name, retVal.params, null, function() { me.show(); });
+                this.core.getS3Bucket(this.path[0]).keys = []
+                this.core.api.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + '/' + retVal.name, retVal.params, null, function() { me.show(); });
             }
         }
     },
@@ -138,10 +138,10 @@ var ew_S3BucketsTreeView = {
         if (!confirm("Delete " + item.name + "?")) return;
 
         if (!item.bucket) {
-            this.session.api.deleteS3Bucket(item.name, {}, function() { me.refresh(true); });
+            this.core.api.deleteS3Bucket(item.name, {}, function() { me.refresh(true); });
         } else {
-            this.session.model.getS3Bucket(item.bucket).keys = [];
-            this.session.api.deleteS3BucketKey(item.bucket, item.name, {}, function() { me.show(); });
+            this.core.getS3Bucket(item.bucket).keys = [];
+            this.core.api.deleteS3BucketKey(item.bucket, item.name, {}, function() { me.show(); });
         }
     },
 
@@ -150,9 +150,9 @@ var ew_S3BucketsTreeView = {
         var item = this.getSelected()
         if (this.isFolder(item)) return
 
-        var file = this.session.promptForFile("Save to file", true, DirIO.fileName(item.name))
+        var file = this.core.promptForFile("Save to file", true, DirIO.fileName(item.name))
         if (file) {
-            this.session.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
+            this.core.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
                     function(f) { me.setStatus(f, 100); },
                     function(f, p) { me.setStatus(f, p); } )
         }
@@ -161,13 +161,13 @@ var ew_S3BucketsTreeView = {
     upload: function() {
         if (!this.path.length) return;
         var me = this;
-        var file = this.session.promptForFile("Upload file")
+        var file = this.core.promptForFile("Upload file")
         if (file) {
-            var item = ew_model.getS3Bucket(this.path[0])
+            var item = this.core.queryModelS3Bucket(this.path[0])
             item.keys = []
             var f = FileIO.open(file)
             var name = this.keyName(f.leafName)
-            this.session.api.uploadS3BucketFile(item.name, this.path.slice(1).join('/') + '/' + name, "", {}, file,
+            this.core.api.uploadS3BucketFile(item.name, this.path.slice(1).join('/') + '/' + name, "", {}, file,
                     function(fn) { me.show(); },
                     function(fn, p) { me.setStatus(fn, p); });
         }
@@ -179,14 +179,14 @@ var ew_S3BucketsTreeView = {
         var item = this.getSelected()
         if (item == null) return
         if (this.isFolder(item)) return
-        var type = this.session.getMimeType(item.name);
+        var type = this.core.getMimeType(item.name);
         if (type.indexOf("image") > -1) {
             var file = DirIO.get("TmpD").path + "/" + DirIO.fileName(item.name);
-            this.session.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
+            this.core.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
                 function(f) {
                      me.setStatus(f, 100);
                      try { if (me.win) me.win.close(); } catch(e) { debug(e) }
-                     me.win = me.session.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + file,width:"100%",height:"100%",nobox:1,scale:1} ], true);
+                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + file,width:"100%",height:"100%",nobox:1,scale:1} ], true);
                 },
                 function(f, p) { me.setStatus(f, p); } )
         }
@@ -205,10 +205,10 @@ var ew_S3BucketsTreeView = {
             return;
         }
 
-        this.session.api.readS3BucketKey(item.bucket, item.name, "", {}, function(t) {
-            var values = me.session.promptInput('Edit ' + item.name, [{multiline:true,rows:25,cols:60,value:t,flex:1,scale:1}]);
+        this.core.api.readS3BucketKey(item.bucket, item.name, "", {}, function(t) {
+            var values = me.core.promptInput('Edit ' + item.name, [{multiline:true,rows:25,cols:60,value:t,flex:1,scale:1}]);
             if (!values) return;
-            me.session.api.putS3BucketKey(item.bucket, item.name, "", {}, values[0], function() {
+            me.core.api.putS3BucketKey(item.bucket, item.name, "", {}, values[0], function() {
                 item.size = values[0].length;
                 me.show();
             });
@@ -220,12 +220,12 @@ var ew_S3BucketsTreeView = {
         if (!this.path.length) return;
         var file = prompt("File name:")
         if (file) {
-            var item = ew_model.getS3Bucket(this.path[0])
+            var item = this.core.getS3Bucket(this.path[0])
             item.keys = []
             var name = this.path.slice(1).join('/') + '/' + this.keyName(file)
-            var values = me.session.promptInput('Create file', [{multiline:true,rows:25,cols:60,flex:1,scale:1}]);
+            var values = me.core.promptInput('Create file', [{multiline:true,rows:25,cols:60,flex:1,scale:1}]);
             if (!values) return;
-            me.session.api.putS3BucketKey(item.name, name, "", {}, values[0], function() {
+            me.core.api.putS3BucketKey(item.name, name, "", {}, values[0], function() {
                 me.show();
             });
         }
@@ -238,21 +238,21 @@ var ew_S3BucketsTreeView = {
         var retVal = { ok : null, content: null };
 
         function wrap() {
-            window.openDialog("chrome://ew/content/dialogs/manage_s3acl.xul", null, "chrome,centerscreen,modal,resizable", this.session, retVal, item);
+            window.openDialog("chrome://ew/content/dialogs/manage_s3acl.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal, item);
             if (retVal.ok) {
                 if (item.bucket) {
-                    me.session.api.setS3BucketKeyAcl(item.bucket, item.name, retVal.content, function() { me.selectionChanged(); })
+                    me.core.api.setS3BucketKeyAcl(item.bucket, item.name, retVal.content, function() { me.selectionChanged(); })
                 } else {
-                    me.session.api.setS3BucketAcl(item.name, retVal.content, function() { me.selectionChanged(); })
+                    me.core.api.setS3BucketAcl(item.name, retVal.content, function() { me.selectionChanged(); })
                 }
             }
         }
 
         if (!item.acls) {
             if (!this.path.length) {
-                this.session.api.getS3BucketAcl(item.name, wrap)
+                this.core.api.getS3BucketAcl(item.name, wrap)
             } else {
-                this.session.api.getS3BucketKeyAcl(item.bucket, item.name, wrap)
+                this.core.api.getS3BucketKeyAcl(item.bucket, item.name, wrap)
             }
         }
     },
@@ -264,13 +264,13 @@ var ew_S3BucketsTreeView = {
         if (item == null) return
         var retVal = { bucket: item.name, ok: 0, enable: 0 };
 
-        this.session.api.getS3BucketWebsite(item.name, function(obj) {
+        this.core.api.getS3BucketWebsite(item.name, function(obj) {
             window.openDialog("chrome://ew/content/dialogs/manage_s3website.xul", null, "chrome,centerscreen,modal,resizable", retVal, obj);
             if (retVal.ok) {
                 if (retVal.enable) {
-                    me.session.api.setS3BucketWebsite(item.name, obj.indexSuffix, obj.errorKey, function() { me.selectionChanged(); })
+                    me.core.api.setS3BucketWebsite(item.name, obj.indexSuffix, obj.errorKey, function() { me.selectionChanged(); })
                 } else {
-                    me.session.api.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
+                    me.core.api.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
                 }
             }
         });

@@ -19,7 +19,7 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var type = document.getElementById("ew.newcustomergateway.type");

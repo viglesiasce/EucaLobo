@@ -22,7 +22,7 @@
     }
 
     function init() {
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         document.getElementById("ew.label").value = this.retVal.type + " Name:";
@@ -31,7 +31,7 @@
         menu.removeAllItems();
         menu.disabled = true;
         if (this.retVal.type == "Bucket") {
-            var regions = this.session.model.getS3Regions()
+            var regions = this.core.getS3Regions()
             for (var i in regions) {
                 menu.appendItem(regions[i].name, regions[i].region);
             }

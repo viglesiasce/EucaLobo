@@ -1,50 +1,96 @@
-//main object that holds the current session information
-var ew_session = {
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+var ew_core = {
     VERSION: "2.0",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
-    EC2_API_VERSION: '2012-06-01',
-    ELB_API_VERSION: '2011-11-15',
-    IAM_API_VERSION: '2010-05-08',
-    CW_API_VERSION: '2010-08-01',
-    STS_API_VERSION: '2011-06-15',
-    SQS_API_VERSION: '2011-10-01',
-    SIG_VERSION: '2',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
 
     disabled: false,
     locked: false,
     api : null,
-    model : null,
     user: {},
+    win: {},
+    tabs: null,
     credentials : null,
+    endpoints: null,
     prefs: null,
     cmdline: null,
-    endpoints: null,
-    timers: {},
-    region: "",
-    urls: {},
-    versions: {},
-    accessKey: "",
-    secretKey: "",
-    securityToken: "",
-    httpCount: 0,
-    errorCount: 0,
-    errorMax: 3,
+    components : {},
+    progress: {},
+    separator: " | ",
 
-    initialize : function()
+    // Model objects
+    model: {
+        accesskeys: null,
+        certs: null,
+        serverCerts: null,
+        volumes : null,
+        images : null,
+        snapshots : null,
+        instances : null,
+        keypairs : null,
+        availabilityZones : null,
+        securityGroups : null,
+        addresses : null,
+        bundleTasks : null,
+        offerings : null,
+        reservedInstances : null,
+        loadBalancers : null,
+        subnets : null,
+        vpcs : null,
+        dhcpOptions : null,
+        vpnConnections : null,
+        vpnGateways : null,
+        customerGateways : null,
+        internetGateways : null,
+        routeTables: null,
+        networkAcls: null,
+        networkInterfaces: null,
+        s3Buckets: null,
+        regions: null,
+        users: null,
+        groups: null,
+        vmfas: null,
+        alarms: null,
+        queues: null,
+    },
+
+    // Intialize core object with current menu and api implementation
+    initialize : function(tabs, api)
     {
         if (this.prefs == null) {
             this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
         }
 
-        this.api = ew_api;
-        this.model = ew_model;
-        ew_api.model = ew_model;
-        ew_api.session = this;
-        ew_model.session = this;
-        ew_menu.init(this);
+        this.tabs = tabs;
+        this.api = api;
+        this.api.core = this;
+
+        // Connect tree tags to tree view controllers
+        for (var i in this.tabs) {
+            // Because owner refers to the real panel need to skip it
+            if (this.tabs[i].owner) continue;
+            for (var v in this.tabs[i].views) {
+                var id = this.tabs[i].views[v].id;
+                // Not TreeView, just assign the session
+                if (!id) {
+                    this.tabs[i].views[v].view.core = this;
+                    continue;
+                }
+                var tree = $(id);
+                if (!tree) {
+                    debug('view not found ' + id);
+                    continue;
+                }
+                // Init with session
+                this.tabs[i].views[v].view.init(tree, this.tabs[i], this);
+            }
+        }
 
         this.credentials = this.getCredentials();
         this.getEndpoints();
@@ -131,12 +177,140 @@ var ew_session = {
         app.quit(Components.interfaces.nsIAppStartup.eForceQuit);
     },
 
-    selectTab: function(name) {
+    getCurrentTab: function() {
+        return this.getTab(this.currentTab);
+    },
+
+    getSelectedTab: function()
+    {
+        var tree = $('ew.menu');
+        return tree.currentIndex >= 0 ? this.getTab(tree.view.getCellValue(this.tree.currentIndex, tree.columns[0])) : null;
+    },
+
+    getTab: function(name) {
+        for (var i in this.tabs) {
+            if (this.tabs[i].name == name) return this.tabs[i];
+        }
+        return null;
+    },
+
+    selectTab: function(name)
+    {
         if (this.disabled) return;
 
-        if (ew_menu.select(name)) {
-            this.setStrPrefs("ew.tab.current", name);
+        var tree = $('ew.menu');
+        var tab = this.getTab(name);
+        if (!tab) return false;
+
+        // Deactivate current tab
+        var curtab = this.getCurrentTab();
+        if (curtab) {
+            for (var i in curtab.views) {
+                curtab.views[i].view.deactivate();
+            }
         }
+
+        // Activate new tab
+        var idx = this.getMenu(name);
+        if (idx == -1) {
+            // Try directly if this panel not in the menu
+            var panel = $(name);
+            if (!panel) {
+                debug('menu not found ' + name)
+                return false;
+            }
+        } else {
+            tree.currentIndex = idx;
+            tree.view.selection.select(idx);
+        }
+        this.currentTab = name;
+        $("ew.tabs").selectedPanel = $(tab.owner || name);
+
+        // Activate and refresh if no records yet
+        for (var i in tab.views) {
+            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount)
+            tab.views[i].view.activate();
+            // Assign new filter list and refresh contents
+            tab.views[i].view.filterList = tab.views[i].filterList;
+            tab.views[i].view.invalidate();
+        }
+        // Non view tabs cannot be selected
+        if (tab.call) {
+            tab.call();
+            return false;
+        }
+
+        this.setStrPrefs("ew.tab.current", name);
+        return true;
+    },
+
+    isViewVisible: function(view)
+    {
+        for (var i in this.tabs) {
+            for (var j in this.tabs[i].views) {
+                if (this.tabs[i].views[j].view == view) return true;
+            }
+        }
+        return false;
+    },
+
+    menuOpenClose: function(event)
+    {
+        var tree = $('ew.menu');
+        var id = tree.view.getCellValue(tree.currentIndex, tree.columns[0]);
+        if (id == "" || id.indexOf(".folder") > 0) {
+            var label = tree.view.getCellText(tree.currentIndex, tree.columns[0]).replace(/[()]+/g, '');
+            tree.view.setCellText(tree.currentIndex, tree.columns[0], tree.view.isContainerOpen(tree.currentIndex) ? label : "(" + label + ")");
+        }
+    },
+
+    menuSelected: function(event)
+    {
+        var tree = $('ew.menu');
+        var id = tree.view.getCellValue(tree.currentIndex, tree.columns[0]);
+        this.selectTab(id);
+    },
+
+    getMenu: function(id)
+    {
+        var tree = $('ew.menu');
+        for (var i = 0; i < tree.view.rowCount; i++) {
+            var val = tree.view.getCellValue(i, tree.columns[0]);
+            if (val == id) return i;
+        }
+        return -1;
+    },
+
+    updateMenu: function()
+    {
+        var tree = $('ew.menu');
+        var idx = this.getMenu("ew.tabs.credential");
+        if (idx > -1) {
+            var cred = this.getActiveCredentials();
+            var endpoint = this.getActiveEndpoint();
+            var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
+            tree.view.setCellText(idx, tree.columns[0], label);
+        }
+        var advanced = this.getBoolPrefs("ew.advanced.mode", false);
+        var items = document.getElementsByClassName("advanced");
+        for (var i = 0; i < items.length; i++) {
+            items[i].hidden = !advanced;
+        }
+    },
+
+    // Clear all views with models except the current one
+    invalidateMenu: function()
+    {
+        var curtab = this.getCurrentTab();
+        for (var i in this.tabs) {
+            if (curtab && this.tabs[i].name == curtab.name) continue;
+            for (var v in this.tabs[i].views) {
+                if (this.tabs[i].views[v].display) {
+                    this.tabs[i].views[v].display([]);
+                }
+            }
+        }
+        this.updateMenu();
     },
 
     getCredentials : function () {
@@ -175,7 +349,7 @@ var ew_session = {
     getActiveCredentials : function()
     {
         for (var i in this.credentials) {
-            if (this.accessKey == this.credentials[i].accessKey) return this.credentials[i];
+            if (this.api.accessKey == this.credentials[i].accessKey) return this.credentials[i];
         }
         return null;
     },
@@ -197,35 +371,27 @@ var ew_session = {
         if (cred) {
             debug("switch credentials to " + cred.name + " " + cred.url)
             this.setStrPrefs("ew.account.name", cred.name);
-            this.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
+            this.api.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
 
+            // Default endpoint doe snot need to be saved
             if (cred.url != "") {
                 var endpoint = this.getEndpoint(null, cred.url);
                 if (!endpoint) endpoint = new Endpoint("", cred.url)
-                this.selectEndpoint(endpoint);
-            }
+                this.selectEndpoint(endpoint, true);
+            } else
             // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errros
-            if (wasGovCloud && cred.url == '') {
-                this.selectEndpoint(this.getEndpoint("us-east-1"));
+            if (wasGovCloud) {
+                this.selectEndpoint(this.getActiveEndpoint());
             }
             // Since we are switching creds, ensure that all the views are redrawn
-            this.model.invalidate();
+            this.invalidateModel();
+            this.invalidateMenu();
             var me = this;
             // Retrieve current user info
             this.api.getUser(null, function(user) { me.user = user || {}; })
-            ew_menu.update();
             return true;
         }
         return false;
-    },
-
-    setCredentials : function (accessKey, secretKey, securityToken)
-    {
-        this.accessKey = accessKey;
-        this.secretKey = secretKey;
-        this.securityToken = typeof securityToken == "string" ? securityToken : "";
-        this.errorCount = 0;
-        debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
     },
 
     getActiveEndpoint : function()
@@ -245,35 +411,15 @@ var ew_session = {
         return null;
     },
 
-    setEndpoint : function (endpoint)
+    selectEndpoint: function(endpoint, dontsave)
     {
         if (endpoint != null) {
-            this.errorCount = 0;
-            this.region = endpoint.name;
-            this.urls.EC2 = endpoint.url;
-            this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
-            this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
-            this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
-            this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
-            this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
-            this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
-            this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
-            this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
-            this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
-            this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
-            this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
-            this.actionIgnore = endpoint.actionIgnore || [];
-            debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
-        }
-    },
-
-    selectEndpoint: function(endpoint)
-    {
-        if (endpoint != null) {
-            this.setLastUsedEndpoint(endpoint.name);
-            this.setStrPrefs("ew.endpoint.url", endpoint.url);
-            this.setEndpoint(endpoint);
-            ew_menu.update();
+            if (!dontsave) {
+                this.setStrPrefs("ew.active.endpoint", endpoint.name);
+                this.setStrPrefs("ew.endpoint.url", endpoint.url);
+            }
+            this.api.setEndpoint(endpoint);
+            this.updateMenu();
             return true;
         }
         return false;2
@@ -286,15 +432,15 @@ var ew_session = {
         var wasGovCloud = this.isGovCloud();
         var endpoint = this.getEndpoint(name);
         if (this.selectEndpoint(endpoint)) {
-            // Switching between GovClound, reset credentials
+            // Switching between GovCloud, reset credentials
             if (this.isGovCloud() != wasGovCloud) {
                 debug('disable credentials when switching to/from GovCloud')
-                this.setCredentials("", "");
+                this.api.setCredentials("", "");
                 this.setStrPrefs("ew.account.name", "");
-                ew_menu.update();
             }
             // Since we are switching creds, ensure that all the views are redrawn
-            this.model.invalidate();
+            this.invalidateModel();
+            this.invalidateMenu();
         } else {
             alert('Endpoint ' + name + ' does not exists?')
         }
@@ -328,7 +474,7 @@ var ew_session = {
             this.endpoints = [];
 
             // Default endpoints with posssible custom configuration like urls, versions for each service
-            var regions = this.model.getEC2Regions();
+            var regions = this.getEC2Regions();
             for (var i in regions) {
                 this.endpoints.push(regions[i]);
             }
@@ -535,7 +681,7 @@ var ew_session = {
     // checked is list of initially selected item indexes
     promptList: function(title, msg, items, columns, width, multiple, checked)
     {
-        var params = { session: this, listItems: items, checkedItems: checked, selectedIndex: -1, selectedItems: [], selectedIndexes: [], columns: columns, width: width, multiple: multiple, title: title, msg: msg };
+        var params = { core: this, listItems: items, checkedItems: checked, selectedIndex: -1, selectedItems: [], selectedIndexes: [], columns: columns, width: width, multiple: multiple, title: title, msg: msg };
         window.openDialog("chrome://ew/content/dialogs/select.xul", null, "chrome,centerscreen,modal,resizable", params);
         return params.multiple ? params.selectedItems : params.selectedIndex;
     },
@@ -548,7 +694,7 @@ var ew_session = {
     // all other properties will be additional attributes of the element
     promptInput: function(title, items, modeless)
     {
-        var params = { session: this, title: title, items: items || [ "" ], values: null, modeless: modeless };
+        var params = { core: this, title: title, items: items || [ "" ], values: null, modeless: modeless };
         var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
         return modeless ? win : (params.ok ? params.values : null);
     },
@@ -701,48 +847,8 @@ var ew_session = {
         return list
     },
 
-    // Set tags to the specified object(s).
-    // objs an be an object, an id string or list of objects or list of ids
-    // tags can be a string or list of tags
-    setTags: function(objs, tags, callback)
-    {
-        log('setTags: id=' + objs + ", tags=" + tags)
-
-        var me = this;
-        var ntags = new Array();
-
-        if (!(objs instanceof Array)) objs = [ objs ];
-        tags = this.model.parseTags(tags);
-
-        for (var i = 0; i < objs.length; i++) {
-            var id = objs[i];
-            if (typeof id == "object") id = id.id;
-            for (var j = 0; j < tags.length; j++) {
-                ntags.push(new Tag(tags[j].name, tags[j].value, id));
-            }
-        }
-
-        function wrap() {
-            if (ntags.length > 0) {
-                me.api.createTags(ntags, callback);
-            } else
-            if (callback) {
-                callback();
-            }
-        }
-
-        // Get existing tags and delete them all, then create new tags if exist
-        this.api.describeTags(objs, function(described) {
-            if (described.length) {
-                me.api.deleteTags(described, wrap);
-            } else {
-                wrap();
-            }
-        });
-    },
-
     // Wrapper around global debug with multiple parameters
-    debug: function()
+    showDebug: function()
     {
         var str = "";
         for (var i = 0; i < arguments.length; i++) {
@@ -763,26 +869,6 @@ var ew_session = {
 
         var clip = Components.classes["@mozilla.org/widget/clipboard;1"].getService(Components.interfaces.nsIClipboard);
         clip.setData(trans, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
-    },
-
-    getAppName : function()
-    {
-        return this.NAME;
-    },
-
-    getUserAgent: function ()
-    {
-        return this.getAppName() + "/" + this.VERSION;
-    },
-
-    isGovCloud : function(url)
-    {
-        return String(url || this.urls.EC2).indexOf("us-gov") > -1;
-    },
-
-    isEnabled: function()
-    {
-        return this.getBoolPrefs("ew.http.enabled", true) && !this.disabled && this.accessKey != "" && this.secretKey != "";
     },
 
     checkForUpdates: function()
@@ -815,512 +901,114 @@ var ew_session = {
         xmlhttp.send(null);
     },
 
-    getXmlHttp : function()
-    {
-        var xmlhttp = null;
-        if (typeof XMLHttpRequest != 'undefined') {
-            try {
-                xmlhttp = new XMLHttpRequest();
-            } catch (e) {
-                debug('Error: ' + e);
-            }
-        }
-        return xmlhttp;
-    },
-
-    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
-    {
-        if (!this.isEnabled()) return null;
-
-        try {
-            return this.queryEC2Impl(action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion);
-        } catch (e) {
-            debug('Error: ' + e + ", " + JSON.stringify(arguments));
-            this.errorDialog("An error occurred while calling "+ action, { errString: e });
-            if (this.getBoolPrefs("ew.debug.enabled", false)) throw e;
-        }
-        return null;
-    },
-
-    queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
-    {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
-    },
-
-    queryIAM : function (action, params, handlerObj, isSync, handlerMethod, callback)
-    {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.IAM, this.versions.IAM);
-    },
-
-    queryCloudWatch : function (action, params, handlerObj, isSync, handlerMethod, callback)
-    {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW);
-    },
-
-    querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback)
-    {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS);
-    },
-
-    querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
-    {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
-    },
-
-    downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
-    {
-        if (!this.isEnabled()) return null;
-
-        var req = this.queryS3Prepare(method, bucket, key, path, params, null);
-        return this.download(req.url, req.headers, file, callback, progresscb);
-    },
-
-    uploadS3: function(bucket, key, path, params, filename, callback, progresscb)
-    {
-        if (!this.isEnabled()) return null;
-
-        var file = FileIO.streamOpen(filename);
-        if (!file) {
-            alert('Cannot open ' + filename)
-            return false;
-        }
-        var length = file[1].available();
-        params["Content-Length"] = length;
-
-        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
-
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return null;
-        }
-        xmlhttp.open(req.method, req.url, true);
-        for (var p in req.headers) {
-            xmlhttp.setRequestHeader(p, req.headers[p]);
-        }
-        xmlhttp.send(file[1]);
-
-        var timer = setInterval(function() {
-            try {
-                var a = length - file[1].available();
-                if (progresscb) progresscb(filename, Math.round(a / length * 100));
-            }
-            catch(e) {
-                debug('Error: ' + e);
-                this.errorDialog("Error uploading " + filename, { errString: e })
-            }
-        }, 300);
-
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState != 4) return;
-            FileIO.streamClose(file);
-            clearInterval(timer);
-            if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
-                if (progresscb) progresscb(filename, 100);
-                if (callback) callback(filename);
-            } else {
-                var rsp = this.createResponseError(xmlhttp);
-                this.errorDialog("S3 responded with an error for "+ bucket + "/" + key + path, rsp);
-            }
-        };
-        return true;
-    },
-
-    queryS3 : function (method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
-    {
-        if (!this.isEnabled()) return null;
-
-        try {
-            return this.queryS3Impl(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback);
-        } catch (e) {
-            alert ("An error occurred while calling "+ method + " " + bucket + "/" + key + path + "\n" + e);
-        }
-        return null;
-    },
-
-    queryEC2Impl : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
-    {
-        var curTime = new Date();
-        var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
-
-        var url = apiURL ? apiURL : this.urls.EC2;
-        var sigValues = new Array();
-        sigValues.push(new Array("Action", action));
-        sigValues.push(new Array("AWSAccessKeyId", this.accessKey));
-        sigValues.push(new Array("SignatureVersion", sigVersion ? sigVersion : this.SIG_VERSION));
-        sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
-        sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
-        sigValues.push(new Array("Timestamp", formattedTime));
-        if (this.securityToken != "") sigValues.push(new Array("SecurityToken", this.securityToken));
-
-        // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
-        for (var i = 0; i < params.length; i++) {
-            sigValues.push(params[i]);
-        }
-
-        // Parse the url
-        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
-        var uri = io.newURI(url, null, null);
-
-        var strSig = "";
-        var queryParams = "";
-
-        function encode(str) {
-            str = encodeURIComponent(str);
-            var efunc = function(m) { return m == '!' ? '%21' : m == "'" ? '%27' : m == '(' ? '%28' : m == ')' ? '%29' : m == '*' ? '%2A' : m; }
-            return str.replace(/[!'()*~]/g, efunc);
-        }
-
-        if (this.sigVersion == "1") {
-            function sigParamCmp(x, y) {
-                if (x[0].toLowerCase() < y[0].toLowerCase ()) return -1;
-                if (x[0].toLowerCase() > y[0].toLowerCase()) return 1;
-                return 0;
-            }
-            sigValues.sort(sigParamCmp);
-            for (var i = 0; i < sigValues.length; i++) {
-                strSig += sigValues[i][0] + sigValues[i][1];
-                queryParams += (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-            }
-        }  else {
-            sigValues.sort();
-            strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
-            for (var i = 0; i < sigValues.length; i++) {
-                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-                strSig += item;
-                queryParams += item;
-            }
-        }
-        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(this.secretKey, strSig));
-
-        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSig);
-
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return null;
-        }
-        xmlhttp.open("POST", url, !isSync);
-        xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xmlhttp.setRequestHeader("Content-Length", queryParams.length);
-        xmlhttp.setRequestHeader("Connection", "close");
-
-        return this.sendRequest(xmlhttp, url, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
-    },
-
-    queryS3Prepare : function(method, bucket, key, path, params, content)
-    {
-        var curTime = new Date().toUTCString();
-        var url = this.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + this.model.getS3Region(this.region || "").url;
-
-        if (!params) params = {}
-
-        // Required headers
-        if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
-        if (!params["Content-Type"]) params["Content-Type"] = "binary/octet-stream; charset=UTF-8";
-        if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
-        if (this.securityToken != "") params["x-amz-security-token"] = this.securityToken;
-
-        // Without media type mozilla changes encoding and signatures do not match
-        if (params["Content-Type"] && params["Content-Type"].indexOf("charset=") == -1) {
-            params["Content-Type"] += "; charset=UTF-8";
-        }
-
-        // Construct the string to sign and query string
-        var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";
-
-        // Amazon canonical headers
-        var headers = []
-        for (var p in params) {
-            if (/X-AMZ-/i.test(p)) {
-                var value = params[p]
-                if (value instanceof Array) {
-                    value = value.join(',');
-                }
-                headers.push(p.toString().toLowerCase() + ':' + value);
-            }
-        }
-        if (headers.length) {
-            strSig += headers.sort().join('\n') + "\n"
-        }
-
-        // Split query string for subresources, supported are:
-        var resources = ["acl", "lifecycle", "location", "logging", "notification", "partNumber", "policy", "requestPayment", "torrent",
-                         "uploadId", "uploads", "versionId", "versioning", "versions", "website",
-                         "delete",
-                         "response-content-type", "response-content-language", "response-expires",
-                         "response-cache-control", "response-content-disposition", "response-content-encoding" ]
-        var rclist = []
-        var query = parseQuery(path)
-        for (var p in query) {
-            p = p.toLowerCase();
-            if (resources.indexOf(p) != -1) {
-                rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
-            }
-        }
-        strSig += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
-
-        params["Authorization"] = "AWS " + this.accessKey + ":" + b64_hmac_sha1(this.secretKey, strSig);
-        params["User-Agent"] = this.getUserAgent();
-        params["Connection"] = "close";
-
-        debug("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
-
-        return { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, sig: strSig, time: curTime }
-    },
-
-    queryS3Impl : function(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
-    {
-        var req = this.queryS3Prepare(method, bucket, key, path, params, content);
-
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            debug("Could not create xmlhttp object");
-            return null;
-        }
-        xmlhttp.open(req.method, req.url, !isSync);
-
-        for (var p in req.headers) {
-            xmlhttp.setRequestHeader(p, req.headers[p]);
-        }
-
-        return this.sendRequest(xmlhttp, req.url, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
-    },
-
-    showBusy : function(fShow)
-    {
-        if (fShow) {
-            this.httpCount++;
-            window.setCursor("wait");
-        } else {
-            --this.httpCount;
-            if (this.httpCount <= 0) {
-                window.setCursor("auto");
-            }
-        }
-    },
-
-    sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
-    {
-        debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
-        var me = this;
-
-        var xhr = xmlhttp;
-        // Generate random timer
-        var timerKey = this.getTimerKey();
-        this.startTimer(timerKey, function() { xhr.abort() });
-        this.showBusy(true);
-
-        if (isSync) {
-            xmlhttp.onreadystatechange = function() {}
-        } else {
-            xmlhttp.onreadystatechange = function () {
-                if (xhr.readyState == 4) {
-                    me.showBusy(false);
-                    me.stopTimer(timerKey);
-                    me.handleResponse(xhr, url, isSync, action, handlerMethod, handlerObj, callback, params);
-                }
-            }
-        }
-
-        try {
-            xmlhttp.send(content);
-        } catch(e) {
-            debug('xmlhttp error:' + url + ", " + e)
-            this.showBusy(false);
-            this.stopTimer(timerKey);
-            this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
-            return false;
-        }
-
-        // In sync mode the result is always returned
-        if (isSync) {
-            this.showBusy(false);
-            this.stopTimer(timerKey);
-            return this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
-        }
-        return true;
-    },
-
-    handleResponse : function(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params)
-    {
-        log(xmlhttp.responseText);
-
-        var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
-                 this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
-                 this.createResponseError(xmlhttp, url, isSync, action, handlerMethod, callback, params);
-
-        // Response callback is called in all cases, some errors can be ignored
-        if (handlerObj) {
-            handlerObj.onResponseComplete(rc);
-        }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + this.errorCount + ' ' + rc.errCode + ' ' + rc.errString);
-
-        // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
-        // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
-        if (rc.hasErrors) {
-            if (this.errorCount < this.errorMax) {
-                if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                    this.errorDialog("Server responded with an error for " + rc.action, rc)
-                }
-            }
-            this.errorCount++;
-        } else {
-            this.errorCount = 0;
-            // Pass the result and the whole response object if it is null
-            if (callback) {
-                callback(rc.result, rc);
-            }
-        }
-        return rc.result;
-    },
-
-    // Extract standard AWS error code and message
-    createResponseError : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
-    {
-        var rc = this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params);
-        rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
-        rc.errString = "An unknown error occurred, please check connectivity";
-        rc.requestId = "";
-        rc.hasErrors = true;
-
-        if (xmlhttp) {
-            if (xmlhttp.responseXML) {
-                rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
-                rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
-                rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
-            }
-            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url)
-        }
-        return rc;
-    },
-
-    createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
-    {
-        return { xmlhttp: xmlhttp,
-                 responseXML: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
-                 responseText: xmlhttp ? xmlhttp.responseText : '',
-                 status : xmlhttp.status,
-                 url: url,
-                 action: action,
-                 method: handlerMethod,
-                 isSync: isSync,
-                 hasErrors: false,
-                 params: params,
-                 callback: callback,
-                 result: null,
-                 errCode: "",
-                 errString: "",
-                 requestId: "" };
-    },
-
     // Show non modal error popup
     errorDialog : function(msg, rsp)
     {
         if (!rsp) rsp = {};
-        var rc = { session: this, msg: msg, value:null, action: rsp.action || "", errCode: rsp.errCode || "", errString: rsp.errString || "", requestId: rsp.requestId || "" };
+        var rc = { core: this, msg: msg, action: rsp.action || "", errCode: rsp.errCode || "", errString: rsp.errString || "", requestId: rsp.requestId || "" };
         // Reuse the same window
-        if (!this.winError || !this.winError.setup) {
-            this.winError = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable", rc);
+        if (!this.win.error || !this.win.error.setup) {
+            this.win.error = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable", rc);
         } else
-        if (this.winError.setup) {
-            this.winError.setup.call(this.winError, rc);
-            this.winError.focus();
+        if (this.win.error.setup) {
+            this.win.error.setup.call(this.win.error, rc);
+            this.win.error.focus();
         }
     },
 
-    queryVpnConnectionStylesheets : function(stylesheet, config)
+    // Show error message instead of default alert popup
+    alertDialog: function(title, msg, action, errCode)
     {
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return;
-        }
-        if (!stylesheet) stylesheet = "customer-gateway-config-formats.xml";
-        var url = 'https://ec2-downloads.s3.amazonaws.com/2009-07-15/' + stylesheet;
-        xmlhttp.open("GET", url, false);
-        xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.overrideMimeType('text/xml');
-        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this.api, null, config || "");
+        var rc = { core: this, modal: true, title: title, msg: title, action: action || "", errCode: errCode || "", errString: msg || "" };
+        window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable,modal", rc);
     },
 
-    queryCheckIP : function(type)
+    // Extract common tags from the list and updater the object
+    processTags: function(obj, name)
     {
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return;
-        }
-        var url = "http://checkip.amazonaws.com/" + (type || "");
-        xmlhttp.open("GET", url, false);
-        xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.overrideMimeType('text/plain');
-        return this.sendRequest(xmlhttp, url, null, true, "checkip", null, null, function(response) { response.result = String(response.responseText).trim(); }, type);
-    },
-
-    download: function(url, headers, filename, callback, progresscb)
-    {
-        if (!this.isEnabled()) return null;
-
-        debug('download: ' + url + '| ' + JSON.stringify(headers) + '| ' + filename)
-
-        try {
-          FileIO.remove(filename);
-          var file = FileIO.open(filename);
-          if (!file || !FileIO.create(file)) {
-              alert('Cannot create ' + filename)
-              return false;
-          }
-
-          var io = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI(url, null, null);
-          var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Components.interfaces.nsIWebBrowserPersist);
-          persist.persistFlags = Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
-          persist.progressListener = {
-            onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress) {
-                var percent = (aCurTotalProgress/aMaxTotalProgress) * 100;
-                if (progresscb) progresscb(filename, percent);
-            },
-            onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
-                debug("download: " + filename + " " + aStateFlags + " " + aStatus)
-                if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP) {
-                    if (callback) callback(filename);
-                }
+        if (!obj || !obj.tags) return;
+        for (var i in obj.tags) {
+            switch (obj.tags[i].name) {
+            case "Name":
+                obj[name || "name"] = obj.tags[i].value;
+                return;
             }
-          }
-
-          var hdrs = "";
-          for (var p in headers) {
-              hdrs += p + ":" + headers[p] + "\n";
-          }
-          persist.saveURI(io, null, null, null, hdrs, file);
-          return true;
-
-        } catch (e) {
-          alert(e);
         }
-        return false;
     },
 
-    getTimerKey: function()
+    // If tag is string, parse and return list of tags, if it is already a list, return as it is
+    parseTags: function(tag)
     {
-        return String(Math.random()) + ":" + String(new Date().getTime());
-    },
+        var list = [];
+        if (!tag) return list;
 
-    startTimer : function(key, expr)
-    {
-        var timeout = this.getIntPrefs("ew.http.timeout", 15000, 5000, 3600000);
-        var timer = window.setTimeout(expr, timeout);
-        this.timers[key] = timer;
-    },
-
-    stopTimer : function(key, timeout)
-    {
-        if (this.timers[key]) {
-            window.clearTimeout(this.timers[key]);
+        if (typeof tag == "string") {
+            tag += ',';
+            var pairs = (tag.match(/\s*[^,":]+\s*:\s*("(?:[^"]|"")*"|[^,]*)\s*,\s*/g) || []);
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i].split(/\s*:\s*/, 2);
+                var key = (pair[0] || "").trim();
+                var value = (pair[1] || "").trim();
+                value = value.replace(/,\s*$/, '').trim();
+                value = value.replace(/^"/, '').replace(/"$/, '').replace(/""/, '"');
+                if (key.length == 0 || value.length == 0) continue;
+                list.push(new Tag(key, value));
+            }
+        } else
+        if (tag instanceof Array) {
+            list = tag;
         }
-        this.timers[key] = null;
-        return true;
+        return list;
+    },
+
+    // Set tags to the specified object(s).
+    // objs an be an object, an id string or list of objects or list of ids
+    // tags can be a string or list of tags
+    setTags: function(objs, tags, callback)
+    {
+        log('setTags: id=' + objs + ", tags=" + tags)
+
+        var me = this;
+        var ntags = new Array();
+
+        if (!(objs instanceof Array)) objs = [ objs ];
+        tags = this.parseTags(tags);
+
+        for (var i = 0; i < objs.length; i++) {
+            var id = objs[i];
+            if (typeof id == "object") id = id.id;
+            for (var j = 0; j < tags.length; j++) {
+                ntags.push(new Tag(tags[j].name, tags[j].value, id));
+            }
+        }
+
+        function wrap() {
+            if (ntags.length > 0) {
+                me.api.createTags(ntags, callback);
+            } else
+            if (callback) {
+                callback();
+            }
+        }
+
+        // Get existing tags and delete them all, then create new tags if exist
+        this.api.describeTags(objs, function(described) {
+            if (described.length) {
+                me.api.deleteTags(described, wrap);
+            } else {
+                wrap();
+            }
+        });
+    },
+
+    isGovCloud : function(url)
+    {
+        return String(url || this.api.urls.EC2).indexOf("us-gov") > -1;
+    },
+
+    isEnabled: function()
+    {
+        return this.getBoolPrefs("ew.http.enabled", true) && !this.disabled && this.api.accessKey != "" && this.api.secretKey != "";
     },
 
     getMimeType: function(file)
@@ -1340,6 +1028,16 @@ var ew_session = {
     getDirSeparator : function()
     {
         return navigator.platform.toLowerCase().indexOf('win') > -1 ? '\\' : '/';
+    },
+
+    getAppName : function()
+    {
+        return this.NAME;
+    },
+
+    getUserAgent: function ()
+    {
+        return this.getAppName() + "/" + this.VERSION;
     },
 
     getAppPath : function()
@@ -1637,11 +1335,6 @@ var ew_session = {
         this.setStrPrefs("ew.s3.proto." + region + "." + bucket, proto || 'http://');
     },
 
-    setLastUsedEndpoint : function(value)
-    {
-        this.setStrPrefs("ew.active.endpoint", value);
-    },
-
     getLastUsedEndpoint : function()
     {
         return this.getStrPrefs("ew.active.endpoint", "us-east-1");
@@ -1733,6 +1426,474 @@ var ew_session = {
     setBoolPrefs : function(name, value)
     {
         if (name) this.prefs.setBoolPref(name, value);
+    },
+
+    // Refresh model list by name, this is primary interface to use in the lists and trees
+    refreshModel: function()
+    {
+        for (var i = 0; i < arguments.length; i++) {
+            var name = arguments[i];
+            var now = (new Date).getTime();
+            if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
+                log('refresh: ' + name + ' in progress')
+                return;
+            }
+            log('refresh model ' + name)
+            this.progress[name] = now;
+            var me = this;
+
+            switch (name) {
+            case "queues":
+                this.api.listQueues();
+                break;
+            case "certs":
+                this.api.listSigningCertificates(null, function(list) { me.setModel(name, list); });
+                break;
+            case "serverCerts":
+                this.api.listServerCertificates();
+                break;
+            case "accesskeys":
+                this.api.listAccessKeys(null, function(list) { me.setModel(name, list); });
+                break;
+            case "alarms":
+                this.api.describeAlarms();
+                break;
+            case "vmfas":
+                this.api.listVirtualMFADevices();
+                break;
+            case "regions":
+                this.api.describeRegions();
+                break;
+            case "instanceStatus":
+                this.api.describeInstanceStatus();
+                break;
+            case "volumeStatus":
+                this.api.describeVolumeStatus();
+                break;
+            case "volumes":
+                this.api.describeVolumes();
+                break;
+            case "images":
+                this.api.describeImages();
+                break;
+            case "snapshots":
+                this.api.describeSnapshots();
+                break;
+            case "instances":
+                this.api.describeInstances();
+                break;
+            case "keypairs":
+                this.api.describeKeypairs();
+                break;
+            case "availabilityZones":
+                this.api.describeAvailabilityZones();
+                break;
+            case "securityGroups":
+                this.api.describeSecurityGroups();
+                break;
+            case "addresses":
+                this.api.describeAddresses();
+                break;
+            case "bundleTasks":
+                this.api.describeBundleTasks();
+                break;
+            case "offerings":
+                this.api.describeLeaseOfferings();
+                break;
+            case "reservedInstances":
+                this.api.describeReservedInstances();
+                break;
+            case "loadBalancers":
+                this.api.describeLoadBalancers();
+                break;
+            case "subnets":
+                this.api.describeSubnets();
+                break;
+            case "vpcs":
+                this.api.describeVpcs();
+                break;
+            case "dhcpOptions":
+                this.api.describeDhcpOptions();
+                break;
+            case "vpnConnections":
+                this.api.describeVpnConnections();
+                break;
+            case "vpnGateways":
+                this.api.describeVpnGateways();
+                break;
+            case "customerGateways":
+                this.api.describeCustomerGateways();
+                break;
+            case "internetGateways":
+                this.api.describeInternetGateways();
+                break;
+            case "routeTables":
+                this.api.describeRouteTables();
+                break;
+            case "networkAcls":
+                this.api.describeNetworkAcls();
+                break;
+            case "networkInterfaces":
+                this.api.describeNetworkInterfaces();
+                break;
+            case "s3Buckets":
+                this.api.listS3Buckets();
+                break;
+            case "users":
+                this.api.listUsers();
+                break;
+            case "groups":
+                this.api.listGroups();
+                break;
+            }
+        }
+    },
+
+    // Return list or initiate refresh if it is empty, perform search if arguments specified
+    queryModel: function()
+    {
+        var list = this.getModel(arguments[0]);
+        if (list == null) {
+            this.refreshModel(arguments[0]);
+        }
+        var args = [];
+        for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+        return this.getObjects(list, args);
+    },
+
+    // Return direct list to the model objects
+    getModel: function(name)
+    {
+        if (!this.model.hasOwnProperty(name)) debug('model ' + name + ' not found');
+        return name ? this.model[name] : null;
+    },
+
+    // Update model list and notify components
+    setModel: function(name, list)
+    {
+        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        this.progress[name] = 0;
+        this.model[name] = list;
+        this.notifyComponents(name);
+    },
+
+    // Find object in the model list, optional field can be used first before comparing id and name fields
+    findModel: function(model, id, field)
+    {
+        return this.findObject(this.getModel(model), id, field);
+    },
+
+    // Remove object from the model
+    addModel: function(name, obj)
+    {
+        var list = this.getModel(name);
+        if (list) list.push(obj);
+    },
+
+    // Remove object from the model
+    removeModel: function(model, id, field)
+    {
+        return this.removeObject(this.getModel(model), id, field);
+    },
+
+    // Update field of an object in the model
+    updateModel: function(model, id, field, value)
+    {
+        if (!model || !id || !field) return null;
+        var obj = this.findObject(this.getModel(model), id);
+        if (obj) {
+            obj[field] = value;
+            // Additional fields
+            if (arguments.length > 4) {
+                for (var i = 4; i < arguments.length; i+= 2) {
+                    obj[arguments[i]] = arguments[i + 1];
+                }
+            }
+        }
+        return obj;
+    },
+
+    // Clean up all lists, mostly in credentials switch
+    invalidateModel: function()
+    {
+        for (var p in this.model) {
+            this.setModel(p, null);
+        }
+    },
+
+    // Common replacement for cells by name, builds human readable value
+    modelValue: function(name, value)
+    {
+        var idMap = { vpcId: this.model.vpcs,
+                      subnetId: this.model.subnets,
+                      instanceId: this.model.instances,
+                      tableId: this.model.routeTables,
+                      imageId: this.model.images,
+                      gatewayId: this.model.internetGateways,
+                      cgwId: this.model.customerGateways,
+                      vgwId: this.model.vpnGateways,
+                      igwId: this.model.internetGateways,
+                      dhcpOptionsId: this.model.dhcpOptions,
+                      networkInterfaceId: this.model.networkInterfaces,
+                      groupId: this.model.securityGroups,
+                      groups: this.model.securityGroups,
+                      subnets: this.model.subnets };
+
+        var list = idMap[name];
+        if (list) {
+            if (value instanceof Array) {
+                var rc = [];
+                for (var i in value) {
+                    if (typeof value[i] == "object") {
+                        rc.push(value[i].toString());
+                    } else {
+                        var obj = this.findObject(list, value[i]);
+                        rc.push(obj ? obj.toString() : value[i]);
+                    }
+                }
+                return rc.join(",");
+            } else {
+                var obj = this.findObject(list, value);
+                if (obj) {
+                    return obj.toString()
+                }
+            }
+        }
+        return value;
+    },
+
+    // Convert object into string, used in listboxes, can use list of columns to limit what properties to show
+    toString: function(obj, columns)
+    {
+        if (obj == null) return null;
+        if (typeof obj == "object") {
+            var item = "";
+            // Show class name as the first column for mutli object lists
+            if (columns && columns.indexOf("__class__") >= 0) {
+                item = className(obj)
+            }
+            if (!columns && obj.hasOwnProperty('toString')) {
+                item = obj.toString()
+            } else {
+                for (p in obj) {
+                    if (typeof obj[p] == "function") {
+                        if (p != "toString") continue;
+                        item += (item != "" ? this.separator : "") + obj.toString();
+                    } else
+                    if (!columns || columns.indexOf(p) >= 0) {
+                        item += (item != "" ? this.separator : "") + this.modelValue(p, obj[p]);
+                    }
+                }
+            }
+            return item
+        }
+        return obj;
+    },
+
+    // Find object in the list by id or name
+    findObjectIndex: function(list, id, field)
+    {
+        for (var i in list) {
+            if (field && list[i][field] == id) return i;
+            if (list[i].id && list[i].id == id) return i;
+            if (list[i].name && list[i].name == id) return i;
+        }
+        return -1;
+    },
+
+    // Find object in the list by id or name
+    findObject: function(list, id, field)
+    {
+        var i = this.findObjectIndex(list, id, field);
+        return i >= 0 ? list[i] : null;
+    },
+
+    // Remove object in the list by id or name
+    removeObject: function(list, id, field)
+    {
+        var i = this.findObjectIndex(list, id, field);
+        if (i >= 0) {
+            list.splice(i, 1);
+            return true;
+        }
+        return false;
+    },
+
+    // Return objects if all arguments match
+    getObjects: function(items, args)
+    {
+        if (!args.length) return items || [];
+        var list = [];
+        if (items) {
+            for (var i in items) {
+                var matches = 0;
+                for (var j = 0; j < args.length - 1; j += 2) {
+                    if (items[i][args[j]] == args[j + 1]) matches++;
+                }
+                if (matches == args.length/2) {
+                    list.push(items[i])
+                }
+            }
+        }
+        return list;
+    },
+
+    sortObjects: function(list, col, ascending)
+    {
+        if (!(list instanceof Array)) return;
+
+        var sortFunc = function(a, b) {
+            var aVal = a[col] || "";
+            var bVal = b[col] || "";
+            var aF = parseFloat(aVal);
+            if (!isNaN(aF) && aF.toString() == aVal) {
+                aVal = aF;
+                bVal = parseFloat(bVal);
+            } else {
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+            }
+            if (aVal < bVal) return ascending ? -1 : 1;
+            if (aVal > bVal) return ascending ? 1 : -1;
+            return 0;
+        };
+        list.sort(sortFunc);
+    },
+
+    // Send signal about updates model, assume TreeView interface
+    notifyComponents: function(interest)
+    {
+        var comps = this.components[interest] || [];
+        for (var i in comps) {
+            comps[i].modelChanged(interest);
+        }
+    },
+
+    // Register list of models to watch for updates
+    registerInterest: function(component, interest)
+    {
+        var list = (interest instanceof Array) ? interest : [interest];
+        for (var i in list) {
+            if (!this.components[list[i]]) {
+                this.components[list[i]] = [];
+            }
+            this.components[list[i]].push(component);
+        }
+    },
+
+    getUserByName: function(name)
+    {
+        return this.findObject(this.model.users, name, 'name');
+    },
+
+    getGroupByName: function(name)
+    {
+        return this.findObject(this.model.groups, name, 'name');
+    },
+
+    getS3Bucket: function(bucket)
+    {
+        return this.findObject(this.model.s3Buckets, bucket, 'name');
+    },
+
+    getS3BucketKey: function(bucket, key)
+    {
+        var obj = this.getS3Bucket(bucket);
+        if (!obj) return null;
+        for (var j in obj.keys) {
+            if (obj.keys[j].name == key) return obj.keys[j];
+        }
+        return null;
+    },
+
+    getVpcById: function(id)
+    {
+        return this.findObject(this.model.vpcs, id)
+    },
+
+    getSubnetById: function(id)
+    {
+        return this.findObject(this.model.subnets, id)
+    },
+
+    getInstanceById: function(id)
+    {
+        return this.findObject(this.model.instances, id)
+    },
+
+    getSecurityGroupById: function(id)
+    {
+        return this.findObject(this.model.securityGroups, id)
+    },
+
+    getS3Region: function(region)
+    {
+        var regions = this.getS3Regions();
+        for (var i in regions) {
+            if (regions[i].region == region) {
+                return regions[i]
+            }
+        }
+        return regions[0]
+    },
+
+    getS3Regions: function()
+    {
+        return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
+                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
+                 { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
+                 { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
+                 { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
+                 { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
+                 { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
+                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
+               ]
+    },
+
+    getEC2Regions: function()
+    {
+        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
+                   version: '2012-05-01',
+                   versionELB: '2011-11-15',
+                   versionCW: '2010-08-01',
+                   urlIAM: 'https://iam.us-gov.amazonaws.com',
+                   versionIAM: '2010-05-08',
+                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
+                   actionIgnore: [ "DescribeLoadBalancers", "ListQueues" ],
+                 },
+            ];
+    },
+
+    getInstanceTypes: function(arch)
+    {
+        var types = [
+           { name: "t1.micro: Up to 2 EC2 Compute Units (for short periodic bursts), 613 MiB, No storage, Low I/O", id: "t1.micro", x86_64: true, i386: true, },
+           { name: "m1.small: 1 EC2 Compute Unit (1 virtual core with 1 EC2 Compute Unit), 1.7 GiB, 150 GiB instance storage,  Moderate I/O", id: "m1.small", x86_64: true, i386: true },
+           { name: "m1.medium: 2 EC2 Compute Units (1 virtual core with 2 EC2 Compute Units), 3.75 GiB, 400 GiB instance storage (1 x 400 GiB), Moderate I/O", id: "m1.medium", x86_64: true, i386: true },
+           { name: "m1.large: 4 EC2 Compute Units (2 virtual cores with 2 EC2 Compute Units each), 7.5 GiB, 840 GiB instance storage (2 x 420 GiB), High I/O", id: "m1.large", x86_64: true, },
+           { name: "m1.xlarge: 8 EC2 Compute Units (4 virtual cores with 2 EC2 Compute Units each), 15 GiB, 1680 GB instance storage (4 x 420 GiB), High I/O", id: "m1.xlarge", x86_64: true, },
+           { name: "c1.medium: 5 EC2 Compute Units (2 virtual cores with 2.5 EC2 Compute Units each), 1.7 GiB, 340 GiB instance storage (340 GiB), Moderate I/O", id: "c1.medium", x86_64: true, i386: true },
+           { name: "c1.xlarge: 20 EC2 Compute Units (8 virtual cores with 2.5 EC2 Compute Units each), 7 GiB, 1680 GiB instance storage (4 x 420 GiB), High I/O", id: "c1.xlarge", x86_64: true, },
+           { name: "m2.xlarge : 6.5 EC2 Compute Units (2 virtual cores with 3.25 EC2 Compute Units each), 17.1 GiB, 410 GiB instance storage (1 x 410 GiB), Moderate I/O", id: "m2.xlarge", x86_64: true, },
+           { name: "m2.2xlarge: 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 34.2 GiB,  840 GiB instance storage (1 x 840 GiB), High I/O", id: "m2.2xlarge", x86_64: true, },
+           { name: "m2.4xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 68.4 GiB, 1680 GiB instance storage (2 x 840 GiB), High I/O", id: "m2.4xlarge", x86_64: true, },
+           { name: "cc1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), 23 GiB, 1690 GiB instance 64-bit storage (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cc1.4xlarge", x86_64: true, },
+           { name: "cc2.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core 'Sandy Bridge' architecture), 60.5 GiB, 3360 GiB instance (4 x 840 GiB), Very high (10 Gbps Ethernet", id: "cc2.8xlarge", x86_64: true, },
+           { name: "cg1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), plus 2 NVIDIA Tesla M2050 'Fermi' GPUs, 22 GiB, 1680 GiB instance (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cg1.4xlarge", x86_64: true, }
+           ];
+
+        var list = [];
+        for (var i in types) {
+            if (types[i][arch]) list.push(types[i]);
+        }
+        return list;
     },
 
 };

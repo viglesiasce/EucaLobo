@@ -21,11 +21,11 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var vpcMenu = document.getElementById("ew.newsubnet.vpcid");
-        var vpcs = this.ew_session.model.get('vpcs');
+        var vpcs = this.core.queryModel('vpcs');
         var selectvpc = 0;
         for (var i in vpcs) {
             vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
@@ -35,7 +35,7 @@
 
         var availZoneMenu = document.getElementById("ew.newsubnet.az");
         availZoneMenu.appendItem("&lt;any&gt;", null);
-        var availZones = this.ew_session.model.get('availabilityZones');
+        var availZones = this.core.queryModel('availabilityZones');
         for (var i in availZones) {
             availZoneMenu.appendItem(availZones[i].toString(), availZones[i].name);
         }

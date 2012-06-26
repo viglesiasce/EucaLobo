@@ -14,7 +14,7 @@
     <script>
     <![CDATA[
         function done() {
-            this.rc.session.winDetails = null;
+            this.rc.core.win.details = null;
             return true;
         }
         function init() {
@@ -29,7 +29,7 @@
             for (var i = list.itemCount - 1; i >= 0; i--) list.removeItemAt(i);
             for (var p in rc.item) {
                 if (typeof rc.item[p] == "function") continue;
-                var val = rc.session.model.modelValue(p, rc.item[p]);
+                var val = rc.core.modelValue(p, rc.item[p]);
                 var row = document.createElement('listitem');
                 var cell = document.createElement('listcell');
                 cell.setAttribute('label', p);
@@ -44,7 +44,7 @@
             }
         }
         function clicked() {
-            this.rc.session.copyToClipboard(list.value);
+            this.rc.core.copyToClipboard(list.value);
         }
     ]]>
     </script>

@@ -27,7 +27,7 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         var instance = window.arguments[1];
         this.instanceId = instance.id;
         var zone = instance.availabilityZone;
@@ -51,7 +51,7 @@
         // A volume can be attached to this instance only if:
         // 1. It is in the same zone as this instance
         // 2. It is not attached to another instance
-        var volumes = this.ew_session.model.get('volumes', 'availabilityZone', zone, 'instanceId', '');
+        var volumes = this.core.queryModel('volumes', 'availabilityZone', zone, 'instanceId', '');
         for(var i in volumes) {
             volMenu.appendItem(volumes[i].toString(), volumes[i].id);
         }

@@ -49,7 +49,7 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         for(var i = 0; i < options().length; i++) {

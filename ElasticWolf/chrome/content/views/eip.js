@@ -12,24 +12,24 @@ var ew_ElasticIPTreeView = {
 
     allocateAddress : function() {
         var vpc = true
-        if (!ew_session.isGovCloud()) {
-            vpc = ew_session.promptYesNo("Confirm", "Is this Elastic IP to be used for VPC?");
+        if (!this.core.isGovCloud()) {
+            vpc = this.core.promptYesNo("Confirm", "Is this Elastic IP to be used for VPC?");
         }
         var me = this;
-        this.session.api.allocateAddress(vpc, function() { me.refresh() });
+        this.core.api.allocateAddress(vpc, function() { me.refresh() });
     },
 
     releaseAddress : function() {
         var eip = this.getSelected();
         if (eip == null) return;
-        if (!ew_session.promptYesNo("Confirm", "Release "+eip.publicIp+"?")) return;
+        if (!this.core.promptYesNo("Confirm", "Release "+eip.publicIp+"?")) return;
 
         var me = this;
-        this.session.api.releaseAddress(eip, function() { me.refresh() });
+        this.core.api.releaseAddress(eip, function() { me.refresh() });
     },
 
     getUnassociatedInstances : function() {
-        var instances = ew_model.get('instances', 'state', 'running');
+        var instances = this.core.queryModel('instances', 'state', 'running');
         var unassociated = new Array();
         var eips = {};
 
@@ -64,9 +64,9 @@ var ew_ElasticIPTreeView = {
             }
 
             var list = this.getUnassociatedInstances();
-            list = list.concat(ew_model.get('networkInterfaces'))
+            list = list.concat(this.core.queryModel('networkInterfaces'))
 
-            var idx = ew_session.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, ['__class__', 'toString'], 550);
+            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, ['__class__', 'toString'], 550);
             if (idx < 0) return;
             // Determine what type we selected
             if (list[idx].imageId) {
@@ -77,7 +77,7 @@ var ew_ElasticIPTreeView = {
         }
 
         var me = this;
-        this.session.api.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
+        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
         return true;
     },
 
@@ -90,16 +90,16 @@ var ew_ElasticIPTreeView = {
         }
         if (!confirm("Disassociate "+eip.publicIp+" and instance "+eip.instanceId+"?")) return;
         var me = this;
-        this.session.api.disassociateAddress(eip, function() { me.refresh() });
+        this.core.api.disassociateAddress(eip, function() { me.refresh() });
     },
 
     copyPublicDnsToClipBoard : function(fieldName) {
         var eip = this.getSelected();
         if (!eip || !eip.instanceId) { return; }
 
-        var instance = ew_model.find('instances', eip.instanceId);
+        var instance = this.core.findModel('instances', eip.instanceId);
         if (instance) {
-            ew_session.copyToClipboard(instance.dnsName);
+            this.core.copyToClipboard(instance.dnsName);
         }
     }
 

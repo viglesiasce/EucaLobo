@@ -1,5 +1,5 @@
 var ew_VolumeAttacher = {
-  ew_session : null,
+  core : null,
   retVal : null,
   volumeId : null,
 
@@ -31,7 +31,7 @@ var ew_VolumeAttacher = {
     // Since there is a chance that the instanceId has
     // the instance tag appended to it
     instanceId = instanceId.split(":")[0];
-    var instances = this.ew_session.model.get('instances');
+    var instances = this.core.queryModel('instances');
     var fdisabled = false;
     for (var i in instances) {
         if (instances[i].id == instanceId) {
@@ -53,14 +53,14 @@ var ew_VolumeAttacher = {
   init : function() {
     this.volumeId = window.arguments[0].id;
     this.zone = window.arguments[0].availabilityZone;
-    this.ew_session = window.arguments[1];
+    this.core = window.arguments[1];
     this.retVal = window.arguments[2];
 
     // volume id
     document.getElementById("ew.newattachment.volumeId").value = this.volumeId;
     // instances
     var instanceIdMenu = document.getElementById("ew.newattachment.instanceId");
-    var instances = this.ew_session.model.get('instances', 'state', 'running', 'AvailabilityZone', this.zone);
+    var instances = this.core.queryModel('instances', 'state', 'running', 'AvailabilityZone', this.zone);
     for (var i in instances) {
         instanceIdMenu.appendItem(instances[i].toString(), instances[i].id);
     }

@@ -9,7 +9,7 @@ var ew_SecurityGroupsTreeView = {
 
     createNewGroup : function () {
         var retVal = {ok:null,name:null,description:null,vpcId:null};
-        window.openDialog("chrome://ew/content/dialogs/create_security_group.xul", null, "chrome,centerscreen,modal,resizable", ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_security_group.xul", null, "chrome,centerscreen,modal,resizable", ew_core, retVal);
         if (retVal.ok) {
             var me = this;
             var wrap = function(id) {
@@ -17,21 +17,22 @@ var ew_SecurityGroupsTreeView = {
                 me.refresh();
                 me.authorizeCommonProtocolsByUserRequest(retVal);
             }
-            this.session.api.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
+            this.core.api.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
         }
     },
 
-    authorizeCommonProtocolsByUserRequest : function(retVal) {
+    authorizeCommonProtocolsByUserRequest : function(retVal)
+    {
         var result = {ipAddress:"0.0.0.0"};
         var cidr = null;
         // Determine the CIDR for the protocol authorization request
         switch (retVal.enableProtocolsFor) {
         case "host":
-            result.ipAddress = ew_session.queryCheckIP();
+            result.ipAddress = this.core.api.queryCheckIP();
             cidr = result.ipAddress.trim() + "/32";
             break;
         case "network":
-            result.ipAddress = ew_session.queryCheckIP("block");
+            result.ipAddress = this.core.api.queryCheckIP("block");
             cidr = result.ipAddress.trim();
             break;
         default:
@@ -46,10 +47,10 @@ var ew_SecurityGroupsTreeView = {
             }
 
             // 1st enable SSH
-            this.session.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
+            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
 
             // enable RDP and refresh the view
-            this.session.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
+            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
         } else {
             // User wants to customize the firewall...
             ew_PermissionsTreeView.grantPermission();
@@ -68,7 +69,7 @@ var ew_SecurityGroupsTreeView = {
         var wrap = function() {
             me.refresh();
         }
-        this.session.api.deleteSecurityGroup(group, wrap);
+        this.core.api.deleteSecurityGroup(group, wrap);
     },
 
 };
@@ -82,7 +83,7 @@ var ew_PermissionsTreeView = {
         if (group == null) return;
 
         retVal = {ok:null, type: 'Ingress'};
-        window.openDialog("chrome://ew/content/dialogs/create_permission.xul", null, "chrome,centerscreen,modal,resizable", group, ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_permission.xul", null, "chrome,centerscreen,modal,resizable", group, ew_core, retVal);
 
         if (retVal.ok) {
             var me = this;
@@ -92,9 +93,9 @@ var ew_PermissionsTreeView = {
 
             var newPerm = retVal.newPerm;
             if (newPerm.cidrIp) {
-                this.session.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
+                this.core.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
             } else {
-                this.session.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
+                this.core.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
             }
         }
     },
@@ -120,9 +121,9 @@ var ew_PermissionsTreeView = {
         for (i in perms) {
             permission = perms[i];
             if (permission.cidrIp) {
-                this.session.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
+                this.core.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
             } else {
-                this.session.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
+                this.core.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
             }
         }
 

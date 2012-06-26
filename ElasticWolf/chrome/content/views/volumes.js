@@ -34,18 +34,18 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var me = this;
-        this.session.api.createSnapshot(image.id, function(snapId) { ew_SnapshotTreeView.refresh(); });
+        this.core.api.createSnapshot(image.id, function(snapId) { ew_SnapshotTreeView.refresh(); });
     },
 
     createVolume : function (snap) {
         var retVal = { ok: false, tag: '' };
         if (!snap) snap = null;
-        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,ew_session,retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,ew_core,retVal);
         if (retVal.ok) {
             var me = this;
-            this.session.api.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
+            this.core.api.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
                 if (retVal.tag != '') {
-                    ew_session.setTags(id, retVal.tag, function() { me.refresh() });
+                    me.core.setTags(id, retVal.tag, function() { me.refresh() });
                 } else {
                     me.refresh();
                 }
@@ -60,7 +60,7 @@ var ew_VolumeTreeView = {
         var label = image.name ? (image.name + '@' + image.id) : image.id;
         if (!confirm("Delete volume " + label + "?")) return;
         var me = this;
-        this.session.api.deleteVolume(image.id, function() {me.refresh()});
+        this.core.api.deleteVolume(image.id, function() {me.refresh()});
     },
 
     attachEBSVolume : function (volumeId, instId, device) {
@@ -68,7 +68,7 @@ var ew_VolumeTreeView = {
             device = this.determineWindowsDevice(instId);
         }
         var me = this;
-        this.session.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
+        this.core.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
     },
 
     attachVolume : function () {
@@ -76,10 +76,10 @@ var ew_VolumeTreeView = {
         if (image == null) return;
         var retVal = {ok:null};
         while (true) {
-            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,ew_session,retVal);
+            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,ew_core,retVal);
             if (retVal.ok) {
                 // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
-                var instance = ew_session.model.find('instances', retVal.instanceId);
+                var instance = this.core.findModel('instances', retVal.instanceId);
                 if (instance) {
                     if (!ew_InstancesTreeView.isInstanceReadyToUse(instance)) {
                         continue;
@@ -94,12 +94,13 @@ var ew_VolumeTreeView = {
         }
     },
 
-    determineWindowsDevice : function (instId) {
+    determineWindowsDevice : function (instId)
+    {
         // Need to walk through the list of Volumes If any volume is attached to this instance, that device id is removed from the list of possible device ids for this instance.
         var devList = this.getWindowsDeviceList();
 
         // Enumerate the volumes associated with the instId
-        var volumes = ew_session.model.volumes;
+        var volumes = this.core.getModel("volumes");
 
         // If a volume is associated with this instance, mark the associated device as taken
         for (var i in volumes) {
@@ -120,7 +121,7 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Detach volume " + image.id + "?")) return;
-        this.session.api.detachVolume(image.id, function() { me.refresh() });
+        this.core.api.detachVolume(image.id, function() { me.refresh() });
     },
 
     forceDetachVolume : function () {
@@ -128,7 +129,7 @@ var ew_VolumeTreeView = {
         if (image == null) return;
         if (!confirm("Force detach volume " + image.id + "?")) return;
         var me = this;
-        this.session.api.forceDetachVolume(image.id, function() { me.refresh() });
+        this.core.api.forceDetachVolume(image.id, function() { me.refresh() });
     },
 
     isRefreshable: function() {

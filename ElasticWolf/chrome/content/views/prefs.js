@@ -6,25 +6,25 @@ var ew_PrefsView = {
        var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
        var os = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS;
        $("ew.sys").value = os + " " + info.platformVersion;
-       $("ew.version").value = ew_session.VERSION;
-       $("ew.ec2_version").value = ew_session.EC2_API_VERSION;
-       $("ew.iam_version").value = ew_session.IAM_API_VERSION;
-       $("ew.elb_version").value = ew_session.ELB_API_VERSION;
-       $("ew.cw_version").value = ew_session.CW_API_VERSION;
-       $("ew.user").value = ew_session.user.name + " " + ew_session.user.arn;
-       $("ew.home").value = ew_session.getHome();
-       $("ew.profile").value = ew_session.getProfileHome();
-       $("ew.key.home").value = ew_session.getKeyHome();
-       $("ew.ssh.command").value = ew_session.getSSHCommand();
-       $("ew.ssh.args").value = ew_session.getSSHArgs();
-       $("ew.rdp.command").value = ew_session.getRDPCommand();
-       $("ew.rdp.args").value = ew_session.getRDPArgs();
-       $("ew.openssl.command").value = ew_session.getOpenSSLCommand();
-       $("ew.shell.command").value = ew_session.getShellCommand();
-       $("ew.shell.args").value = ew_session.getShellArgs();
+       $("ew.version").value = this.core.VERSION;
+       $("ew.ec2_version").value = this.core.EC2_API_VERSION;
+       $("ew.iam_version").value = this.core.IAM_API_VERSION;
+       $("ew.elb_version").value = this.core.ELB_API_VERSION;
+       $("ew.cw_version").value = this.core.CW_API_VERSION;
+       $("ew.user").value = this.core.user.name + " " + this.core.user.arn;
+       $("ew.home").value = this.core.getHome();
+       $("ew.profile").value = this.core.getProfileHome();
+       $("ew.key.home").value = this.core.getKeyHome();
+       $("ew.ssh.command").value = this.core.getSSHCommand();
+       $("ew.ssh.args").value = this.core.getSSHArgs();
+       $("ew.rdp.command").value = this.core.getRDPCommand();
+       $("ew.rdp.args").value = this.core.getRDPArgs();
+       $("ew.openssl.command").value = this.core.getOpenSSLCommand();
+       $("ew.shell.command").value = this.core.getShellCommand();
+       $("ew.shell.args").value = this.core.getShellArgs();
        this.getPrefs("ew.ssh.user");
        this.getPrefs("ew.pin");
-       this.getPrefs('ew.path.java', ew_session.getDefaultJavaHome());
+       this.getPrefs('ew.path.java', this.core.getDefaultJavaHome());
        this.getPrefs('ew.path.ec2');
        this.getPrefs('ew.path.iam');
        this.getPrefs('ew.path.ami');
@@ -53,7 +53,7 @@ var ew_PrefsView = {
        this.setPrefs("ew.shell.args");
        this.setPrefs("ew.key.home");
        this.setPrefs("ew.pin");
-       this.setPrefs('ew.path.java', ew_session.getDefaultJavaHome());
+       this.setPrefs('ew.path.java', this.core.getDefaultJavaHome());
        this.setPrefs('ew.path.ec2');
        this.setPrefs('ew.path.iam');
        this.setPrefs('ew.path.ami');
@@ -67,8 +67,8 @@ var ew_PrefsView = {
        this.setPrefs("ew.prompt.open.port");
        this.setPrefs("ew.advanced.mode");
 
-       ew_session.setIdleTimer();
-       ew_menu.update();
+       this.core.setIdleTimer();
+       this.core.updateMenu();
        this.rowCount = 0;
    },
 
@@ -94,21 +94,21 @@ var ew_PrefsView = {
        var obj = $(name);
        switch (obj.type) {
        case "password":
-           ew_session.savePassword(name, obj.value);
+           this.core.savePassword(name, obj.value);
            break;
 
        case "number":
-           ew_session.setIntPrefs(name, obj.value, min, max);
+           this.core.setIntPrefs(name, obj.value, min, max);
            break;
 
        default:
            switch (obj.tagName) {
            case "checkbox":
-               ew_session.setBoolPrefs(name, obj.checked);
+               this.core.setBoolPrefs(name, obj.checked);
                break;
 
            default:
-               ew_session.setStrPrefs(name, obj.value.toString());
+               this.core.setStrPrefs(name, obj.value.toString());
            }
        }
    },
@@ -118,30 +118,30 @@ var ew_PrefsView = {
        var obj = $(name);
        switch (obj.type) {
        case "password":
-           obj.value = ew_session.getPassword(name);
+           obj.value = this.core.getPassword(name);
            break;
 
        case "number":
-           obj.value = ew_session.getIntPrefs(name, dflt);
+           obj.value = this.core.getIntPrefs(name, dflt);
            break;
 
        default:
            switch (obj.tagName) {
            case "checkbox":
-               obj.checked = ew_session.getBoolPrefs(name, dflt);
+               obj.checked = this.core.getBoolPrefs(name, dflt);
                break;
 
            default:
-               obj.value = ew_session.getStrPrefs(name, dflt);
+               obj.value = this.core.getStrPrefs(name, dflt);
            }
        }
    },
 
    browse: function(id, forFile) {
       if (forFile) {
-         path = ew_session.promptForFile("Choose command:");
+         path = this.core.promptForFile("Choose command:");
       } else {
-         path = ew_session.promptForDir("Choose directory where tools are located:");
+         path = this.core.promptForDir("Choose directory where tools are located:");
       }
       if (path) {
           $(id).value = path;
@@ -151,8 +151,8 @@ var ew_PrefsView = {
    cleanup: function()
    {
        if (!confirm('All preferences and credentials will be removed from this computer, access to AWS will not be possible without new credentials, continue?')) return;
-       DirIO.remove(ew_session.getProfileHome());
-       ew_session.quit();
+       DirIO.remove(this.core.getProfileHome());
+       this.core.quit();
    },
 }
 

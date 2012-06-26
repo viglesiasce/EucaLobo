@@ -18,7 +18,7 @@
         this.retVal.vgwid = document.getElementById("ew.newvpnconnection.vgwid").value.trim();
         this.retVal.cgwid = document.getElementById("ew.newvpnconnection.cgwid").value.trim();
 
-        var vgws = this.ew_session.model.get('vpnGateways');
+        var vgws = this.core.queryModel('vpnGateways');
         for (var i in vgws) {
             if (vgws[i].id == this.retVal.vgwid)
                 this.retVal.type = vgws[i].type;
@@ -29,11 +29,11 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var vgwMenu = document.getElementById("ew.newvpnconnection.vgwid");
-        var vgws = this.ew_session.model.get('vpnGateways');
+        var vgws = this.core.queryModel('vpnGateways');
         var selectvgw = 0;
         for (var i in vgws) {
             if (vgws[i].state != "available") continue;
@@ -44,7 +44,7 @@
         vgwMenu.selectedIndex = selectvgw;
 
         var cgwMenu = document.getElementById("ew.newvpnconnection.cgwid");
-        var cgws = this.ew_session.model.get('customerGateways');
+        var cgws = this.core.queryModel('customerGateways');
         var selectcgw = 0;
         for (var i in cgws) {
             if (cgws[i].state != "available") continue;

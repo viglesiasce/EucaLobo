@@ -66,7 +66,7 @@ var ew_S3Acl = {
     },
 
     init: function() {
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
         this.item = window.arguments[2];
 

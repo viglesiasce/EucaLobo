@@ -43,7 +43,7 @@
 
     function init() {
         this.image = window.arguments[0];
-        this.session = window.arguments[1];
+        this.core = window.arguments[1];
         this.retVal = window.arguments[2];
 
         if (this.image == null) {
@@ -57,8 +57,8 @@
         this.prefix = document.getElementById("ew.prefix");
 
         // Populate the regions
-        var active = this.session.getActiveEndpoint();
-        var endpoints = this.session.getEndpoints();
+        var active = this.core.getActiveEndpoint();
+        var endpoints = this.core.getEndpoints();
         for (var i = 0; i < endpoints.length; ++i) {
             if (endpoints[i].name == active.name) continue;
             this.regionList.appendItem(endpoints[i].name, endpoints[i].url);

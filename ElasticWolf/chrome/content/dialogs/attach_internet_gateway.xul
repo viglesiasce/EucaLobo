@@ -16,12 +16,12 @@
     }
 
     function init() {
-        this.session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var vpcMenu = document.getElementById("ew.attachigw.vpcid");
         vpcMenu.disabled = false
-        var vpcs = this.session.model.get('vpcs');
+        var vpcs = this.core.queryModel('vpcs');
         var selected = 0;
         for (var i in vpcs) {
             vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id)
@@ -36,7 +36,7 @@
         igwNew.disabled = false;
         var igwMenu = document.getElementById("ew.attachigw.igwid");
         igwMenu.disabled = false;
-        var igws = this.session.model.get('internetGateways');
+        var igws = this.core.queryModel('internetGateways');
         selected = 0;
         for (var i in igws) {
             igwMenu.appendItem(igws[i].toString(), igws[i].id);

@@ -1,3 +1,7 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
 
 // Base class for tree container
 var TreeView = {
@@ -31,7 +35,7 @@ var TreeView = {
     },
     getModel: function()
     {
-        return this.model ? this.session.model.getModel(this.getModelName(this.model)) : null;
+        return this.model ? this.core.getModel(this.getModelName(this.model)) : null;
     },
     getData: function()
     {
@@ -117,7 +121,7 @@ var TreeView = {
     getCellText : function(idx, column)
     {
         var name = column.id.split(".").pop();
-        return idx >= this.rowCount ? "" : this.session.model.modelValue(name, this.treeList[idx][name]);
+        return idx >= this.rowCount ? "" : this.core.modelValue(name, this.treeList[idx][name]);
     },
     getCellValue : function(idx, column)
     {
@@ -131,7 +135,7 @@ var TreeView = {
     },
     modelChanged : function(name) {
         log('model changed ' + this.getName())
-        if (this.visible || this.session.model.getModel(name) == null) {
+        if (this.visible || this.core.getModel(name) == null) {
             this.invalidate();
         }
     },
@@ -209,7 +213,7 @@ var TreeView = {
             }
         }
         if (!sortField) return;
-        this.session.model.sortObjects(this.treeList, sortField, ascending);
+        this.core.sortObjects(this.treeList, sortField, ascending);
         if (item) this.select(item);
     },
     remove: function(obj, columns)
@@ -266,7 +270,7 @@ var TreeView = {
     {
         var name = this.getModelName(this.model)
         if (name) {
-            this.session.model.refresh(name);
+            this.core.refreshModel(name);
             this.refreshAll(force);
         } else {
             this.invalidate();
@@ -277,8 +281,8 @@ var TreeView = {
         log('refreshAll' + (force ? "force" : "") + ' ' + this.model)
         if (this.model instanceof Array) {
             for (var i = 1; i < this.model.length; i++) {
-                if (force || this.session.model.getModel(this.model[i]) == null) {
-                    this.session.model.refresh(this.model[i]);
+                if (force || this.core.getModel(this.model[i]) == null) {
+                    this.core.refreshModel(this.model[i]);
                 }
             }
         }
@@ -358,7 +362,7 @@ var TreeView = {
     searchChanged : function(event)
     {
         if (!this.searchElement) return;
-        this.session.setStrPrefs(this.searchElement, $(this.searchElement).value);
+        this.core.setStrPrefs(this.searchElement, $(this.searchElement).value);
 
         if (this.searchTimer) {
             clearTimeout(this.searchTimer);
@@ -412,17 +416,18 @@ var TreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var tag = this.session.promptForTag(item.tags);
+        var tag = this.core.promptForTag(item.tags);
         if (tag == null) return;
         // Replace tas in the object without reloading the whole list
-        this.session.model.setTags(item, tag);
-        this.session.setTags(item[this.tagId || "id"], item.tags, callback);
+        item.tags = this.core.parseTags(tag);
+        this.core.processTags(item);
+        this.core.setTags(item[this.tagId || "id"], item.tags, callback);
     },
     copyToClipboard : function(name)
     {
         var item = this.getSelected();
         if (item) {
-            this.session.copyToClipboard(item[name]);
+            this.core.copyToClipboard(item[name]);
         }
     },
     clicked: function(event)
@@ -431,7 +436,7 @@ var TreeView = {
         if (this.refreshTimer) {
             this.startRefreshTimer();
         }
-        if (this.session.winDetails && event) {
+        if (this.core.winDetails && event) {
             this.displayDetails();
         }
     },
@@ -440,12 +445,12 @@ var TreeView = {
         var item = this.getSelected();
         if (item == null) return;
         var me = this;
-        var rc = { session: this.session, item: item, title: className(item), }
-        if (!this.session.winDetails) {
-            this.session.winDetails = window.openDialog("chrome://ew/content/dialogs/details.xul", null, "chrome,centerscreen,modeless,resizable", rc);
+        var rc = { core: this.core, item: item, title: className(item), }
+        if (!this.core.win.details) {
+            this.core.win.details = window.openDialog("chrome://ew/content/dialogs/details.xul", null, "chrome,centerscreen,modeless,resizable", rc);
         } else
-        if (this.session.winDetails.setup) {
-            this.session.winDetails.setup.call(this.session.winDetails, rc);
+        if (this.core.win.details.setup) {
+            this.core.win.details.setup.call(this.core.win.details, rc);
         }
     },
     getInputItems: function()
@@ -472,11 +477,11 @@ var TreeView = {
         for (var i in items) {
             switch (items[i].type) {
             case "checkbox":
-                $(items[i].id).checked = this.session.getBoolPrefs(items[i].id, false);
+                $(items[i].id).checked = this.core.getBoolPrefs(items[i].id, false);
                 break;
 
             default:
-                $(items[i].id).value = this.session.getStrPrefs(items[i].id);
+                $(items[i].id).value = this.core.getStrPrefs(items[i].id);
             }
         }
     },
@@ -486,17 +491,17 @@ var TreeView = {
         for (var i in items) {
             switch (items[i].type) {
             case "checkbox":
-                this.session.setBoolPrefs(items[i].id, items[i].checked);
+                this.core.setBoolPrefs(items[i].id, items[i].checked);
                 break;
 
             default:
-                this.session.setStrPrefs(items[i].id, items[i].value);
+                this.core.setStrPrefs(items[i].id, items[i].value);
             }
         }
     },
-    init: function(tree, tab, session)
+    init: function(tree, tab, core)
     {
-        this.session = session;
+        this.core = core;
         // Tree owner and tab object, tab with owner field refers to the primary tab object
         tree.view = this;
         this.tree = tree;
@@ -534,7 +539,7 @@ var TreeView = {
         }
         // Register to receive model updates
         if (this.model) {
-            ew_model.registerInterest(this, this.model);
+            this.core.registerInterest(this, this.model);
         }
     },
 };
@@ -551,7 +556,7 @@ var ew_ListBox = {
     selectedIndex: -1,
     selectedIndexes: [],
     selectedItems: [],
-    session: null,
+    core: null,
 
     done: function()
     {
@@ -640,7 +645,7 @@ var ew_ListBox = {
     // Convert object into plain text to be used by list box
     toItem: function(obj)
     {
-        return this.session.model.toString(obj, this.columns);
+        return this.core.toString(obj, this.columns);
     },
 };
 
@@ -1174,4 +1179,895 @@ var Base64 = {
         }
         return string;
     },
+}
+
+
+function Endpoint(name, url)
+{
+    if (!name || name == "") {
+        this.name = url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
+    } else {
+        this.name = name;
+    }
+    this.url = url;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function Certificate(id, user, body)
+{
+    this.id = id
+    this.userName = user
+    this.body = body
+    this.toString = function() {
+        return this.id;
+    }
+}
+
+function ServerCertificate(id, name, arn, path, date, body)
+{
+    this.id = id;
+    this.name = name;
+    this.arn = arn;
+    this.path = path;
+    this.date = date || "";
+    this.body = body || "";
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function KeyPair(name, fingerprint, material)
+{
+    this.name = name;
+    this.fingerprint = fingerprint;
+    this.material = material;
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function AccessKey(id, secret, status, user, date)
+{
+    this.id = id;
+    this.status = status;
+    this.userName = user || "";
+    this.secret = secret || "";
+    this.date = date || "";
+    this.state = "";
+
+    this.toString = function() {
+        return this.id + (this.state ? ew_core.separator + this.state : "");
+    }
+}
+
+function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
+{
+    this.id = id;
+    this.status = "Temporary";
+    this.secret = secret || "";
+    this.state = "";
+    this.securityToken = typeof securityToken == "string" ? securityToken : "";
+    this.expire = expire || "";
+    this.userName = userName || "";
+    this.userId = userId || "";
+    this.arn = arn || "";
+
+    if (typeof this.expire == "string") {
+        this.expire = new Date();
+        this.expire.setISO8601(expire);
+    }
+
+    this.toString = function() {
+        return this.id + (this.state ? ew_core.separator + this.state : "");
+    }
+}
+
+function Credential(name, accessKey, secretKey, url, securityToken)
+{
+    this.name = name;
+    this.accessKey = accessKey;
+    this.secretKey = secretKey;
+    this.url = typeof url == "string" ? url : "";
+    this.securityToken = typeof securityToken == "string" ? securityToken : "";
+    this.status = "";
+
+    this.toString = function() {
+        return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken;
+    }
+}
+
+function User(id, name, path, arn)
+{
+    this.id = id
+    this.name = name;
+    this.path = path;
+    this.arn = arn;
+    this.groups = null;
+    this.policies = null;
+    this.accessKeys = null;
+    this.mfaDevices = null;
+    this.loginProfileDate = null;
+    // arn:aws:iam::123456:user/name
+    this.accountId = arn ? arn.split(":")[4] : "";
+
+    this.toString = function() {
+        return this.name + (this.groups && this.groups.length ? ew_core.separator + this.groups : "");
+    }
+}
+
+function UserGroup(id, name, path, arn)
+{
+    this.id = id
+    this.name = name
+    this.path = path
+    this.arn = arn
+    this.users = null;
+    this.policies = null;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function MFADevice(id, date, user)
+{
+    this.id = id
+    this.date = date
+    this.userName = user || "";
+    // arn:aws:iam::123456:mfa/name
+    this.name = this.id.indexOf('arn:aws') == 0 ? this.id.split(/[:\/]+/).pop() : this.id;
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function S3Bucket(name, mtime, owner)
+{
+    this.name = name
+    this.mtime = mtime
+    this.owner = owner
+    this.region = ""
+    this.acls = null
+    this.keys = []
+    this.indexSuffix = "";
+    this.errorKey = "";
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function S3BucketAcl(id, type, name, permission)
+{
+    this.id = id
+    this.type = type
+    this.name = name
+    this.permission = permission
+    this.toString = function() {
+       return (this.name ? this.name : this.id ? this.id : "ALL") + "=" + this.permission;
+    }
+}
+
+function S3BucketKey(bucket, name, type, size, mtime, owner, etag)
+{
+    this.bucket = bucket
+    this.name = name
+    this.type = type
+    this.size = size
+    this.mtime = mtime
+    this.etag = etag
+    this.owner = owner
+    this.toString = function() {
+        return this.bucket + "/" + this.name;
+    }
+}
+
+function Queue(url)
+{
+    this.url = url;
+    this.name = url.split("/").pop();
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function Tag(name, value, id)
+{
+    this.name = name || "";
+    this.value = value || "";
+    this.resourceId = id || "";
+    this.toString = function() {
+        return this.name + ":" + (this.value.match(/[,:]+/) ? '"' + this.value + '"' : this.value);
+    }
+}
+
+function Group(id, name)
+{
+    this.id = id
+    this.name = name
+    this.toString = function() {
+        return this.name + ew_core.separator + this.id;
+    }
+}
+
+function ProductCode(code, type)
+{
+    this.productCode = code
+    this.type = type
+    this.toString = function() {
+        return this.productCode + ew_core.separator + this.type;
+    }
+}
+
+function NetworkInterface(id, status, descr, subnetId, vpcId, availabilityZone, macAddress, privateIpAddress, sourceDestCheck, groups, attachment, association, tags)
+{
+    this.id = id
+    this.status = status
+    this.descr = descr || "";
+    this.subnetId = subnetId
+    this.vpcId = vpcId
+    this.availabilityZone = availabilityZone
+    this.macAddress = macAddress
+    this.privateIpAddress = privateIpAddress
+    this.sourceDestCheck = sourceDestCheck
+    this.groups = groups || [];
+    this.attachment = attachment
+    this.association = association
+    this.tags = tags
+    ew_core.processTags(this, "descr")
+
+    this.toString = function() {
+        return this.privateIpAddress + ew_core.separator + this.status + ew_core.separator + this.id + ew_core.separator +  this.descr +
+               " (" + ew_core.modelValue("subnetId", this.subnetId) + ")";
+    }
+}
+
+function NetworkInterfaceAttachment(id, instanceId, instanceOwnerId, deviceIndex, status, attachTime, deleteOnTermination)
+{
+    this.id = id;
+    this.instanceId = instanceId;
+    this.instanceOwnerId = instanceOwnerId;
+    this.deviceIndex = deviceIndex;
+    this.status = status;
+    this.attachTime = attachTime;
+    this.deleteOnTermination = deleteOnTermination;
+
+    this.toString = function() {
+        return this.deviceIndex + ew_core.separator + this.status + ew_core.separator + this.id +
+               (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+    }
+}
+
+function NetworkInterfaceAssociation(id, publicIp, ipOwnerId, instanceId, attachmentId)
+{
+    this.id = id;
+    this.publicIp = publicIp
+    this.ipOwnerId = ipOwnerId
+    this.instanceId = instanceId
+    this.attachmentId = attachmentId
+    this.toString = function() {
+        return this.publicIp + ew_core.separator + this.id +
+               (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+    }
+}
+
+function NetworkAclAssociation(id, acl, subnet)
+{
+    this.id = id
+    this.aclId = acl
+    this.subnetId = subnet
+    this.toString = function() {
+        return this.id + ew_core.separator + ew_core.modelValue("subnetId", this.subnetId);
+    }
+}
+
+function NetworkAclEntry(num, proto, action, egress, cidr, icmp, ports)
+{
+    this.id = num == 32767 ? "*" : num;
+    this.num = num
+    this.proto = proto
+    this.action = action
+    this.egress = egress
+    this.cidr = cidr
+    this.icmp = icmp ? icmp : []
+    this.ports = ports ? ports : []
+    this.toString = function() {
+        return this.id + ew_core.separator + this.proto + ew_core.separator + this.action + ew_core.separator + (this.egress ? "Egress" + ew_core.separator : "") + this.cidr;
+    }
+}
+
+function NetworkAcl(id, vpcId, dflt, rules, assocs, tags)
+{
+    this.id = id
+    this.vpcId = vpcId
+    this.dflt = dflt
+    this.rules = rules
+    this.associations = assocs
+    this.tags = tags
+    ew_core.processTags(this);
+
+    this.toString = function() {
+        return this.id + ew_core.separator + (dflt ? "default" : "") + " (" + ew_core.modelValue("vpcId", this.vpcId) + ")";
+    }
+}
+
+function AMI(id, name, description, location, state, status, arch, platform, aki, ari, rootDeviceType, rootDeviceName, owner, ownerAlias, snapshotId, volumes, virtType, hypervisor, productCodes, tags)
+{
+    this.id = id;
+    this.location = location;
+    this.state = state;
+    this.owner = owner;
+    this.status = status;
+    this.arch = arch;
+    this.platform = platform;
+    this.tags = tags;
+    this.aki = aki;
+    this.ari = ari;
+    this.rootDeviceType = rootDeviceType;
+    this.rootDeviceName = rootDeviceName;
+    this.ownerAlias = ownerAlias;
+    this.name = name;
+    this.description = description;
+    this.snapshotId = snapshotId;
+    this.volumes = volumes;
+    this.virtualizationType = virtType;
+    this.hypervisor = hypervisor;
+    this.productCodes = productCodes;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.state + ew_core.separator + this.status + ew_core.separator + this.rootDeviceType;
+    }
+}
+
+function Snapshot(id, volumeId, status, startTime, progress, volumeSize, description, owner, ownerAlias, tags)
+{
+    this.id = id;
+    this.volumeId = volumeId;
+    this.status = status;
+    this.startTime = startTime.strftime('%Y-%m-%d %H:%M:%S');
+    this.progress = progress;
+    this.description = description;
+    this.volumeSize = volumeSize;
+    this.owner = owner;
+    this.ownerAlias = ownerAlias;
+    this.tags = tags;
+    ew_core.processTags(this);
+
+    this.toString = function() {
+        return (this.description ? this.description + ew_core.separator : this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator +
+               (this.status != "completed" ? this.status + ew_core.separator : "") +
+               (this.progress != "100%" ? this.progress : this.volumeSize + "GB");
+    }
+}
+
+function Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags)
+{
+    this.id = id;
+    this.size = size;
+    this.snapshotId = snapshotId;
+    this.availabilityZone = zone;
+    this.status = status;
+    this.createTime = createTime.strftime('%Y-%m-%d %H:%M:%S');
+    this.instanceId = instanceId;
+    this.device = device;
+    this.attachStatus = attachStatus;
+    if (attachStatus != "") {
+        this.attachTime = attachTime.strftime('%Y-%m-%d %H:%M:%S');
+    }
+    this.tags = tags;
+    ew_core.processTags(this);
+
+    this.toString = function() {
+        return (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.device + ew_core.separator + this.status + ew_core.separator + this.size + "GB" +
+               (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+    }
+}
+
+function VolumeStatusEvent(volumeId, availabilityZone, eventId, eventType, description, startTime, endTime)
+{
+    this.volumeId = volumeId;
+    this.availabilityZone = availabilityZone;
+    this.eventId = eventId;
+    this.eventType = eventType;
+    this.description = description;
+    this.startTime = startTime;
+    this.endTime = endTime;
+
+    this.toString = function() {
+        return this.volumeId + ew_core.separator + this.description;
+    }
+}
+
+function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, deleteOnTermination, noDevice)
+{
+    this.snapshotId = snapshotId;
+    this.deviceName = deviceName;
+    this.virtualName = virtualName;
+    this.volumeSize = volumeSize
+    this.deleteOnTermination = deleteOnTermination;
+    this.noDevice = noDevice;
+
+    this.toString = function() {
+        return this.deviceName +
+               (this.virtualName ? ew_core.separator + this.virtualName : "") +
+               (this.volumeSize ? ew_core.separator + this.volumeSize + "GB" : "") +
+               (this.snapshotId ? ew_core.separator + this.snapshotId : "") +
+               (this.deleteOnTermination ? ew_core.separator + "DeleteOnTermination" : "") +
+               (this.noDevice ? ew_core.separator + "noDevice" : "");
+    }
+}
+
+function InstanceBlockDeviceMapping(deviceName, volumeId, status, attachTime, deleteOnTermination)
+{
+    this.volumeId = volumeId;
+    this.deviceName = deviceName;
+    this.status = status;
+    this.attachTime = attachTime;
+    this.deleteOnTermination = deleteOnTermination;
+
+    this.toString = function() {
+        return this.deviceName + ew_core.separator + this.status + ew_core.separator + this.volumeId + (this.deleteOnTermination ? ew_core.separator + "DeleteOnTermination" : "");
+    }
+}
+
+function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, privateIp, publicIp, dnsName, srcDstCheck)
+{
+    this.id = id
+    this.status = status
+    this.descr = descr || "";
+    this.subnetId = subnetId
+    this.vpcId = vpcId
+    this.ownerId = ownerId
+    this.privateIp = privateIp
+    this.publicIp = publicIp
+    this.sourceDestCheck = srcDstCheck
+    this.dnsName = dnsName
+
+    this.toString = function() {
+        return this.privateIp + ew_core.separator + this.publicIp + ew_core.separator + this.status + ew_core.separator + this.id + ew_core.separator +  this.descr +
+               " (" + ew_core.modelValue("subnetId", this.subnetId) + ")";
+    }
+}
+
+function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
+                  amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
+                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, volumes, enis, tags)
+{
+    this.id = instanceId;
+    this.reservationId = reservationId;
+    this.ownerId = ownerId;
+    this.requesterId = requesterId;
+    this.elasticIp = '';
+    this.imageId = imageId;
+    this.state = state;
+    this.productCodes = productCodes;
+    this.groups = uniqueList(groups, 'id');
+    this.dnsName = dnsName;
+    this.privateDnsName = privateDnsName;
+    this.privateIpAddress = privateIpAddress;
+    this.vpcId = vpcId;
+    this.subnetId = subnetId;
+    this.keyName = keyName;
+    this.reason = reason;
+    this.amiLaunchIdx = amiLaunchIdx;
+    this.instanceType = instanceType;
+    this.launchTime = launchTime;
+    this.availabilityZone = availabilityZone;
+    this.tenancy = tenancy;
+    this.monitoringStatus = monitoringStatus;
+    this.stateReason = stateReason;
+    this.platform = platform;
+    this.kernelId = kernelId;
+    this.ramdiskId = ramdiskId;
+    this.rootDeviceType = rootDeviceType;
+    this.rootDeviceName = rootDeviceName;
+    this.virtualizationType = virtualizationType;
+    this.hypervisor = hypervisor;
+    this.ipAddress = ipAddress;
+    this.sourceDestCheck = sourceDestCheck;
+    this.architecture = architecture;
+    this.instanceLifecycle = instanceLifecycle;
+    this.clientToken = clientToken;
+    this.spotInstanceRequestId = spotId;
+    this.volumes = volumes;
+    this.enis = enis;
+    this.tags = tags;
+    this.name = '';
+    ew_core.processTags(this);
+
+    this.toString = function() {
+        return (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.state;
+    }
+
+    this.validate = function() {
+        if (!this.ipAddress && this.dnsName) {
+            var parts = this.dnsName.split('-');
+            this.ipAddress = parts[1] + "." + parts[2] + "." + parts[3] + "." + parseInt(parts[4]);
+        }
+        if (this.elasticIp == '') {
+            var eip = ew_core.queryModel('addresses', 'instanceId', this.id);
+            this.elasticIp = eip && eip.length ? eip[0].publicIp : '';
+        }
+    }
+}
+
+function InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime)
+{
+    this.instanceId = instanceId;
+    this.availabilityZone = availabilityZone;
+    this.code = code;
+    this.description = description;
+    this.startTime = startTime;
+    this.endTime = endTime;
+
+    this.toString = function() {
+        return this.instanceId + ew_core.separator + this.description;
+    }
+}
+
+function SecurityGroup(id, ownerId, name, description, vpcId, permissions, tags)
+{
+    this.id = id
+    this.ownerId = ownerId;
+    this.name = name;
+    this.description = description;
+    this.vpcId = vpcId;
+    this.permissions = permissions;
+    this.tags = tags
+    ew_core.processTags(this)
+    this.toString = function() {
+        return this.name + ew_core.separator + this.id + (this.vpcId ? " (" + ew_core.modelValue("vpcId", this.vpcId) + ")" : "");
+    }
+}
+
+function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
+{
+    this.type = type
+    this.protocol = protocol;
+    this.fromPort = fromPort;
+    this.toPort = toPort;
+    this.srcGroup = srcGroup;
+    if (srcGroup) {
+        this.srcGroup.toString = function() {
+            return ew_core.modelValue('groupId', srcGroup.id);
+        }
+    }
+    this.cidrIp = cidrIp;
+    this.toString = function() {
+        return this.type + ew_core.separator + this.protocol + ew_core.separator + this.fromPort + ":" + this.toPort + ew_core.separator + (this.cidrIp ? this.cidrIp : this.srcGroup ? this.srcGroup.toString() : "");
+    }
+}
+
+function Route(tableId, cidr, state, gatewayId, eniId, instanceId, instanceOwner)
+{
+    this.tableId = tableId
+    this.cidr = cidr
+    this.gatewayId = gatewayId
+    this.instanceId = instanceId
+    this.instanceOwnerId = instanceOwner
+    this.networkInterfaceId = eniId
+    this.state = state
+    this.toString = function() {
+        return this.cidr + ew_core.separator + ew_core.modelValue("gatewayId", this.gatewayId);
+    }
+}
+
+function RouteAssociation(id, tableId, subnetId)
+{
+    this.id = id
+    this.tableId = tableId || ""
+    this.subnetId = subnetId || ""
+    this.toString = function() {
+        return this.id;
+    }
+}
+
+function RouteTable(id, vpcId, routes, associations, tags)
+{
+    this.id = id
+    this.vpcId = vpcId
+    this.routes = routes
+    this.associations = associations
+    this.tags = tags
+    ew_core.processTags(this);
+
+    this.toString = function() {
+        var str = this.id || "";
+        if (this.routes && this.routes.length > 0) {
+            str += " ("
+            for (var i in this.routes) {
+                str += (i > 0 ? "," : "") + this.routes[i].cidr;
+            }
+            str += ")"
+        }
+        return str;
+    }
+}
+
+function AvailabilityZone(name, state)
+{
+    this.name = name;
+    this.state = state;
+
+    this.toString = function() {
+        return this.name + ew_core.separator + this.state;
+    }
+}
+
+function EIP(publicIp, instanceid, allocId, assocId, domain, tags)
+{
+    this.publicIp = publicIp;
+    this.instanceId = instanceid;
+    this.allocationId = allocId || "";
+    this.associationId = assocId || "";
+    this.domain = domain || "";
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.publicIp + (this.instanceId ?  " (" + ew_core.modelValue('instanceId', this.instanceId) + ")" : "");
+    }
+}
+
+function BundleTask(id, instanceId, state, startTime, updateTime, s3bucket, s3prefix, errorMsg)
+{
+    this.id = id;
+    this.instanceId = instanceId;
+    this.state = state;
+    this.startTime = startTime.strftime('%Y-%m-%d %H:%M:%S');
+    this.updateTime = updateTime.strftime('%Y-%m-%d %H:%M:%S');
+    this.s3bucket = s3bucket;
+    this.s3prefix = s3prefix;
+    this.errorMsg = errorMsg;
+
+    this.toString = function() {
+        return this.id
+    }
+}
+
+function RecurringCharge(frequency, amount)
+{
+    this.frequency = frequency
+    this.amount = amount
+
+    this.toString = function() {
+        return this.frequency + ew_core.separator + this.amount
+    }
+}
+
+function LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy)
+{
+    this.id = id;
+    this.instanceType = type;
+    this.azone = az;
+    this.duration = duration;
+    this.fixedPrice = fPrice;
+    this.usagePrice = uPrice;
+    this.recurringCharges = rPrices;
+    this.description = desc;
+    this.offering = offering;
+    this.tenancy = tenancy;
+
+    this.toString = function() {
+        return this.id
+    }
+}
+
+function ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy)
+{
+    this.id = id;
+    this.instanceType = type;
+    this.azone = az;
+    this.startTime = start;
+    this.start = start.strftime('%Y-%m-%d %H:%M:%S');
+    this.duration = duration;
+    this.fixedPrice = fPrice;
+    this.usagePrice = uPrice;
+    this.recurringCharges = rPrices;
+    this.count = count;
+    this.description = desc;
+    this.state = state;
+    this.tenancy = tenancy
+
+    this.toString = function() {
+        return this.id
+    }
+}
+
+function Vpc(id, cidr, state, dhcpOptionsId, tenancy, tags)
+{
+    this.id = id;
+    this.cidr = cidr;
+    this.state = state;
+    this.dhcpOptionsId = dhcpOptionsId;
+    this.tags = tags;
+    this.instanceTenancy = tenancy;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.cidr + ew_core.separator + (this.name ? this.name + ew_core.separator : "") + this.id;
+    }
+}
+
+function Subnet(id, vpcId, cidr, state, availableIp, availabilityZone, tags)
+{
+    this.id = id;
+    this.vpcId = vpcId;
+    this.cidr = cidr;
+    this.state = state;
+    this.availableIp = availableIp;
+    this.availabilityZone = availabilityZone;
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.cidr + ew_core.separator + (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.availableIp + ew_core.separator + this.availabilityZone;
+    }
+}
+
+function DhcpOptions(id, options, tags)
+{
+    this.id = id;
+    this.options = options;
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.options + ew_core.separator + this.id;
+    }
+}
+
+function VpnConnection(id, vgwId, cgwId, type, state, config, tags)
+{
+    this.id = id;
+    this.vgwId = vgwId;
+    this.cgwId = cgwId;
+    this.type = type;
+    this.state = state;
+    this.config = config;
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.state + ew_core.separator +
+               ew_core.modelValue("vgwId", this.vgwId) + ew_core.separator + ew_core.modelValue('cgwId', this.cgwId);
+    }
+}
+
+function InternetGateway(id, vpcId, tags)
+{
+    this.id = id
+    this.vpcId = vpcId;
+    this.tags = tags
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.id + ew_core.separator + ew_core.modelValue("vpcId", this.vpcId);
+    }
+}
+
+function VpnGateway(id, availabilityZone, state, type, attachments, tags)
+{
+    this.id = id;
+    this.availabilityZone = availabilityZone;
+    this.state = state;
+    this.type = type;
+    this.attachments = attachments || [];
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        var text = (this.name ? this.name + ew_core.separator : "") + this.id + ew_core.separator + this.state
+        for (var i in this.attachments) {
+            text += ", " + this.attachments[i].toString();
+        }
+        return text;
+    }
+}
+
+function VpnGatewayAttachment(vpcId, vgwId, state)
+{
+    this.vpcId = vpcId;
+    this.vgwId = vgwId;
+    this.state = state;
+    this.toString = function() {
+        return this.state + ew_core.separator + ew_core.modelValue("vpcId", this.vpcId);
+    }
+}
+
+function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
+{
+    this.id = id;
+    this.ipAddress = ipAddress;
+    this.bgpAsn = bgpAsn;
+    this.state = state;
+    this.type = type;
+    this.tags = tags;
+    ew_core.processTags(this)
+
+    this.toString = function() {
+        return this.ipAddress + ew_core.separator + this.bgpAsn + (this.name ? ew_core.separator + this.name : "");
+    }
+}
+
+function LoadBalancer(name, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, availabilityZones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnets, groups)
+{
+    this.name = name;
+    this.CreatedTime = CreatedTime;
+    this.DNSName = DNSName;
+    this.Instances = Instances;
+    this.Protocol = Protocol;
+    this.LoadBalancerPort = LoadBalancerPort;
+    this.InstancePort = InstancePort;
+    this.Interval = Interval;
+    this.Timeout = Timeout;
+    this.HealthyThreshold = HealthyThreshold;
+    this.UnhealthyThreshold = UnhealthyThreshold;
+    this.Target = Target;
+    this.zones = availabilityZones;
+    this.CookieName = CookieName;
+    this.APolicyName = APolicyName;
+    this.CookieExpirationPeriod = CookieExpirationPeriod;
+    this.CPolicyName = CPolicyName;
+    this.vpcId = vpcId
+    this.subnets = subnets
+    this.groups = groups
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function InstanceHealth(Description, State, InstanceId, ReasonCode)
+{
+    this.Description = Description;
+    this.State = State;
+    this.InstanceId = InstanceId;
+    this.ReasonCode = ReasonCode;
+    this.toString = function() {
+        return this.Description + ew_core.separator + this.State + ew_core.separator + ew_core.modelValue("instanceId", this.InstanceId);
+    }
+}
+
+function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, namespace, period, threshold, statistic, oper, metricName, evalPeriods, dimensions, actions)
+{
+    this.name = name;
+    this.arn = arn;
+    this.descr = descr;
+    this.stateReason = stateReason
+    this.stateReasonData = stateReasonData
+    this.stateValue = stateValue
+    this.namespace = namespace
+    this.period = period
+    this.threshold = threshold
+    this.statistic = statistic
+    this.oper = oper
+    this.metricName = metricName
+    this.evaluationPeriods = evalPeriods
+    this.dimensions = dimensions
+    this.actions = actions
+
+    this.toString = function() {
+        return this.name + ew_core.separator + this.descr;
+    }
+}
+
+function Message(id, body, handle, url)
+{
+    this.id = id;
+    this.body = body || "";
+    this.handle = handle;
+    this.url = url || "";
+    this.size = this.body.length;
+    this.subject = this.body.substr(0, 32);
+
+    this.toString = function() {
+        return this.id;
+    }
 }

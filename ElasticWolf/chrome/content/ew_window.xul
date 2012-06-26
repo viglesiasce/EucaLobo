@@ -37,16 +37,15 @@
 <?xul-overlay href="chrome://ew/content/views/sqs.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
-        orient="vertical" persist="width height screenX screenY sizemode" onload="ew_session.initialize()">
+        orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
 
   <script src="chrome://venkman/content/venkman-overlay.js" />
 
-  <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
   <script type="application/x-javascript" src="chrome://ew/content/crypto.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/interfaces.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/model.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/types.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/core.js" />
   <script type="application/x-javascript" src="chrome://ew/content/api.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/session.js" />
 
   <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/iam.js" />
@@ -70,17 +69,124 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/cloudwatch.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/credentials.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/prefs.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/menu.js" />
+
+  <script type="application/x-javascript">
+  <![CDATA[
+
+     // Mapping between panels and tree views, have to connect them excplicitely
+     var ew_tabs = [
+            { name: "ew.tabs.ew",            },
+            { name: "ew.tabs.help",          },
+
+            { name: "ew.tabs.prefs",         views: [ { view: ew_PrefsView } ] },
+
+            { name: "ew.tabs.credential",    views: [ { id: "ew.credentials.view", view: ew_CredentialsTreeView },
+                                                      { id: "ew.endpoints.view", view: ew_EndpointsTreeView }] },
+
+            { name: "ew.tabs.password",      call: ew_UsersTreeView.changePassword },
+
+            { name: "ew.tabs.policy",        views: [ { view: ew_PasswordPolicyView } ] },
+
+            { name: "ew.tabs.iam.folder",    views: [ { view: ew_AccountSummaryView } ] },
+
+            { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
+
+            { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
+
+            { name: "ew.tabs.vpcinstance",   views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: false }] } ],
+              owner: "ew.tabs.instance"      },
+
+            { name: "ew.tabs.image",         views: [ { id: "ew.images.view", view: ew_AMIsTreeView } ], },
+
+            { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeysTreeView },
+                                                      { id: "ew.keypairs.view", view: ew_KeypairsTreeView, } ], },
+
+            { name: "ew.tabs.cert",          views: [  { id: "ew.certs.view", view: ew_CertsTreeView },
+                                                       { id: "ew.serverCerts.view", view: ew_ServerCertsTreeView }] },
+
+            { name: "ew.tabs.users",         views: [ { id: "ew.users.view", view: ew_UsersTreeView, }, ] },
+
+            { name: "ew.tabs.groups",        views: [ { id: "ew.groups.view", view: ew_GroupsTreeView, },
+                                                      { id: "ew.groupUsers.view", view: ew_GroupUsersTreeView, }, ] },
+
+            { name: "ew.tabs.securitygroup", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: true }] },
+                                                      { id: "ew.permissions.view", view: ew_PermissionsTreeView }], },
+
+            { name: "ew.tabs.vpcgroup",      views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: false }] },
+                                                      { id: "ew.permissions.view", view: ew_PermissionsTreeView }],
+              owner: "ew.tabs.securitygroup" },
+
+            { name: "ew.tabs.eip",           views: [ { id: "ew.eip.view", view: ew_ElasticIPTreeView, filterList: [ { name: "domain", value: "standard" }] }], },
+
+            { name: "ew.tabs.vpceip",        views: [ { id: "ew.eip.view", view: ew_ElasticIPTreeView, filterList: [ { name: "domain", value: "vpc" }] }],
+              owner: "ew.tabs.eip"           },
+
+            { name: "ew.tabs.volume",        views: [ { id: "ew.volumes.view", view: ew_VolumeTreeView }], },
+
+            { name: "ew.tabs.snapshot",      views: [ { id: "ew.snapshots.view", view: ew_SnapshotTreeView }], },
+
+            { name: "ew.tabs.loadbalancer",  views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: true }] },
+                                                      { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }], },
+
+            { name: "ew.tabs.vpcelb",        views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: false }] },
+                                                      { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }],
+              owner: "ew.tabs.loadbalancer"  },
+
+            { name: "ew.tabs.bundletask",    views: [ { id: "ew.bundleTasks.view", view: ew_BundleTasksTreeView } ], },
+
+            { name: "ew.tabs.vpc",           views: [ { id: "ew.vpcs.view", view: ew_VpcsTreeView },
+                                                      { id: "ew.vpcsinfo.view", view: ew_VpcsInfoTreeView } ] },
+
+            { name: "ew.tabs.dhcp",          views: [ { id: "ew.dhcpOptions.view", view: ew_DhcpoptsTreeView } ], },
+
+            { name: "ew.tabs.lease",         views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView },
+                                                      { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView } ], },
+
+            { name: "ew.tabs.subnet",        views: [ { id: "ew.subnets.view", view: ew_SubnetsTreeView },
+                                                     { id: "ew.subnetroutes.view", view: ew_SubnetRoutesTreeView },
+                                                     { id: "ew.subnetacls.view", view: ew_SubnetAclRulesTreeView } ], },
+
+            { name: "ew.tabs.routing",       views: [ { id: "ew.routetables.view", view: ew_RouteTablesTreeView },
+                                                     { id: "ew.routes.view", view: ew_RoutesTreeView },
+                                                     { id: "ew.route.associations.view", view: ew_RouteAssociationsTreeView }, ], },
+
+            { name: "ew.tabs.igw",           views: [ { id: "ew.internetgateways.view", view : ew_InternetGatewayTreeView } ], },
+
+            { name: "ew.tabs.acl",           views: [ { id: "ew.acls.view", view: ew_NetworkAclsTreeView } ,
+                                                     { id: "ew.acls.associations.view", view: ew_NetworkAclAssociationsTreeView },
+                                                     { id: "ew.acls.rules.view", view: ew_NetworkAclRulesTreeView }], },
+
+            { name: "ew.tabs.eni",           views: [ { id: "ew.enis.view", view: ew_NetworkInterfacesTreeView },] },
+
+            { name: "ew.tabs.vgw",           views: [ { id: "ew.vpnGateways.view", view: ew_VpnGatewayTreeView },
+                                                     { id: "ew.vpnattachments.view", view: ew_VpnAttachmentTreeView } ], },
+
+            { name: "ew.tabs.vpn",           views: [ { id: "ew.vpnconnections.view", view: ew_VpnConnectionTreeView } ] },
+
+            { name: "ew.tabs.cgw",           views: [ { id: "ew.customergateways.view", view: ew_CustomerGatewayTreeView },] },
+
+            { name: "ew.tabs.availzone",     views: [ { id: "ew.azones.view", view: ew_AvailZoneTreeView }], },
+
+            { name: "ew.tabs.s3",            views: [ { id: "ew.s3Buckets.view", view: ew_S3BucketsTreeView }], },
+
+            { name: "ew.tabs.sqs",            views: [ { id: "ew.sqs.view", view: ew_SQSTreeView },
+                                                       { id: "ew.sqsmsg.view", view: ew_SQSMsgTreeView } ], },
+
+            { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
+    ]
+
+  ]]>
+  </script>
 
   <stringbundleset>
     <stringbundle id="ew.properties.bundle" src="chrome://ew/locale/ew.properties" />
   </stringbundleset>
 
   <keyset>
-    <key id="refresh" key="r" modifiers="meta" oncommand="ew_session.reload();"/>
-    <key id="exit" key="q" modifiers="control" oncommand="ew_session.quit();"/>
-    <key id="quit" key="q" modifiers="meta" oncommand="ew_session.quit();"/>
-    <key id="prefs" key="," modifiers="meta" oncommand="ew_session.selectTab('ew.tabs.prefs');"/>
+    <key id="refresh" key="r" modifiers="meta" oncommand="ew_core.reload();"/>
+    <key id="exit" key="q" modifiers="control" oncommand="ew_core.quit();"/>
+    <key id="quit" key="q" modifiers="meta" oncommand="ew_core.quit();"/>
+    <key id="prefs" key="," modifiers="meta" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
   </keyset>
 
   <toolbox>
@@ -88,22 +194,22 @@
     <menu label="File">
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
-       <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_session.selectTab('ew.tabs.prefs');"/>
-       <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_session.quit();"/>
+       <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
+       <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
 
       </menupopup>
     </menu>
     <menu label="Help">
       <menupopup>
-       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.selectTab('ew.tabs.ew');"/>
-       <menuitem label="Templates Format" image="images/about.png" class="menuitem-iconic" oncommand="ew_session.selectTab('ew.tabs.help');"/>
+       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_core.selectTab('ew.tabs.ew');"/>
+       <menuitem label="Templates Format" image="images/about.png" class="menuitem-iconic" oncommand="ew_core.selectTab('ew.tabs.help');"/>
       </menupopup>
     </menu>
    </menubar>
    </toolbox>
 
   <hbox flex="1">
-    <tree id="ew.menu" seltype="single" style="min-width:180px;" onclick="ew_menu.selectionChanged(event)" ondblclick="ew_menu.openClose(event)" hidecolumnpicker="true" flex="1">
+    <tree id="ew.menu" seltype="single" style="min-width:180px;" onclick="ew_core.menuSelected(event)" ondblclick="ew_core.menuOpenClose(event)" hidecolumnpicker="true" flex="1">
     <treecols>
       <treecol id="name" label="Navigation" primary="true" flex="1" persist="width ordinal hidden" />
     </treecols>
@@ -266,7 +372,7 @@
            <spacer />
            <description>Console to Amazon Web Services (EC2/S3/...).</description>
            <spacer />
-           <label id="ew.url" style="color:blue;" onclick="session.displayUrl(session.URL)"/>
+           <label id="ew.url" style="color:blue;" onclick="ew_core.displayUrl(ew_core.URL)"/>
            <spacer />
            <description>Licensed under the Apache 2.0 license.</description>
          </groupbox>

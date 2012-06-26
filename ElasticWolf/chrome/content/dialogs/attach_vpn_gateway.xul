@@ -16,11 +16,11 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var vpcMenu = document.getElementById("ew.attachvpngateway.vpcid");
-        var vpcs = this.ew_session.model.get('vpcs');
+        var vpcs = this.core.queryModel('vpcs');
         var selectvpc = 0;
         for (var i in vpcs) {
             vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id)
@@ -29,7 +29,7 @@
         vpcMenu.selectedIndex = selectvpc;
 
         var vgwMenu = document.getElementById("ew.attachvpngateway.vgwid");
-        var vgws = this.ew_session.model.get('vpnGateways');
+        var vgws = this.core.queryModel('vpnGateways');
         var selectvgw = 0;
         for (var i in vgws) {
             vgwMenu.appendItem(vgws[i].toString(), vgws[i].id);

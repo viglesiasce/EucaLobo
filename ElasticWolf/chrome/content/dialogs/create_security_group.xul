@@ -37,13 +37,13 @@
     }
 
     function init() {
-        this.ew_session = window.arguments[0];
+        this.core = window.arguments[0];
         this.retVal = window.arguments[1];
 
         var vpcMenu = document.getElementById("ew.newsecgroup.vpcId");
         vpcMenu.removeAllItems();
         vpcMenu.appendItem("None", "");
-        var vpcs = this.ew_session.model.get('vpcs');
+        var vpcs = this.core.queryModel('vpcs');
         for (var i in vpcs) {
             vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
         }

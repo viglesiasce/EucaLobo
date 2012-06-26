@@ -13,14 +13,14 @@
   <![CDATA[
 
   function init() {
-    this.session = window.arguments[0];
+    this.core = window.arguments[0];
     this.rc = window.arguments[1];
 
     document.getElementById('ew.eni.title').value = rc.title;
 
     var subnetMenu = document.getElementById('ew.eni.subnet');
     if (rc.id) {
-        var subnet = this.session.model.find('subnets', rc.subnetId);
+        var subnet = this.core.findModel('subnets', rc.subnetId);
         subnetMenu.appendItem(subnet.toString(), subnet.id);
         subnetMenu.selectedIndex = 0;
         subnetMenu.disabled = true;
@@ -40,7 +40,7 @@
         document.getElementById('ew.eni.srcdst').checked = rc.SourceDestCheck;
         document.getElementById('ew.eni.srcdst').disabled = false;
     } else {
-        this.subnets = this.session.model.get('subnets');
+        this.subnets = this.core.queryModel('subnets');
         for (var i = 0; i < this.subnets.length; i++) {
             subnetMenu.appendItem(this.subnets[i].toString(), this.subnets[i].id);
         }
@@ -54,8 +54,8 @@
         groupMenu.removeItemAt(i);
     }
     var id = document.getElementById('ew.eni.subnet').value;
-    var subnet = this.session.model.find('subnets', id);
-    var groups = this.session.model.get('securityGroups', 'vpcId', subnet.vpcId);
+    var subnet = this.core.findModel('subnets', id);
+    var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
     for (var i in groups) {
         groupMenu.appendItem(groups[i].name, groups[i].id);
     }

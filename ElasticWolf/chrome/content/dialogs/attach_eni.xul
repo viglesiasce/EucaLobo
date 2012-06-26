@@ -13,12 +13,12 @@
   <![CDATA[
 
   function init() {
-    this.session = window.arguments[0];
+    this.core = window.arguments[0];
     var eni = window.arguments[1];
 
     document.getElementById('ew.eni.id').textContent = eni.toString();
 
-    var instances = this.session.model.get('instances');
+    var instances = this.core.queryModel('instances');
     var list = document.getElementById('ew.eni.instances');
     for (var i in instances) {
         var instance = instances[i];

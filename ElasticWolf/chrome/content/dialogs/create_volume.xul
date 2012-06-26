@@ -42,12 +42,12 @@
 
     function init() {
         var srcSnap = window.arguments[0];
-        this.session = window.arguments[1];
+        this.core = window.arguments[1];
         this.retVal = window.arguments[2];
 
         // availability zones
         var availZoneMenu = document.getElementById("ew.azone");
-        var availZones = this.session.model.get('availabilityZones');
+        var availZones = this.core.queryModel('availabilityZones');
         for (var i in availZones) {
             availZoneMenu.appendItem(availZones[i].toString(), availZones[i].name);
         }
@@ -56,7 +56,7 @@
         // snapshots
         var snapshotIdMenu = document.getElementById("ew.snapshotId");
         snapshotIdMenu.appendItem("<none>");
-        var snapshots = this.session.model.get('snapshots');
+        var snapshots = this.core.queryModel('snapshots');
         var snap = null;
         for (var i in snapshots) {
             snap = snapshots[i];

@@ -35,7 +35,7 @@ var ew_AMIsTreeView = {
     manageFavorites: function(remove) {
         var image = this.getSelected();
         if (image == null) return;
-        var favs = ew_session.getStrPrefs(this.favorites, "").split("^");
+        var favs = this.coregetStrPrefs(this.favorites, "").split("^");
         debug(remove + ":" + favs)
         if (remove) {
             var i = favs.indexOf(image.id)
@@ -47,7 +47,7 @@ var ew_AMIsTreeView = {
                 favs.push(image.id)
             }
         }
-        ew_session.setStrPrefs(this.favorites, favs.join("^"));
+        this.coresetStrPrefs(this.favorites, favs.join("^"));
         if (remove) {
             this.invalidate();
         }
@@ -58,7 +58,7 @@ var ew_AMIsTreeView = {
         if (!list) return list;
         var type = $("ew.images.type");
         if (type.value == "fav") {
-            var favs = ew_session.getStrPrefs(this.favorites, "").split("^");
+            var favs = this.coregetStrPrefs(this.favorites, "").split("^");
             var images = [];
             for (var i in list) {
                 if (favs.indexOf(list[i].id) >= 0) {
@@ -71,7 +71,7 @@ var ew_AMIsTreeView = {
         // Initialize the owner display filter to the empty string
         var alias = null, owner = null, root = null, rx = null;
         if (type.value == "my_ami" || type.value == "my_ami_rdt_ebs") {
-            var groups = ew_model.get('securityGroups');
+            var groups = this.core.queryModel('securityGroups');
             if (groups && groups.length) {
                 owner = groups[0].ownerId;
                 rx = regExs["ami"];
@@ -103,25 +103,26 @@ var ew_AMIsTreeView = {
 
     launchNewInstances : function()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
         var retVal = { ok : null, tag: "", max: ew_InstancesTreeView.max };
 
-        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
         if (retVal.ok) {
             if (retVal.name) {
                 retVal.tag += "Name:" + retVal.name;
             }
-            this.session.api.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
+            this.core.api.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
                                                retVal.securityGroups, retVal.userData, retVal.properties, retVal.instanceType,
                                                retVal.availabilityZone, retVal.tenancy, retVal.subnetId, retVal.ipAddress,
                                                retVal.monitoring, function(list) {
                 if (retVal.tag != "") {
-                    ew_session.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
+                    me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
-                ew_session.selectTab('ew.tabs.instance');
+                me.core.selectTab('ew.tabs.instance');
             });
         }
     },
@@ -129,7 +130,7 @@ var ew_AMIsTreeView = {
     callRegisterImageInRegion : function(manifest, region)
     {
         var me = this;
-        this.session.api.registerImageInRegion(manifest, region, function() {
+        this.core.api.registerImageInRegion(manifest, region, function() {
             me.refresh();
             alert("Image with Manifest: " + manifest + " was registered");
         });
@@ -157,7 +158,7 @@ var ew_AMIsTreeView = {
                 return false;
             }
             var s3bucket = value.split('/')[0];
-            var region = this.session.api.getS3BucketLocation(s3bucket);
+            var region = this.core.api.getS3BucketLocation(s3bucket);
             callRegisterImageInRegion(value, region);
         }
     },
@@ -171,7 +172,7 @@ var ew_AMIsTreeView = {
         }
         if (!fDelete) return;
         var me = this;
-        this.session.api.deregisterImage(image.id, function() {me.refresh()});
+        this.core.api.deregisterImage(image.id, function() {me.refresh()});
     },
 
     migrateImage : function()
@@ -184,13 +185,13 @@ var ew_AMIsTreeView = {
         }
 
         var retVal = { ok : null };
-        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
         if (retVal.ok) {
             this.currentlyMigrating = true;
             this.amiBeingMigrated = image.id;
             retVal.ok = false;
             // TODO: Finish up AMI migration with visual prompts
-            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", ew_session, retVal);
+            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", ew_core, retVal);
         }
     },
 
@@ -217,9 +218,16 @@ var ew_AMIsTreeView = {
         }
 
         if (confirm("Are you sure you want to delete this AMI and all its parts from S3? The AMI will be deregistered as well.")) {
-            var retVal = { ok : null };
-            window.openDialog("chrome://ew/content/dialogs/delete_ami.xul", null, "chrome,centerscreen,modal,resizable", ew_session, image.location, retVal);
-            if (retVal.ok) {
+            var parts = image.location.split('/');
+            var sourceB = parts[0];
+            var prefix = parts[1];
+            // Remove the manifest.xml from the prefix
+            prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
+            var obj = this.core.api.getS3BucketKeys(sourceB, {prefix:prefix});
+            if (obj) {
+                for (var i = 0; i < obj.keys.length; ++i) {
+                    this.core.api.deleteS3BucketKey(sourceB, bucket.keys[i].name);
+                }
                 // Keys have been deleted. Let's deregister this image
                 this.deregisterImage(true);
             }
@@ -237,10 +245,10 @@ var ew_AMIsTreeView = {
             var me = this;
             var wrap = function()
             {
-                this.session.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
+                this.core.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
                 me.refresh();
             }
-            this.session.api.deregisterImage(ami, wrap);
+            this.core.api.deregisterImage(ami, wrap);
         }
     },
 
@@ -248,8 +256,8 @@ var ew_AMIsTreeView = {
     {
         var image = this.getSelected();
         if (image == null) return;
-        this.session.api.describeLaunchPermissions(this.image.id, function(list) {
-            window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_session, image, list);
+        this.core.api.describeLaunchPermissions(this.image.id, function(list) {
+            window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
         });
     },
 };

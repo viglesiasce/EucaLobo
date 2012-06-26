@@ -4,7 +4,7 @@ var ew_Authorizer = {
   usedSecGroupsList : null,
   unused : new Array(),
   used : new Array(),
-  ew_session : null,
+  core : null,
   retval : null,
 
   authorize : function() {
@@ -181,7 +181,7 @@ var ew_Authorizer = {
 
   getHostAddress : function() {
       var retVal = {ipAddress:"0.0.0.0"};
-      retVal.ipAddress = this.ew_session.queryCheckIP();
+      retVal.ipAddress = this.core.api.queryCheckIP();
       var hostIP = document.getElementById("ew.source.host");
       hostIP.value = retVal.ipAddress.replace(/\s/g,'') + "/32";
       document.getElementById("ew.hostnet.group").selectedIndex = 0;
@@ -189,7 +189,7 @@ var ew_Authorizer = {
 
   getHostNetwork : function() {
       var retVal = {ipAddress:"0.0.0.0"};
-      retVal.ipAddress = this.ew_session.queryCheckIP("block");
+      retVal.ipAddress = this.core.api.queryCheckIP("block");
       var hostSubnet = document.getElementById("ew.source.range");
       hostSubnet.value = retVal.ipAddress.replace(/\s/g,'');
       document.getElementById("ew.hostnet.group").selectedIndex = 1;
@@ -222,7 +222,7 @@ var ew_Authorizer = {
 
   init : function() {
     this.group = window.arguments[0];
-    this.ew_session = window.arguments[1];
+    this.core = window.arguments[1];
     this.retVal = window.arguments[2];
 
     if (this.group == null) {
@@ -240,7 +240,7 @@ var ew_Authorizer = {
 
     var user = document.getElementById("ew.source.user");
     user.value = this.group.ownerId;
-    var securityGroups = this.ew_session.model.get('securityGroups');
+    var securityGroups = this.core.queryModel('securityGroups');
     var groupMenu = document.getElementById("ew.source.group");
     groupMenu.appendItem("", "");
     for(var i in securityGroups) {

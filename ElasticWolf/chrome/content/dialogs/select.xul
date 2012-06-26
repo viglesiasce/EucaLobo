@@ -11,7 +11,7 @@
     title="Select">
 
     <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
-    <script type="application/x-javascript" src="chrome://ew/content/interfaces.js" />
+    <script type="application/x-javascript" src="chrome://ew/content/types.js" />
 
     <script>
     <![CDATA[
@@ -26,7 +26,7 @@
             params = window.arguments[0];
             document.title = params.title;
             document.getElementById("msg").value = params.msg;
-            ew_ListBox.session = params.session;
+            ew_ListBox.core = params.core;
             ew_ListBox.name = 'list';
             ew_ListBox.columns = params.columns;
             ew_ListBox.width = params.width || 500;

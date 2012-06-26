@@ -1,22 +1,22 @@
 function init()
 {
-    this.session = window.arguments[0];
+    this.core = window.arguments[0];
     this.rc = window.arguments[1];
 
     ew_ListBox.name = 'ew.instances';
-    ew_ListBox.session = this.session;
+    ew_ListBox.session = this.core;
     ew_ListBox.multiple = true;
-    ew_ListBox.listItems = this.session.model.get('instances','state', 'running');
+    ew_ListBox.listItems = this.core.queryModel('instances','state', 'running');
     ew_ListBox.init();
 
-    var availZones = this.session.model.get('availabilityZones');
+    var availZones = this.core.queryModel('availabilityZones');
     var availZoneMenu = document.getElementById("ew.azones");
     for(var i in availZones) {
         availZoneMenu.appendItem(availZones[i].name, availZones[i].name);
     }
     availZoneMenu.selectedIndex =  0;
 
-    this.subnets = this.session.model.get('subnets');
+    this.subnets = this.core.queryModel('subnets');
     var subnetMenu = document.getElementById("ew.subnets");
     for(var i = 0; i < subnets.length; i++) {
         subnetMenu.appendItem(subnets[i].toString(), subnets[i].id);
@@ -56,7 +56,7 @@ function launch()
         for (var i = 0; i < groupMenu.selectedItems.length; i++) {
             this.rc.groups.push(groupMenu.selectedItems[i].value);
         }
-        var subnet = this.session.model.find('subnets', this.rc.subnetId);
+        var subnet = this.core.findModel('subnets', this.rc.subnetId);
         this.rc.Zone = subnet.availabilityZone;
     }
     ew_ListBox.done();
@@ -81,7 +81,7 @@ function refresh_group()
     var subnet = this.subnets[subnetMenu.selectedIndex];
     if (!subnet) return;
 
-    var groups = this.session.model.get('securityGroups', 'vpcId', subnet.vpcId);
+    var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
     for (var i = 0; i < groups.length; i++) {
         groupMenu.appendItem(groups[i].name, groups[i].id);
         if (groups[i].name == 'default') {
@@ -112,7 +112,7 @@ function validate1() {
         return false;
     }
 
-    var lbs = this.session.model.get('loadBalancers', 'LoadBalancerName', name);
+    var lbs = this.core.queryModel('loadBalancers', 'LoadBalancerName', name);
     if (lbs && lbs.length > 0) {
         alert('Duplicate Load Balancer name.');
         return false;

@@ -40,7 +40,7 @@ var ew_LeaseOfferingsTreeView = {
                 // Edit: 0, Purchase: 1, Cancel: 2
                 if (button == 1) {
                     fRepeat = false;
-                    this.session.api.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
+                    this.core.api.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
                 } else
                  if (button == 0) {
                      // The user wants to edit the order

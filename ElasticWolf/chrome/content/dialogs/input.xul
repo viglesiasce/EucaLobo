@@ -130,9 +130,9 @@
 
     function browse(id, forDir) {
         if (forDir) {
-            path = rc.session.promptForDir("Choose directory:");
+            path = rc.core.promptForDir("Choose directory:");
         } else {
-            path = rc.session.promptForFile("Choose file:");
+            path = rc.core.promptForFile("Choose file:");
         }
         if (path) {
             document.getElementById(id).value = path;

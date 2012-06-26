@@ -230,7 +230,7 @@
                 <row>
                     <label value="" />
                     <hbox>
-                    <button id="ew.updates" label="Check for Updates" oncommand="ew_session.checkForUpdates()" />
+                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates()" />
                     <button id="ew.venkman" label="Run Venkman" oncommand="start_venkman()" />
                     </hbox>
                 </row>

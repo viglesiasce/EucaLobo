@@ -5,17 +5,13 @@ var ew_SnapshotTreeView = {
         if (!list) return list;
         var type = $("ew.snapshots.type").value;
         if (type == "my_snapshots") {
-            var groups = ew_model.get('securityGroups');
-            if (groups) {
-                owner = groups[0].ownerId;
-                var nlist = [];
-                for (var i = 0; i < list.length; i++) {
-                    if (list[i].owner == owner) {
-                        nlist.push(list[i]);
-                    }
+            var nlist = [];
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].owner == this.core.user.accountId) {
+                    nlist.push(list[i]);
                 }
-                list = nlist;
             }
+            list = nlist;
         }
 
         if ($("ew.snapshots.noami").checked) {
@@ -40,7 +36,7 @@ var ew_SnapshotTreeView = {
         if (image == null) return;
         var label = image.name ? (image.name + '@' + image.id) : image.id;
         if (!confirm("Delete snapshot " + label + "?"))  return;
-        this.session.api.deleteSnapshot(image.id);
+        this.core.api.deleteSnapshot(image.id);
     },
 
     createVolume : function () {
@@ -60,12 +56,12 @@ var ew_SnapshotTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var retVal = {ok:null,amiName:null,amiDescription:null};
-        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, ew_session, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, ew_core, retVal);
         if (retVal.ok) {
             var wrap = function(id) {
                 alert("A new AMI is registered.\n\nThe AMI ID is: "+id);
             }
-            this.session.api.registerImageFromSnapshot(image.id, retVal.amiName, retVal.amiDescription, retVal.architecture, retVal.kernelId, retVal.ramdiskId, retVal.deviceName, retVal.deleteOnTermination, wrap);
+            this.core.api.registerImageFromSnapshot(image.id, retVal.amiName, retVal.amiDescription, retVal.architecture, retVal.kernelId, retVal.ramdiskId, retVal.deviceName, retVal.deleteOnTermination, wrap);
         }
     },
 
@@ -73,8 +69,8 @@ var ew_SnapshotTreeView = {
     {
         var image = this.getSelected();
         if (image == null) return;
-        this.session.api.describeSnapshotAttribute(this.image.id, function(list) {
-           window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_session, image, list);
+        this.core.api.describeSnapshotAttribute(this.image.id, function(list) {
+           window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
         });
     },
 

@@ -15,21 +15,21 @@ var ew_NetworkInterfacesTreeView = {
         for (var p in eni) {
             rc[p] = eni[p];
         }
-        window.openDialog("chrome://ew/content/dialogs/edit_eni.xul", null, "chrome,centerscreen,modal,resizable", ew_session, rc);
+        window.openDialog("chrome://ew/content/dialogs/edit_eni.xul", null, "chrome,centerscreen,modal,resizable", ew_core, rc);
         if (rc.ok) {
             var me = this;
             if (eni.sourceDestCheck != rc.sourceDestCheck) {
-                this.session.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", rc.SourceDestCheck, function() { me.refresh(); });
+                this.core.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", rc.SourceDestCheck, function() { me.refresh(); });
             }
             if (eni.descr != rc.descr) {
-                this.session.api.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
+                this.core.api.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
             }
             if (eni.groups.toString() != rc.groups.toString()) {
                 var attrs = [];
                 for (var i in rc.groups) {
                     attrs.push(['SecurityGroupId.' + (i + 1), rc.groups[i]]);
                 }
-                this.session.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
+                this.core.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
             }
         }
     },
@@ -37,10 +37,10 @@ var ew_NetworkInterfacesTreeView = {
     createInterface : function()
     {
         var rc = { ok: false, title: "Create ENI" };
-        openDialog('chrome://ew/content/dialogs/details_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_session, rc);
+        openDialog('chrome://ew/content/dialogs/details_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_core, rc);
         if (rc.ok) {
             var me = this;
-            this.session.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
+            this.core.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
         }
     },
 
@@ -49,7 +49,7 @@ var ew_NetworkInterfacesTreeView = {
         var eni = this.getSelected();
         if (!eni || !confirm("Delete Network Interface " + eni.id + "?")) return;
         var me = this;
-        this.session.api.deleteNetworkInterface(eni.id, function() { me.refresh(); });
+        this.core.api.deleteNetworkInterface(eni.id, function() { me.refresh(); });
     },
 
     attachInterface : function()
@@ -60,10 +60,10 @@ var ew_NetworkInterfacesTreeView = {
             return;
         }
         var rc = {ok:false};
-        openDialog('chrome://ew/content/dialogs/attach_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_session, eni, rc);
+        openDialog('chrome://ew/content/dialogs/attach_eni.xul',null,'chrome,centerscreen,modal,resizable', ew_core, eni, rc);
         if (rc.ok) {
             var me = this;
-            this.session.api.attachNetworkInterface(eni.id, rc.instanceId, rc.deviceIndex, function() { me.refresh();});
+            this.core.api.attachNetworkInterface(eni.id, rc.instanceId, rc.deviceIndex, function() { me.refresh();});
         }
     },
 
@@ -76,7 +76,7 @@ var ew_NetworkInterfacesTreeView = {
             return;
         }
 
-        var instance = ew_model.find('instances', eni.attachment.instanceId);
+        var instance = this.core.findModel('instances', eni.attachment.instanceId);
         if (!instance) {
             alert('Could not find attached instance');
             return;
@@ -87,7 +87,7 @@ var ew_NetworkInterfacesTreeView = {
             if (!confirm("Detach interface " + eni.id + " (" + eni.descr + ") from " + instance.toString() +  "?")) return;
         }
         var me = this;
-        this.session.api.detachNetworkInterface(eni.attachment.id, force, function() { me.refresh(); });
+        this.core.api.detachNetworkInterface(eni.attachment.id, force, function() { me.refresh(); });
     },
 
 };
