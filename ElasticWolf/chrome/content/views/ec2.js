@@ -1,3 +1,320 @@
+var ew_EC2TreeView = {
+
+    cycleHeader : function(col) {
+    },
+    sort : function() {
+    },
+    getCellProperties : function(idx, column, prop)
+    {
+        if (this.treeList[idx].folder) {
+            prop.AppendElement(this.getAtom("bold"));
+        }
+    },
+
+    refresh: function()
+    {
+        this.activate()
+    },
+
+    activate: function()
+    {
+        var list = [];
+        var eips = this.core.queryModel('addresses','vpcId', null);
+        var enis = this.core.queryModel('networkInterfaces','vpcId', null);
+        var instances = this.core.queryModel('instances','vpcId', null, 'state', 'running');
+        var groups = this.core.queryModel('securityGroups','vpcId', null);
+        var snapshots = this.core.queryModel('snapshots','owner', this.core.user.accountId);
+        var images = this.core.queryModel('images','owner', this.core.user.accountId);
+        var rsrvd = this.core.queryModel('reservedInstances');
+
+        this.listToInfo(instances, "Instances", list);
+        this.listToInfo(groups, "Security Groups", list);
+        this.listToInfo(enis, "Network Interfaces", list);
+        this.listToInfo(eips, "Elastic IPs Interfaces", list);
+        this.listToInfo(images, "Images", list);
+        this.listToInfo(snapshots, "Snapshots", list);
+        this.listToInfo(rsrvd, "Reserved Instances", list);
+
+        TreeView.display.call(this, list);
+    },
+
+    listToInfo: function(items, title, list)
+    {
+        if (items.length) {
+            list.push({ name: title, folder: 1 })
+            for (var i in items) {
+                list.push({ name: "     " + items[i].toString() });
+            }
+        }
+    },
+};
+ew_EC2TreeView.__proto__ = TreeView;
+
+var ew_AMIsTreeView = {
+    model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones' ],
+    favorites: "ew.images.favorites",
+    properties: ['ownerAlias', 'status', 'state'],
+
+    menuChanged : function(event)
+    {
+        var image = this.getSelected();
+        if (!image) return;
+
+        // If this is not a Windows Instance, Disable the following context menu items.
+        $("amis.context.migrate").disabled = !isWindows(image.platform);
+
+        // These items apply only to AMIs
+        fDisabled = !(image.id.match(regExs["ami"]));
+        $("amis.context.register").disabled = fDisabled;
+        $("amis.context.deregister").disabled = fDisabled;
+        $("amis.context.launch").disabled = fDisabled;
+        $("amis.context.delete").disabled = fDisabled;
+        $("amis.context.perms").disabled = fDisabled || image.state == "deregistered";
+
+        // These items don't apply to AMIs with root device type 'ebs'
+        if (isEbsRootDeviceType(image.rootDeviceType)) {
+            $("amis.context.delete").disabled = true;
+            $("amis.context.deleteSnapshotAndDeregister").disabled = false;
+        } else {
+            $("amis.context.deleteSnapshotAndDeregister").disabled = true;
+        }
+
+        var type = $("ew.images.type").value;
+        $("amis.context.fadd").disabled = type == "fav";
+        $("amis.context.fdelete").disabled = type != "fav";
+    },
+
+    manageFavorites: function(remove) {
+        var image = this.getSelected();
+        if (image == null) return;
+        var favs = this.coregetStrPrefs(this.favorites, "").split("^");
+        debug(remove + ":" + favs)
+        if (remove) {
+            var i = favs.indexOf(image.id)
+            if (i > -1) {
+                favs.splice(i, 1)
+            }
+        } else {
+            if (favs.indexOf(image.id) == -1) {
+                favs.push(image.id)
+            }
+        }
+        this.coresetStrPrefs(this.favorites, favs.join("^"));
+        if (remove) {
+            this.invalidate();
+        }
+    },
+
+    filter: function(list)
+    {
+        if (!list) return list;
+        var type = $("ew.images.type");
+        if (type.value == "fav") {
+            var favs = this.coregetStrPrefs(this.favorites, "").split("^");
+            var images = [];
+            for (var i in list) {
+                if (favs.indexOf(list[i].id) >= 0) {
+                    images.push(list[i])
+                }
+            }
+            return TreeView.filter.call(this, images);
+        }
+
+        // Initialize the owner display filter to the empty string
+        var alias = null, owner = null, root = null, rx = null;
+        if (type.value == "my_ami" || type.value == "my_ami_rdt_ebs") {
+            var groups = this.core.queryModel('securityGroups');
+            if (groups && groups.length) {
+                owner = groups[0].ownerId;
+                rx = regExs["ami"];
+                root = type.value == "my_ami" ? null : "ebs";
+            }
+        } else
+        if (type.value == "amzn" || type.value == "amzn_rdt_ebs") {
+            alias = "amazon";
+            root = type.value == "amzn" ? null : "ebs";
+        } else
+        if (type.value == "rdt_ebs") {
+            root = "ebs";
+        } else
+        if (type.value == "rdt_is") {
+            root = "instance-store";
+        } else {
+            rx = regExs[type.value || "all"];
+        }
+        var nlist = new Array();
+        for (var i in list) {
+            if (rx && !list[i].id.match(rx)) continue;
+            if (root && root != list[i].rootDeviceType) continue;
+            if (alias && alias != list[i].ownerAlias) continue;
+            if (owner && owner != list[i].owner) continue;
+            nlist.push(list[i])
+        }
+        return TreeView.filter.call(this, nlist);
+    },
+
+    launchNewInstances : function()
+    {
+        var me = this;
+        var image = this.getSelected();
+        if (image == null) return;
+        var retVal = { ok : null, tag: "", max: ew_InstancesTreeView.max };
+
+        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
+        if (retVal.ok) {
+            if (retVal.name) {
+                retVal.tag += "Name:" + retVal.name;
+            }
+            this.core.api.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
+                                               retVal.securityGroups, retVal.userData, retVal.properties, retVal.instanceType,
+                                               retVal.availabilityZone, retVal.tenancy, retVal.subnetId, retVal.ipAddress,
+                                               retVal.monitoring, function(list) {
+                if (retVal.tag != "") {
+                    me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
+                } else {
+                    ew_InstancesTreeView.refresh();
+                }
+                me.core.selectTab('ew.tabs.instance');
+            });
+        }
+    },
+
+    callRegisterImageInRegion : function(manifest, region)
+    {
+        var me = this;
+        this.core.api.registerImageInRegion(manifest, region, function() {
+            me.refresh();
+            alert("Image with Manifest: " + manifest + " was registered");
+        });
+    },
+
+    registerNewImage : function()
+    {
+        var me = this;
+        var value = prompt('AMI Manifest Path:');
+        if (value) {
+            var oldextre = new RegExp("\\.manifest$");
+            var newextre = new RegExp("\\.manifest\\.xml$");
+            if (value.match(oldextre) == null && value.match(newextre) == null) {
+                alert("Manifest files should end in .manifest or .manifest.xml");
+                return false;
+            }
+            var s3bucket = value.split('/')[0];
+            if (s3bucket.match(new RegExp("[A-Z]"))) {
+                alert("The S3 bucket must be all lower case");
+                return false;
+            }
+            var httppre = new RegExp("^http", "i");
+            if (value.match(httppre) != null) {
+                alert("Just specify the bucket and manifest path name, not the entire S3 URL.");
+                return false;
+            }
+            var s3bucket = value.split('/')[0];
+            var region = this.core.api.getS3BucketLocation(s3bucket);
+            callRegisterImageInRegion(value, region);
+        }
+    },
+
+    deregisterImage : function(fDelete)
+    {
+        var image = this.getSelecteed();
+        if (!image) return;
+        if (fDelete == undefined) {
+            fDelete = confirm("Deregister AMI " + image.id + " (" + image.location + ")?");
+        }
+        if (!fDelete) return;
+        var me = this;
+        this.core.api.deregisterImage(image.id, function() {me.refresh()});
+    },
+
+    migrateImage : function()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+        if (this.currentlyMigrating && this.amiBeingMigrated == image.id) {
+            alert("This AMI is currently being migrated!");
+            return;
+        }
+
+        var retVal = { ok : null };
+        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
+        if (retVal.ok) {
+            this.currentlyMigrating = true;
+            this.amiBeingMigrated = image.id;
+            retVal.ok = false;
+            // TODO: Finish up AMI migration with visual prompts
+            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", ew_core, retVal);
+        }
+    },
+
+    finishMigration : function(retVal)
+    {
+        if (retVal.ok) {
+            // Register the new AMI
+            var manifest = retVal.destB + "/" + retVal.prefix + ".manifest.xml";
+            log("Registering AMI with manifest: " + manifest);
+            this.callRegisterImageInRegion(manifest, retVal.region);
+        }
+        this.currentlyMigrating = false;
+        this.amiBeingMigrated = null;
+    },
+
+    deleteImage : function()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+
+        if (this.currentlyMigrating && this.amiBeingMigrated == image.id) {
+            alert("This AMI is currently being migrated. Please try *Deleting* it after the Migration.");
+            return;
+        }
+
+        if (confirm("Are you sure you want to delete this AMI and all its parts from S3? The AMI will be deregistered as well.")) {
+            var parts = image.location.split('/');
+            var sourceB = parts[0];
+            var prefix = parts[1];
+            // Remove the manifest.xml from the prefix
+            prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
+            var obj = this.core.api.getS3BucketKeys(sourceB, {prefix:prefix});
+            if (obj) {
+                for (var i = 0; i < obj.keys.length; ++i) {
+                    this.core.api.deleteS3BucketKey(sourceB, bucket.keys[i].name);
+                }
+                // Keys have been deleted. Let's deregister this image
+                this.deregisterImage(true);
+            }
+        }
+    },
+
+    deleteSnapshotAndDeregister : function()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+
+        var ami = image.id;
+        var snapshot = image.snapshotId;
+        if (confirm("Are you sure you want to delete this AMI (" + ami + ") " + "and the accompanying snapshot (" + snapshot + ")?")) {
+            var me = this;
+            var wrap = function()
+            {
+                this.core.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
+                me.refresh();
+            }
+            this.core.api.deregisterImage(ami, wrap);
+        }
+    },
+
+    viewPermissions: function()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+        this.core.api.describeLaunchPermissions(this.image.id, function(list) {
+            window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
+        });
+    },
+};
+
+ew_AMIsTreeView.__proto__ = TreeView;
 var ew_InstancesTreeView = {
     model: ['instances', 'images', 'addresses', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes'],
     properties: [ 'state' ],
@@ -756,3 +1073,249 @@ var ew_InstancesTreeView = {
 };
 
 ew_InstancesTreeView.__proto__ = TreeView;
+var ew_VolumeTreeView = {
+    model: ['volumes','availabilityZones','instances','snapshots'],
+    properties: ['status'],
+
+    filter : function(list) {
+        if (!list) return list;
+        if ($("ew.volumes.norootdev").checked) {
+          var newList = [];
+          for (var i = 0; i < list.length; i++) {
+              var volume = list[i];
+              if (volume.device != '/dev/sda1') {
+                  newList.push(volume);
+              }
+          }
+          list = newList;
+        }
+        return TreeView.filter.call(this, list);
+    },
+
+    menuChanged : function() {
+        var image = this.getSelected();
+        document.getElementById("ew.volumes.contextmenu").disabled = (image == null);
+        if (image == null) return;
+
+        var fAssociated = image.status == "available" ? false : true;
+
+        // If this is not a Windows Instance, Disable the following context menu items.
+        document.getElementById("volumes.context.attach").disabled = fAssociated;
+        document.getElementById("volumes.context.detach").disabled = !fAssociated;
+        document.getElementById("volumes.context.forcedetach").disabled = !fAssociated;
+    },
+
+    createSnapshot : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        var me = this;
+        this.core.api.createSnapshot(image.id, function(snapId) { ew_SnapshotTreeView.refresh(); });
+    },
+
+    createVolume : function (snap) {
+        var retVal = { ok: false, tag: '' };
+        if (!snap) snap = null;
+        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,ew_core,retVal);
+        if (retVal.ok) {
+            var me = this;
+            this.core.api.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
+                if (retVal.tag != '') {
+                    me.core.setTags(id, retVal.tag, function() { me.refresh() });
+                } else {
+                    me.refresh();
+                }
+            });
+        }
+        return retVal.ok;
+    },
+
+    deleteVolume : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        var label = image.name ? (image.name + '@' + image.id) : image.id;
+        if (!confirm("Delete volume " + label + "?")) return;
+        var me = this;
+        this.core.api.deleteVolume(image.id, function() {me.refresh()});
+    },
+
+    attachEBSVolume : function (volumeId, instId, device) {
+        if (device == "windows_device") {
+            device = this.determineWindowsDevice(instId);
+        }
+        var me = this;
+        this.core.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
+    },
+
+    attachVolume : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        var retVal = {ok:null};
+        while (true) {
+            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,ew_core,retVal);
+            if (retVal.ok) {
+                // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
+                var instance = this.core.findModel('instances', retVal.instanceId);
+                if (instance) {
+                    if (!ew_InstancesTreeView.isInstanceReadyToUse(instance)) {
+                        continue;
+                    }
+                    if (isWindows(instance.platform)) {
+                        retVal.device = "windows_device";
+                    }
+                    this.attachEBSVolume(retVal.volumeId, retVal.instanceId, retVal.device);
+                }
+            }
+            break;
+        }
+    },
+
+    determineWindowsDevice : function (instId)
+    {
+        // Need to walk through the list of Volumes If any volume is attached to this instance, that device id is removed from the list of possible device ids for this instance.
+        var devList = this.getWindowsDeviceList();
+
+        // Enumerate the volumes associated with the instId
+        var volumes = this.core.getModel("volumes");
+
+        // If a volume is associated with this instance, mark the associated device as taken
+        for (var i in volumes) {
+            if (volumes[i].instanceId == instId) {
+                devList[volumes[i].device] = 1;
+            }
+        }
+
+        for (var device in devList) {
+            if (devList[device] != 1) {
+                return devList[device];
+            }
+        }
+        return "";
+    },
+
+    detachVolume : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        if (!confirm("Detach volume " + image.id + "?")) return;
+        this.core.api.detachVolume(image.id, function() { me.refresh() });
+    },
+
+    forceDetachVolume : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        if (!confirm("Force detach volume " + image.id + "?")) return;
+        var me = this;
+        this.core.api.forceDetachVolume(image.id, function() { me.refresh() });
+    },
+
+    isRefreshable: function() {
+        // Walk the list of volumes to see whether there is a volume whose state needs to be refreshed
+        for (var i in this.treeList) {
+            var volume = this.treeList[i];
+            if (volume.status == "creating" || volume.status == 'deleting' || volume.attachStatus == "attaching" || volume.attachStStatus == "detaching") {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    getWindowsDeviceList: function()
+    {
+        var devlist = new Array();
+        devlist["xvdg"] = "xvdg";
+        devlist["xvdh"] = "xvdh";
+        devlist["xvdi"] = "xvdi";
+        devlist["xvdj"] = "xvdj";
+        devlist["xvdk"] = "xvdk";
+        devlist["xvdl"] = "xvdl";
+        devlist["xvdm"] = "xvdm";
+        devlist["xvdn"] = "xvdn";
+        devlist["xvdo"] = "xvdo";
+        devlist["xvdp"] = "xvdp";
+        devlist["xvdf"] = "xvdf";
+        devlist["xvde"] = "xvde";
+        devlist["xvdd"] = "xvdd";
+        devlist["xvdc"] = "xvdc";
+        return devlist;
+    },
+};
+
+ew_VolumeTreeView.__proto__ = TreeView;
+var ew_SnapshotTreeView = {
+    model: ['snapshots', 'securityGroups', 'availabilityZones', 'volumes'],
+
+    filter: function(list) {
+        if (!list) return list;
+        var type = $("ew.snapshots.type").value;
+        if (type == "my_snapshots") {
+            var nlist = [];
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].owner == this.core.user.accountId) {
+                    nlist.push(list[i]);
+                }
+            }
+            list = nlist;
+        }
+
+        if ($("ew.snapshots.noami").checked) {
+            var nlist = [];
+            for (var i = 0; i < list.length; i++) {
+                if (!(list[i].amiId || '').trim()) {
+                    nlist.push(list[i]);
+                }
+            }
+            list = nlist;
+        }
+        return TreeView.filter.call(this, list);
+    },
+
+    snapshotTypeChanged : function() {
+        $(this.searchElement).value = "";
+        this.invalidate();
+    },
+
+    deleteSnapshot : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        var label = image.name ? (image.name + '@' + image.id) : image.id;
+        if (!confirm("Delete snapshot " + label + "?"))  return;
+        this.core.api.deleteSnapshot(image.id);
+    },
+
+    createVolume : function () {
+        var image = this.getSelected();
+        if (image == null) return;
+        ew_VolumeTreeView.createVolume(image);
+    },
+
+    isRefreshable: function() {
+        for (var i in this.treeList) {
+            if (this.treeList[i].status != "completed") return true;
+        }
+        return false;
+    },
+
+    showRegisterImageFromSnapshotDialog : function() {
+        var image = this.getSelected();
+        if (image == null) return;
+        var retVal = {ok:null,amiName:null,amiDescription:null};
+        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, ew_core, retVal);
+        if (retVal.ok) {
+            var wrap = function(id) {
+                alert("A new AMI is registered.\n\nThe AMI ID is: "+id);
+            }
+            this.core.api.registerImageFromSnapshot(image.id, retVal.amiName, retVal.amiDescription, retVal.architecture, retVal.kernelId, retVal.ramdiskId, retVal.deviceName, retVal.deleteOnTermination, wrap);
+        }
+    },
+
+    viewPermissions: function()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+        this.core.api.describeSnapshotAttribute(this.image.id, function(list) {
+           window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
+        });
+    },
+
+};
+
+ew_SnapshotTreeView.__proto__ = TreeView;

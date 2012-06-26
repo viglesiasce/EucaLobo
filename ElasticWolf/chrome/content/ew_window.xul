@@ -50,14 +50,11 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/iam.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/certs.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/instances.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/views/ec2.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/securitygroups.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/routing.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/azone.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/eip.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/amis.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/volumes.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/snapshots.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/leaseofferings.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/bundletasks.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/vpcs.js" />
@@ -90,6 +87,8 @@
             { name: "ew.tabs.iam.folder",    views: [ { view: ew_AccountSummaryView } ] },
 
             { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
+
+            { name: "ew.tabs.ec2",           views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
@@ -250,7 +249,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 instances and storage" src="images/ec2.png" />
+         <treecell label="EC2 instances and storage" src="images/ec2.png" value="ew.tabs.ec2" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
@@ -365,6 +364,21 @@
       <tabpanel id="ew.tabs.availzone"/>
       <tabpanel id="ew.tabs.s3"/>
       <tabpanel id="ew.tabs.alarm"/>
+
+      <tabpanel id="ew.tabs.ec2">
+       <vbox flex="1">
+         <groupbox flex="1">
+           <caption label="EC2 Resources Summary" />
+           <tree enableColumnDrag="true" id="ew.ec2.view" hidecolumnpicker="true" flex="1">
+           <treecols>
+              <treecol id="ec2.name" label=" " flex="1" />
+           </treecols>
+           <treechildren id="accesskey.tree.children" context="accesskey.tree.contextmenu" />
+           </tree>
+         </groupbox>
+       </vbox>
+      </tabpanel>
+
       <tabpanel id="ew.tabs.ew">
        <vbox flex="1">
          <groupbox flex="1">

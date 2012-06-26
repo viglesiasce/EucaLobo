@@ -99,10 +99,10 @@ var ew_EndpointsTreeView = {
 
        if (item.url != active.url) {
            if (this.core.isGovCloud()) {
-               return this.core.alertDialog("Credential Error", 'Cannot use non-Govcloud credentials in GovCloud.');
+               return this.core.alertDialog("Credential Error", 'Cannot use GovCloud credentials in commercial regions.');
            }
            if (this.core.isGovCloud(item.url)) {
-               return this.core.alertDialog("Credential Error", 'Cannot use GovCloud credentials in commercial regions.');
+               return this.core.alertDialog("Credential Error", 'Cannot use non-Govcloud credentials in GovCloud.');
            }
        }
        this.core.switchEndpoints(item.name);

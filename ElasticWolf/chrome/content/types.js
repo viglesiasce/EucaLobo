@@ -1876,7 +1876,7 @@ function ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices
     this.tenancy = tenancy
 
     this.toString = function() {
-        return this.id
+        return this.instanceType  + ew_core.separator + this.fixedPrice + ew_core.separator +  this.recurringCharges + ew_core.separator + this.id;
     }
 }
 

@@ -877,7 +877,7 @@ var ew_core = {
 
         ver = parseFloat(this.VERSION) + 0.01
         var url = this.URL;
-        var xmlhttp = this.getXmlHttp();
+        var xmlhttp = this.api.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
             return;
@@ -1728,7 +1728,13 @@ var ew_core = {
             for (var i in items) {
                 var matches = 0;
                 for (var j = 0; j < args.length - 1; j += 2) {
-                    if (items[i][args[j]] == args[j + 1]) matches++;
+                    // If value is null, this means oppsite, the property should be empty
+                    if (args[j + 1] == null) {
+                        if (!items[i][args[j]]) matches++;
+                    } else {
+                        // Otherwise the property should match the value
+                        if (items[i][args[j]] == args[j + 1]) matches++;
+                    }
                 }
                 if (matches == args.length/2) {
                     list.push(items[i])

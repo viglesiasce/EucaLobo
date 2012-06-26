@@ -27,17 +27,17 @@ var ew_VpcsTreeView = {
         if (subnets.length) {
             list.push({ name: "Subnets", folder: 1 })
             for (var i in subnets) {
-                list.push({ name: "    " + subnets[i].toString() });
+                list.push({ name: "     " + subnets[i].toString() });
                 var found = false;
                 for (var j in tables) {
                     for (var k in tables[j].associations) {
                         if (tables[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "        Routes", folder: 1})
+                                list.push({ name: "         Routes", folder: 1})
                             }
                             for (n in tables[j].routes) {
-                                list.push({ name: "            " + tables[j].routes[n].toString() });
+                                list.push({ name: "             " + tables[j].routes[n].toString() });
                             }
                             break;
                         }
@@ -49,7 +49,7 @@ var ew_VpcsTreeView = {
                         if (acls[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "        Network ACLs", folder: 1 })
+                                list.push({ name: "         Network ACLs", folder: 1 })
                             }
                             for (n in acls[j].rules) {
                                 list.push({ name: "            " + acls[j].rules[n].toString() })
@@ -74,7 +74,7 @@ var ew_VpcsTreeView = {
                             found = true;
                             list.push({ name: "VPN Gateways", folder: 1 })
                         }
-                        list.push({ name: "    " + vgws[i].toString() })
+                        list.push({ name: "     " + vgws[i].toString() })
                     }
                 }
             }
@@ -92,7 +92,7 @@ var ew_VpcsTreeView = {
                                 found = true;
                                 list.push({ name: "VPN Connections", folder: 1 })
                             }
-                            list.push({ name: "    " + vpns[i].toString() })
+                            list.push({ name: "     " + vpns[i].toString() })
 
                         }
                     }
@@ -109,7 +109,7 @@ var ew_VpcsTreeView = {
                             found = true;
                             list.push({ name: "Customer Gateways", folder: 1 })
                         }
-                        list.push({ name: "    " + cgws[i].toString()})
+                        list.push({ name: "     " + cgws[i].toString()})
                     }
                 }
             }
@@ -122,7 +122,7 @@ var ew_VpcsTreeView = {
         if (items.length) {
             list.push({ name: title, folder: 1 })
             for (var i in items) {
-                list.push({ name: "    " + items[i].toString() });
+                list.push({ name: "     " + items[i].toString() });
             }
         }
     },
@@ -251,10 +251,8 @@ ew_VpcsTreeView.__proto__ = TreeView;
 ew_VpcsInfoTreeView = {
 
     cycleHeader : function(col) {
-
     },
     sort : function() {
-
     },
     getCellProperties : function(idx, column, prop)
     {

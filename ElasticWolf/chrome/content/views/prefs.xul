@@ -200,6 +200,14 @@
                    <label id="ew.cw_version" />
                 </row>
                 <row>
+                   <label control="ew.sqs_version" value="SQS API Version:" />
+                   <label id="ew.sqs_version" />
+                </row>
+                <row>
+                   <label control="ew.sts_version" value="STS API Version:" />
+                   <label id="ew.sts_version" />
+                </row>
+                <row>
                    <label value=" "/>
                    <label value=" "/>
                 </row>
