@@ -528,16 +528,6 @@ var ew_InstancesTreeView = {
         }
     },
 
-    promptForKeyFile : function(keyName)
-    {
-        var keyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + keyName);
-        if (keyFile) {
-            this.core.setLastEC2PrivateKeyFile(keyFile);
-        }
-        log("getkey: " + keyName + "=" + keyFile);
-        return keyFile;
-    },
-
     getAdminPassword : function(instance, fSilent)
     {
         if (instance == null) {
@@ -566,22 +556,13 @@ var ew_InstancesTreeView = {
             // If the private key file was not specified, or couldn't be found,
             // ask the user for its location on the local filesystem
             if (prvKeyFile.length == 0) {
-                prvKeyFile = this.promptForKeyFile(instance.keyName);
+                prvKeyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + instance.keyName);
             }
             if (!FileIO.exists(prvKeyFile)) {
                 fSuccess = false;
             }
 
             if (!fSuccess) {
-                // Has a default key file been saved for this user account?
-                var savedKeyFile = this.core.getLastEC2PrivateKeyFile();
-                if (savedKeyFile.length > 0 && prvKeyFile != savedKeyFile) {
-                    prvKeyFile = savedKeyFile;
-                    log("Using default private key file");
-                    fSuccess = true;
-                    continue;
-                }
-
                 // There is no default EC2 Private Key File, and a bad Private Key File was specified. Ask the user whether they would like to retry with a new private key file
                 if (!confirm ("An error occurred while reading the EC2 Private Key from file: " + prvKeyFile + ". Would you like to retry with a different private key file?")) {
                     break;
@@ -1015,7 +996,7 @@ var ew_InstancesTreeView = {
         if (args.indexOf("${key}") >= 0) {
             var keyFile = this.core.getPrivateKeyFile(instance.keyName);
             if (!FileIO.exists(keyFile)) {
-                keyFile = this.promptForKeyFile(instance.keyName);
+                keyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + instance.keyName);
             }
             if (!keyFile || !FileIO.exists(keyFile)) {
                 alert('Cannot connect without private key file for keypair ' + instance.keyName)

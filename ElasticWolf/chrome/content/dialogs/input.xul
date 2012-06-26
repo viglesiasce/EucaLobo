@@ -66,10 +66,22 @@
              break;
 
           case 'password':
+             item = document.createElement('textbox');
+             item.setAttribute('type', type);
+             item.setAttribute('value', value);
+             break;
+
           case 'number':
              item = document.createElement('textbox');
              item.setAttribute('type', type);
              item.setAttribute('value', value);
+             item.setAttribute('size', rc.items[i].size || 5);
+             break;
+
+          case 'textbox':
+             item = document.createElement(type);
+             item.setAttribute('value', value);
+             item.setAttribute('size', rc.items[i].size || 45);
              break;
 
           default:
@@ -83,6 +95,10 @@
               // Ignore our reserved attributes
               if (reserved.indexOf(p) < -1) continue;
               item.setAttribute(p, rc.items[i][p]);
+          }
+
+          if (rc.items[i].bold) {
+             box.setAttribute('class', 'header');
           }
 
           // Optional title
@@ -121,8 +137,7 @@
 
           // First time, create the title
           if (!rows) {
-              createHeader(parent, rc.title, rc.help);
-              rows = createGrid(parent);
+              rows = createSection(parent, rc.title, rc.help);
           }
           rows.appendChild(row);
       }
@@ -154,6 +169,7 @@
     function createSection(parent, title, descr)
     {
         var group = document.createElement('groupbox');
+        group.setAttribute('flex', '1');
         group.setAttribute('style', 'padding-bottom: 20px;');
         var cap = document.createElement('caption');
         cap.setAttribute('style', 'text-align:center');

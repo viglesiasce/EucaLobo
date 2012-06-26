@@ -23,7 +23,9 @@
               <menuitem id="loadbalancer.context.appstickness" oncommand="ew_LoadbalancerTreeView.applicationsticknesss(event);" label="&ew.loadbalancer.contextmenu.appstickness.label;" />
               <menuitem id="loadbalancer.context.lbstickness" oncommand="ew_LoadbalancerTreeView.loadbalancerstickness(event);" label="&ew.loadbalancer.contextmenu.loadbalancerstickness.label;" />
               <menuseparator/>
-              <menuitem oncommand="ew_LoadbalancerTreeView.ConfigureHealthCheck(event);" label="&ew.loadbalancer.contextmenu.configurehealthcheck.label;" />
+              <menuitem id="loadbalancer.context.health" oncommand="ew_LoadbalancerTreeView.configureHealthCheck(event);" label="&ew.loadbalancer.contextmenu.configurehealthcheck.label;" />
+              <menuitem id="loadbalancer.context.cert" oncommand="ew_LoadbalancerTreeView.setSSLCertificate(event);" label="Set SSL Certificate" />
+              <menuitem id="loadbalancer.context.listener" oncommand="ew_LoadbalancerTreeView.createListener(event);" label="Create Listener" />
               <menuitem id="loadbalancer.context.changegroups" oncommand="ew_LoadbalancerTreeView.changeSecurityGroup(event);" label="Change Security Group" />
               <menuitem id="loadbalancer.context.addsubnet" oncommand="ew_LoadbalancerTreeView.addSubnet(event);" label="Attach to subnets" />
               <menuitem id="loadbalancer.context.delsubnet" oncommand="ew_LoadbalancerTreeView.deleteSubnet(event);" label="Detach from subnets" />

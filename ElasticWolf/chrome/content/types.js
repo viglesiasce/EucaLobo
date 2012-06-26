@@ -1184,12 +1184,12 @@ var Base64 = {
 
 function Endpoint(name, url)
 {
-    if (!name || name == "") {
-        this.name = url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
+    this.url = url || "";
+    if (!name) {
+        this.name = this.url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
     } else {
         this.name = name;
     }
-    this.url = url;
 
     this.toString = function() {
         return this.name;
@@ -1263,6 +1263,30 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
 
     this.toString = function() {
         return this.id + (this.state ? ew_core.separator + this.state : "");
+    }
+}
+
+function PolicyTypeDescription(name, descr, attributes)
+{
+    this.name = name;
+    this.descr = descr;
+    this.attributes = attributes;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function PolicyTypeAttributeDescription(name, type, cardinality, descr, dflt)
+{
+    this.name = name;
+    this.type = type;
+    this.defaultValue = dflt || "";
+    this.cardinality = cardinality;
+    this.descr = descr || "";
+
+    this.toString = function() {
+        return this.name
     }
 }
 
@@ -1996,11 +2020,12 @@ function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
     }
 }
 
-function LoadBalancer(name, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, availabilityZones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnets, groups)
+function LoadBalancer(name, CreatedTime, DNSName, HostName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, availabilityZones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnets, groups)
 {
     this.name = name;
     this.CreatedTime = CreatedTime;
     this.DNSName = DNSName;
+    this.HostName = HostName;
     this.Instances = Instances;
     this.Protocol = Protocol;
     this.LoadBalancerPort = LoadBalancerPort;

@@ -2594,6 +2594,7 @@ var ew_api = {
             var LoadBalancerName = getNodeValue(items[i], "LoadBalancerName");
             var CreatedTime = getNodeValue(items[i], "CreatedTime");
             var DNSName = getNodeValue(items[i], "DNSName");
+            var hostName = getNodeValue(items[i], "CanonicalHostedZoneName");
             var Instances = new Array();
             var InstanceId = items[i].getElementsByTagName("InstanceId");
             for ( var j = 0; j < InstanceId.length; j++) {
@@ -2659,7 +2660,7 @@ var ew_api = {
             }
 
             if (LoadBalancerName != '' && CreatedTime != '') {
-                list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
+                list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, Instances, Protocol, LoadBalancerPort, InstancePort, Interval, Timeout, HealthyThreshold, UnhealthyThreshold, Target, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, groupList));
             }
         }
         this.core.setModel('loadBalancers', list);
@@ -2690,6 +2691,35 @@ var ew_api = {
         var elb = this.core.findModel('loadBalancers', response.params[0][1]);
         if (elb) elb.InstanceHealth = list;
 
+        response.result = list;
+    },
+
+    DescribeLoadBalancerPolicyTypes : function(callback)
+    {
+        this.queryELB("DescribeLoadBalancerPolicyTypes", [], this, false, "onCompleteDescribeLoadBalancerPolicyTypes", callback);
+    },
+
+    onCompleteDescribeLoadBalancerPolicyTypes : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "PolicyTypeDescriptions", "member");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "PolicyTypeName");
+            var descr = getNodeValue(items[i], "Description");
+            var attrs = this.getItems(xmlDoc, "PolicyAttributeTypeDescriptions", "member");
+            var attributes = [];
+            for (var j = 0; j < attrs.length; j++) {
+                var aname = getNodeValue(attrs[j], "AttributeName");
+                var atype = getNodeValue(attrs[j], "AttributeType");
+                var aval = getNodeValue(attrs[j], "DefaultValue");
+                var acard = getNodeValue(attrs[j], "Cardinality");
+                var adesc = getNodeValue(attrs[j], "Description");
+                attributes.push(new PolicyTypeAttributeDescription(aname, atype, acard, adesc, aval))
+            }
+            list.push(new PolicyTypeDescription(name, descr, attributes))
+        }
+        this.core.setModel('elbPolicyTypes', list);
         response.result = list;
     },
 
@@ -2837,6 +2867,82 @@ var ew_api = {
             params.push(["Subnets.member." + (i + 1), subnets[i]]);
         }
         this.queryELB("DetachLoadBalancerFromSubnets", params, this, false, "onComplete", callback);
+    },
+
+    setLoadBalancerListenerSSLCertificate: function(LoadBalancerName, port, certId, callback)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "LoadBalancerPort", port]);
+        params.push([ "SSLCertificateId", certId]);
+        this.queryELB("SetLoadBalancerListenerSSLCertificate", params, this, false, "onComplete", callback);
+    },
+
+    setLoadBalancerPoliciesForBackendServer: function(LoadBalancerName, InstancePort, PolicyNames, callbcak)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "InstancePort", InstancePort ]);
+        for (var i = 0; i < PolicyNames.length; i++) {
+            params.push([ "PolicyNames.member." + (i + 1), PolicyNames[i] ]);
+        }
+        this.queryELB("SetLoadBalancerPoliciesForBackendServer", params, this, false, "onComplete", callback);
+    },
+
+    setLoadBalancerPoliciesOfListener: function(LoadBalancerName, LoadBalancerPort, PolicyNames, callbcak)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "LoadBalancerPort", LoadBalancerPort ]);
+        for (var i = 0; i < PolicyNames.length; i++) {
+            params.push([ "PolicyNames.member." + (i + 1), PolicyNames[i] ]);
+        }
+        this.queryELB("SetLoadBalancerPoliciesOfListener", params, this, false, "onComplete", callback);
+    },
+
+    createLoadBalancerListeners: function(LoadBalancerName, InstancePort, InstanceProtocol, LoadBalancerPort, Protocol, SSLCertificateId, callback)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "Listeners.member.1.InstancePort", InstancePort]);
+        params.push([ "Listeners.member.1.InstanceProtocol", InstanceProtocol]);
+        params.push([ "Listeners.member.1.LoadBalancerPort", LoadBalancerPort]);
+        params.push([ "Listeners.member.1.Protocol", Protocol]);
+        params.push([ "Listeners.member.1.SSLCertificateId", SSLCertificateId]);
+        this.queryELB("CreateLoadBalancerListeners", params, this, false, "onComplete", callback);
+    },
+
+    createLoadBalancerPolicy: function(LoadBalancerName, PolicyName, PolicyType, PolicyAttributes, callbcak)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "PolicyName", PolicyName ]);
+        params.push([ "PolicyTypeName", PolicyType ]);
+        if (PolicyAttributes) {
+            for (var i = 0; i < PolicyAttributes.length; i++) {
+                params.push([ "PolicyAttributes.member." + (i + 1) + ".AttributeName", PolicyAttributes[i].name ]);
+                params.push([ "PolicyAttributes.member." + (i + 1) + ".AttributeValue", PolicyAttributes[i].value ]);
+            }
+        }
+        this.queryELB("CreateLoadBalancerPolicy", params, this, false, "onComplete", callback);
+    },
+
+    deleteLoadBalancerListeners: function(LoadBalancerName, LoadBalancerPorts, callbcak)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        for (var i = 0; i < LoadBalancerPorts.length; i++) {
+            params.push([ "LoadBalancerPorts.member." + (i + 1), LoadBalancerPorts[i] ]);
+        }
+        this.queryELB("DeleteLoadBalancerListeners", params, this, false, "onComplete", callback);
+    },
+
+    deleteLoadBalancerPolicy: function(LoadBalancerName, PolicyName, callbcak)
+    {
+        var params = []
+        params.push([ "LoadBalancerName", LoadBalancerName ]);
+        params.push([ "PolicyName", PolicyName]);
+        this.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
     },
 
     uploadServerCertificate : function(ServerCertificateName, CertificateBody, PrivateKey, Path, callback)

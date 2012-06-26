@@ -1,5 +1,5 @@
 var ew_LoadbalancerTreeView = {
-    model: ["loadBalancers", "availabilityZones", "instances" ],
+    model: [ "loadBalancers", "availabilityZones", "instances","cerverCerts", "elbPolicyTypes" ],
 
     display: function(list)
     {
@@ -45,15 +45,37 @@ var ew_LoadbalancerTreeView = {
         }
      },
 
-     ConfigureHealthCheck: function() {
+     createListener: function() {
+         var elb = this.getSelected();
+         if (elb == null) return;
+         var certs = this.core.queryModel('serverCerts');
+         var inputs = [{label:"Load Balancer",type:"label",value:elb.name,bold:1},
+                       {label:"Instance Port:",type:"number",required:1},
+                       {label:"Instance Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
+                       {label:"LoadBalancer Port:",type:"number",required:1},
+                       {label:"LoadBalancer Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
+                       {label:"SSL Certificate",type:"menulist",list:certs,required:1}]
+
+         var values = this.core.promptInput('Create Listener', [, ]);
+         if (!values) return;
+         var me = this;
+         this.core.api.createLoadBalancerListeners(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });
+     },
+
+     configureHealthCheck: function() {
         var elb = this.getSelected();
         if (elb == null) return;
-        var retVal = {ok:null};
-        window.openDialog("chrome://ew/content/dialogs/configure_healthcheck.xul",null,"chrome,centerscreen,modal,resizable",elb,retVal);
+        var inputs = [{label:"Load Balancer",type:"label",value:elb.name,bold:1},
+                      {label:"Target",size:45,required:1},
+                      {label:"Interval",type:"number",help:"seconds",required:1},
+                      {label:"Timeout",type:"number", help:"seconds",required:1},
+                      {label:"Healthy Threshold",type:"number",required:1},
+                      {label:"Unhealthy Threhold",type:"number",required:1}]
+
+        var values = this.core.promptInput("Configure HealthCheck", inputs);
+        if (!values) return;
         var me = this;
-        if (retVal.ok) {
-            this.core.api.configureHealthCheck(elb.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold,function() { me.refresh(); });
-        }
+        this.core.api.configureHealthCheck(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });
     },
 
     registerinstances : function(){
@@ -118,6 +140,22 @@ var ew_LoadbalancerTreeView = {
         }
     },
 
+    setSSLCertificate : function(enable) {
+        var elb = this.getSelected();
+        if (elb == null) return;
+        var certs = this.core.queryModel('serverCerts');
+        if (!certs.length) {
+            if (confirm("There are no server certificates, do you want to create one now?")) {
+                ew_ServerCertsTreeView.createCert();
+                return;
+            }
+        }
+        var values = this.core.promptInput('Server Certificates', [{label:"LoadBalancer Port:",type:"number",required:1}, {label:"Certificate",type:"menulist",list:certs,required:1}]);
+        if (!values) return;
+        var me = this;
+        this.core.api.setLoadBalancerListenerSSLCertificate(elb.name, values[0], values[1], function() { me.refresh() });
+    },
+
     disablestickness :function(){
         var elb = this.getSelected();
         if (elb == null) return;
@@ -177,7 +215,7 @@ var ew_LoadbalancerTreeView = {
     menuChanged : function(){
         var elb = this.getSelected();
         if (elb == null) return;
-        document.getElementById("loadbalancer.tree.contextmenu").disabled = true;
+        var menu = document.getElementById("loadbalancer.tree.contextmenu");
         document.getElementById("loadbalancer.context.appstickness").disabled = !elb.CookieName ? true : false;
         document.getElementById("loadbalancer.context.lbstickness").disabled = !elb.CookieExpirationPeriod ? true : false;
         if (!elb.CookieName && !elb.CookieExpirationPeriod) {

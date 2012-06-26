@@ -58,6 +58,7 @@ var ew_core = {
         vmfas: null,
         alarms: null,
         queues: null,
+        elbPolicyTypes: null,
     },
 
     // Intialize core object with current menu and api implementation
@@ -287,8 +288,7 @@ var ew_core = {
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
             var cred = this.getActiveCredentials();
-            var endpoint = this.getActiveEndpoint();
-            var label = cred ? 'Credentials: ' + cred.name + (endpoint ? "/" + endpoint.name : "") : "Manage Credentials";
+            var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
             tree.view.setCellText(idx, tree.columns[0], label);
         }
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
@@ -381,6 +381,8 @@ var ew_core = {
             } else
             // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errros
             if (wasGovCloud) {
+                // Reset and then use last saved endpoint
+                this.api.setEndpoint(new Endpoint());
                 this.selectEndpoint(this.getActiveEndpoint());
             }
             // Since we are switching creds, ensure that all the views are redrawn
@@ -396,7 +398,7 @@ var ew_core = {
 
     getActiveEndpoint : function()
     {
-        var endpoint = this.getEndpoint(this.getLastUsedEndpoint());
+        var endpoint = this.getEndpoint(this.api.region);
         return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com"));
     },
 
@@ -415,7 +417,6 @@ var ew_core = {
     {
         if (endpoint != null) {
             if (!dontsave) {
-                this.setStrPrefs("ew.active.endpoint", endpoint.name);
                 this.setStrPrefs("ew.endpoint.url", endpoint.url);
             }
             this.api.setEndpoint(endpoint);
@@ -1278,16 +1279,6 @@ var ew_core = {
         return args;
     },
 
-    getLastEC2PrivateKeyFile : function()
-    {
-        return this.getStrPrefs("ew.ec2.pkey." + this.getCurrentUser() + "." + this.getLastUsedEndpoint(), "");
-    },
-
-    setLastEC2PrivateKeyFile : function(value)
-    {
-        this.setStrPrefs("ew.ec2.pkey." + this.getCurrentUser() + "." + this.getLastUsedEndpoint(), value);
-    },
-
     getHome : function()
     {
         var home = "";
@@ -1333,11 +1324,6 @@ var ew_core = {
     setS3Protocol: function(region, bucket, proto)
     {
         this.setStrPrefs("ew.s3.proto." + region + "." + bucket, proto || 'http://');
-    },
-
-    getLastUsedEndpoint : function()
-    {
-        return this.getStrPrefs("ew.active.endpoint", "us-east-1");
     },
 
     getListPrefs: function(name)
@@ -1545,6 +1531,8 @@ var ew_core = {
             case "groups":
                 this.api.listGroups();
                 break;
+            case "elbPolicyTypes":
+                this.api.DescribeLoadBalancerPolicyTypes();
             }
         }
     },
