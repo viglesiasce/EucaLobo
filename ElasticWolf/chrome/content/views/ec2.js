@@ -11,12 +11,7 @@ var ew_EC2TreeView = {
         }
     },
 
-    refresh: function()
-    {
-        this.activate()
-    },
-
-    activate: function()
+    invalidate: function()
     {
         var list = [];
         var eips = this.core.queryModel('addresses','vpcId', null);
@@ -46,6 +41,11 @@ var ew_EC2TreeView = {
                 list.push({ name: "     " + items[i].toString() });
             }
         }
+    },
+
+    isRefreshable: function()
+    {
+        return true;
     },
 };
 ew_EC2TreeView.__proto__ = TreeView;
