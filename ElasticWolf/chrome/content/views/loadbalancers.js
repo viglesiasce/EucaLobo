@@ -54,9 +54,9 @@ var ew_LoadbalancerTreeView = {
                        {label:"Instance Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
                        {label:"LoadBalancer Port:",type:"number",required:1},
                        {label:"LoadBalancer Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
-                       {label:"SSL Certificate",type:"menulist",list:certs,required:1}]
+                       {label:"SSL Certificate",type:"menulist",list:certs}]
 
-         var values = this.core.promptInput('Create Listener', [, ]);
+         var values = this.core.promptInput('Create LoadBalancer Listener', inputs);
          if (!values) return;
          var me = this;
          this.core.api.createLoadBalancerListeners(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });
@@ -163,11 +163,11 @@ var ew_LoadbalancerTreeView = {
         if (!confirm("Disable stickiness for Load balancer " + elb.name+"?")) return;
         var me = this;
 
-        if (elb.LBPolicyName) {
-            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.LBPolicyName, function() { me.refresh(); });
+        for (var i in elb.lbStickinessPolicies) {
+            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.lbStickinessPolicies[i].name, function() { me.refresh(); });
         }
-        if (elb.AppPolicyName) {
-            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.AppPolicyName, function() { me.refresh(); });
+        for (var i in elb.appStickinessPolicies) {
+            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.appStickinessPolicies[i].name, function() { me.refresh(); });
         }
     },
 
@@ -175,22 +175,16 @@ var ew_LoadbalancerTreeView = {
     {
         var elb = this.getSelected();
         if (elb == null) return;
-        if (elb.AppCookieName) {
-            this.core.api.deleteLoadBalancerPolicy(elb.name, elb.AppPolicyName);
-        }
         var name = prompt("Please provide your application cookie name:");
         if (!name) return;
         var me = this;
-        this.core.api.createAppCookieStickinessPolicy(elb.name, elb.AppPolicyName || elb.name + "-APolicy", name,function() { me.refresh() });
+        this.core.api.createAppCookieStickinessPolicy(elb.name, elb.name + "-" + name + "-AppStickinessPolicy", name,function() { me.refresh() });
     },
 
     loadbalancerStickness :function()
     {
         var elb = this.getSelected();
         if (elb == null) return;
-        if (elb.LBCookieExpirationPeriod) {
-           this.core.api.deleteLoadBalancerPolicy(elb.name, elb.LBPolicyName);
-        }
         var period = prompt("Please provide your Cookie Expiration Period in seconds:");
         if (!period) return;
         if (!/^[0-9]+$/.test(period)) {
@@ -198,14 +192,14 @@ var ew_LoadbalancerTreeView = {
             return;
         }
         var me = this;
-        this.core.api.createLBCookieStickinessPolicy(elb.name, elb.LBPolicyName || elb.name + "-CPolicy", period, function() { me.refresh(); });
+        this.core.api.createLBCookieStickinessPolicy(elb.name, elb.name + "-"+ period + "-LBStickinessPolicy", period, function() { me.refresh(); });
     },
 
     menuChanged : function(){
         var elb = this.getSelected();
         if (!elb) return;
         var menu = document.getElementById("loadbalancer.tree.contextmenu");
-        document.getElementById("loadbalancer.context.disablestickness").disabled = !elb.CookieName && !elb.CookieExpirationPeriod;
+        document.getElementById("loadbalancer.context.disablestickness").disabled = !elb.appStickinessPolicies && !elb.lbStickinessPolicies;
         document.getElementById("loadbalancer.context.instances").disabled = elb.Instances.length == 0 ? true : false;
         document.getElementById("loadbalancer.context.disablezones").disabled = elb.zones.length > 1 ? false : true;
         document.getElementById("loadbalancer.context.enableezones").disabled = elb.vpcId != '' ? true : false;

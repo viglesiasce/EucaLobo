@@ -30,6 +30,7 @@ var ew_EC2TreeView = {
         this.listToInfo(snapshots, "Snapshots", list);
         this.listToInfo(rsrvd, "Reserved Instances", list);
 
+        if (!list.length) list.push({name: "Retrieving the data..."});
         TreeView.display.call(this, list);
     },
 

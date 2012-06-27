@@ -2608,11 +2608,15 @@ var ew_api = {
                 Instances.push(InstanceId[j].firstChild.nodeValue);
             }
 
-            var listener = items[i].getElementsByTagName("ListenerDescriptions");
-            for ( var k = 0; k < listener.length; k++) {
-                var Protocol = getNodeValue(listener[k], "Protocol");
-                var LoadBalancerPort = getNodeValue(listener[k], "LoadBalancerPort");
-                var InstancePort = getNodeValue(listener[k], "InstancePort");
+            var listeners = [];
+            var members = this.getItems(items[i], "ListenerDescriptions", "member");
+            for ( var k = 0; k < members.length; k++) {
+                var Protocol = getNodeValue(members[k], "Protocol");
+                var Port = getNodeValue(members[k], "LoadBalancerPort");
+                var InstancePort = getNodeValue(members[k], "InstancePort");
+                var InstanceProtocol = getNodeValue(members[k], "InstanceProtocol");
+                var policies = this.getItems(members[k], "Policies", "member", null, function(obj) { return obj.firstChild.nodeValue; });
+                listeners.push(new LoadBalancerListener(Protocol, Port, InstanceProtocol, InstancePort))
             }
 
             var Target = getNodeValue(items[i], "HealthCheck", "Target");
@@ -2622,52 +2626,18 @@ var ew_api = {
             var UnhealthyThreshold = getNodeValue(items[i], "HealthCheck", "UnhealthyThreshold");
             var HealthCheck = new LoadBalancerHealthCheck(Target, Interval, Timeout, HealthyThreshold, UnhealthyThreshold);
 
-            var azones = new Array();
-            var AvailabilityZones = items[i].getElementsByTagName("AvailabilityZones");
-            for ( var k = 0; k < AvailabilityZones.length; k++) {
-                var zone = AvailabilityZones[k].getElementsByTagName("member");
-                for ( var j = 0; j < zone.length; j++) {
-                    azones.push(zone[j].firstChild.nodeValue);
-                }
-            }
-
-            var AppCookieStickinessPolicies = items[i].getElementsByTagName("AppCookieStickinessPolicies");
-            for ( var k = 0; k < AppCookieStickinessPolicies.length; k++) {
-                var CookieName = getNodeValue(AppCookieStickinessPolicies[k], "CookieName");
-                var APolicyName = getNodeValue(AppCookieStickinessPolicies[k], "PolicyName");
-            }
-
-            var LBCookieStickinessPolicies = items[i].getElementsByTagName("LBCookieStickinessPolicies");
-            for ( var k = 0; k < LBCookieStickinessPolicies.length; k++) {
-                var CookieExpirationPeriod = getNodeValue(LBCookieStickinessPolicies[k], "CookieExpirationPeriod");
-                var CPolicyName = getNodeValue(LBCookieStickinessPolicies[k], "PolicyName");
-            }
-
-            var groupList = [];
-            var securityGroups = items[i].getElementsByTagName("SecurityGroups");
-            if (securityGroups[0] && securityGroups[0].childNodes.length > 0) {
-                var securityGroupMembers = securityGroups[0].getElementsByTagName("member");
-                for ( var k = 0; k < securityGroupMembers.length; k++) {
-                    groupList.push(securityGroupMembers[k].firstChild.nodeValue);
-                }
-            }
-
+            var azones = this.getItems(items[i], "AvailabilityZones", "member", null, function(obj) { return obj.firstChild.nodeValue; });
+            var apolicies = this.getItems(items[i], "AppCookieStickinessPolicies", "member", ["PolicyName", "CookieName"], function(obj) { return new LoadBalancerPolicy(obj.PolicyName, obj.CookieName) });
+            var lbpolicies = this.getItems(items[i], "LBCookieStickinessPolicies", "member", ["PolicyName", "CookieExpirationPeriod"], function(obj) { return new LoadBalancerPolicy(obj.PolicyName, "", obj.CookieExpirationPeriod) });
+            var opolicies = this.getItems(items[i], "OtherPolicies", "member", null, function(obj) { return obj.firstChild.nodeValue; });
+            var groups = this.getItems(items[i], "SecurityGroups", "member", null, function(obj) { return obj.firstChild.nodeValue; });
+            var subnets = this.getItems(items[i], "Subnets", "member", null, function(obj) { return obj.firstChild.nodeValue; });
             var srcGroup = getNodeValue(items[i], "SourceSecurityGroup", "GroupName");
             var vpcId = getNodeValue(items[i], "VPCId");
-
-            var subnetList = [];
-            var subnets = items[i].getElementsByTagName("Subnets");
-            if (subnets[0] && subnets[0].childNodes.length > 0) {
-                var subnetMembers = subnets[0].getElementsByTagName("member");
-                for ( var k = 0; k < subnetMembers.length; k++) {
-                    subnetList.push(subnetMembers[k].firstChild.nodeValue);
-                }
-            }
-            list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, zoneId, Instances, Protocol, LoadBalancerPort, InstancePort, HealthCheck, azones, CookieName, APolicyName, CookieExpirationPeriod, CPolicyName, vpcId, subnetList, srcGroup, groupList));
+            list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, zoneId, Instances, listeners, HealthCheck, azones, apolicies, lbpolicies, opolicies, vpcId, subnets, srcGroup, groups));
         }
         this.core.setModel('loadBalancers', list);
         response.result = list;
-        debug(response.responseText)
     },
 
     describeInstanceHealth : function(LoadBalancerName, callback)

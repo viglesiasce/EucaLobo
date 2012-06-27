@@ -2025,7 +2025,7 @@ function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
     }
 }
 
-function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, Protocol, LoadBalancerPort, InstancePort, HealthCheck, availabilityZones, AppCookieName, AppPolicyName, LBCookieExpirationPeriod, LBPolicyName, vpcId, subnets, srcGroup, groups)
+function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, Listeners, HealthCheck, availabilityZones, appPolicies, lbPolicies, oPolicies, vpcId, subnets, srcGroup, groups)
 {
     this.name = name;
     this.CreatedTime = CreatedTime;
@@ -2033,15 +2033,12 @@ function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, P
     this.CanonicalHostedHostName = HostName;
     this.CanonicalHostedZoneId = ZoneId;
     this.Instances = Instances;
-    this.Protocol = Protocol;
-    this.LoadBalancerPort = LoadBalancerPort;
-    this.InstancePort = InstancePort;
+    this.Listeners = Listeners;
     this.HealthCheck = HealthCheck;
     this.zones = availabilityZones;
-    this.AppCookieName = AppCookieName;
-    this.AppPolicyName = AppPolicyName;
-    this.LBCookieExpirationPeriod = LBCookieExpirationPeriod;
-    this.LBPolicyName = LBPolicyName;
+    this.appStickinessPolicies = appPolicies;
+    this.lbStickinessPolicies = lbPolicies;
+    this.otherPolicies = oPolicies;
     this.vpcId = vpcId
     this.SourceSecurityGroup = srcGroup;
     this.subnets = subnets
@@ -2049,6 +2046,30 @@ function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, P
 
     this.toString = function() {
         return this.name;
+    }
+}
+
+function LoadBalancerListener(protocol, port, instanceProtocol, instancePort, policies)
+{
+    this.Protocol = protocol;
+    this.Port = port;
+    this.InstanceProtocol = instanceProtocol;
+    this.InstancePort = instancePort;
+    this.policies = policies || [];
+
+    this.toString = function() {
+        return this.Protocol + ":" + this.Port + "->" + this.InstancePort + (this.policies.length ? fieldSeparator + policies : "");
+    }
+}
+
+function LoadBalancerPolicy(name, cookie, period)
+{
+    this.name = name;
+    this.cookieName = cookie || "";
+    this.expirationPeriod = period || "";
+
+    this.toString = function() {
+        return this.name + fieldSeparator + (this.cookieName || this.expirationPeriod || "");
     }
 }
 

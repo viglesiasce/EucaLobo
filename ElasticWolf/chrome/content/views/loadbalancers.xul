@@ -45,13 +45,7 @@
           <splitter class="tree-splitter" />
           <treecol id="loadbalancer.DNSName" label="&ew.loadbalancer.dnsname.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
-          <treecol id="loadbalancer.InstanceId" label="&ew.loadbalancer.instances.label;" flex="1" persist="width ordinal hidden sortDirection" />
-          <splitter class="tree-splitter" />
-          <treecol id="loadbalancer.Protocol" label="&ew.loadbalancer.Protocol.label;" flex="1" persist="width ordinal hidden sortDirection" />
-          <splitter class="tree-splitter" />
-          <treecol id="loadbalancer.LoadBalancerPort" label="&ew.loadbalancer.LoadBalancerPort.label;" flex="1" persist="width ordinal hidden sortDirection" />
-          <splitter class="tree-splitter" />
-          <treecol id="loadbalancer.InstancePort" label="&ew.loadbalancer.InstancePort.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <treecol id="loadbalancer.Instances" label="&ew.loadbalancer.instances.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
           <treecol id="loadbalancer.zones" label="&ew.loadbalancer.zone.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
