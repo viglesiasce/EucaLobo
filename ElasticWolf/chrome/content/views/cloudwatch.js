@@ -1,7 +1,12 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+
 var ew_AlarmsTreeView = {
     model: [ "alarms"],
 
 };
 
-ew_AlarmsTreeView.__proto__ = TreeView;
 

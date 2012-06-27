@@ -77,9 +77,11 @@ var ew_core = {
             if (this.tabs[i].owner) continue;
             for (var v in this.tabs[i].views) {
                 var id = this.tabs[i].views[v].id;
-                // Not TreeView, just assign the session
+                var view = this.tabs[i].views[v].view;
+                if (!view) continue;
+                // Not TreeView, just assign the core
                 if (!id) {
-                    this.tabs[i].views[v].view.core = this;
+                    view.core = this;
                     continue;
                 }
                 var tree = $(id);
@@ -87,8 +89,10 @@ var ew_core = {
                     debug('view not found ' + id);
                     continue;
                 }
+                // Must inherit from our tree view implementation
+                view.__proto__ = TreeView;
                 // Init with session
-                this.tabs[i].views[v].view.init(tree, this.tabs[i], this);
+                view.init(tree, this.tabs[i], this);
             }
         }
 

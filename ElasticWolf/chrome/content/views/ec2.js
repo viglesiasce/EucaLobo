@@ -1,3 +1,9 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+
 var ew_EC2TreeView = {
 
     cycleHeader : function(col) {
@@ -49,7 +55,6 @@ var ew_EC2TreeView = {
         return true;
     },
 };
-ew_EC2TreeView.__proto__ = TreeView;
 
 var ew_AMIsTreeView = {
     model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones' ],
@@ -161,7 +166,7 @@ var ew_AMIsTreeView = {
         if (image == null) return;
         var retVal = { ok : null, tag: "", max: ew_InstancesTreeView.max };
 
-        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, this.core, retVal);
         if (retVal.ok) {
             if (retVal.name) {
                 retVal.tag += "Name:" + retVal.name;
@@ -216,15 +221,12 @@ var ew_AMIsTreeView = {
         }
     },
 
-    deregisterImage : function(fDelete)
+    deregisterImage : function(confirmed)
     {
+        var me = this;
         var image = this.getSelecteed();
         if (!image) return;
-        if (fDelete == undefined) {
-            fDelete = confirm("Deregister AMI " + image.id + " (" + image.location + ")?");
-        }
-        if (!fDelete) return;
-        var me = this;
+        if (!confirmed && !confirm("Deregister AMI " + image.id + " (" + image.location + ")?")) return;
         this.core.api.deregisterImage(image.id, function() {me.refresh()});
     },
 
@@ -238,13 +240,13 @@ var ew_AMIsTreeView = {
         }
 
         var retVal = { ok : null };
-        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, ew_core, retVal);
+        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, this.core, retVal);
         if (retVal.ok) {
             this.currentlyMigrating = true;
             this.amiBeingMigrated = image.id;
             retVal.ok = false;
             // TODO: Finish up AMI migration with visual prompts
-            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", ew_core, retVal);
+            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", this.core, retVal);
         }
     },
 
@@ -289,13 +291,13 @@ var ew_AMIsTreeView = {
 
     deleteSnapshotAndDeregister : function()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
 
         var ami = image.id;
         var snapshot = image.snapshotId;
         if (confirm("Are you sure you want to delete this AMI (" + ami + ") " + "and the accompanying snapshot (" + snapshot + ")?")) {
-            var me = this;
             var wrap = function()
             {
                 this.core.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
@@ -307,15 +309,15 @@ var ew_AMIsTreeView = {
 
     viewPermissions: function()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
-        this.core.api.describeLaunchPermissions(this.image.id, function(list) {
-            window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
+        this.core.api.describeLaunchPermissions(image.id, function(list) {
+            window.openDialog("chrome://ew/content/dialogs/manage_ami_permissions.xul", null, "chrome,centerscreen,modal,resizable", me.core, image, list);
         });
     },
 };
 
-ew_AMIsTreeView.__proto__ = TreeView;
 var ew_InstancesTreeView = {
     model: ['instances', 'images', 'addresses', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes'],
     properties: [ 'state' ],
@@ -343,7 +345,7 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (instance == null) return;
 
-        window.openDialog("chrome://ew/content/dialogs/bundle_instance.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_core, retVal);
+        window.openDialog("chrome://ew/content/dialogs/bundle_instance.xul", null, "chrome,centerscreen,modal,resizable", instance.id, this.core, retVal);
         if (!retVal.ok) return;
         this.core.api.createS3Bucket(retVal.bucketName);
 
@@ -359,7 +361,7 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (instance == null) return;
 
-        window.openDialog("chrome://ew/content/dialogs/create_image.xul", null, "chrome,centerscreen,modal,resizable", instance.id, ew_core, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_image.xul", null, "chrome,centerscreen,modal,resizable", instance.id, this.core, retVal);
         if (retVal.ok) {
             this.core.api.createImage(instance.id, retVal.amiName, retVal.amiDescription, retVal.noReboot, function(id) {
                 alert("A new AMI is being created and will be available in a moment.\n\nThe AMI ID is: "+id);
@@ -394,7 +396,7 @@ var ew_InstancesTreeView = {
         }
 
         var retVal = {ok:null, volumeId:null, device:null, windows: isWindows(instance.platform) };
-        window.openDialog("chrome://ew/content/dialogs/attach_ebs_volume.xul",null, "chrome,centerscreen,modal,resizable", ew_core, instance, retVal);
+        window.openDialog("chrome://ew/content/dialogs/attach_ebs_volume.xul",null, "chrome,centerscreen,modal,resizable", this.core, instance, retVal);
         if (retVal.ok) {
             ew_VolumeTreeView.attachEBSVolume(retVal.volumeId,instance.id,retVal.device);
             ew_VolumeTreeView.refresh();
@@ -1055,7 +1057,6 @@ var ew_InstancesTreeView = {
 
 };
 
-ew_InstancesTreeView.__proto__ = TreeView;
 var ew_VolumeTreeView = {
     model: ['volumes','availabilityZones','instances','snapshots'],
     properties: ['status'],
@@ -1098,7 +1099,7 @@ var ew_VolumeTreeView = {
     createVolume : function (snap) {
         var retVal = { ok: false, tag: '' };
         if (!snap) snap = null;
-        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,ew_core,retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,this.coreretVal);
         if (retVal.ok) {
             var me = this;
             this.core.api.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
@@ -1134,7 +1135,7 @@ var ew_VolumeTreeView = {
         if (image == null) return;
         var retVal = {ok:null};
         while (true) {
-            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,ew_core,retVal);
+            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,this.coreretVal);
             if (retVal.ok) {
                 // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
                 var instance = this.core.findModel('instances', retVal.instanceId);
@@ -1222,7 +1223,6 @@ var ew_VolumeTreeView = {
     },
 };
 
-ew_VolumeTreeView.__proto__ = TreeView;
 var ew_SnapshotTreeView = {
     model: ['snapshots', 'securityGroups', 'availabilityZones', 'volumes'],
 
@@ -1281,7 +1281,7 @@ var ew_SnapshotTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var retVal = {ok:null,amiName:null,amiDescription:null};
-        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, ew_core, retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, this.core, retVal);
         if (retVal.ok) {
             var wrap = function(id) {
                 alert("A new AMI is registered.\n\nThe AMI ID is: "+id);
@@ -1292,13 +1292,357 @@ var ew_SnapshotTreeView = {
 
     viewPermissions: function()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
-        this.core.api.describeSnapshotAttribute(this.image.id, function(list) {
-           window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", ew_core, image, list);
+        this.core.api.describeSnapshotAttribute(image.id, function(list) {
+           window.openDialog("chrome://ew/content/dialogs/manage_snapshot_permissions.xul", null, "chrome,centerscreen,modal,resizable", me.core, image, list);
         });
     },
 
 };
 
-ew_SnapshotTreeView.__proto__ = TreeView;
+var ew_ElasticIPTreeView = {
+    model: [ "addresses", "instances", "networkInterfaces" ],
+    tagId: "publicIp",
+
+    menuChanged : function() {
+        var eip = this.getSelected();
+        document.getElementById("ew.addresses.contextmenu").disabled = (eip == null);
+        if (eip == null) return;
+        document.getElementById("addresses.context.disassociate").disabled = !eip.instanceId;
+        document.getElementById("addresses.context.dns").disabled = !eip.instanceId;
+    },
+
+    allocateAddress : function() {
+        var me = this;
+        this.core.api.allocateAddress(this.core.isVpcMode(), function() { me.refresh() });
+    },
+
+    releaseAddress : function() {
+        var eip = this.getSelected();
+        if (eip == null) return;
+        if (!this.core.promptYesNo("Confirm", "Release "+eip.publicIp+"?")) return;
+
+        var me = this;
+        this.core.api.releaseAddress(eip, function() { me.refresh() });
+    },
+
+    getUnassociatedInstances : function() {
+        var instances = this.core.queryModel('instances', 'state', 'running');
+        var unassociated = new Array();
+        var eips = {};
+
+        // Build the list of EIPs that are associated with an instance
+        for (var i in this.treeList) {
+            var eip = this.treeList[i];
+            if (eip.instanceId == null || eip.instanceId.length == 0) {
+                continue;
+            }
+            eips[eip.instanceId] = eip.publicIp;
+        }
+
+        for (var i in instances) {
+            if (eips[instances[i].id]) {
+                continue;
+            }
+            unassociated.push(instances[i]);
+        }
+        return unassociated;
+    },
+
+    associateAddress : function(eip) {
+        // If an elastic IP hasn't been passed in to be persisted to EC2, create a mapping between the Address and Instance.
+        if (eip == null) {
+            eip = this.getSelected();
+            if (eip == null) return;
+
+            if (eip.instanceId != null && eip.instanceId != '') {
+                var confirmed = confirm("Address "+eip.publicIp+" is already mapped to an instance, are you sure?");
+                if (!confirmed)
+                    return;
+            }
+
+            var list = this.getUnassociatedInstances();
+            list = list.concat(this.core.queryModel('networkInterfaces'))
+
+            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, ['__class__', 'toString'], 550);
+            if (idx < 0) return;
+            // Determine what type we selected
+            if (list[idx].imageId) {
+                eip.instanceId = list[idx].id;
+            } else {
+                eip.eniId = list[idx].id;
+            }
+        }
+
+        var me = this;
+        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
+        return true;
+    },
+
+    disassociateAddress : function() {
+        var eip = this.getSelected();
+        if (eip == null) return;
+        if (eip.instanceId == null || eip.instanceId == '') {
+            alert("This EIP is not associated")
+            return;
+        }
+        if (!confirm("Disassociate "+eip.publicIp+" and instance "+eip.instanceId+"?")) return;
+        var me = this;
+        this.core.api.disassociateAddress(eip, function() { me.refresh() });
+    },
+
+    copyPublicDnsToClipBoard : function(fieldName) {
+        var eip = this.getSelected();
+        if (!eip || !eip.instanceId) { return; }
+
+        var instance = this.core.findModel('instances', eip.instanceId);
+        if (instance) {
+            this.core.copyToClipboard(instance.dnsName);
+        }
+    }
+
+};
+
+var ew_SecurityGroupsTreeView = {
+    model: [ "securityGroups", "vpcs" ],
+
+    selectionChanged : function() {
+        var group = this.getSelected();
+        if (!group) return;
+        ew_PermissionsTreeView.display(group.permissions);
+    },
+
+    createNewGroup : function ()
+    {
+        var retVal = {ok:null,name:null,description:null,vpcId:null};
+        window.openDialog("chrome://ew/content/dialogs/create_security_group.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
+        if (retVal.ok) {
+            var me = this;
+            var wrap = function(id) {
+                retVal.id = id
+                me.refresh();
+                me.authorizeCommonProtocolsByUserRequest(retVal);
+            }
+            this.core.api.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
+        }
+    },
+
+    authorizeCommonProtocolsByUserRequest : function(retVal)
+    {
+        var cidr = null;
+        // Determine the CIDR for the protocol authorization request
+        switch (retVal.enableProtocolsFor) {
+        case "host":
+            var ipAddress = this.core.api.queryCheckIP();
+            cidr = ipAddress.trim() + "/32";
+            break;
+        case "network":
+            cidr = this.core.api.queryCheckIP("block");
+            break;
+        default:
+            cidr = null;
+            break;
+        }
+
+        // Need to authorize SSH and RDP for either this host or the network.
+        if (cidr != null) {
+            var wrap = function() {
+                ew_SecurityGroupsTreeView.refresh();
+            }
+
+            // 1st enable SSH
+            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
+
+            // enable RDP and refresh the view
+            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
+        } else {
+            // User wants to customize the firewall...
+            ew_PermissionsTreeView.grantPermission();
+        }
+    },
+
+    deleteSelected  : function () {
+        var group = this.getSelected();
+        if (group == null) return;
+
+        var confirmed = confirm("Delete group "+group.name+"?");
+        if (!confirmed)
+            return;
+
+        var me = this;
+        var wrap = function() {
+            me.refresh();
+        }
+        this.core.api.deleteSecurityGroup(group, wrap);
+    },
+
+};
+
+var ew_PermissionsTreeView = {
+
+    grantPermission : function(type) {
+        var group = ew_SecurityGroupsTreeView.getSelected();
+        if (group == null) return;
+
+        retVal = {ok:null, type: 'Ingress'};
+        window.openDialog("chrome://ew/content/dialogs/create_permission.xul", null, "chrome,centerscreen,modal,resizable", group, this.core, retVal);
+
+        if (retVal.ok) {
+            var me = this;
+            var wrap = function() {
+                ew_SecurityGroupsTreeView.refresh();
+            }
+
+            var newPerm = retVal.newPerm;
+            if (newPerm.cidrIp) {
+                this.core.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
+            } else {
+                this.core.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
+            }
+        }
+    },
+
+    revokePermission : function() {
+        var group = ew_SecurityGroupsTreeView.getSelected();
+        if (group == null) return;
+        var perms = new Array();
+        for(var i in this.treeList) {
+            if (this.selection.isSelected(i)) {
+                perms.push(this.treeList[i]);
+            }
+        }
+        if (perms.length == 0) return;
+        if (!confirm("Revoke selected permission(s) on group "+group.name+"?")) return;
+
+        var me = this;
+        var wrap = function() {
+            ew_SecurityGroupsTreeView.refresh();
+        }
+
+        var permission = null;
+        for (i in perms) {
+            permission = perms[i];
+            if (permission.cidrIp) {
+                this.core.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
+            } else {
+                this.core.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
+            }
+        }
+
+    },
+
+};
+
+var ew_ReservedInstancesTreeView = {
+    model: 'reservedInstances',
+
+    isRefreshable: function() {
+        for (var i in this.treeList) {
+            if (this.treeList[i].state == "payment-pending") return true;
+        }
+        return false;
+    },
+};
+
+var ew_LeaseOfferingsTreeView = {
+    model: 'offerings',
+
+    purchaseOffering : function()
+    {
+        var retVal = { ok : null, id : null, count : null };
+        var image = this.getSelected();
+        if (image == null) return;
+        retVal.id = image.id;
+        var fRepeat = true;
+
+        while (fRepeat) {
+            // Hand off receiving user input to a dialog
+            window.openDialog("chrome://ew/content/dialogs/purchase_offering.xul", null, "chrome,centerscreen,modal,resizable", image, retVal);
+
+            fRepeat = retVal.ok;
+            if (retVal.ok) {
+                // Ensure that the user actually wants to purchase this offering
+                var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+                var check = null;
+                var flags = prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_0 + prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_1 + prompts.BUTTON_TITLE_CANCEL * prompts.BUTTON_POS_2 + prompts.BUTTON_POS_0_DEFAULT;
+
+                var msg = "You are about to purchase " + retVal.count + " " + image.description + " Reserved Instance(s) in the " + image.azone + " Availability Zone for $" + retVal.count * parseInt(image.fixedPrice);
+                msg = msg + ". Are you sure?\n\nAn email will be sent to you shortly after we receive your order.";
+                var button = prompts.confirmEx(window, "Confirm Reserved Instances Offering Purchase", msg, flags, "Edit Order", "Place Order", "", null, {});
+
+                // Edit: 0, Purchase: 1, Cancel: 2
+                if (button == 1) {
+                    fRepeat = false;
+                    this.core.api.purchaseOffering(retVal.id, retVal.count, function(id) { ew_ReservedInstancesTreeView.refresh(); });
+                } else
+                 if (button == 0) {
+                     // The user wants to edit the order
+                     continue;
+                 } else {
+                     fRepeat = false;
+                 }
+            }
+        }
+    },
+};
+
+var ew_BundleTasksTreeView = {
+    model: 'bundleTasks',
+    searchElement: 'ew.bundleTasks.search',
+
+    menuChanged  : function (event) {
+        var task = this.getSelected();
+        if (task == null) return;
+
+        var fDisabled = (task.state == "complete" || task.state == "failed");
+
+        // If the task has been completed or has failed, disable the
+        // following context menu items.
+        document.getElementById("bundleTasks.context.cancel").disabled = fDisabled;
+
+        // If the task hasn't completed, you can't register a new AMI
+        fDisabled = (task.state != "complete");
+        document.getElementById("bundleTasks.context.register").disabled = fDisabled;
+    },
+
+    isRefreshable : function() {
+        for (var i in this.treeList) {
+            if (this.treeList[i].state == "complete" || this.treeList[i].state == "failed") return true;
+        }
+        return false;
+    },
+
+    cancelBundleTask: function () {
+        var selected = this.getSelectedBundle();
+        if (selected == null) return;
+
+        if (!confirm("Cancel bundle task:  " + selected.id + "?")) return;
+        var me = this;
+        this.core.api.cancelBundleTask(selected.id, function() { me.refresh() });
+    },
+
+    registerBundledImage : function (bucket, prefix)
+    {
+        var me = this;
+        var manifestPath = bucket + "/" + prefix + ".manifest.xml";
+        var region = this.core.api.getS3BucketLocation(bucket);
+        this.core.api.registerImageInRegion(manifestPath, region, function() {
+            me.core.modelRefresh('images');
+            me.core.selectTab('ew.tabs.image');
+        });
+    },
+
+    registerNewImage : function () {
+        var selected = this.getSelected();
+        if (selected == null) return;
+
+        // Ensure that bundling has run to completion
+        if (selected.state != "complete") {
+            alert('Please wait for the Bundling State to be "complete" before Registering');
+            return;
+        }
+        this.registerBundledImage(selected.s3bucket, selected.s3prefix);
+    },
+};

@@ -1,3 +1,9 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+
 var ew_S3BucketsTreeView = {
     model : "s3Buckets",
     path: [],
@@ -277,5 +283,4 @@ var ew_S3BucketsTreeView = {
     },
 
 };
-ew_S3BucketsTreeView.__proto__ = TreeView;
 

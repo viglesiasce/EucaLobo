@@ -30,7 +30,7 @@ var ew_LoadbalancerTreeView = {
     create: function() {
         var tab = this.core.getCurrentTab();
         var retVal = {ok:null, vpc: tab && tab.name.match("vpc") };
-        window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",ew_core,retVal);
+        window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",this.core, retVal);
         var me = this;
         if (retVal.ok) {
             this.core.api.createLoadBalancer(retVal.name,retVal.Protocol,retVal.elbport,retVal.instanceport,retVal.Zone,retVal.subnetId,retVal.groups, function() {
@@ -268,13 +268,10 @@ var ew_LoadbalancerTreeView = {
         this.core.api.dettachLoadBalancerFromSubnets(elb.name, subnets, function() { me.refresh() });
     },
 };
-ew_LoadbalancerTreeView.__proto__ = TreeView;
 
 var ew_InstanceHealthTreeView = {
 };
-ew_InstanceHealthTreeView.__proto__ = TreeView;
 
 var ew_AvailZoneTreeView = {
     model: 'availabilityZones',
 };
-ew_AvailZoneTreeView.__proto__ = TreeView;

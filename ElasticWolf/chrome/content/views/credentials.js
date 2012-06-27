@@ -1,3 +1,9 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+
 var ew_CredentialsTreeView = {
     name: "credentials",
     properties: ["status"],
@@ -69,7 +75,6 @@ var ew_CredentialsTreeView = {
         ew_EndpointsTreeView.invalidate();
     },
 };
-ew_CredentialsTreeView.__proto__ = TreeView;
 
 var ew_EndpointsTreeView = {
    name: "endpoints",
@@ -134,4 +139,3 @@ var ew_EndpointsTreeView = {
    },
 }
 
-ew_EndpointsTreeView.__proto__ = TreeView;

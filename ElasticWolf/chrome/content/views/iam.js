@@ -308,7 +308,6 @@ var ew_UsersTreeView = {
 
 };
 
-ew_UsersTreeView.__proto__ = TreeView;
 
 var ew_GroupsTreeView = {
     model: ["groups","users"],
@@ -474,7 +473,6 @@ var ew_GroupsTreeView = {
     },
 };
 
-ew_GroupsTreeView.__proto__ = TreeView;
 
 var ew_GroupUsersTreeView = {
     name: "groupUsers",
@@ -494,7 +492,6 @@ var ew_GroupUsersTreeView = {
         }
     },
 };
-ew_GroupUsersTreeView.__proto__ = TreeView;
 
 var ew_KeypairsTreeView = {
     model: ["keypairs"],
@@ -581,7 +578,6 @@ var ew_KeypairsTreeView = {
     },
 };
 
-ew_KeypairsTreeView.__proto__ = TreeView;
 
 var ew_AccessKeysTreeView = {
     model: "accesskeys",
@@ -609,7 +605,7 @@ var ew_AccessKeysTreeView = {
     {
         var me = this;
         var rc = {};
-        openDialog('chrome://ew/content/dialogs/create_temp_accesskey.xul', null, 'chrome,centerscreen,modal', ew_core, rc);
+        openDialog('chrome://ew/content/dialogs/create_temp_accesskey.xul', null, 'chrome,centerscreen,modal', this.core, rc);
         if (!rc.ok) return;
 
         switch (rc.type) {
@@ -743,7 +739,6 @@ var ew_AccessKeysTreeView = {
         this.refresh();
     },
 };
-ew_AccessKeysTreeView.__proto__ = TreeView;
 
 var ew_CertsTreeView = {
     model: "certs",
@@ -792,7 +787,6 @@ var ew_CertsTreeView = {
         this.core.api.deleteSigningCertificate(item.id, function() { me.refresh(); });
     },
 };
-ew_CertsTreeView.__proto__ = TreeView;
 
 var ew_ServerCertsTreeView = {
     model: "serverCerts",
@@ -840,7 +834,6 @@ var ew_ServerCertsTreeView = {
         this.core.api.deleteServerCertificate(item.name, function() { me.refresh(); });
     },
 };
-ew_ServerCertsTreeView.__proto__ = TreeView;
 
 var ew_VMFATreeView = {
     model: ["vmfas", "users"],
@@ -898,8 +891,6 @@ var ew_VMFATreeView = {
         this.core.api.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
     },
 };
-ew_VMFATreeView.__proto__ = TreeView;
-
 
 var ew_PasswordPolicyView = {
     obj: null,

@@ -23,6 +23,7 @@ var ew_api = {
     httpCount: 0,
     errorCount: 0,
     errorMax: 3,
+    errorTime: 0,
 
     isEnabled: function()
     {
@@ -485,11 +486,13 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            if (this.errorCount < this.errorMax) {
+            var now = (new Date()).getTime();
+            if (this.errorCount < this.errorMax || now - this.errorTime > 15000) {
                 if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
                     this.core.errorDialog("Server responded with an error for " + rc.action, rc)
                 }
             }
+            this.errorTime = now;
             this.errorCount++;
         } else {
             this.errorCount = 0;

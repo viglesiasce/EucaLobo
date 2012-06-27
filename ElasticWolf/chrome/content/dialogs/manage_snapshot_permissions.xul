@@ -30,7 +30,7 @@
     function refresh()
     {
         var me = this;
-        this.core.controller.describeSnapshotAttribute(this.image.id, function(list) { me.display(list); });
+        this.core.api.describeSnapshotAttribute(this.image.id, function(list) { me.display(list); });
     }
 
     function add()
@@ -38,12 +38,12 @@
         var name = prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
-        this.core.controller.modifySnapshotAttribute(this.image.id, [ [ "UserId", name ]], null, function() { me.refresh(); });
+        this.core.api.modifySnapshotAttribute(this.image.id, [ [ "UserId", name ]], null, function() { me.refresh(); });
     }
 
     function addPublic() {
         var me = this;
-        this.core.controller.modifySnapshotAttribute(image.id, [ [ "Group", "all" ]], null, function() { me.refresh(); });
+        this.core.api.modifySnapshotAttribute(image.id, [ [ "Group", "all" ]], null, function() { me.refresh(); });
     }
 
     function remove()
@@ -52,7 +52,7 @@
         var item = this.items[this.list.selectedIndex];
         if (!confirm("Revoke permissions for " + item.type + ":" + item.id + " on AMI " + this.image.id + "?")) return;
         var me = this;
-        this.core.controller.modifySnapshotAttribute(this.image.id, null, [ [ item.type, item.id ]], function() { me.refresh(true); });
+        this.core.api.modifySnapshotAttribute(this.image.id, null, [ [ item.type, item.id ]], function() { me.refresh(true); });
     }
 
     function display(items)

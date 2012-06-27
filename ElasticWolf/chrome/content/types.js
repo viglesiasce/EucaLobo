@@ -501,7 +501,7 @@ var TreeView = {
     },
     focus: function()
     {
-        this.tree.focus();
+        if (this.tree) this.tree.focus();
     },
     init: function(tree, tab, core)
     {
@@ -510,6 +510,7 @@ var TreeView = {
         tree.view = this;
         this.tree = tree;
         this.tab = tab;
+
         // Search text box, one per attached toolbar, need to keep reference for fast access to text
         if (!this.searchElement) {
             // Try naming convertion by name or model name

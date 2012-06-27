@@ -30,7 +30,7 @@
     function refresh()
     {
         var me = this;
-        this.core.controller.describeLaunchPermissions(this.image.id, function(list) { me.display(list); });
+        this.core.api.describeLaunchPermissions(this.image.id, function(list) { me.display(list); });
     }
 
     function add(name)
@@ -38,7 +38,7 @@
         if (!name) name = prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
-        this.core.controller.addLaunchPermission(image.id, name, function() { me.refresh(); });
+        this.core.api.addLaunchPermission(image.id, name, function() { me.refresh(); });
         if (this.list.value == "all") this.image.status = 'public';
     }
 
@@ -47,7 +47,7 @@
         if (!this.list.value) return;
         if (!confirm("Revoke launch permissions for " + name + " on AMI " + this.image.id + "?")) return;
         var me = this;
-        this.core.controller.revokeLaunchPermission(this.image.id, this.list.value, function() { me.refresh()});
+        this.core.api.revokeLaunchPermission(this.image.id, this.list.value, function() { me.refresh()});
         if (this.list.value == "all") this.image.status = 'private';
     }
 
@@ -55,7 +55,7 @@
     {
         if (!confirm("Reset launch permissions for AMI " + image.id + "?")) return;
         var me = this;
-        this.core.controller.resetLaunchPermissions(this.image.id, function() { me.refresh(); });
+        this.core.api.resetLaunchPermissions(this.image.id, function() { me.refresh(); });
     }
 
     function display(items)

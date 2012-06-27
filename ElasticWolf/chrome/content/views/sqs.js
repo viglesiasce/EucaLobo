@@ -1,3 +1,9 @@
+//
+//  Author: Vlad Seryakov vseryakov@gmail.com
+//  May 2012
+//
+
+
 var ew_SQSTreeView = {
     model: "queues",
     inputs: [ {label:"Visibility Timeout Seconds",type:"number",min:0,max:12*3600,name:"VisibilityTimeout"},
@@ -133,7 +139,6 @@ var ew_SQSTreeView = {
         });
     },
 };
-ew_SQSTreeView.__proto__ = TreeView;
 
 var ew_SQSMsgTreeView = {
     name: "sqsmsg",
@@ -190,4 +195,3 @@ var ew_SQSMsgTreeView = {
     },
 
 };
-ew_SQSMsgTreeView.__proto__ = TreeView;
