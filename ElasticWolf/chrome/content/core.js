@@ -58,6 +58,8 @@ var ew_core = {
         alarms: null,
         queues: null,
         elbPolicyTypes: null,
+        topics: null,
+        subscriptions: null,
     },
 
     // Intialize core object with current menu and api implementation
@@ -798,6 +800,56 @@ var ew_core = {
         var rc = { ok: false, text: text, title: title };
         openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=' + (width || 400) + ',height=' + (height || 240), rc);
         return rc.ok ? rc.text : null;
+    },
+
+    // Use for updating attributes, fields is list of predefined or well known inputs, it must contain propetry name: to match attributes items,
+    // attributes is a list of name value pairs, reurns updates attributes list with only changed values or null
+    promptAttributes: function(title, fields, attributes)
+    {
+        var inputs = [];
+        for (var i in attributes) {
+            var input = {label: attributes[i].name, type: 'label'};
+            for (var j in fields) {
+                if (fields[j].name == attributes[i].name) {
+                    input = fields[j];
+                    input.found = true;
+                    break;
+                }
+            }
+            input.value = attributes[i].value;
+            if (attributes[i].name.indexOf("Timestamp") > 0) {
+                input.value = new Date(input.value * 1000);
+            }
+            // Nice help hints about the numbers
+            if(input.label.indexOf("Seconds") > -1) {
+                input.help = formatDuration(parseInt(input.value));
+            }
+            if(input.label.indexOf("Size") > -1) {
+                input.help = formatSize(parseInt(input.value));
+            }
+            if (input.label.indexOf("Policy") > -1 && input.value != "") {
+                try {
+                    input.value = formatJSON(JSON.parse(input.value));
+                }
+                catch(e) { debug(e) }
+            }
+            if (input.found) inputs.splice(0, 0, input); else inputs.push(input);
+        }
+        // Add missing entries
+        for (var j in fields) {
+            if (!fields[j].found) {
+                inputs.splice(0, 0, fields[j]);
+            }
+        }
+        var values = this.promptInput(title, inputs);
+        if (!values) return null;
+        var updated = [];
+        for (var i in values) {
+            if (values[i] && values[i] != inputs[i].value) {
+                updated.push(new Tag(inputs[i].name, values[i]));
+            }
+        }
+        return updated;
     },
 
     savePassword : function(key, secret)
@@ -1545,6 +1597,12 @@ var ew_core = {
                 break;
             case "elbPolicyTypes":
                 this.api.DescribeLoadBalancerPolicyTypes();
+                break;
+            case "topics":
+                this.api.listTopics();
+                break;
+            case "subscriptions":
+                this.api.listSubscriptions();
             }
         }
     },
@@ -1678,10 +1736,10 @@ var ew_core = {
                 for (p in obj) {
                     if (typeof obj[p] == "function") {
                         if (p != "toString") continue;
-                        item += (item != "" ? this.separator : "") + obj.toString();
+                        item += (item != "" ? fieldSseparator : "") + obj.toString();
                     } else
                     if (!columns || columns.indexOf(p) >= 0) {
-                        item += (item != "" ? this.separator : "") + this.modelValue(p, obj[p]);
+                        item += (item != "" ? fieldSeparator : "") + this.modelValue(p, obj[p]);
                     }
                 }
             }

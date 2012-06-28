@@ -13,7 +13,7 @@
   <![CDATA[
 
     function init() {
-      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list'];
+      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data'];
       this.rc = window.arguments[0];
       document.title = rc.title;
       var parent = document.getElementById('main');
@@ -58,7 +58,7 @@
              for (var j in rc.items[i].list) {
                  var obj = rc.items[i].list[j];
                  var e = document.createElement('menuitem');
-                 e.setAttribute('label', obj.toString());
+                 e.setAttribute('label', rc.core.toString(obj));
                  e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
                  popup.appendChild(e);
              }
@@ -84,7 +84,9 @@
           case 'textbox':
              item = document.createElement('textbox');
              item.setAttribute('value', value);
-             item.setAttribute('size', rc.items[i].size || 45);
+             if (!rc.items[i].multiline) {
+                 item.setAttribute('size', rc.items[i].size || 45);
+             }
              break;
 
           default:
@@ -96,7 +98,7 @@
 
           for (var p in rc.items[i]) {
               // Ignore our reserved attributes
-              if (reserved.indexOf(p) < -1) continue;
+              if (reserved.indexOf(p) > -1) continue;
               item.setAttribute(p, rc.items[i][p]);
           }
 

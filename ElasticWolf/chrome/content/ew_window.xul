@@ -35,6 +35,7 @@
 <?xul-overlay href="chrome://ew/content/views/alarms.xul"?>
 <?xul-overlay href="chrome://ew/content/views/iam.xul"?>
 <?xul-overlay href="chrome://ew/content/views/sqs.xul"?>
+<?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
@@ -47,6 +48,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/core.js" />
   <script type="application/x-javascript" src="chrome://ew/content/api.js" />
 
+  <script type="application/x-javascript" src="chrome://ew/content/views/sns.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/iam.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/certs.js" />
@@ -168,8 +170,11 @@
 
             { name: "ew.tabs.s3",            views: [ { id: "ew.s3Buckets.view", view: ew_S3BucketsTreeView }], },
 
-            { name: "ew.tabs.sqs",            views: [ { id: "ew.sqs.view", view: ew_SQSTreeView },
-                                                       { id: "ew.sqsmsg.view", view: ew_SQSMsgTreeView } ], },
+            { name: "ew.tabs.sqs",            views: [ { id: "ew.queues.view", view: ew_SQSTreeView },
+                                                       { id: "ew.messages.view", view: ew_SQSMsgTreeView } ], },
+
+            { name: "ew.tabs.sns",            views: [ { id: "ew.topics.view", view: ew_SNSTopicsTreeView },
+                                                       { id: "ew.subscriptions.view", view: ew_SNSSubscriptionsTreeView } ], },
 
             { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
     ]
@@ -310,7 +315,7 @@
        </treerow>
       </treeitem>
 
-      <treeitem container="true" open="true" hidden="true">
+      <treeitem container="true" open="true">
        <treerow>
          <treecell label="Push Notification Service" value="ew.tabs.sns" src="images/sns.png" />
        </treerow>
@@ -338,6 +343,7 @@
       <tabpanel id="ew.tabs.iam.folder"/>
       <tabpanel id="ew.tabs.vmfa"/>
       <tabpanel id="ew.tabs.sqs"/>
+      <tabpanel id="ew.tabs.sns"/>
       <tabpanel id="ew.tabs.instance"/>
       <tabpanel id="ew.tabs.image"/>
       <tabpanel id="ew.tabs.access"/>

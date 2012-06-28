@@ -10,6 +10,7 @@ var ew_api = {
     CW_API_VERSION: '2010-08-01',
     STS_API_VERSION: '2011-06-15',
     SQS_API_VERSION: '2011-10-01',
+    SNS_API_VERSION: '2010-03-31',
     SIG_VERSION: '2',
 
     core: null,
@@ -69,6 +70,8 @@ var ew_api = {
         this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
         this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
         this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
+        this.urls.SNS = endpoint.urlSNS || 'https://sns.' + this.region + '.amazonaws.com';
+        this.versions.SNS = endpoint.versionSNS || this.SNS_API_VERSION;
         this.actionIgnore = endpoint.actionIgnore || [];
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
     },
@@ -137,6 +140,11 @@ var ew_api = {
     querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
     {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
+    },
+
+    querySNS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.SNS, this.versions.SNS);
     },
 
     downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
@@ -3800,7 +3808,7 @@ var ew_api = {
         response.result = list;
     },
 
-    addPermission : function(url, label, actions, callback)
+    addQueuePermission : function(url, label, actions, callback)
     {
         var params = [ ["Label", label]];
         for (var i = 0; i < actions.length; i++) {
@@ -3810,8 +3818,132 @@ var ew_api = {
         this.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
     },
 
-    removePermission : function(url, label, callback)
+    removeQueuePermission : function(url, label, callback)
     {
         this.querySQS(url, "RemovePermission", [["Label", label]], this, false, "onComplete", callback);
     },
+
+    listTopics : function(callback)
+    {
+        this.querySNS("ListTopics", [], this, false, "onCompleteListTopics", callback);
+    },
+
+    onCompleteListTopics : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = this.getItems(xmlDoc, "Topics", "member", ["TopicArn"], function(obj) { return new Topic(obj.TopicArn); });
+        this.core.setModel('topics', list);
+        response.result = list;
+    },
+
+    createTopic: function(name, callback)
+    {
+        this.querySNS("CreateTopic", [ ["Name", name ]], this, false, "onComplete:TopicArn", callback);
+    },
+
+    deleteTopic: function(id, callback)
+    {
+        this.querySNS("DeleteTopic", [ ["TopicArn", id ]], this, false, "onComplete:TopicArn", callback);
+    },
+
+    addTopicPermission : function(id, label, actions, callback)
+    {
+        var params = [];
+        params.push([ "Label", label ]);
+        params.push([ "TopicArn", id ])
+        for (var i = 0; i < actions.length; i++) {
+            params.push(["ActionName." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+        }
+        this.querySNS("AddPermission", params, this, false, "onComplete", callback);
+    },
+
+    removeTopicPermission : function(id, label, callback)
+    {
+        this.querySNS("RemovePermission", [["Label", label], [ "TopicArn", id ]], this, false, "onComplete", callback);
+    },
+
+    getTopicAttributes : function(id, callback)
+    {
+        this.querySNS("GetTopicAttributes", [ ["TopicArn", id] ], this, false, "onCompleteGetTopicAttributes", callback);
+    },
+
+    onCompleteGetTopicAttributes : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = this.getItems(xmlDoc, "Attributes", "entry", ["key", "value"], function(obj) { return new Tag(obj.key,obj.value)});
+        response.result = list;
+    },
+
+    setTopicAttributes : function(id, name, value, callback)
+    {
+        this.querySNS("SetTopicAttributes", [ ["TopicArn", id], ["AttributeName", name], ["AttributeValue", value] ], this, false, "onComplete", callback);
+    },
+
+    publish : function(id, subject, message, json, callback)
+    {
+        var params = [ ["TopicArn", id] ];
+        params.push([ "Message", message] );
+        if (subject) {
+            params.push(["Subject", subject]);
+        }
+        if (json) {
+            params.push(["MessageStructure", "json"])
+        }
+        this.querySNS("Publish", params, this, false, "onComplete:MessageId", callback);
+    },
+
+    subscribe : function(id, endpoint, protocol, callback)
+    {
+        this.querySNS("Subscribe", [ ["TopicArn", id], ["Endpoint", endpoint], ["Protocol", protocol] ], this, false, "onComplete:SubscriptionArn", callback);
+    },
+
+    confirmSubscription : function(id, token, AuthenticateOnUnsubscribe, callback)
+    {
+        var params = [ ["TopicArn", id]];
+        params.push([ "Token", token] );
+        if (AuthenticateOnUnsubscribe) {
+            params.push(["AuthenticateOnUnsubscribe", "true"])
+        }
+        this.querySNS("Subscribe", params, this, false, "onComplete:SubscriptionArn", callback);
+    },
+
+    unsubscribe : function(id, callback)
+    {
+        this.querySNS("Unsubscribe", [ ["SubscriptionArn", id] ], this, false, "onComplete", callback);
+    },
+
+    listSubscriptions : function(callback)
+    {
+        this.querySNS("ListSubscriptions", [], this, false, "onCompleteListSubscriptions", callback);
+    },
+
+    listSubscriptionsByTopic : function(id, callback)
+    {
+        this.querySNS("ListSubscriptionsByTopic", [["TopicArn", id]], this, false, "onCompleteListSubscriptions", callback);
+    },
+
+    onCompleteListSubscriptions : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) { return new Subscription(obj.TopicArn,obj.SubscriptionArn,obj.Protocol,obj.Endpoint,obj.Owner); });
+
+        if (response.action == "ListSubscriptions") {
+            this.core.setModel('subscriptions', list);
+        }
+        response.result = list;
+    },
+
+    getSubscriptionAttributes : function(id, callback)
+    {
+        this.querySNS("GetSubscriptionAttributes", [ ["SubscriptionArn", id] ], this, false, "onCompleteGetTopicAttributes", callback);
+    },
+
+    setSubscriptionAttributes : function(id, name, value, callback)
+    {
+        this.querySNS("SetSubscriptionAttributes", [ ["SubscriptionArn", id], ["AttributeName", name], ["AttributeValue", value] ], this, false, "onComplete", callback);
+    },
+
 };

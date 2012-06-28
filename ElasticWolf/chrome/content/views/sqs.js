@@ -6,11 +6,6 @@
 
 var ew_SQSTreeView = {
     model: "queues",
-    inputs: [ {label:"Visibility Timeout Seconds",type:"number",min:0,max:12*3600,name:"VisibilityTimeout"},
-              {label:"Maximum Message Size (bytes)",type:"number",name:"MaximumMessageSize"},
-              {label:"Message Retention Period Seconds",type:"number",value:345600,min:60,max:14*86400,name:"MessageRetentionPeriod"},
-              {label:"Delay Seconds",type:"number",min:0,max:900,name:"DelaySeconds"},
-              {label:"Policy",multiline:true,rows:12,flex:"2",width:"100%",name:"Policy"},],
 
     menuChanged: function()
     {
@@ -72,7 +67,7 @@ var ew_SQSTreeView = {
                 actions.push({name:inputs[i].label,id:values[1]})
             }
         }
-        this.core.api.addPermission(item.url, values[0], actions, function(id) {});
+        this.core.api.addQueuePermission(item.url, values[0], actions, function(id) {});
 
     },
 
@@ -88,54 +83,22 @@ var ew_SQSTreeView = {
 
     configureQueue: function()
     {
+        var fields = [ {label:"Visibility Timeout Seconds",type:"number",min:0,max:12*3600,name:"VisibilityTimeout"},
+                       {label:"Maximum Message Size (bytes)",type:"number",name:"MaximumMessageSize"},
+                       {label:"Message Retention Period Seconds",type:"number",value:345600,min:60,max:14*86400,name:"MessageRetentionPeriod"},
+                       {label:"Delay Seconds",type:"number",min:0,max:900,name:"DelaySeconds"},
+                       {label:"Policy",multiline:true,rows:12,flex:"2",width:"100%",name:"Policy"},
+                       ];
+
         var me = this;
         var item = this.getSelected();
         if (!item) return;
         this.core.api.getQueueAttributes(item.url, function(list) {
             item.attributes = list;
-            var inputs = [];
-            // Reset
-            for (var j in me.inputs) {
-                me.inputs[j].value = "";
-                me.inputs[j].found = false;
+            var values = me.core.promptAttributes('Configure Queue', fields, list);
+            for (var i in values) {
+                me.core.api.setQueueAttributes(item.id, values[i].name, values[i].value)
             }
-
-            for (var i in list) {
-                var input = {label: list[i].name, type: 'label'};
-                for (var j in me.inputs) {
-                    if (me.inputs[j].name == list[i].name) {
-                        input = me.inputs[j];
-                        input.found = true;
-                        break;
-                    }
-                }
-                if (list[i].name.indexOf("Timestamp") > 0) {
-                    list[i].value = new Date(list[i].value * 1000);
-                }
-                input.value = list[i].value;
-                // Nice help hints about the numbers
-                if(input.label.indexOf("Seconds") > 0) {
-                    input.help = formatDuration(parseInt(input.value));
-                }
-                if(input.label.indexOf("Size") > 0) {
-                    input.help = formatSize(parseInt(input.value));
-                }
-                if (input.label == "Policy" && input.value != "") {
-                    try {
-                        input.value = formatJSON(JSON.parse(input.value));
-                    }
-                    catch(e) { debug(e) }
-                }
-                if (input.found) inputs.splice(0, 0, input); else inputs.push(input);
-            }
-            // Add missing entries
-            for (var j in me.inputs) {
-                if (!me.inputs[j].found) {
-                    inputs.splice(0, 0, me.inputs[j]);
-                }
-            }
-            var values = me.core.promptInput('Configure Queue', inputs);
-            if (!values) return;
         });
     },
 };

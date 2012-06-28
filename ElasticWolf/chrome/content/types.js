@@ -2134,3 +2134,27 @@ function Message(id, body, handle, url)
         return this.id;
     }
 }
+
+function Topic(arn)
+{
+    this.id = arn || "";
+    this.name = this.id.split(/[:\/]/).pop();
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
+{
+    this.id = SubscriptionArn
+    this.TopicArn = TopicArn
+    this.topic = this.TopicArn.split(/[:\/]+/).pop()
+    this.Protocol = Protocol
+    this.Endpoint = Endpoint
+    this.Owner = Owner
+
+    this.toString = function() {
+        return this.Protocol + fieldSepararor + this.Endpoint;
+    }
+}
