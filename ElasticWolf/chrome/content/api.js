@@ -1936,7 +1936,6 @@ var ew_api = {
             obj = new S3Bucket(bucket);
             obj.keys = list;
         }
-
         response.result = obj;
     },
 

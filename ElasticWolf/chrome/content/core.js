@@ -6,7 +6,7 @@
 var ew_core = {
     VERSION: "2.0",
     NAME: 'ElasticWolf',
-    URL: 'http://www.awsps.com/ElasticWolf/',
+    URL: 'http://www.awsps.com/ElasticWolf/Releases/',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
 
@@ -938,32 +938,30 @@ var ew_core = {
 
     checkForUpdates: function()
     {
+        var me = this;
         if (!this.isEnabled()) return null;
 
-        ver = parseFloat(this.VERSION) + 0.01
-        var url = this.URL;
+        // File naming convention
+        var rx = new RegExp(this.NAME + (isWindows(navigator.platform) ? "-win-" : "-osx-") + "([0-9]\.[0-9][0-9])\.zip", "g");
+
+        // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return;
-        }
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4) {
                 var data = xmlhttp.responseText;
-                var d = data.match(new RegExp(this.NAME + (isWindows(navigator.platform) ? "-win-" : "-osx-") + "([0-9]\.[0-9][0-9])\.zip"))
-                if (d != null) {
+                while (d = rx.exec(data)) {
                     debug(d);
-                    if (parseFloat(d[1]) > parseFloat(this.VERSION)) {
-                        alert("New version " + d[1] + "is available at " + url + d[0])
+                    if (parseFloat(d[1]) > parseFloat(me.VERSION)) {
+                        alert("New version " + d[1] + "is available at " + me.URL)
                         return;
                     }
                 }
                 alert("No new version available")
             }
         };
-        xmlhttp.open("GET", url, true);
+        xmlhttp.open("GET", this.URL, true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.send(null);
+        xmlhttp.send();
     },
 
     // Show non modal error popup

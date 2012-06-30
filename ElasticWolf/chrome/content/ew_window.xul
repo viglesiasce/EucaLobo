@@ -198,9 +198,9 @@
     <menu label="File">
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
+       <menuitem label="Check For Updates" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.checkForUpdates();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
        <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
-
       </menupopup>
     </menu>
     <menu label="Help">
@@ -389,11 +389,11 @@
        <vbox flex="1">
          <groupbox flex="1">
            <description id="ew.header" class="header" />
-           <spacer />
+           <spacer style="height:25px;" />
            <description>Console to Amazon Web Services (EC2/S3/...).</description>
            <spacer />
-           <label id="ew.url" style="color:blue;" onclick="ew_core.displayUrl(ew_core.URL)"/>
-           <spacer />
+           <description id="ew.url" style="color:blue;" onclick="ew_core.displayUrl(ew_core.URL)"/>
+           <spacer style="height:25px;" />
            <description>Licensed under the Apache 2.0 license.</description>
          </groupbox>
        </vbox>
