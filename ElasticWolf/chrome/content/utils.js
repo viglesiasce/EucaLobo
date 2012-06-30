@@ -356,7 +356,7 @@ function getNodeValue(item, nodeName, childName)
     }
 }
 
-// From the list of objects return simple list with only specified propetties from each object
+// From the list of objects return simple list with only specified properties from each object
 function plainList(list, id)
 {
     var nlist = [];

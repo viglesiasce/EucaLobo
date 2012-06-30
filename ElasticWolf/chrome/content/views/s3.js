@@ -125,15 +125,26 @@ var ew_S3BucketsTreeView = {
 
     create: function() {
         var me = this;
-        var retVal = { ok : null, name: null, region : null, params: {}, type: this.path.length ? "Folder" : "Bucket" }
-        window.openDialog("chrome://ew/content/dialogs/create_s3bucket.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            if (!this.path.length) {
-                this.core.api.createS3Bucket(retVal.name, retVal.region, retVal.params, function() { me.refresh(true); });
-            } else {
-                this.core.getS3Bucket(this.path[0]).keys = []
-                this.core.api.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + '/' + retVal.name, retVal.params, null, function() { me.show(); });
-            }
+        var inputs = [ {label: this.path.length ? "Folder Name" : "Bucket Name",required:1},
+                       {label:"ACL",type:"menulist",list:[{name:"Private",id:"private"},
+                                                          {name:"Public Read",id:"public-read"},
+                                                          {name:"Public Read Write",id:"public-read-write"},
+                                                          {name:"Authenticated Read",id:"authenticated-read"},
+                                                          {name:"Bucket Owner Read",id:"bucket-owner-read"},
+                                                          {name:"Bucket Owner Full Control",id:"bucket-owner-full-control"}],required:1}, ]
+        if (!this.path.length) {
+            inputs.push({label:"Region",type:"menulist",list:this.core.getS3Regions(),key:'region'});
+        }
+
+        var values = this.core.promptInput("Create S3 " + this.path.length ? "Folder" : "Bucket", inputs);
+        if (!values) return;
+        var params = {};
+        if (values[1]) params["x-amz-acl"] = values[1];
+        if (!this.path.length) {
+            this.core.api.createS3Bucket(values[0], values[2], params, function() { me.refresh(true); });
+        } else {
+            this.core.getS3Bucket(this.path[0]).keys = []
+            this.core.api.createS3BucketKey(this.path[0], this.path.slice(1).join('/') + '/' + values[0] + '/', params, null, function() { me.show(); });
         }
     },
 
@@ -268,16 +279,15 @@ var ew_S3BucketsTreeView = {
         var me = this;
         var item = this.getSelected()
         if (item == null) return
-        var retVal = { bucket: item.name, ok: 0, enable: 0 };
-
         this.core.api.getS3BucketWebsite(item.name, function(obj) {
-            window.openDialog("chrome://ew/content/dialogs/manage_s3website.xul", null, "chrome,centerscreen,modal,resizable", retVal, obj);
-            if (retVal.ok) {
-                if (retVal.enable) {
-                    me.core.api.setS3BucketWebsite(item.name, obj.indexSuffix, obj.errorKey, function() { me.selectionChanged(); })
-                } else {
-                    me.core.api.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
-                }
+            var values = me.core.promptInput('Website', [ {label:"Website Enabled",type:"checkbox",value:obj.indexSuffix && obj.indexSuffix != '' ? true  :false},
+                                                          {label:"Index Document Suffix",value:obj.indexSuffix || ""},
+                                                          {label:"Error Document Key",value:obj.errorKey || ""}]);
+            if (!values) return;
+            if (values[0]) {
+                me.core.api.setS3BucketWebsite(item.name, values[1], values[2], function() { me.selectionChanged(); })
+            } else {
+                me.core.api.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
             }
         });
     },

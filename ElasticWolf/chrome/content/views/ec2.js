@@ -345,13 +345,15 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (instance == null) return;
 
-        window.openDialog("chrome://ew/content/dialogs/bundle_instance.xul", null, "chrome,centerscreen,modal,resizable", instance.id, this.core, retVal);
-        if (!retVal.ok) return;
-        this.core.api.createS3Bucket(retVal.bucketName);
-
-        this.core.api.bundleInstance(instance.id, retVal.bucketName, retVal.prefix, this.core.getActiveCredentials(), function() {
-            me.core.refreshModel('bundleTasks');
-            me.core.selectTab('ew.tabs.bundletask');
+        var values = this.core.promptInput('Create AMI', [{label:"Instance",type:"label",value:instance.toString()},
+                                                          {label:"S3 Bucket Name",type:"name",required:1},
+                                                          {label:"Image Name",required:1}, ]);
+        if (!values) return;
+        this.core.api.createS3Bucket(values[1], function() {
+            me.core.api.bundleInstance(instance.id, values[1], values[2], me.core.getActiveCredentials(), function() {
+                me.core.refreshModel('bundleTasks');
+                me.core.selectTab('ew.tabs.bundletask');
+            });
         });
     },
 
@@ -361,12 +363,14 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (instance == null) return;
 
-        window.openDialog("chrome://ew/content/dialogs/create_image.xul", null, "chrome,centerscreen,modal,resizable", instance.id, this.core, retVal);
-        if (retVal.ok) {
-            this.core.api.createImage(instance.id, retVal.amiName, retVal.amiDescription, retVal.noReboot, function(id) {
-                alert("A new AMI is being created and will be available in a moment.\n\nThe AMI ID is: "+id);
-            });
-        }
+        var values = this.core.promptInput('Create AMI', [{label:"Instance",type:"label",value:instance.toString()},
+                                                          {label:"AMI Name",type:"name",required:1},
+                                                          {label:"Description"},
+                                                          {label:"Snapshot without rebooting instance",type:"checkbox"} ]);
+        if (!values) return;
+        this.core.api.createImage(instance.id, values[1], values[2], values[3], function(id) {
+            alert("A new AMI is being created and will be available in a moment.\n\nThe AMI ID is: "+id);
+        });
     },
 
     attachEBSVolume : function() {
@@ -380,29 +384,24 @@ var ew_InstancesTreeView = {
 
         if (!this.isInstanceReadyToUse(instance)) return;
 
-        // Determine if there is actually an EBS volume to attach to
-        var volumes = this.core.queryModel('volumes');
-        if (volumes == null || volumes.length == 0) {
-            // There are no volumes to attach to.
-            var fRet = confirm ("Would you like to create a new EBS volume to attach to this instance?");
-            if (fRet) {
-                fRet = ew_VolumeTreeView.createVolume();
+        // A volume can be attached to this instance only if:
+        // 1. It is in the same zone as this instance
+        // 2. It is not attached to another instance
+        volumes = this.core.queryModel('volumes', 'availabilityZone', instance.availabilityZone, 'instanceId', '');
+        if (volumes.length == 0) {
+            if (confirm("No volumes available, would you like to create a new EBS volume to attach to this instance?")) {
+                ew_VolumeTreeView.createVolume();
             }
-            if (fRet) {
-                volumes = this.core.queryModel('volumes');
-            } else {
-                return;
-            }
+            return;
         }
-
-        var retVal = {ok:null, volumeId:null, device:null, windows: isWindows(instance.platform) };
-        window.openDialog("chrome://ew/content/dialogs/attach_ebs_volume.xul",null, "chrome,centerscreen,modal,resizable", this.core, instance, retVal);
-        if (retVal.ok) {
-            ew_VolumeTreeView.attachEBSVolume(retVal.volumeId,instance.id,retVal.device);
-            ew_VolumeTreeView.refresh();
-            ew_VolumeTreeView.select({ id: retVal.volumeId });
-            this.core.selectTab('ew.tabs.volume')
-        }
+        var values = this.core.promptInput('Attach EBS Volume',
+                                                [{label:"Instance",type:"label",value:instance.toString()},
+                                                 {label:"Volume",type:"menulist",list:volumes,required:1},
+                                                 {label:"Device",required:1,value:isWindows(instance.platform) ? "windows_device" : "",readonly: isWindows(instance.platform) ? true : false},
+                                                 {type:"label",notitle:1,value:"Linux devices: /dev/sda through /dev/sdp"}]);
+        if (!values) return;
+        ew_VolumeTreeView.attachEBSVolume(values[1], instance.id, values[2]);
+        this.core.selectTab('ew.tabs.volume')
     },
 
     associateWithEIP : function() {
@@ -807,18 +806,18 @@ var ew_InstancesTreeView = {
 
     isInstanceReadyToUse : function(instance)
     {
-        var ret = false;
+        var rc = false;
         if (isWindows(instance.platform)) {
             var output = this.core.api.getConsoleOutput(instance.id);
             // Parse the response to determine whether the instance is ready to use
-            ret = output.indexOf("Windows is Ready to use") >= 0;
+            rc = output.indexOf("Windows is Ready to use") >= 0;
         } else {
-            ret = true;
+            rc = true;
         }
-        if (!ret) {
-            alert ("Please wait till 'Windows is Ready to use' before attaching an EBS volume to instance: " + instance.id);
+        if (!rc) {
+            alert("Please wait till 'Windows is Ready to use' before attaching an EBS volume to instance: " + instance.toString());
         }
-        return ret;
+        return rc;
     },
 
     showConsoleOutput : function(id, timestamp, output)
@@ -826,7 +825,7 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
         var output = this.core.api.getConsoleOutput(instance.id);
-        window.openDialog("chrome://ew/content/dialogs/console_output.xul", null, "chrome,centerscreen,modal,resizable", output);
+        this.core.promptInput('Console', [{notitle:1,multiline:true,cols:120,rows:50,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:output}])
     },
 
     authorizeProtocolForGroup : function(transport, protocol, groups)
@@ -1076,7 +1075,8 @@ var ew_VolumeTreeView = {
         return TreeView.filter.call(this, list);
     },
 
-    menuChanged : function() {
+    menuChanged : function()
+    {
         var image = this.getSelected();
         document.getElementById("ew.volumes.contextmenu").disabled = (image == null);
         if (image == null) return;
@@ -1089,31 +1089,35 @@ var ew_VolumeTreeView = {
         document.getElementById("volumes.context.forcedetach").disabled = !fAssociated;
     },
 
-    createSnapshot : function () {
+    createSnapshot : function ()
+    {
         var image = this.getSelected();
         if (image == null) return;
         var me = this;
         this.core.api.createSnapshot(image.id, function(snapId) { ew_SnapshotTreeView.refresh(); });
     },
 
-    createVolume : function (snap) {
-        var retVal = { ok: false, tag: '' };
-        if (!snap) snap = null;
-        window.openDialog("chrome://ew/content/dialogs/create_volume.xul",null,"chrome,centerscreen,modal,resizable",snap,this.coreretVal);
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.createVolume(retVal.size,retVal.snapshotId,retVal.zone,function(id) {
-                if (retVal.tag != '') {
-                    me.core.setTags(id, retVal.tag, function() { me.refresh() });
-                } else {
-                    me.refresh();
-                }
-            });
-        }
-        return retVal.ok;
+    createVolume : function (snap)
+    {
+        var me = this;
+        var zones = this.core.queryModel('availabilityZones');
+        var snapshots = this.core.queryModel('snapshots', "status", "completed");
+        var values = this.core.promptInput('Create Volume', [{label:"Size (GB)",type:"number",min:1,required:1},
+                                                             {label:"Name"},
+                                                             {label:"Availability Zone",type:"menulist",list:zones,required:1},
+                                                             {label:"Snapshot",type:"menulist",list:snapshots}]);
+        if (!values) return;
+        this.core.api.createVolume(values[0],values[3],values[2],function(id) {
+            if (values[1]) {
+                me.core.setTags(id, "Name:" + values[1], function() { me.refresh() });
+            } else {
+                me.refresh();
+            }
+        });
     },
 
-    deleteVolume : function () {
+    deleteVolume : function ()
+    {
         var image = this.getSelected();
         if (image == null) return;
         var label = image.name ? (image.name + '@' + image.id) : image.id;
@@ -1122,7 +1126,8 @@ var ew_VolumeTreeView = {
         this.core.api.deleteVolume(image.id, function() {me.refresh()});
     },
 
-    attachEBSVolume : function (volumeId, instId, device) {
+    attachEBSVolume : function (volumeId, instId, device)
+    {
         if (device == "windows_device") {
             device = this.determineWindowsDevice(instId);
         }
@@ -1130,27 +1135,27 @@ var ew_VolumeTreeView = {
         this.core.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
     },
 
-    attachVolume : function () {
+    attachVolume : function ()
+    {
         var image = this.getSelected();
         if (image == null) return;
-        var retVal = {ok:null};
-        while (true) {
-            window.openDialog("chrome://ew/content/dialogs/create_attachment.xul",null,"chrome,centerscreen,modal,resizable",image,this.coreretVal);
-            if (retVal.ok) {
-                // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
-                var instance = this.core.findModel('instances', retVal.instanceId);
-                if (instance) {
-                    if (!ew_InstancesTreeView.isInstanceReadyToUse(instance)) {
-                        continue;
-                    }
-                    if (isWindows(instance.platform)) {
-                        retVal.device = "windows_device";
-                    }
-                    this.attachEBSVolume(retVal.volumeId, retVal.instanceId, retVal.device);
-                }
-            }
-            break;
+
+        var instances = this.core.queryModel('instances', 'state', 'running', 'availabilityZone', image.availabilityZone);
+        if (!instances.length) {
+            return alert('No instances running this the same availability zone');
         }
+
+        var values = this.core.promptInput('Create EBS Atatchment', [{label:"Volume",type:"label",list:image.toString()},
+                                                                     {label:"Instance",type:"menulist",list:instances,required:1,oncommand:"rc.items[2].obj.value = isWindows(rc.items[1].list[rc.items[1].obj.selectedIndex].platform)?'windows_device':''"},
+                                                                     {label:"Device",required:1},
+                                                                     {type:"label",notitle:1,value:"Linux devices: /dev/sda through /dev/sdp"}]);
+        if (!values) return;
+
+        // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
+        var instance = this.core.findModel('instances', values[1]);
+        if (!instance) return alert('Instance disappeared')
+        if (!ew_InstancesTreeView.isInstanceReadyToUse(instance)) return;
+        this.attachEBSVolume(image.id, values[1], values[2]);
     },
 
     determineWindowsDevice : function (instId)
@@ -1280,14 +1285,19 @@ var ew_SnapshotTreeView = {
     showRegisterImageFromSnapshotDialog : function() {
         var image = this.getSelected();
         if (image == null) return;
-        var retVal = {ok:null,amiName:null,amiDescription:null};
-        window.openDialog("chrome://ew/content/dialogs/create_snapshot_ami.xul", null, "chrome,centerscreen,modal,resizable", image.id, this.core, retVal);
-        if (retVal.ok) {
-            var wrap = function(id) {
-                alert("A new AMI is registered.\n\nThe AMI ID is: "+id);
-            }
-            this.core.api.registerImageFromSnapshot(image.id, retVal.amiName, retVal.amiDescription, retVal.architecture, retVal.kernelId, retVal.ramdiskId, retVal.deviceName, retVal.deleteOnTermination, wrap);
-        }
+
+        var values = this.core.promptInput('Create AMI', [{label:"Snapshot",type:"label",value:image.toString()},
+                                                          {label:"AMI Name",type:"name",required:1},
+                                                          {label:"Description"},
+                                                          {label:"Architecture",type:"menulist",list: ["i386", "x86_64"],required:1},
+                                                          {label:"Kernel ID"},
+                                                          {label:"Ramdisk ID"},
+                                                          {label:"Device Name", help:"e.g. /dev/sda1",required:1},
+                                                          {label:"Delete On Termination",type:"checkbox"}]);
+        if (!values) return;
+        this.core.api.registerImageFromSnapshot(image.id, values[1], values[2], values[3], values[4], values[5], values[6], values[7], function(id) {
+            alert("A new AMI is registered.\n\nThe AMI ID is: "+id);
+        });
     },
 
     viewPermissions: function()
@@ -1416,51 +1426,41 @@ var ew_SecurityGroupsTreeView = {
 
     createNewGroup : function ()
     {
-        var retVal = {ok:null,name:null,description:null,vpcId:null};
-        window.openDialog("chrome://ew/content/dialogs/create_security_group.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            var wrap = function(id) {
-                retVal.id = id
-                me.refresh();
-                me.authorizeCommonProtocolsByUserRequest(retVal);
+        var me = this;
+        var opts = [{id:'Host', name: "Enable SSH and RDP for this Host"},
+                    {id:'Network', name:"Enable SSH and RDP for your Network (includes this Host)"},
+                    {id:'Manual', name:"I will authorize protocols for this group as needed."}];
+        var vpcs = this.core.queryModel('vpcs');
+        var values = this.core.promptInput('Create Security Group', [ {label:"Group Name",type:"name",required:1},
+                                                                      {label:"Description",required:1},
+                                                                      {label:"VPC",type:"menulist",list:vpcs},
+                                                                      {label:"Permissions",type:"menulist",list:opts}])
+
+        if (!values) return;
+        this.core.api.createSecurityGroup(values[0], values[1], values[2], function(id) {
+            var cidr = null;
+            // Determine the CIDR for the protocol authorization request
+            switch (values[3]) {
+            case "Host":
+                var ipAddress = me.core.api.queryCheckIP();
+                cidr = ipAddress.trim() + "/32";
+                break;
+
+            case "Network":
+                cidr = me.core.api.queryCheckIP("block") + "/1";
+                break;
+
+            case 'Manual':
+                ew_PermissionsTreeView.grantPermission();
+                return;
+
+            default:
+                return;
             }
-            this.core.api.createSecurityGroup(retVal.name, retVal.description, retVal.vpcId, wrap);
-        }
-    },
-
-    authorizeCommonProtocolsByUserRequest : function(retVal)
-    {
-        var cidr = null;
-        // Determine the CIDR for the protocol authorization request
-        switch (retVal.enableProtocolsFor) {
-        case "host":
-            var ipAddress = this.core.api.queryCheckIP();
-            cidr = ipAddress.trim() + "/32";
-            break;
-        case "network":
-            cidr = this.core.api.queryCheckIP("block");
-            break;
-        default:
-            cidr = null;
-            break;
-        }
-
-        // Need to authorize SSH and RDP for either this host or the network.
-        if (cidr != null) {
-            var wrap = function() {
-                ew_SecurityGroupsTreeView.refresh();
-            }
-
-            // 1st enable SSH
-            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
-
-            // enable RDP and refresh the view
-            this.core.api.authorizeSourceCIDR('Ingress', retVal, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, wrap);
-        } else {
-            // User wants to customize the firewall...
-            ew_PermissionsTreeView.grantPermission();
-        }
+            // Need to authorize SSH and RDP for either this host or the network.
+            me.core.api.authorizeSourceCIDR('Ingress', {id: id}, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
+            me.core.api.authorizeSourceCIDR('Ingress', {id: id}, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, function() { me.refresh() });
+        });
     },
 
     deleteSelected  : function () {
@@ -1482,7 +1482,8 @@ var ew_SecurityGroupsTreeView = {
 
 var ew_PermissionsTreeView = {
 
-    grantPermission : function(type) {
+    grantPermission : function(type)
+    {
         var group = ew_SecurityGroupsTreeView.getSelected();
         if (group == null) return;
 
@@ -1504,7 +1505,8 @@ var ew_PermissionsTreeView = {
         }
     },
 
-    revokePermission : function() {
+    revokePermission : function()
+    {
         var group = ew_SecurityGroupsTreeView.getSelected();
         if (group == null) return;
         var perms = new Array();

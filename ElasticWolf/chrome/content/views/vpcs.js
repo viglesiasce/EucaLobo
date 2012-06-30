@@ -156,7 +156,7 @@ var ew_VpcsTreeView = {
     {
         var me = this;
         var inputs = [ {label:"VPC",help:"Specify IP block for a VPC and optionally name for easy navigation in the system",type:"section"},
-                       {label:'IP CIDR block:',required:1,help:"Example: 10.0.0.0/16"},
+                       {label:'IP CIDR block:',type:'cidr',required:1,help:"Example: 10.0.0.0/16"},
                        {label:'Tenancy',type:'menulist',list:["default","dedicated"]},
                        {label:'VPC Name:'},
                        {label:"Subnets",type:"section",help:"Optonally, create one or both subnets in the new VPC:"},
@@ -164,7 +164,7 @@ var ew_VpcsTreeView = {
                        {label:'Private Subnet',help:"Example: 10.2.0.0/24"},
                        {label:'Availability Zone',type:'menulist',list: this.core.queryModel('availabilityZones'),key:'name'},
                        {label:"VPN Connection",type:"section",help:"Optonally, create VPN connection to your VPC:"},
-                       {label:'Customer Gateway IP'},
+                       {label:'Customer Gateway IP',type:'ip'},
                        {label:'BGP ASN',value:65000},
                        ];
 
@@ -236,15 +236,16 @@ var ew_VpcsTreeView = {
 
     setDhcpOptions : function()
     {
+        var me = this;
         var vpc = this.getSelected();
         if (vpc == null) return;
 
-        var retVal = { ok : null, vpcId : vpc.id, dhcpOptionsId : null};
-        window.openDialog("chrome://ew/content/dialogs/associate_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.associateDhcpOptions(retVal.dhcpOptionsId, retVal.vpcId, function() { me.refresh() });
-        }
+        var vpcs = this.core.queryModel('vpcs');
+        var dhcps = this.core.queryModel('dhcpOptions');
+        var values = this.core.promptInput('Associate DHCP Options', [{label:"VPC",type:"menulist",list:vpcs,value:vpc.id,required:1},
+                                                                      {label:"DHCP Options",type:"menulist",list:dhcps,required:1}])
+        if (!values) return;
+        this.core.api.associateDhcpOptions(values[1], values[0], function() { me.refresh() });
     },
 
     attachToVpnGateway : function()
@@ -295,16 +296,29 @@ var ew_DhcpoptsTreeView = {
     },
 
     createDhcpOptions : function () {
-        var retVal = {ok:null, opts:null}
-        window.openDialog("chrome://ew/content/dialogs/create_dhcp_options.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            var wrap = function(id) {
-                me.refresh();
-                me.selectByImageId(id);
-            }
-            this.core.api.createDhcpOptions(retVal.opts, function() { me.refresh(); });
+        var values = this.core.promptInput('Create DHCP Options', [ {label: "Enter the host's domain name (e.g.: example.com)" },
+                                                                    {label: "Enter up to 4 DNS server IP addresses, separated by commas"},
+                                                                    {label: "Enter up to 4 NTP server IP addresses, separated by commas"},
+                                                                    {label: "Enter up to 4 NetBIOS name server IP addresses, separated by commas"},
+                                                                    {label: "Enter the NetBIOS node type (2: P-Node)" }]);
+        if (!values) return;
+        var params = {}
+        if (values[0]) {
+            params["domain-name"] = values[0];
         }
+        if (values[1]) {
+            params["domain-name-servers"] = values[1].split(",");
+        }
+        if (values[2]) {
+            params["ntp-servers"] = values[2].split(",");
+        }
+        if (values[3]) {
+            params["netbios-name-servers"] = values[3].split(",");
+        }
+        if (values[4]) {
+            params["netbios-node-type"] = values[4];
+        }
+        this.core.api.createDhcpOptions(params, function() { me.refresh(); });
     },
 };
 
@@ -502,17 +516,19 @@ var ew_InternetGatewayTreeView = {
 
     attachInternetGateway : function(vpcid, igwid)
     {
-        var retVal = { ok : null, igwnew : 0, igwid : igwid, vpcid : vpcid }
-        window.openDialog("chrome://ew/content/dialogs/attach_internet_gateway.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            if (retVal.igwnew) {
-                this.core.api.createInternetGateway(function(id) {
-                    me.core.api.attachInternetGateway(id, retVal.vpcid, function() {me.refresh()});
-                });
-            } else {
-                this.core.api.attachInternetGateway(retVal.igwid, retVal.vpcid, function() {me.refresh()});
-            }
+        var me = this;
+        var vpcs = this.core.queryModel('vpcs');
+        var igws = this.core.queryModel('internetGateways');
+        var values = this.core.promptInput("Attach Internet Gateway", [ {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},
+                                                                        {label:"Internet Gateway",type:"menulist",list:igws,value:igwid,required:1,oncommand:"rc.items[2].obj.checked=false;"},
+                                                                        {label:"Create New Gateway",type:"checkbox",oncommand:"rc.items[1].obj.value=null"}])
+        if (!values) return;
+        if (values[2]) {
+            this.core.api.createInternetGateway(function(id) {
+                me.core.api.attachInternetGateway(id, vaalues[0], function() {me.refresh()});
+            });
+        } else {
+            this.core.api.attachInternetGateway(values[1], values[0], function() {me.refresh()});
         }
     },
 
@@ -525,8 +541,9 @@ var ew_InternetGatewayTreeView = {
         this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
     },
 };
+
 var ew_RouteTablesTreeView = {
-    model : [ "routeTables", "vpcs", "subnets" ],
+    model : [ "routeTables", "vpcs", "subnets","instances","internetGateways","networkInterfaces" ],
 
     selectionChanged : function()
     {
@@ -574,11 +591,14 @@ var ew_RoutesTreeView = {
         var instances = this.core.queryModel('instances', 'vpcId', table.vpcId);
         var enis = this.core.queryModel('networkInterfaces', 'vpcId', table.vpcId);
 
-        var retVal = { ok: false, title: table.toString(), gws : gws, instances: instances, enis: enis }
-        window.openDialog("chrome://ew/content/dialogs/create_route.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            this.core.api.createRoute(table.id, retVal.cidr, retVal.gatewayId, retVal.instanceId, retVal.networkInterfaceId, function() { ew_RouteTablesTreeView.refresh(true); });
-        }
+        var values = this.core.promptInput("Create Route", [{label:"Route Table",type:"label",value:table.toString()},
+                                                            {label:"CIDR",type:"cidr",required:1},
+                                                            {type:"label",value:"Please, choose only one from the following resources below:",notitle:1},
+                                                            {label:"Internet Gateway",type:"menulist",list:gws,oncommand:"rc.items[4].obj.value=null,rc.items[5].obj.value=null;"},
+                                                            {label:"Instance",type:"menulist",list:instances,oncommand:"rc.items[3].obj.value=null,rc.items[5].obj.value=null;"},
+                                                            {label:"Network Interface",type:"menulist",list:enis,oncommand:"rc.items[3].obj.value=null,rc.items[4].obj.value=null;"}]);
+        if (!values) return;
+        this.core.api.createRoute(table.id, values[1], values[3], values[4], values[5], function() { ew_RouteTablesTreeView.refresh(true); });
     },
 
     deleteRoute : function()
@@ -757,7 +777,7 @@ var ew_NetworkInterfacesTreeView = {
     createInterface : function()
     {
         var rc = { ok: false, title: "Create ENI" };
-        window.openDialog('chrome://ew/content/dialogs/details_eni.xul',null,'chrome,centerscreen,modal,resizable', this.core, rc);
+        window.openDialog('chrome://ew/content/dialogs/edit_eni.xul',null,'chrome,centerscreen,modal,resizable', this.core, rc);
         if (rc.ok) {
             var me = this;
             this.core.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
@@ -779,12 +799,11 @@ var ew_NetworkInterfacesTreeView = {
             alert("Please, select ENI");
             return;
         }
-        var rc = {ok:false};
-        window.openDialog('chrome://ew/content/dialogs/attach_eni.xul',null,'chrome,centerscreen,modal,resizable', this.core, eni, rc);
-        if (rc.ok) {
-            var me = this;
-            this.core.api.attachNetworkInterface(eni.id, rc.instanceId, rc.deviceIndex, function() { me.refresh();});
-        }
+        var instances = this.core.queryModel('instances','vpcId', eni.vpcId, 'availabilityZone', eni.availabilityZone);
+        var values = this.core.promptInput("Attach ENI", [{label:"Instance",type:"menulist",list:instances,required:1},
+                                                          {label:"Device Index",type:"number",required:1}])
+        if (!values) return;
+        this.core.api.attachNetworkInterface(eni.id, values[0], values[1], function() { me.refresh();});
     },
 
     detachInterface : function(force) {
@@ -849,12 +868,14 @@ var ew_VpnConnectionTreeView = {
     },
 
     createVpnConnection : function(cgwid, vgwid) {
-        var retVal = {ok:null, vgwid: vgwid, cgwid: cgwid, type:null}
-        window.openDialog("chrome://ew/content/dialogs/create_vpn_connection.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.createVpnConnection(retVal.type, retVal.cgwid, retVal.vgwid, function() { me.refresh();});
-        }
+        var me = this;
+        var vgws = this.core.queryModel('vpnGateways');
+        var cgws = this.core.queryModel('customerGateways');
+        var values = this.core.promptInput("Create VPN Connection", [{label:"Type",value:"ipsec.1",required:1},
+                                                                     {label:"Customer Gateway",type:"menulist",list:cgws,value:cgwid,required:1},
+                                                                     {label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1}])
+        if (!values) return;
+        this.core.api.createVpnConnection(values[0], values[1], values[2], function() { me.refresh();});
     },
 
     deleteVpnConnection : function () {
@@ -881,12 +902,12 @@ var ew_CustomerGatewayTreeView = {
     },
 
     createCustomerGateway : function () {
-        var retVal = {ok:null,type:null, ipaddress:null, bgpasn:null}
-        window.openDialog("chrome://ew/content/dialogs/create_customer_gateway.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.createCustomerGateway(retVal.type, retVal.ipaddress, retVal.bgpasn, function(id) { me.refresh(); });
-        }
+        var me = this;
+        var values = this.core.promptInput("Create Customer Gateway", [{label:"Type",value:"ipsec.1",required:1},
+                                                                       {label:"IP Address",type:"ip",required:1},
+                                                                       {label:'BGP ASN',type:"number",value:65000} ]);
+        if (!values) return;
+        this.core.api.createCustomerGateway(values[0], values[1], values[2], function(id) { me.refresh(); });
     },
 
     deleteCustomerGateway : function () {
@@ -911,7 +932,7 @@ var ew_CustomerGatewayTreeView = {
 
 
 var ew_VpnGatewayTreeView = {
-    model: ['vpnGateways', 'vpcs'],
+    model: ['vpnGateways', 'vpcs', 'availabilityZones'],
 
     menuChanged : function() {
         var image = this.getSelected();
@@ -926,13 +947,10 @@ var ew_VpnGatewayTreeView = {
     },
 
     createVpnGateway : function () {
-        var retVal = {ok:null,type:null, az:null}
-        window.openDialog("chrome://ew/content/dialogs/create_vpn_gateway.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.createVpnGateway(retVal.type, retVal.az, function() {me.refresh()});
-        }
+        var values = this.core.promptInput('Create VPN Gateway', [{label:"Type",value:"ipsec.1"}, {label:"Availibility Zone",type:"menulist",list:this.core.queryModel('availabilityZones'),key:"name"}])
+        if (!values) return;
+        var me = this;
+        this.core.api.createVpnGateway(values[0], values[1], function() {me.refresh()});
     },
 
     deleteVpnGateway : function () {
@@ -986,12 +1004,14 @@ var ew_VpnAttachmentTreeView = {
 
     attachToVpc : function(vpcid, vgwid)
     {
-        var retVal = { ok : null, vgwid : vgwid, vpcid : vpcid }
-        window.openDialog("chrome://ew/content/dialogs/attach_vpn_gateway.xul", null, "chrome,centerscreen,modal,resizable", this.core, retVal);
-        if (retVal.ok) {
-            var me = this;
-            this.core.api.attachVpnGatewayToVpc(retVal.vgwid, retVal.vpcid, function() { me.refresh() });
-        }
+        var vgws = this.core.queryModel('vpnGateways');
+        var vpcs = this.core.queryModel('vpcs');
+
+        var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1},
+                                                                  {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},])
+        if (!values) return;
+        var me = this;
+        this.core.api.attachVpnGatewayToVpc(values[0], values[1], function() { me.refresh() });
     },
 };
 

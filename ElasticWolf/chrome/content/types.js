@@ -1820,10 +1820,12 @@ function RouteTable(id, vpcId, main, routes, associations, tags)
     }
 }
 
-function AvailabilityZone(name, state)
+function AvailabilityZone(name, state, msg)
 {
+    this.id = name;
     this.name = name;
     this.state = state;
+    this.message = msg || "";
 
     this.toString = function() {
         return this.name + fieldSeparator + this.state;
@@ -2156,5 +2158,25 @@ function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
 
     this.toString = function() {
         return this.Protocol + fieldSepararor + this.Endpoint;
+    }
+}
+
+function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created)
+{
+    this.id = id
+    this.name = name
+    this.engine = engine
+    this.version = version
+    this.host = host
+    this.port = port
+    this.masterUser = user
+    this.dbClass = dbclass
+    this.status = status
+    this.availabilityZone = azone
+    this.allocatedStorage = space
+    this.createTime = created
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
     }
 }

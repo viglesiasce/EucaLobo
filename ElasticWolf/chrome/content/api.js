@@ -11,6 +11,7 @@ var ew_api = {
     STS_API_VERSION: '2011-06-15',
     SQS_API_VERSION: '2011-10-01',
     SNS_API_VERSION: '2010-03-31',
+    RDS_API_VERSION: '2012-04-23',
     SIG_VERSION: '2',
 
     core: null,
@@ -72,6 +73,8 @@ var ew_api = {
         this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
         this.urls.SNS = endpoint.urlSNS || 'https://sns.' + this.region + '.amazonaws.com';
         this.versions.SNS = endpoint.versionSNS || this.SNS_API_VERSION;
+        this.urls.RDS = endpoint.urlRDS || 'https://rds.' + this.region + '.amazonaws.com';
+        this.versions.RDS = endpoint.versionRDS || this.RDS_API_VERSION;
         this.actionIgnore = endpoint.actionIgnore || [];
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
     },
@@ -145,6 +148,11 @@ var ew_api = {
     querySNS : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.SNS, this.versions.SNS);
+    },
+
+    queryRDS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS);
     },
 
     downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
@@ -581,7 +589,7 @@ var ew_api = {
 
     onCompleteResponseText : function(response, id)
     {
-        response.result = response.responseText;
+        response.result = response.responseText.trim();
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -670,7 +678,7 @@ var ew_api = {
 
     createSnapshot : function(volumeId, callback)
     {
-        this.queryEC2("CreateSnapshot", [ [ "VolumeId", volumeId ] ], this, false, "onComplete", callback);
+        this.queryEC2("CreateSnapshot", [ [ "VolumeId", volumeId ] ], this, false, "onComplete:snapshotId", callback);
     },
 
     attachVolume : function(volumeId, instanceId, device, callback)
@@ -688,7 +696,7 @@ var ew_api = {
         if (size != null) params.push([ "Size", size ]);
         if (snapshotId != null) params.push([ "SnapshotId", snapshotId ]);
         if (zone != null) params.push([ "AvailabilityZone", zone ]);
-        this.queryEC2("CreateVolume", params, this, false, "onComplete", callback);
+        this.queryEC2("CreateVolume", params, this, false, "onComplete:volumeId", callback);
     },
 
     deleteSnapshot : function(snapshotId, callback)
@@ -949,14 +957,23 @@ var ew_api = {
     createDhcpOptions : function(opts, callback)
     {
         var params = new Array();
-
-        for ( var i = 0; i < opts.length; i++) {
-            if (opts[i][1] == null || opts[i][1].length == 0) continue;
-
-            params.push([ "DhcpConfiguration." + (i + 1) + ".Key", opts[i][0] ]);
-            for ( var j = 0; j < opts[i][1].length; j++) {
-                params.push([ "DhcpConfiguration." + (i + 1) + ".Value." + (j + 1), opts[i][1][j] ]);
+        var i = 1;
+        for (var p in opts) {
+            params.push([ "DhcpConfiguration." + i + ".Key", p ]);
+            if (opts[p] instanceof Array) {
+                var j = 1;
+                for (var d in opts[p]) {
+                    var val = String(opts[p][d]).trim();
+                    if (val == "") continue;
+                    params.push([ "DhcpConfiguration." + i + ".Value." + j, val ]);
+                    j++
+                }
+            } else {
+                var val = String(opts[p]).trim();
+                if (val == "") continue;
+                params.push([ "DhcpConfiguration." + i + ".Value.1", val ]);
             }
+            i++;
         }
 
         this.queryEC2("CreateDhcpOptions", params, this, false, "onComplete", callback);
@@ -2065,7 +2082,7 @@ var ew_api = {
 
         if (response.hasErrors) {
             // Ignore no website error
-            if (response.faultCode == "NoSuchWebsiteConfiguration") {
+            if (response.errCode == "NoSuchWebsiteConfiguration") {
                 response.hasErrors = false;
             }
         } else {
@@ -2073,9 +2090,8 @@ var ew_api = {
             obj.indexSuffix = getNodeValue(doc[0], "Suffix");
             var doc = xmlDoc.getElementsByTagName("ErrorDocument");
             obj.errorKey = getNodeValue(doc[0], "Key");
-
-            response.result = obj;
         }
+        response.result = obj;
     },
 
     setS3BucketWebsite : function(bucket, index, error, callback)
@@ -2508,11 +2524,12 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var list = new Array();
-        var items = xmlDoc.getElementsByTagName("item");
+        var items = this.getItems(xmlDoc, "availabilityZoneInfo", "item");
         for ( var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "zoneName");
             var state = getNodeValue(items[i], "zoneState");
-            list.push(new AvailabilityZone(name, state));
+            var msg = this.getItems(items[i], "messageSet", "item", ["message"], function(obj) { return obj.message; });
+            list.push(new AvailabilityZone(name, state, msg));
         }
 
         this.core.setModel('availabilityZones', list);
@@ -3943,6 +3960,37 @@ var ew_api = {
     setSubscriptionAttributes : function(id, name, value, callback)
     {
         this.querySNS("SetSubscriptionAttributes", [ ["SubscriptionArn", id], ["AttributeName", name], ["AttributeValue", value] ], this, false, "onComplete", callback);
+    },
+
+    describeDBInstances : function(callback)
+    {
+        this.queryRDS("DescribeDBInstances", [], this, false, "onCompleteDescribeDBInstances", callback);
+    },
+
+    onCompleteDescribeDBInstances : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBInstances", "DBInstance");
+        for (var i = 0; i < items.length; i++) {
+            var id = getNodeValue(items[i], "DBInstanceIdentifier");
+            var name = getNodeValue(items[i], "DBName");
+            var engine = getNodeValue(items[i], "Engine");
+            var ver = getNodeValue(items[i], "EngineVersion");
+            var host = getNodeValue(items[i], "Endpoint", "Address");
+            var port = getNodeValue(items[i], "Endpoint", "Port");
+            var user = getNodeValue(items[i], "MasterUsername");
+            var dbclass = getNodeValue(items[i], "DBInstanceClass");
+            var status = getNodeValue(items[i], "DBInstanceStatus");
+            var azone = getNodeValue(items[i], "AvailabilityZone");
+            var space = getNodeValue(items[i], "AllocatedStorage");
+            var created = getNodeValue(items[i], "InstanceCreateTime");
+
+            list.push(new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created))
+        }
+
+        this.core.setModel('dbinstances', list);
+        response.result = list;
     },
 
 };

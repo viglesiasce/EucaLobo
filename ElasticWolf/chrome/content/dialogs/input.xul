@@ -9,11 +9,12 @@
   ondialogcancel="return true;"
   onload="init();">
 
+  <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
   <script>
   <![CDATA[
 
     function init() {
-      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data'];
+      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
       this.rc = window.arguments[0];
       document.title = rc.title;
       var parent = document.getElementById('main');
@@ -62,6 +63,9 @@
                  e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
                  popup.appendChild(e);
              }
+             item.setAttribute('flex','1');
+             item.setAttribute('crop','end');
+             item.setAttribute('sizetopopup','none');
              item.setAttribute('value', value);
              break;
 
@@ -89,11 +93,25 @@
              }
              break;
 
+          case 'name':
+          case 'autocomplete':
+             item = document.createElement('textbox');
+             item.setAttribute('type', 'autocomplete');
+             item.setAttribute('value', value);
+             item.setAttribute('autocompletesearch', "form-history");
+             item.setAttribute('size', rc.items[i].size || 45);
+             break;
+
+          case 'checkbox':
+             item = document.createElement('checkbox');
+             item.setAttribute('checked', value);
+             break;
+
           default:
              item = document.createElement(type);
              item.setAttribute('value', value);
           }
-
+          rc.items[i].obj = item;
           item.setAttribute('id', 'item' + i);
 
           for (var p in rc.items[i]) {
@@ -228,24 +246,32 @@
 
           case 'cidr':
              rc.values[i] = obj.value;
-             if (!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+/.test(obj.value)) {
+             if (obj.value && !/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+/.test(obj.value)) {
                  alert('Invalid CIDR Block');
-                 return false;
-             }
-             break;
-
-          case 'email':
-             rc.values[i] = obj.value;
-             if (!/([^@]+)@([^@]+)/.test(obj.value)) {
-                 alert('Invalid Email Address');
                  return false;
              }
              break;
 
           case 'ip':
              rc.values[i] = obj.value;
-             if (!/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/.test(obj.value)) {
+             if (obj.value && !/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/.test(obj.value)) {
                  alert('Invalid IP Address');
+                 return false;
+             }
+             break;
+
+          case 'email':
+             rc.values[i] = obj.value;
+             if (obj.value && !/([^@]+)@([^@]+)/.test(obj.value)) {
+                 alert('Invalid Email Address');
+                 return false;
+             }
+             break;
+
+          case 'name':
+             rc.values[i] = obj.value;
+             if (obj.value && !/^[.0-9a-zA-Z_\(\),\/-]{3,128}$/.test(obj.value)) {
+                 alert("The name is not formatted properly; it must be 3-128 characters in length containing alphanumerics, parantheses, commas, slashes, dashes, and underscores.");
                  return false;
              }
              break;

@@ -60,6 +60,7 @@ var ew_core = {
         elbPolicyTypes: null,
         topics: null,
         subscriptions: null,
+        dbinstances: null,
     },
 
     // Intialize core object with current menu and api implementation
@@ -913,7 +914,7 @@ var ew_core = {
     },
 
     // Wrapper around global debug with multiple parameters
-    showDebug: function()
+    log: function()
     {
         var str = "";
         for (var i = 0; i < arguments.length; i++) {
@@ -1601,6 +1602,10 @@ var ew_core = {
                 break;
             case "subscriptions":
                 this.api.listSubscriptions();
+                break;
+            case "dbinstances":
+                this.api.describeDBInstances();
+                break;
             }
         }
     },
