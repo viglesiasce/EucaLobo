@@ -37,6 +37,7 @@
 <?xul-overlay href="chrome://ew/content/views/sqs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
+<?xul-overlay href="chrome://ew/content/views/r53.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
@@ -49,6 +50,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/core.js" />
   <script type="application/x-javascript" src="chrome://ew/content/api.js" />
 
+  <script type="application/x-javascript" src="chrome://ew/content/views/r53.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/rds.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/sns.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/sqs.js" />
@@ -179,6 +181,9 @@
                                                        { id: "ew.subscriptions.view", view: ew_SNSSubscriptionsTreeView } ], },
 
             { name: "ew.tabs.alarm",         views: [ { id: "ew.alarms.view", view: ew_AlarmsTreeView }], },
+
+            { name: "ew.tabs.r53",           views: [ { id: "ew.hostedZones.view", view: ew_HostedZonesTreeView },
+                                                      { id: "ew.hostedRecords.view", view: ew_HostedRecordsTreeView }], },
 
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
     ]
@@ -331,6 +336,12 @@
        </treerow>
       </treeitem>
 
+      <treeitem container="true" empty="true">
+       <treerow>
+         <treecell label="Route 53" value="ew.tabs.r53" src="images/53.png" />
+       </treerow>
+      </treeitem>
+
       <treeitem container="true" open="true">
        <treerow>
          <treecell label="Relational Database Service" src="images/rds.png" />
@@ -382,6 +393,7 @@
       <tabpanel id="ew.tabs.cgw"/>
       <tabpanel id="ew.tabs.availzone"/>
       <tabpanel id="ew.tabs.s3"/>
+      <tabpanel id="ew.tabs.r53"/>
       <tabpanel id="ew.tabs.alarm"/>
       <tabpanel id="ew.tabs.db.instance"/>
 

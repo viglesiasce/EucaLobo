@@ -2161,7 +2161,7 @@ function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
     }
 }
 
-function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created)
+function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created, license)
 {
     this.id = id
     this.name = name
@@ -2175,8 +2175,39 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     this.availabilityZone = azone
     this.allocatedStorage = space
     this.createTime = created
+    this.license = license
 
     this.toString = function() {
         return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
+    }
+}
+
+function HostedZone(id, name, ref, count, comment)
+{
+    this.id = id
+    this.name = name
+    this.reference = ref
+    this.count = count
+    this.comment = comment
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.count;
+    }
+}
+
+function HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region)
+{
+    this.name = name
+    this.type = type
+    this.ttl = ttl || "";
+    this.values = values || [];
+    this.hostedZoneId = zone || "";
+    this.dnsName = dns || "";
+    this.setId = setid || "";
+    this.weight = weight || "";
+    this.region = region || "";
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.type + fieldSeparator + this.values;
     }
 }

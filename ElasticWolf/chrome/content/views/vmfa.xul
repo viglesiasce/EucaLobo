@@ -3,7 +3,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <tabpanel id="ew.tabs.vmfa" flex="1">
-        <groupbox orient="vertical" flex="1" id="eip.tree.holder">
+        <groupbox orient="vertical" flex="1" >
             <caption label="Virtual MFA Devices" />
             <popupset>
                 <menupopup id="ew.vmfas.contextmenu" >

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.r53" flex="1">
+    <vbox flex="1">
+
+    <groupbox flex="1" orient="vertical">
+        <caption label="Hosted Zones" />
+        <popupset>
+            <menupopup id="ew.hostedZones.contextmenu">
+                <menuitem oncommand="ew_HostedZonesTreeView.create()" label="Create Zone" />
+                <menuitem oncommand="ew_HostedZonesTreeView.deleteSelected();" label="Delete Zone" />
+            </menupopup>
+        </popupset>
+        <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <textbox id="ew.hostedZones.search" size="15" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_HostedZonesTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="Create Zone" oncommand="ew_HostedZonesTreeView.create();" />
+            <toolbarbutton image="images/delete.png" tooltiptext="Delete Zone" oncommand="ew_HostedZonesTreeView.deleteSelected();" />
+        </toolbar>
+        <tree enableColumnDrag="true" id="ew.hostedZones.view" flex="1">
+            <treecols>
+                <treecol id="zone.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="zone.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="zone.reference" label="Reference" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="zone.comment" label="Comment" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="zone.count" label="Records" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+            </treecols>
+            <treechildren id="ew.hostedZones.children" context="ew.hostedZones.contextmenu" />
+        </tree>
+    </groupbox>
+
+    <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
+       <grippy />
+    </splitter>
+
+    <groupbox flex="1" orient="vertical">
+            <caption label="Zone Records" />
+            <popupset>
+                <menupopup id="ew.hostedRecords.contextmenu">
+                    <menuitem oncommand="ew_HostedRecordsTreeView.displayDetails()" label="View Details" />
+                    <menuitem oncommand="ew_HostedRecordsTreeView.create()" label="Create Record" />
+                    <menuitem oncommand="ew_HostedRecordsTreeView.deleteSelected();" label="Deleet Record" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.hostedRecords.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_HostedRecordsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Create Record" oncommand="ew_HostedRecordsTreeView.create();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Deleet Record" oncommand="ew_HostedRecordsTreeView.deleteSelected();" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.hostedRecords.view" flex="1">
+                <treecols>
+                    <treecol id="rec.type" label="Type" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="rec.name" label="Name" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="rec.values" label="Values" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.hostedRecords.children" context="ew.hostedRecords.contextmenu" />
+            </tree>
+    </groupbox>
+
+    </vbox>
+    </tabpanel>
+</overlay>

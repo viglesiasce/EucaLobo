@@ -61,6 +61,8 @@ var ew_core = {
         topics: null,
         subscriptions: null,
         dbinstances: null,
+        hostedZones: null,
+        hostedChanges: [],
     },
 
     // Intialize core object with current menu and api implementation
@@ -1606,6 +1608,9 @@ var ew_core = {
             case "dbinstances":
                 this.api.describeDBInstances();
                 break;
+            case "hostedZones":
+                this.api.listHostedZones();
+                break;
             }
         }
     },
@@ -1672,6 +1677,19 @@ var ew_core = {
             }
         }
         return obj;
+    },
+
+    // Updates existing object or adds a new one to the model
+    replaceModel: function(model, obj, field)
+    {
+        var o = this.findModel(this.getModel(model), obj[field || 'id']);
+        if (o) {
+            for (var p in obj) {
+                o[p] = obj[p];
+            }
+        } else {
+            this.addModel(model, obj);
+        }
     },
 
     // Clean up all lists, mostly in credentials switch
@@ -1933,7 +1951,7 @@ var ew_core = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    versionIAM: '2010-05-08',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: [ "DescribeLoadBalancers", "ListQueues" ],
+                   actionIgnore: [ "DescribeLoadBalancers", "ListQueues", "DescribeDBInstances" , "ListTopics", "ListSubscriptions", "hostedzone" ],
                  },
             ];
     },

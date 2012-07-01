@@ -5,7 +5,7 @@
     <tabpanel id="ew.tabs.access" flex="1">
     <vbox flex="1">
 
-    <groupbox flex="1" id="accesskeys.tree.holder" orient="vertical">
+    <groupbox flex="1" orient="vertical">
         <caption label="&ew.captions.accesskeys.label;" />
         <popupset>
             <menupopup id="accesskey.tree.contextmenu">
@@ -49,7 +49,7 @@
         <grippy />
       </splitter>
 
-        <groupbox flex="1" id="keypairs.tree.holder" orient="vertical">
+        <groupbox flex="1" orient="vertical">
             <caption label="&ew.captions.keypairs.label;" />
             <popupset>
                 <menupopup id="keypair.tree.contextmenu">

@@ -4,7 +4,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <tabpanel id="ew.tabs.groups" flex="1">
       <vbox flex="1">
-        <groupbox orient="vertical" flex="1" id="eip.tree.holder">
+        <groupbox orient="vertical" flex="1" >
             <caption label="Groups" />
             <popupset>
                 <menupopup id="ew.groups.contextmenu" >
@@ -44,7 +44,7 @@
             <grippy />
         </splitter>
 
-        <groupbox orient="vertical" flex="1" id="eip.tree.holder">
+        <groupbox orient="vertical" flex="1">
             <caption label="Group Users" />
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.groupUsers.search" size="15" />

@@ -4,7 +4,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <tabpanel id="ew.tabs.cert" flex="1">
     <vbox flex="1">
-        <groupbox flex="1" id="certs.tree.holder" orient="vertical">
+        <groupbox flex="1" orient="vertical">
             <caption label="&ew.captions.certs.label;" />
             <popupset>
                 <menupopup id="certs.tree.contextmenu">
@@ -35,7 +35,7 @@
         <grippy />
         </splitter>
 
-        <groupbox flex="1" id="serverCerts.tree.holder" orient="vertical">
+        <groupbox flex="1" orient="vertical">
             <caption label="Server Certificates" />
             <popupset>
                 <menupopup id="serverCerts.tree.contextmenu">

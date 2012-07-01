@@ -4,7 +4,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <tabpanel id="ew.tabs.loadbalancer" flex="1">
     <vbox flex="1">
-    <groupbox orient="vertical" flex="1" id="loadbalancer.tree.holder">
+    <groupbox orient="vertical" flex="1" >
       <caption label="&ew.captions.loadbalancer.label;" />
        <popupset >
           <menupopup id="loadbalancer.tree.contextmenu"  onpopupshowing="ew_LoadbalancerTreeView.menuChanged(event);">

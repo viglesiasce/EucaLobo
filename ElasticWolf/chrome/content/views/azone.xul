@@ -3,7 +3,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <tabpanel id="ew.tabs.availzone" flex="1">
-    <groupbox orient="vertical" flex="1" id="azones.tree.holder">
+    <groupbox orient="vertical" flex="1" >
       <caption label="&ew.captions.azones.label;" />
       <toolbar style="padding: 0px 3px; -moz-box-align: center">
         <toolbarbutton image="images/refresh.png" oncommand="ew_AvailZoneTreeView.refresh()"

@@ -12,6 +12,7 @@ var ew_api = {
     SQS_API_VERSION: '2011-10-01',
     SNS_API_VERSION: '2010-03-31',
     RDS_API_VERSION: '2012-04-23',
+    R53_API_VERSION: '2012-02-29',
     SIG_VERSION: '2',
 
     core: null,
@@ -75,6 +76,8 @@ var ew_api = {
         this.versions.SNS = endpoint.versionSNS || this.SNS_API_VERSION;
         this.urls.RDS = endpoint.urlRDS || 'https://rds.' + this.region + '.amazonaws.com';
         this.versions.RDS = endpoint.versionRDS || this.RDS_API_VERSION;
+        this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
+        this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
         this.actionIgnore = endpoint.actionIgnore || [];
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
     },
@@ -113,13 +116,6 @@ var ew_api = {
         return xmlhttp;
     },
 
-    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
-    {
-        if (!this.isEnabled()) return null;
-
-        return this.queryEC2Impl(action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion);
-    },
-
     queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
@@ -155,74 +151,10 @@ var ew_api = {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS);
     },
 
-    downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
+    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
     {
         if (!this.isEnabled()) return null;
 
-        var req = this.queryS3Prepare(method, bucket, key, path, params, null);
-        return this.download(req.url, req.headers, file, callback, progresscb);
-    },
-
-    uploadS3: function(bucket, key, path, params, filename, callback, progresscb)
-    {
-        if (!this.isEnabled()) return null;
-
-        var file = FileIO.streamOpen(filename);
-        if (!file) {
-            alert('Cannot open ' + filename)
-            return false;
-        }
-        var length = file[1].available();
-        params["Content-Length"] = length;
-
-        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
-
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return null;
-        }
-        xmlhttp.open(req.method, req.url, true);
-        for (var p in req.headers) {
-            xmlhttp.setRequestHeader(p, req.headers[p]);
-        }
-        xmlhttp.send(file[1]);
-
-        var timer = setInterval(function() {
-            try {
-                var a = length - file[1].available();
-                if (progresscb) progresscb(filename, Math.round(a / length * 100));
-            }
-            catch(e) {
-                debug('Error: ' + e);
-                this.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
-            }
-        }, 300);
-
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState != 4) return;
-            FileIO.streamClose(file);
-            clearInterval(timer);
-            if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
-                if (progresscb) progresscb(filename, 100);
-                if (callback) callback(filename);
-            } else {
-                var rsp = this.createResponseError(xmlhttp);
-                this.core.errorDialog("S3 responded with an error for "+ bucket + "/" + key + path, rsp);
-            }
-        };
-        return true;
-    },
-
-    queryS3 : function (method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
-    {
-        if (!this.isEnabled()) return null;
-
-        return this.queryS3Impl(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback);
-    },
-
-    queryEC2Impl : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
-    {
         var curTime = new Date();
         var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
 
@@ -292,6 +224,47 @@ var ew_api = {
         return this.sendRequest(xmlhttp, url, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
     },
 
+    queryRoute53 : function(method, action, content, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        var curTime = new Date().toUTCString();
+
+        var url = this.urls.R53 + "/" + this.versions.R53 + "/" + action.substr(action[0] == '/' ? 1 : 0);
+
+        if (!params) params = {}
+
+        // Required headers
+        if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
+        if (!params["Content-Type"]) params["Content-Type"] = "text/xml; charset=UTF-8";
+        if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
+
+        // Without media type mozilla changes encoding and signatures do not match
+        if (params["Content-Type"] && params["Content-Type"].indexOf("charset=") == -1) {
+            params["Content-Type"] += "; charset=UTF-8";
+        }
+
+        // Construct the string to sign and query string
+        var strSig = curTime;
+
+        params["X-Amzn-Authorization"] = "AWS3-HTTPS AWSAccessKeyId=" + this.accessKey + ",Algorithm=HmacSHA1,Signature=" + b64_hmac_sha1(this.secretKey, strSig);
+        params["User-Agent"] = this.core.getUserAgent();
+        params["Connection"] = "close";
+
+        log("R53 [" + method + ":" + url + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            debug("Could not create xmlhttp object");
+            return null;
+        }
+        xmlhttp.open(method, url, !isSync);
+
+        for (var p in params) {
+            xmlhttp.setRequestHeader(p, params[p]);
+        }
+
+        return this.sendRequest(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback);
+    },
+
     queryS3Prepare : function(method, bucket, key, path, params, content)
     {
         var curTime = new Date().toUTCString();
@@ -348,13 +321,74 @@ var ew_api = {
         params["User-Agent"] = this.core.getUserAgent();
         params["Connection"] = "close";
 
-        debug("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+        log("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
 
         return { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, sig: strSig, time: curTime }
     },
 
-    queryS3Impl : function(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
+    downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
     {
+        if (!this.isEnabled()) return null;
+
+        var req = this.queryS3Prepare(method, bucket, key, path, params, null);
+        return this.download(req.url, req.headers, file, callback, progresscb);
+    },
+
+    uploadS3: function(bucket, key, path, params, filename, callback, progresscb)
+    {
+        if (!this.isEnabled()) return null;
+
+        var file = FileIO.streamOpen(filename);
+        if (!file) {
+            alert('Cannot open ' + filename)
+            return false;
+        }
+        var length = file[1].available();
+        params["Content-Length"] = length;
+
+        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return null;
+        }
+        xmlhttp.open(req.method, req.url, true);
+        for (var p in req.headers) {
+            xmlhttp.setRequestHeader(p, req.headers[p]);
+        }
+        xmlhttp.send(file[1]);
+
+        var timer = setInterval(function() {
+            try {
+                var a = length - file[1].available();
+                if (progresscb) progresscb(filename, Math.round(a / length * 100));
+            }
+            catch(e) {
+                debug('Error: ' + e);
+                this.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
+            }
+        }, 300);
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState != 4) return;
+            FileIO.streamClose(file);
+            clearInterval(timer);
+            if (xmlhttp.status >= 200 && xmlhttp.status < 300) {
+                if (progresscb) progresscb(filename, 100);
+                if (callback) callback(filename);
+            } else {
+                var rsp = this.createResponseError(xmlhttp);
+                this.core.errorDialog("S3 responded with an error for "+ bucket + "/" + key + path, rsp);
+            }
+        };
+        return true;
+    },
+
+    queryS3 : function(method, bucket, key, path, params, content, handlerObj, isSync, handlerMethod, callback)
+    {
+        if (!this.isEnabled()) return null;
+
         var req = this.queryS3Prepare(method, bucket, key, path, params, content);
 
         var xmlhttp = this.getXmlHttp();
@@ -529,13 +563,18 @@ var ew_api = {
         rc.requestId = "";
         rc.hasErrors = true;
 
-        if (xmlhttp) {
-            if (xmlhttp.responseXML) {
-                rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
-                rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
-                rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
+        if (xmlhttp && xmlhttp.responseXML) {
+            // EC2 common error reponse format
+            rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
+            rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
+            rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
+
+            // Route53 error messages
+            if (!obj.errString) {
+                rc.errString = this.getItms(xmlhttp.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
+                if (rc.errString) rc.errCode = "InvalidChangeBatch";
             }
-            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url)
+            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url);
         }
         return rc;
     },
@@ -551,7 +590,7 @@ var ew_api = {
                  method: handlerMethod,
                  isSync: isSync,
                  hasErrors: false,
-                 params: params,
+                 params: params || {},
                  callback: callback,
                  result: null,
                  errCode: "",
@@ -3985,12 +4024,166 @@ var ew_api = {
             var azone = getNodeValue(items[i], "AvailabilityZone");
             var space = getNodeValue(items[i], "AllocatedStorage");
             var created = getNodeValue(items[i], "InstanceCreateTime");
+            var license = getNodeValue(items[i], "LicenseModel");
 
-            list.push(new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created))
+            list.push(new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created, license))
         }
 
         this.core.setModel('dbinstances', list);
         response.result = list;
     },
 
+    unpackHostedZone: function(item)
+    {
+        if (!item) return null;
+        var id = getNodeValue(item, "Id");
+        var name = getNodeValue(item, "Name")
+        var ref = getNodeValue(item, "CallerReference")
+        var count = getNodeValue(item, "ResourceRecordSetCount");
+        var comment = getNodeValue(item, "Config", "Comment");
+        return new HostedZone(id, name, ref, count, comment);
+    },
+
+    listHostedZones: function(callback)
+    {
+        this.queryRoute53("GET", "hostedzone", null, {}, this, false, "onCompleteListHostedZones", callback);
+    },
+
+    onCompleteListHostedZones : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "HostedZones", "HostedZone");
+        for (var i = 0; i < items.length; i++) {
+            list.push(this.unpackHostedZone(items[i]));
+        }
+
+        this.core.setModel('hostedZones', list);
+        response.result = list;
+    },
+
+    getHostedZone: function(id, callback)
+    {
+        this.queryRoute53("GET", id, null, {}, this, false, "onCompleteGetHostedZone", callback);
+    },
+
+    onCompleteGetHostedZone : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var obj = this.unpackHostedZone(xmlDoc.getElementsByTagName('HostedZone')[0]);
+        obj.nameServers = this.getItems(xmlDoc, "DelegationSet", "NameServers", [ "NameServer" ], function(obj) { return obj.NameServer; });
+        response.result = obj;
+    },
+
+    deleteHostedZone: function(id, callback)
+    {
+        this.queryRoute53("DELETE", id, null, {}, this, false, "onComplete", callback);
+    },
+
+    createHostedZone: function(name, ref, comment, callback)
+    {
+        var content = '<?xml version="1.0" encoding="UTF-8"?>\n<CreateHostedZoneRequest xmlns="https://route53.amazonaws.com/doc/2012-02-29/">' +
+                      '<Name>' + name + '</Name>' +
+                      '<CallerReference>' + ref + '</CallerReference>' +
+                      '<HostedZoneConfig><Comment>' + (comment || "") + '</Comment></HostedZoneConfig>' +
+                      '</CreateHostedZoneRequest>\n';
+
+        this.queryRoute53("POST", 'hostedzone', content, {}, this, false, "onCompleteCreateHostedZone", callback);
+    },
+
+    onCompleteCreateHostedZone : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var obj = this.unpackHostedZone(xmlDoc.getElementsByTagName('HostedZone')[0]);
+        obj.nameServers = this.getItems(xmlDoc, "DelegationSet", "NameServers", [ "NameServer" ], function(obj) { return obj.NameServer; });
+        obj.requestId = getNodeValue(xmlDoc, 'ChangeInfo', 'Id');
+        obj.status = getNodeValue(xmlDoc, 'ChangeInfo', 'Status');
+        obj.submitted = getNodeValue(xmlDoc, 'ChangeInfo', 'SubmittedAt');
+        this.core.replaceModel('hostedChanges', obj)
+        response.result = obj;
+    },
+
+    listResourceRecordSets: function(id, callback)
+    {
+        this.queryRoute53("GET", id + '/rrset', null, {}, this, false, "onCompleteListResourceRecordSets", callback);
+    },
+
+    onCompleteListResourceRecordSets : function(response)
+    {
+        var id = response.action.match(/(\/hostedzone\/[^\/]+)\//)[1];
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "ResourceRecordSets", "ResourceRecordSet");
+        for (var i = 0; i < items.length; i++) {
+            var type = getNodeValue(items[i], "Type");
+            var name = getNodeValue(items[i], "Name")
+            var ttl = getNodeValue(items[i], "TTL")
+            var zone = getNodeValue(items[i], "AliasTarget", "HostedZoneId");
+            var dns = getNodeValue(items[i], "AliasTarget", "DNSName");
+            var setid = getNodeValue(items[i], "SetIdentifier");
+            var weight = getNodeValue(items[i], "Weight");
+            var region = getNodeValue(items[i], "Region");
+            var values = this.getItems(items[i], "ResourceRecords", "ResourceRecord", ["Value"], function(obj) { return obj.Value; })
+
+            list.push(new HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region));
+        }
+
+        this.core.updateModel('hostedZones', id, 'records', list);
+        response.result = list;
+    },
+
+    changeResourceRecordSets: function(action, id, rec, callback)
+    {
+        var content = '<?xml version="1.0" encoding="UTF-8"?>' +
+                      '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012- 02-29/">' +
+                      '<ChangeBatch><Comment></Comment>' +
+                      '<Changes>' +
+                      '<Change><Action>' + action + '</Action>'+
+                      '<ResourceRecordSet>' +
+                      '<Name>' + rec.name + '</Name>' +
+                      '<Type>' + rec.type + '</Type>';
+
+        if (rec.ttl) contents += '<TTL>' + rec.ttl + '</TTL>';
+        if (rec.weight) contents += '<Weight>' + rec.weight + '</Weight>';
+        if (rec.setId) contents += '<SetIdentifier>' + rec.setId + '</SetIdentifier>';
+        if (rec.region) contents += '<Region>' + rec.region + '</Region>';
+        if (rec.hostedZoneId || rec.dnsName) {
+            contents += '<AliasTarget>';
+            if (rec.hostedZoneId) contents += '<HostedZoneId>' + rec.hostedZoneId + '</HostedZoneId>';
+            if (rec.dnsName) contents += '<DNSName>' + rec.dnsName + '</DNSName>';
+            contents += '</AliasTarget>';
+        }
+
+        if (rec.values.length) {
+            contents += '<ResourceRecords><ResourceRecord>';
+            for (var i = 0; i < rec.values.length; i++) {
+                content += '<Value>' + rec.values[i] + '</Value>';
+            }
+            content += '</ResourceRecord></ResourceRecords>';
+        }
+
+        contents += '</ResourceRecordSet>' +
+                    '</Change>' +
+                    '</Changes>' +
+                    '</ChangeBatch>' +
+                    '</ChangeResourceRecordSetsRequest>';
+
+        this.queryRoute53("POST", id + '/rrset', content, {}, this, false, "onCompleteChangeResourceRecordSets", callback);
+    },
+
+    getChange: function(id, callback)
+    {
+        this.queryRoute53("GET", 'change/' + id, null, {}, this, false, "onCompleteListResourceRecordSets", callback);
+    },
+
+    onCompleteChangeResourceRecordSets: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var obj = {}
+        obj.id = getNodeValue(xmlDoc, "ChangeInfo", "Id");
+        obj.status = getNodeValue(xmlDoc, 'ChangeInfo', 'Status');
+        obj.submitted = getNodeValue(xmlDoc, 'ChangeInfo', 'SubmittedAt');
+        this.core.replaceModel('hostedChanges', obj)
+        response.result = obj;
+    },
 };
