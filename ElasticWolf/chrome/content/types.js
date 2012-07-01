@@ -2161,7 +2161,8 @@ function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
     }
 }
 
-function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created, license)
+function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created, license, upgrade, brperiod, charset,
+                    lrtime, multiAZ, bkwin, prefwin, replicas, srcreplica, optname, optstatus, pendingMods, subnetgrp, sgroups, pgroups)
 {
     this.id = id
     this.name = name
@@ -2169,16 +2170,55 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     this.version = version
     this.host = host
     this.port = port
-    this.masterUser = user
-    this.dbClass = dbclass
+    this.masterUsername = user
+    this.instanceClass = dbclass
     this.status = status
     this.availabilityZone = azone
     this.allocatedStorage = space
-    this.createTime = created
-    this.license = license
+    this.instanceCreateTime = created
+    this.licenseModel = license
+    this.autoMinorVersionUpgrade = upgrade
+    this.backupRetentionPeriod = brperiod
+    this.charSet = charset
+    this.latestRestorableTime = lrtime
+    this.multiAZ = multiAZ
+    this.preferredBackupWindow = bkwin
+    this.preferredMaintenanceWindow = prefwin
+    this.readReplicaDBInstanceIdentifiers = replicas
+    this.readReplicaSourceDBInstanceIdentifier = srcreplica
+    this.optionGroupName = optname
+    this.optionGroupStatus = optstatus
+    this.pendingModifiedValues = pendingMods
+    this.subnetGroup = subnetgrp
+    this.securityGroups = sgroups
+    this.parametersGroups = pgroups
 
     this.toString = function() {
         return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
+    }
+}
+
+function DBSubnet(id, availabilityZone, status)
+{
+    this.id = id
+    this.availabilityZone = AvailabilityZone
+    this.status = status
+
+    this.toString = function() {
+        return this.id + fieldSeparator + this.availabilityZone + fieldSeparator + this.status
+    }
+}
+
+function DBSubnetGroup(name, descr, status, vpcId, subnets)
+{
+    this.name = name
+    this.descr = descr
+    this.status = status
+    this.vpcId = vpcId
+    this.subnets = subnets
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets;
     }
 }
 

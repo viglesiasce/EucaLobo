@@ -27,7 +27,7 @@
                     <splitter class="tree-splitter" />
                     <treecol id="instance.status" label="Status" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="instance.dbClass" label="Class" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="instance.instanceClass" label="Class" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="instance.host" label="Host" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
