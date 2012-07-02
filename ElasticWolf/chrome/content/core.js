@@ -1757,7 +1757,7 @@ var ew_core = {
                 for (p in obj) {
                     if (typeof obj[p] == "function") {
                         if (p != "toString") continue;
-                        item += (item != "" ? fieldSseparator : "") + obj.toString();
+                        item += (item != "" ? fieldSeparator : "") + obj.toString();
                     } else
                     if (!columns || columns.indexOf(p) >= 0) {
                         item += (item != "" ? fieldSeparator : "") + this.modelValue(p, obj[p]);

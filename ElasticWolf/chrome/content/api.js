@@ -27,6 +27,7 @@ var ew_api = {
     errorCount: 0,
     errorMax: 3,
     errorTime: 0,
+    errorTimeout: 5000,
 
     isEnabled: function()
     {
@@ -537,7 +538,7 @@ var ew_api = {
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
             var now = (new Date()).getTime();
-            if (this.errorCount < this.errorMax || now - this.errorTime > 15000) {
+            if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
                 if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
                     this.core.errorDialog("Server responded with an error for " + rc.action, rc)
                 }
