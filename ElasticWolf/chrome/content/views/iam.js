@@ -64,6 +64,7 @@ var ew_UsersTreeView = {
             this.core.api.createUser(values[0], values[1], function(user) {
                 me.core.addModel('users', user);
                 me.invalidate();
+                me.select(user)
             })
         }
     },
@@ -150,16 +151,13 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var name = prompt("Enter new policy name");
-        if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}';
-        text = this.core.promptForText('Enter policy permissions',text);
-        if (text) {
-            this.core.api.putUserPolicy(item.name, name, text, function() {
-                item.policies = null;
-                me.selectionChanged();
-            });
-        }
+        var values = this.core.promptInput('Policy', [{label:"Policy name",type:"name",required:1},
+                                                      {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:'{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}'}]);
+        if (!values) return;
+        this.core.api.putUserPolicy(item.name, values[0], values[1], function() {
+            item.policies = null;
+            me.selectionChanged();
+        });
     },
 
     editPolicy: function()
@@ -358,7 +356,7 @@ var ew_GroupsTreeView = {
         if (idx < 0) return;
         this.core.api.addUserToGroup(users[idx].name, item.name, function() {
             item.users = null;
-            me.selectionChanged();
+            me.invalidate();
         });
     },
 
@@ -372,7 +370,7 @@ var ew_GroupsTreeView = {
         if (!confirm("Remove user " + user.name + " from group " + item.name + "?")) return;
         this.core.api.removeUserFromGroup(user.name, item.name, function() {
             item.users = null;
-            me.selectionChanged();
+            me.invalidate();
         });
     },
 
@@ -382,8 +380,9 @@ var ew_GroupsTreeView = {
         var values = this.core.promptInput('Create Group', [{label:"Group Name",required:1}, {label:"Path"}]);
         if (values) {
             this.core.api.createGroup(values[0], values[1], function(group) {
-                me.core.addModel('groups', group)
-                me.selectionChanged();
+                me.core.addModel('groups', group);
+                me.invalidate();
+                me.select(group);
             })
         }
     },
@@ -418,16 +417,13 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var name = prompt("Enter new policy name");
-        if (!name) return;
-        var text = '{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}';
-        text = this.core.promptForText('Enter policy permissions',text);
-        if (text) {
-            this.core.api.putGroupPolicy(item.name, name, text, function() {
-                item.policies = null;
-                me.selectionChanged();
-            });
-        }
+        var values = this.core.promptInput('Policy', [{label:"Policy name",type:"name",required:1},
+                                                      {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:'{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}'}]);
+        if (!values) return;
+        this.core.api.putGroupPolicy(item.name, values[0], values[1], function() {
+            item.policies = null;
+            me.invalidate();
+        });
     },
 
     editPolicy: function()

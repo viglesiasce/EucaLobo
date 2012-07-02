@@ -570,7 +570,7 @@ var ew_api = {
             rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
 
             // Route53 error messages
-            if (!obj.errString) {
+            if (!rc.errString) {
                 rc.errString = this.getItms(xmlhttp.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
                 if (rc.errString) rc.errCode = "InvalidChangeBatch";
             }
