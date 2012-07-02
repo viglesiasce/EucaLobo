@@ -6,7 +6,7 @@
 var ew_core = {
     VERSION: "2.0",
     NAME: 'ElasticWolf',
-    URL: 'http://www.awsps.com/ElasticWolf/Releases/',
+    URL: 'http://www.awsps.com/ElasticWolf/',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
 
@@ -955,7 +955,7 @@ var ew_core = {
                 while (d = rx.exec(data)) {
                     debug(d);
                     if (parseFloat(d[1]) > parseFloat(me.VERSION)) {
-                        alert("New version " + d[1] + "is available at " + me.URL)
+                        me.promptInput('Update', [{label:"New version " + d[1] + "is available at",value:me.URL,type:"link",url:me.URL}]);
                         return;
                     }
                 }

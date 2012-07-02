@@ -48,6 +48,13 @@
              item.setAttribute('src', value);
              break;
 
+          case 'link':
+             item = document.createElement('description');
+             item.setAttribute('style', 'color:blue');
+             item.setAttribute('value', value);
+             item.setAttribute('onclick', "rc.core.displayUrl('" + rc.items[i].url + "')");
+             break;
+
           case 'menulist':
              item = document.createElement(type);
              var popup = document.createElement('menupopup');
