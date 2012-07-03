@@ -258,7 +258,7 @@ var ew_core = {
     // Returns true if the current tab is in VPC display mode
     isVpcMode: function()
     {
-        var tab = this.core.getCurrentTab();
+        var tab = this.getCurrentTab();
         return tab && tab.name.indexOf('.vpc') > 0 ? true : false;
     },
 
