@@ -14,12 +14,18 @@
     <script type="application/x-javascript" src="chrome://ew/content/dialogs/create_instances.js" />
     <script type="application/x-javascript" src="chrome://ew/content/model.js" />
 
-    <vbox flex="1">
+    <tabbox flex="1" style="padding: 20px;" >
+       <tabs id="ew.tabs">
+         <tab label="General" selected="true" />
+         <tab label="VPC/Security"  />
+         <tab label="User Data" />
+       </tabs>
+
+       <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <vbox flex="1">
         <grid flex="1">
             <columns flex="1">
-                <column />
-                <column />
-                <column />
                 <column />
                 <column />
             </columns>
@@ -27,21 +33,32 @@
                 <row>
                     <label control="ew.ami" value="AMI ID:" />
                     <label id="ew.ami" readonly="true" />
-                    <spacer style="width:30px;" />
-                    <label control="ew.tag" value="Instance Name:" />
-                    <textbox id="ew.name" size="40" value="" />
                 </row>
                 <row>
                     <label control="ew.ami.tag" value="AMI Tag:" />
                     <label id="ew.ami.tag" readonly="true" />
-                    <spacer style="width:30px;" />
-                    <label control="ew.instancetypelist" value="Instance Type:" />
-                    <menulist id="ew.instancetypelist" crop="end" sizetopopup="none" style="max-width: 350px;"/>
                 </row>
                 <row>
                     <label control="ew.ami.location" value="AMI Manifest:" />
                     <label id="ew.ami.location" readonly="true" />
-                    <spacer style="width:30px;" />
+                </row>
+                <row>
+                    <label control="ew.ari" value="ARI ID:" />
+                    <menulist id="ew.ari" size="40" value="" editable="true" />
+                </row>
+                <row>
+                    <label control="ew.aki" value="AKI ID:" />
+                    <menulist id="ew.aki" size="40" value="" editable="true" />
+                </row>
+                <row>
+                    <label control="ew.tag" value="Instance Name:" />
+                    <textbox id="ew.name" size="40" value="" />
+                </row>
+                <row>
+                    <label control="ew.instancetypelist" value="Instance Type:" />
+                    <menulist id="ew.instancetypelist" crop="end" sizetopopup="none" style="max-width: 350px;"/>
+                </row>
+                <row>
                     <label control="ew.tenancy" value="Instance Tenancy:" />
                     <menulist id="ew.tenancy" size="30" >
                          <menupopup id="ew.tenancy">
@@ -51,23 +68,26 @@
                     </menulist>
                 </row>
                 <row>
-                    <label control="ew.aki" value="AKI ID:" />
-                    <menulist id="ew.aki" size="40" value="" editable="true" />
-                    <spacer style="width:30px;" />
+                    <label control="ew.azId" value="Availability Zone:" />
+                    <menulist id="ew.azId" oncommand="ew_InstanceLauncher.vpcIdSelected();" />
+                </row>
+                <row>
+                    <label control="ew.keypairlist" value="KeyPair:" />
+                    <menulist id="ew.keypairlist" />
+                </row>
+                <row>
                     <label control="ew.tag" value="Instance Tag(s):" />
                     <textbox id="ew.tag" size="40" value="" />
                 </row>
                 <row>
-                    <label control="ew.ari" value="ARI ID:" />
-                    <menulist id="ew.ari" size="40" value="" editable="true" />
-                    <spacer style="width:30px;" />
                     <label control="ew.properties" value="Additional Info:" />
                     <textbox id="ew.properties" size="40" />
                 </row>
                 <row>
-                    <label control="ew.azId" value="Availability Zone:" />
-                    <menulist id="ew.azId" oncommand="ew_InstanceLauncher.vpcIdSelected();" />
-                    <spacer style="width:30px;" />
+                    <label control="ew.monitor" value="Enable Monitoring:" />
+                    <checkbox id="ew.monitor" />
+                </row>
+                <row>
                     <label control="ew.min" value="Start Instances:" />
                     <hbox>
                         <label control="ew.min" value="Min:" />
@@ -76,15 +96,13 @@
                         <textbox id="ew.max" size="10" value="1" />
                     </hbox>
                 </row>
-                <row>
-                    <label control="ew.keypairlist" value="KeyPair:" />
-                    <menulist id="ew.keypairlist" />
-                    <spacer style="width:30px;" />
-                    <label control="ew.monitor" value="Enable Monitoring:" />
-                    <checkbox id="ew.monitor" />
-                </row>
             </rows>
         </grid>
+        </vbox>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <vbox flex="1">
         <groupbox flex="1" id="ew.vpc.box">
             <caption label="&ew.captions.newinstances.vpc.label;" />
             <grid flex="1">
@@ -123,7 +141,7 @@
                         <label control="ew.secgroups.used" value="Launch in" />
                     </row>
                     <row>
-                        <listbox flex="1" rows="3" id="ew.secgroups.unused" seltype="multiple">
+                        <listbox flex="1" rows="5" id="ew.secgroups.unused" seltype="multiple">
                             <listcols>
                                 <listcol flex="1" />
                             </listcols>
@@ -132,7 +150,7 @@
                             <button image="../images/right.png" oncommand="ew_InstanceLauncher.addSecurityGroup();" />
                             <button image="../images/left.png" oncommand="ew_InstanceLauncher.removeSecurityGroup();" />
                         </vbox>
-                        <listbox flex="1" rows="3" id="ew.secgroups.used" seltype="multiple">
+                        <listbox flex="1" rows="5" id="ew.secgroups.used" seltype="multiple">
                             <listcols>
                                 <listcol flex="1" />
                             </listcols>
@@ -141,24 +159,20 @@
                 </rows>
             </grid>
         </groupbox>
-        <groupbox flex="1">
+        </vbox>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+         <groupbox flex="1">
             <caption label="&ew.captions.images.launchparams.label;" />
-            <grid flex="1">
-                <columns flex="1">
-                    <column flex="2" />
-                    <column flex="1" />
-                </columns>
-                <rows flex="1">
-                    <row>
-                        <textbox id="ew.userdata" multiline="true" size="140" rows="2" wrap="false" style="font-family: monospace;" />
-                        <hbox pack="end" flex="1">
-                            <button label="Open File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(false);" />
-                            <button label="Open Binary File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(true);" />
-                        </hbox>
-                    </row>
-                </rows>
-            </grid>
-        </groupbox>
-    </vbox>
+            <textbox id="ew.userdata" multiline="true" cols="70" rows="25" wrap="false" style="font-family: monospace;" />
+            <hbox>
+            <button label="Open Text File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(false);" style="min-width:25px" />
+            <button label="Open Binary File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(true);" />
+            </hbox>
+         </groupbox>
+        </tabpanel>
+      </tabpanels>
+    </tabbox>
 </dialog>
 

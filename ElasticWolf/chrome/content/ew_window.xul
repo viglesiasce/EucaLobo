@@ -144,8 +144,12 @@
 
             { name: "ew.tabs.dhcp",          views: [ { id: "ew.dhcpOptions.view", view: ew_DhcpoptsTreeView } ], },
 
-            { name: "ew.tabs.lease",         views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView },
-                                                      { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView } ], },
+            { name: "ew.tabs.lease",         views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC", not: true }] },
+                                                      { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView, filterList: [ { name: "productDescription", value: "VPC", not: true }] } ], },
+
+            { name: "ew.tabs.lease.vpc",     views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC" }] },
+                                                      { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView, filterList: [ { name: "productDescription", value: "VPC" }] }],
+              owner: "ew.tabs.lease"           },
 
             { name: "ew.tabs.subnet",        views: [ { id: "ew.subnets.view", view: ew_SubnetsTreeView },
                                                      { id: "ew.subnetroutes.view", view: ew_SubnetRoutesTreeView },
@@ -263,15 +267,13 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 instances and storage" src="images/ec2.png" value="ew.tabs.ec2" />
+         <treecell label="Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.volume.label;" value="ew.tabs.volume" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.snapshot.label;" value="ew.tabs.snapshot" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.bundletask.label;" value="ew.tabs.bundletask" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.availzone.label;" value="ew.tabs.availzone" /></treerow></treeitem>
        </treechildren>
       </treeitem>
@@ -281,9 +283,11 @@
          <treecell label="EC2 networking" src="images/ec2.png" />
        </treerow>
        <treechildren>
+         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -306,6 +310,7 @@
          <treeitem><treerow><treecell label="&ew.tabs.vgw.label;" value="ew.tabs.vgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.cgw.label;" value="ew.tabs.cgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.vpn.label;" value="ew.tabs.vpn" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease.vpc" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 

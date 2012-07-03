@@ -59,6 +59,18 @@ var ew_InstanceLauncher = {
         // This will be an empty string if <any> is selected
         this.retVal.availabilityZone = this.azMenu.value;
         this.retVal.tenancy = this.tnMenu.value;
+
+        if (this.retVal.tenancy == "dedicated") {
+            if (this.vpcMenu.value == "") {
+                alert('For dedicated tenancy to work please choose a VPC');
+                return false;
+            }
+            if (!confirm("You have chosen to launch your instance(s) with dedicated tenancy. " +
+                         "This choice can add a signficant amount of cost to your EC2 charges "+
+                         "(see http://aws.amazon.com/dedicated-instances/). Are you sure you want to continue?")) {
+                return false;
+            }
+        }
         this.retVal.monitoring = document.getElementById("ew.monitor").checked;
 
         this.retVal.userData = document.getElementById("ew.userdata").value;
@@ -169,7 +181,7 @@ var ew_InstanceLauncher = {
             this.subnetMenu.selectedIndex = 0;
             document.getElementById("ew.ipAddress").disabled = false;
         }
-
+        this.tnMenu.value = sel.value ? "dedicated" : "default";
         this.buildGroupList();
         this.refreshDisplay();
     },
@@ -290,7 +302,7 @@ var ew_InstanceLauncher = {
 
         // Populate VPCs
         var vpcs = this.core.queryModel('vpcs');
-        this.vpcMenu.appendItem("", "");
+        this.vpcMenu.appendItem("Traditional EC2 Networking", "");
         for (var i in vpcs) {
             this.vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
         }

@@ -328,7 +328,9 @@ var TreeView = {
             for (var i in list) {
                 for (var j in this.filterList) {
                     if (this.filterList[j].value) {
-                        if (list[i][this.filterList[j].name] == this.filterList[j].value) {
+                        var p = String(list[i][this.filterList[j].name]);
+                        var rc = p.match(this.filterList[j].value);
+                        if ((this.filterList[j].not && !rc) || (!this.filterList[j].not && rc)) {
                             nlist.push(list[i])
                         }
                     } else
@@ -1882,8 +1884,8 @@ function LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, of
     this.fixedPrice = fPrice;
     this.usagePrice = uPrice;
     this.recurringCharges = rPrices;
-    this.description = desc;
-    this.offering = offering;
+    this.productDescription = desc;
+    this.offeringType = offering;
     this.tenancy = tenancy;
 
     this.toString = function() {
@@ -1903,7 +1905,7 @@ function ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices
     this.usagePrice = uPrice;
     this.recurringCharges = rPrices;
     this.count = count;
-    this.description = desc;
+    this.productDescription = desc;
     this.state = state;
     this.tenancy = tenancy
 
