@@ -177,7 +177,7 @@ var ew_UsersTreeView = {
         this.core.api.getUserPolicy(item.name, item.policies[idx], function(doc) {
             var text = me.core.promptForText('Enter policy permissions', doc);
             if (text) {
-                this.core.api.putUserPolicy(item.name, item.policies[idx], text);
+                me.core.api.putUserPolicy(item.name, item.policies[idx], text);
             }
         });
     },
@@ -251,7 +251,7 @@ var ew_UsersTreeView = {
         var values = this.core.promptInput('Create Temp Credentials', inputs);
         if (!values) return;
         var cred = this.core.findCredentials(values[0]);
-        if (cred) {
+        if (cred && (!cred.expire || cred.expire > (new Date()).getTime())) {
             return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
         }
 
@@ -269,23 +269,28 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
+        var mfa = this.core.findModel('vmfas', item.name, 'name');
+        if (mfa) {
+            this.enableMFA(mfa.id);
+        }
+
         this.core.api.createVirtualMFADevice(item.name, null, function(obj) {
             var png = "data:image/png;base64," + obj.qrcode;
             values = me.core.promptInput('Activate MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
             if (!values) return;
-            this.core.api.enableMFADevice(item.name, obj.id, values[3], values[4], function() {
+            me.core.api.enableMFADevice(item.name, obj.id, values[3], values[4], function() {
                 item.mfaDevices = null;
                 me.selectionChanged();
             });
         });
     },
 
-    enableMFA: function()
+    enableMFA: function(serial)
     {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput('Activate MFA device', [{label:"Serial Number",required:1}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
+        var values = this.core.promptInput('Activate MFA device', [{label:"Serial Number",value:serial || "",required:1}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
         if (!values) return;
         this.core.api.enableMFADevice(item.name, values[0], values[1], values[2], function() {
             item.mfaDevices = null;
@@ -325,7 +330,7 @@ var ew_UsersTreeView = {
         this.core.api.deactivateMFADevice(item.name, item.mfaDevices[idx].id, function() {
             // Remove Virtual MFA device
             if (item.mfaDevices[idx].id.indexOf('arn:aws') == 0) {
-                this.core.api.deleteVirtualMFADevice(item.mfaDevices[idx].id);
+                me.core.api.deleteVirtualMFADevice(item.mfaDevices[idx].id);
             }
             item.mfaDevices = null;
             me.selectionChanged();
@@ -470,7 +475,7 @@ var ew_GroupsTreeView = {
         this.core.api.getGroupPolicy(item.name, item.policies[idx], function(doc) {
             var text = me.core.promptForText('Enter policy permissions', doc);
             if (text) {
-                this.core.api.putGroupPolicy(item.name, item.policies[idx], text);
+                me.core.api.putGroupPolicy(item.name, item.policies[idx], text);
             }
         });
     },
@@ -724,11 +729,10 @@ var ew_AccessKeysTreeView = {
         }
 
         var me = this;
-        var wrap = function() {
-            this.core.deletePassword('AccessKey:' + key.id)
+        this.core.api.deleteAccessKey(key.id, null, function() {
+            me.core.deletePassword('AccessKey:' + key.id)
             me.refresh();
-        }
-        this.core.api.deleteAccessKey(key.id, null, wrap);
+        });
     },
 
     exportSelected  : function () {
