@@ -46,7 +46,9 @@
         this.retVal.maxCount = $("ew.max").value.trim();
         this.retVal.tag = $("ew.tag").value.trim();
         this.retVal.name = $("ew.name").value.trim();
-        this.retVal.securityGroups = this.used;
+
+        ew_ListBox.done();
+        this.retVal.securityGroups = ew_ListBox.selectedItems;
 
         var subnet = $("ew.subnetId").value;
         if (subnet == "" && this.vpcMenu.value != "") {
