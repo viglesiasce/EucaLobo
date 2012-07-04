@@ -241,16 +241,21 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput('Create Temp Credentials', [{label:"User name",type:"name",required:1,value:item.name},
-                                                                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36},
-                                                                       {label:"Policy",multiline:true,cols:50,rows:20}]);
+        var inputs = [ {label:"User name",type:"name",required:1,value:item.name},
+                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
+
+        if (item.mfaDevices && item.mfaDevices.length) {
+            inputs.push({label:"MFA Device:",type:"menulist",list:item.mfaDevices});
+            inputs.push({label:"MFA Token Code"});
+        }
+        var values = this.core.promptInput('Create Temp Credentials', inputs);
         if (!values) return;
         var cred = this.core.findCredentials(values[0]);
         if (cred) {
             return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
         }
 
-        this.core.api.getSessionToken(values[1], function(key) {
+        this.core.api.getSessionToken(values[1], values[2], values[3], function(key) {
             me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
             var cred = me.core.getActiveCredentials();
             cred = new Credential(values[0], key.id, key.secret, cred.url, key.securityToken, key.expire.getTime());
@@ -630,20 +635,27 @@ var ew_AccessKeysTreeView = {
     createTemp: function()
     {
         var me = this;
-        var rc = {};
-        openDialog('chrome://ew/content/dialogs/create_temp_accesskey.xul', null, 'chrome,centerscreen,modal', this.core, rc);
-        if (!rc.ok) return;
+        var script= "rc.items[2].obj.disabled=rc.items[3].obj.disabled=(rc.items[0].obj.value=='Session');rc.items[4].obj.disabled=rc.items[5].obj.disabled=(rc.items[0].obj.value!='Session');"
+        var inputs = [ {label:"Type",type:"menulist",list:["Session","Federation"],required:1,oncommand:script},
+                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36},
+                       {label:"User name",type:"name",disabled:true},
+                       {label:"Policy",multiline:true,cols:50,rows:10,disabled:true},
+                       {label:"MFA Serial"},
+                       {label:"MFA Auth Code"},
+                       ];
 
-        switch (rc.type) {
-        case 'session':
-            this.core.api.getSessionToken(rc.duration, function(key) {
+        var values = this.core.promptInput('Create Security Token', inputs);
+        if (!values) return;
+        switch (values[0]) {
+        case 'Session':
+            this.core.api.getSessionToken(values[0], values[4], values[5], function(key) {
                 me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });
             break;
 
-        case 'federation':
-            this.core.api.getFederationToken(rc.duration, rc.name, rc.policy, function(key) {
+        case 'Federation':
+            this.core.api.getFederationToken(rcvalues[0], values[2], values[3], function(key) {
                 me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });

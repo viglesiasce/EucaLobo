@@ -3717,10 +3717,12 @@ var ew_api = {
         response.result = alarms;
     },
 
-    getSessionToken : function (duration, callback)
+    getSessionToken : function (duration, serial, token, callback)
     {
         var params = [];
         if (duration) params.push(["DurationSeconds", duration]);
+        if (serial) params.push(["SerialNumber", serial]);
+        if (token) params.push(["TokenCode", token]);
 
         this.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback);
     },
