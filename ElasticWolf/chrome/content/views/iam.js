@@ -92,7 +92,7 @@ var ew_UsersTreeView = {
         }
         if (item.groups) {
             for (var i in item.groups) {
-                this.core.api.removeUserFromGroup(item.groups[i].name, item.name);
+                this.core.api.removeUserFromGroup(item.name, item.groups[i].name);
             }
             sleep(1000)
         }
