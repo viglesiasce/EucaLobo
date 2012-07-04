@@ -30,7 +30,7 @@
 
           switch (type) {
           case 'section':
-               rows = createSection(parent, title, rc.items[i].help);
+               rows = createSection(parent, title, rc.items[i].help, rc.items[i]);
                continue;
 
           case 'dir':
@@ -196,7 +196,7 @@
         }
     }
 
-    function createSection(parent, title, descr)
+    function createSection(parent, title, descr, rcItem)
     {
         var group = document.createElement('groupbox');
         group.setAttribute('flex', '1');
@@ -208,6 +208,9 @@
 
         if (descr) {
             group.appendChild(createDescr(descr));
+        }
+        if (rcItem) {
+            rcItem.obj = group;
         }
         parent.appendChild(group);
         return createGrid(group);

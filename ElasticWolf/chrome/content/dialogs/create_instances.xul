@@ -4,26 +4,250 @@
 
 <dialog id="ew.dialog.newinstances" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     buttons="accept,cancel"
-    ondialogaccept="return ew_InstanceLauncher.launch();"
+    ondialogaccept="return launch();"
     ondialogcancel="return true;"
-    onload="return ew_InstanceLauncher.init();"
+    onload="return init();"
     title="Launch new instance(s)"
     buttonlabelaccept="Launch">
 
     <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
-    <script type="application/x-javascript" src="chrome://ew/content/dialogs/create_instances.js" />
-    <script type="application/x-javascript" src="chrome://ew/content/model.js" />
+    <script type="application/x-javascript" src="chrome://ew/content/types.js" />
+    <script type="application/x-javascript">
+    <![CDATA[
+
+    function launch()
+    {
+        var minbox = $("ew.min");
+        var minval = parseInt(minbox.value);
+        if (isNaN(minval) || minval <= 0 || minval > this.retVal.max) {
+            alert("Minimum value must be a positive integer between 1 and " + this.retVal.max);
+            minbox.select();
+            return false;
+        }
+        // Assumes validateMin has been called
+        var maxbox = $("ew.max");
+        var maxval = parseInt(maxbox.value);
+        if (isNaN(maxval) || maxval <= 0 || maxval > this.retVal.max) {
+            alert("Maximum value must be a positive integer between 1 and " + this.retVal.max);
+            maxbox.select();
+            return false;
+        }
+        if (minval > maxval) {
+            alert("Maximum value may not be smaller than minimum value between 1 and " + maxval);
+            minbox.select();
+            return false;
+        }
+
+        this.retVal.imageId = this.image.id;
+        this.retVal.kernelId = $("ew.aki").value;
+        this.retVal.ramdiskId = $("ew.ari").value;
+        this.retVal.instanceType = $("ew.instancetypelist").selectedItem.value;
+        this.retVal.minCount = $("ew.min").value.trim();
+        this.retVal.maxCount = $("ew.max").value.trim();
+        this.retVal.tag = $("ew.tag").value.trim();
+        this.retVal.name = $("ew.name").value.trim();
+        this.retVal.securityGroups = this.used;
+
+        var subnet = $("ew.subnetId").value;
+        if (subnet == "" && this.vpcMenu.value != "") {
+            alert("No subnet selected for VPC. Please select a subnet to continue.");
+            return false;
+        }
+        this.retVal.subnetId = subnet;
+        this.retVal.ipAddress = $("ew.ipAddress").value.trim();
+
+        // This will be an empty string if <none> is selected
+        this.retVal.keyName = $("ew.keypairlist").selectedItem.value;
+
+        // This will be an empty string if <any> is selected
+        this.retVal.availabilityZone = this.azMenu.value;
+        this.retVal.tenancy = this.tnMenu.value;
+
+        if (this.retVal.tenancy == "dedicated") {
+            if (this.vpcMenu.value == "") {
+                alert('For dedicated tenancy to work please choose a VPC');
+                return false;
+            }
+            if (!confirm("You have chosen to launch your instance(s) with dedicated tenancy. " +
+                         "This choice can add a signficant amount of cost to your EC2 charges "+
+                         "(see http://aws.amazon.com/dedicated-instances/). Are you sure you want to continue?")) {
+                return false;
+            }
+        }
+        this.retVal.monitoring = $("ew.monitor").checked;
+
+        this.retVal.userData = $("ew.userdata").value;
+        if (this.retVal.userData == "") {
+            this.retVal.userData = null;
+        }
+        this.retVal.properties = $("ew.properties").value;
+        if (this.retVal.properties == "") {
+            this.retVal.properties = null;
+        }
+        this.retVal.ok = true;
+
+        return true;
+    }
+
+    function vpcSelected()
+    {
+        var sel = this.vpcMenu.selectedItem;
+        var az = this.azMenu.value
+
+        // Reset subnets
+        this.subnetMenu.removeAllItems();
+        $("ew.ipAddress").disabled = true;
+
+        if (sel.value != null && sel.value != '') {
+            var subnets = this.core.queryModel('subnets');
+            for ( var i in subnets) {
+                if (subnets[i].vpcId == sel.value && (az == "" || az == subnets[i].availabilityZone)) {
+                    this.subnetMenu.appendItem(subnets[i].toString(), subnets[i].id)
+                }
+            }
+            this.subnetMenu.selectedIndex = 0;
+            $("ew.ipAddress").disabled = false;
+        }
+        this.tnMenu.value = sel.value ? "dedicated" : "default";
+
+        var box = $('ew.groups.box');
+        var groups = $('ew.groups');
+        if (groups) {
+            box.removeChild(groups);
+        }
+
+        var groups = document.createElement('listbox');
+        groups.setAttribute('id', 'ew.groups');
+        groups.setAttribute('flex', '1');
+        box.appendChild(groups);
+
+        ew_ListBox.core = this.core;
+        ew_ListBox.name = 'ew.groups';
+        ew_ListBox.title = "Security Groups";
+        ew_ListBox.listItems = this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value);
+        ew_ListBox.multiple = true;
+        ew_ListBox.init();
+    }
+
+    function loadUserDataFromFile(fBinary)
+    {
+        var file = this.core.promptForFile("Load user data");
+        if (!file) return;
+        var data = "";
+        if (fBinary) {
+            data = "Base64:" + this.core.getBinaryFileContents(file, true);
+        } else {
+            data = this.core.getFileContents(file)
+        }
+        $("ew.userdata").value = data;
+    }
+
+    function init()
+    {
+        this.image = window.arguments[0];
+        this.core = window.arguments[1];
+        this.retVal = window.arguments[2];
+
+        var images = this.core.queryModel('images');
+        var keypairs = this.core.queryModel('keypairs');
+        var types = this.core.getInstanceTypes(this.image.arch);
+        var availZones = this.core.queryModel('availabilityZones');
+        var vpcs = this.core.queryModel('vpcs');
+
+        var keypairMenu = $("ew.keypairlist");
+        keypairMenu.appendItem("<none>", null);
+        for ( var i in keypairs) {
+            keypairMenu.appendItem(keypairs[i].name, keypairs[i].name);
+        }
+        // If the user created at least one EC2 Keypair, select it.
+        keypairMenu.selectedIndex = (keypairs.length > 0) ? 1 : 0;
+
+        var typeMenu = $("ew.instancetypelist");
+        // Add the instance sizes based on AMI architecture
+        for (var i in types) {
+            typeMenu.appendItem(types[i].name, types[i].id);
+        }
+        typeMenu.selectedIndex = 0;
+
+        var textBox = $("ew.ami");
+        textBox.value = this.image.id;
+
+        textBox = $("ew.ami.tag");
+        textBox.value = this.image.tag || "";
+
+        textBox = $("ew.ami.location");
+        textBox.value = this.image.location.split('/').pop();
+
+        textBox = $("ew.min");
+        textBox.focus();
+
+        // availability zones
+        this.azMenu = $("ew.azId");
+        this.azMenu.appendItem("<any>", null);
+        for ( var i in availZones) {
+            this.azMenu.appendItem(availZones[i].name + " (" + availZones[i].state + ")", availZones[i].name);
+        }
+        this.azMenu.selectedIndex = 0;
+
+        this.tnMenu = $("ew.tenancy");
+
+        // vpcs
+        this.vpcMenu = $("ew.vpcId");
+        this.subnetMenu = $("ew.subnetId");
+        $("ew.ipAddress").disabled = true;
+
+        var aki = this.image.aki;
+        var ari = this.image.ari;
+
+        // Populate the AKI and ARI lists
+        var akiList = $("ew.aki");
+        var ariList = $("ew.ari");
+        var akiRegex = regExs["aki"];
+        var ariRegex = regExs["ari"];
+        akiList.appendItem("");
+        ariList.appendItem("");
+
+        if (!isWindows(this.image.platform)) {
+            i = 0;
+            var imgId = null;
+            for (i in images) {
+                imgId = images[i].id;
+                if (imgId.match(akiRegex)) {
+                    akiList.appendItem(imgId);
+                    continue;
+                }
+
+                if (imgId.match(ariRegex)) {
+                    ariList.appendItem(imgId);
+                }
+            }
+
+            akiList.value = aki;
+            ariList.value = ari;
+        }
+
+        // Populate VPCs
+        this.vpcMenu.appendItem("Traditional EC2 Networking", "");
+        for (var i in vpcs) {
+            this.vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
+        }
+        this.vpcMenu.selectedIndex = 0;
+        this.vpcSelected();
+    }
+
+    ]]>
+    </script>
 
     <tabbox flex="1" style="padding: 20px;" >
        <tabs id="ew.tabs">
          <tab label="General" selected="true" />
          <tab label="VPC/Security"  />
          <tab label="User Data" />
+         <tab label="Options" />
        </tabs>
 
-       <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
-        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
-        <vbox flex="1">
+       <tabpanels flex="1" >
+        <tabpanel orient="vertical" flex="1" align="center">
         <grid flex="1">
             <columns flex="1">
                 <column />
@@ -40,19 +264,11 @@
                 </row>
                 <row>
                     <label control="ew.ami.location" value="AMI Manifest:" />
-                    <label id="ew.ami.location" readonly="true" />
-                </row>
-                <row>
-                    <label control="ew.ari" value="ARI ID:" />
-                    <menulist id="ew.ari" size="40" value="" editable="true" />
-                </row>
-                <row>
-                    <label control="ew.aki" value="AKI ID:" />
-                    <menulist id="ew.aki" size="40" value="" editable="true" />
+                    <textbox id="ew.ami.location" size="30" readonly="true" />
                 </row>
                 <row>
                     <label control="ew.tag" value="Instance Name:" />
-                    <textbox id="ew.name" size="40" value="" />
+                    <textbox id="ew.name" size="30" value="" />
                 </row>
                 <row>
                     <label control="ew.instancetypelist" value="Instance Type:" />
@@ -69,7 +285,7 @@
                 </row>
                 <row>
                     <label control="ew.azId" value="Availability Zone:" />
-                    <menulist id="ew.azId" oncommand="ew_InstanceLauncher.vpcIdSelected();" />
+                    <menulist id="ew.azId" oncommand="vpcSelected();" />
                 </row>
                 <row>
                     <label control="ew.keypairlist" value="KeyPair:" />
@@ -77,15 +293,7 @@
                 </row>
                 <row>
                     <label control="ew.tag" value="Instance Tag(s):" />
-                    <textbox id="ew.tag" size="40" value="" />
-                </row>
-                <row>
-                    <label control="ew.properties" value="Additional Info:" />
-                    <textbox id="ew.properties" size="40" />
-                </row>
-                <row>
-                    <label control="ew.monitor" value="Enable Monitoring:" />
-                    <checkbox id="ew.monitor" />
+                    <textbox id="ew.tag" size="30" value="" />
                 </row>
                 <row>
                     <label control="ew.min" value="Start Instances:" />
@@ -98,10 +306,9 @@
                 </row>
             </rows>
         </grid>
-        </vbox>
         </tabpanel>
 
-        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <tabpanel orient="vertical" flex="1" align="center">
         <vbox flex="1">
         <groupbox flex="1" id="ew.vpc.box">
             <caption label="&ew.captions.newinstances.vpc.label;" />
@@ -113,7 +320,7 @@
                 <rows flex="1">
                     <row>
                        <label control="ew.vpcId" value="VPC: " />
-                       <menulist id="ew.vpcId" oncommand="ew_InstanceLauncher.vpcIdSelected();" />
+                       <menulist id="ew.vpcId" oncommand="vpcSelected();" />
                     </row>
                     <row>
                        <label control="ew.subnetId" value="Subnet: " />
@@ -121,57 +328,55 @@
                     </row>
                     <row>
                        <label control="ew.ipAddress" value="IP Address: " />
-                       <textbox id="ew.ipAddress" size="40" editable="true" />
+                       <textbox id="ew.ipAddress" size="20" editable="true" />
                     </row>
                 </rows>
             </grid>
         </groupbox>
-        <groupbox flex="1" id="ew.secgroups.box">
+
+        <groupbox flex="1" id="ew.groups.box">
             <caption label="&ew.captions.images.launchsecgroups.label;" />
-            <grid flex="1">
-                <columns flex="1">
-                    <column flex="1" />
-                    <column flex="1" />
-                    <column flex="1" />
-                </columns>
-                <rows flex="1">
-                    <row>
-                        <label control="ew.secgroups.unused" value="Available Groups" />
-                        <spacer flex="1" />
-                        <label control="ew.secgroups.used" value="Launch in" />
-                    </row>
-                    <row>
-                        <listbox flex="1" rows="5" id="ew.secgroups.unused" seltype="multiple">
-                            <listcols>
-                                <listcol flex="1" />
-                            </listcols>
-                        </listbox>
-                        <vbox flex="1">
-                            <button image="../images/right.png" oncommand="ew_InstanceLauncher.addSecurityGroup();" />
-                            <button image="../images/left.png" oncommand="ew_InstanceLauncher.removeSecurityGroup();" />
-                        </vbox>
-                        <listbox flex="1" rows="5" id="ew.secgroups.used" seltype="multiple">
-                            <listcols>
-                                <listcol flex="1" />
-                            </listcols>
-                        </listbox>
-                    </row>
-                </rows>
-            </grid>
         </groupbox>
         </vbox>
         </tabpanel>
 
-        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
-         <groupbox flex="1">
-            <caption label="&ew.captions.images.launchparams.label;" />
+        <tabpanel orient="vertical" flex="1" align="center">
+         <vbox flex="1">
             <textbox id="ew.userdata" multiline="true" cols="70" rows="25" wrap="false" style="font-family: monospace;" />
             <hbox>
-            <button label="Open Text File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(false);" style="min-width:25px" />
-            <button label="Open Binary File" oncommand="ew_InstanceLauncher.loadUserDataFromFile(true);" />
+            <button label="Open Text File" oncommand="loadUserDataFromFile(false);" style="min-width:25px" />
+            <button label="Open Binary File" oncommand="loadUserDataFromFile(true);" />
             </hbox>
-         </groupbox>
+         </vbox>
         </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" align="center">
+         <grid flex="1">
+            <columns flex="1">
+                <column />
+                <column />
+            </columns>
+            <rows flex="1">
+                <row>
+                    <label control="ew.ari" value="ARI ID:" />
+                    <menulist id="ew.ari" size="30" value="" editable="true" />
+                </row>
+                <row>
+                    <label control="ew.aki" value="AKI ID:" />
+                    <menulist id="ew.aki" size="30" value="" editable="true" />
+                </row>
+                <row>
+                    <label control="ew.properties" value="Additional Info:" />
+                    <textbox id="ew.properties" size="30" />
+                </row>
+                <row>
+                    <label control="ew.monitor" value="Enable Monitoring:" />
+                    <checkbox id="ew.monitor" />
+                </row>
+            </rows>
+         </grid>
+        </tabpanel>
+
       </tabpanels>
     </tabbox>
 </dialog>

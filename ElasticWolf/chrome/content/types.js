@@ -592,6 +592,38 @@ var ew_ListBox = {
         this.selectedItems = [];
         var list = $(this.name);
         list.width = this.width;
+        (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
+
+        var head = document.createElement('listhead');
+        head.setAttribute('flex', '1');
+        list.appendChild(head);
+        var cols = document.createElement('listcols');
+        cols.setAttribute('flex', '1');
+        list.appendChild(cols);
+
+        if (this.multiple) {
+            var hdr = document.createElement('listheader');
+            hdr.setAttribute('flex', '1');
+            head.appendChild(hdr);
+            hdr = document.createElement('listheader');
+            hdr.setAttribute('id', this.name + '.header1');
+            hdr.setAttribute('flex', '2');
+            head.appendChild(hdr);
+            var col = document.createElement('listcol');
+            cols.appendChild(col);
+            col = document.createElement('listcol');
+            col.setAttribute('flex', '1');
+            cols.appendChild(col);
+        } else {
+            var hdr = document.createElement('listheader');
+            hdr.setAttribute('id', this.name + '.header1');
+            hdr.setAttribute('flex', '2');
+            head.appendChild(hdr);
+            var col = document.createElement('listcol');
+            col.setAttribute('flex', '2');
+            cols.appendChild(col);
+        }
+
         for (var i in this.listItems) {
             if (this.listItems[i] == null) continue;
             var val = this.toItem(this.listItems[i]);
@@ -617,8 +649,6 @@ var ew_ListBox = {
             } else {
                 var row = document.createElement('listitem');
                 var cell = document.createElement('listcell');
-                row.appendChild(cell);
-                cell = document.createElement('listcell');
                 cell.setAttribute('crop', 'end');
                 cell.setAttribute('label', val);
                 row.setAttribute('tooltiptext', val);
@@ -631,10 +661,8 @@ var ew_ListBox = {
                 list.appendChild(row);
             }
         }
-        for (var i in this.header) {
-            var hdr = $(this.name + '.header' + i)
-            if (hdr) hdr.setAttribute('label', this.header[i]);
-        }
+        var hdr = $(this.name + '.header1')
+        if (hdr) hdr.setAttribute('label', this.title);
     },
 
     selectionChanged: function()

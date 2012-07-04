@@ -733,7 +733,7 @@ var ew_InstancesTreeView = {
         this.core.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
             var idx = me.core.promptList('Instance Type', 'Select instance type:', instanceTypes );
             if (idx == -1) return;
-            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', instanceTypes[idx], function() { me.refresh() });
+            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', instanceTypes[idx].value, function() { me.refresh() });
         });
     },
 

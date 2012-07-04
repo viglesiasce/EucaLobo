@@ -55,6 +55,7 @@ var ew_core = {
         users: null,
         groups: null,
         vmfas: null,
+        mfas: null,
         alarms: null,
         queues: null,
         elbPolicyTypes: null,
@@ -1534,6 +1535,9 @@ var ew_core = {
                 break;
             case "vmfas":
                 this.api.listVirtualMFADevices();
+                break;
+            case "mfas":
+                this.api.listMFADevices(null, function(list) { me.setModel(name, list); });
                 break;
             case "regions":
                 this.api.describeRegions();

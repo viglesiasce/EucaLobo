@@ -262,7 +262,7 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var inputs = [ {label:"User name",type:"name",required:1,value:item.name},
+        var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name},
                        {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
 
         if (item.mfaDevices && item.mfaDevices.length) {
@@ -544,7 +544,7 @@ var ew_GroupUsersTreeView = {
 };
 
 var ew_KeypairsTreeView = {
-    model: ["keypairs"],
+    model: ["keypairs", "mfas"],
 
     createKeypair : function ()
     {
@@ -630,7 +630,7 @@ var ew_KeypairsTreeView = {
 
 
 var ew_AccessKeysTreeView = {
-    model: "accesskeys",
+    model: ["accesskeys", "mfas"],
     properties: ["state"],
 
     activate: function()
@@ -661,27 +661,33 @@ var ew_AccessKeysTreeView = {
     createTemp: function()
     {
         var me = this;
-        var script= "rc.items[2].obj.disabled=rc.items[3].obj.disabled=(rc.items[0].obj.value=='Session');rc.items[4].obj.disabled=rc.items[5].obj.disabled=(rc.items[0].obj.value!='Session');"
+        var script= "rc.items[3].obj.disabled=rc.items[4].obj.disabled=(rc.items[0].obj.value=='Session');"
         var inputs = [ {label:"Type",type:"menulist",list:["Session","Federation"],required:1,oncommand:script},
                        {label:"Duration(sec)",type:"number",min:3600,max:3600*36},
+                       {label:"Federation user",type:"section"},
                        {label:"User name",type:"name",disabled:true},
-                       {label:"Policy",multiline:true,cols:50,rows:10,disabled:true},
-                       {label:"MFA Serial"},
-                       {label:"MFA Auth Code"},
-                       ];
+                       {label:"Policy",multiline:true,cols:50,rows:10,disabled:true}, ];
 
-        var values = this.core.promptInput('Create Security Token', inputs);
+        var mfas = this.core.queryModel("mfas");
+        if (mfas && mfas.length) {
+            script += "rc.items[6].obj.disabled=rc.items[7].obj.disabled=(rc.items[0].obj.value!='Session');"
+            inputs.push({label:"Session token with MFA access",type:"section"});
+            inputs.push({label:"MFA Device",type:"menulist",list:mfas});
+            inputs.push({label:"MFA Auth Code"});
+        }
+
+        var values = this.core.promptInput('Create Temporary Security Token', inputs);
         if (!values) return;
         switch (values[0]) {
         case 'Session':
-            this.core.api.getSessionToken(values[0], values[4], values[5], function(key) {
+            this.core.api.getSessionToken(values[1], values[6], values[7], function(key) {
                 me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });
             break;
 
         case 'Federation':
-            this.core.api.getFederationToken(rcvalues[0], values[2], values[3], function(key) {
+            this.core.api.getFederationToken(values[1], values[3], values[4], function(key) {
                 me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });

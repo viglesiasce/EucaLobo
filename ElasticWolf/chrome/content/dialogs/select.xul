@@ -26,12 +26,13 @@
             params = window.arguments[0];
             document.title = params.title;
             document.getElementById("msg").value = params.msg;
+            
             ew_ListBox.core = params.core;
             ew_ListBox.name = 'list';
+            ew_ListBox.title = params.title;
             ew_ListBox.columns = params.columns;
             ew_ListBox.width = params.width || 500;
             ew_ListBox.listItems = params.listItems;
-            ew_ListBox.header = params.header || [];
             ew_ListBox.multiple = params.multiple;
             ew_ListBox.checkedItems = params.checkedItems;
             ew_ListBox.init();
@@ -41,16 +42,7 @@
 
     <vbox flex="1">
       <label id="msg" value="" flex="1" />
-      <listbox id="list" flex="1" rows="10" onclick="ew_ListBox.selectionChanged()">
-      <listhead>
-        <listheader label=" " id="list.header0" flex="1"/>
-        <listheader label=" " id="list.header1" flex="2" />
-      </listhead>
-      <listcols flex="1">
-        <listcol/>
-        <listcol flex="1"/>
-      </listcols>
-      </listbox>
+      <listbox id="list" flex="1" rows="10" />
     </vbox>
 </dialog>
 
