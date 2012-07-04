@@ -65,6 +65,10 @@ var TreeView = {
     {
         this.treeBox = treeBox;
     },
+    isEmpty: function()
+    {
+        return this.rowCount == 0;
+    },
     isRefreshable: function()
     {
         return false;
@@ -403,7 +407,7 @@ var TreeView = {
         this.visible = true;
         this.restorePreferences();
         // First time, refresh the model
-        if (this.rowCount == 0 && this.model && this.getModel() == null) {
+        if (this.isEmpty() && this.model && this.getModel() == null) {
             this.refresh();
         }
     },
@@ -1272,32 +1276,7 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
         return this.id + (this.state ? fieldSeparator + this.state : "");
     }
 }
-
-function PolicyTypeDescription(name, descr, attributes)
-{
-    this.name = name;
-    this.descr = descr;
-    this.attributes = attributes;
-
-    this.toString = function() {
-        return this.name;
-    }
-}
-
-function PolicyTypeAttributeDescription(name, type, cardinality, descr, dflt)
-{
-    this.name = name;
-    this.type = type;
-    this.defaultValue = dflt || "";
-    this.cardinality = cardinality;
-    this.descr = descr || "";
-
-    this.toString = function() {
-        return this.name
-    }
-}
-
-function Credential(name, accessKey, secretKey, url, securityToken)
+function Credential(name, accessKey, secretKey, url, securityToken, expire)
 {
     this.name = name;
     this.accessKey = accessKey;
@@ -1305,9 +1284,13 @@ function Credential(name, accessKey, secretKey, url, securityToken)
     this.url = typeof url == "string" ? url : "";
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
+    this.expire = expire || 0;
+    this.type = this.expire ? " Temporary" : "";
+    this.expirationDate =  this.expire ? new Date(parseInt(this.expire)) : "";
+
 
     this.toString = function() {
-        return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken;
+        return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken + ";;" + this.expire;
     }
 }
 
@@ -1351,6 +1334,31 @@ function MFADevice(id, date, user)
     this.userName = user || "";
     // arn:aws:iam::123456:mfa/name
     this.name = this.id.indexOf('arn:aws') == 0 ? this.id.split(/[:\/]+/).pop() : this.id;
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+
+function PolicyTypeDescription(name, descr, attributes)
+{
+    this.name = name;
+    this.descr = descr;
+    this.attributes = attributes;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function PolicyTypeAttributeDescription(name, type, cardinality, descr, dflt)
+{
+    this.name = name;
+    this.type = type;
+    this.defaultValue = dflt || "";
+    this.cardinality = cardinality;
+    this.descr = descr || "";
 
     this.toString = function() {
         return this.name
@@ -1497,8 +1505,9 @@ function NetworkAclAssociation(id, acl, subnet)
     }
 }
 
-function NetworkAclEntry(num, proto, action, egress, cidr, icmp, ports)
+function NetworkAclEntry(aclId, num, proto, action, egress, cidr, icmp, ports)
 {
+    this.aclId = aclId;
     this.id = num == 32767 ? "*" : num;
     this.num = num
     this.proto = proto

@@ -45,6 +45,7 @@ var ew_PrefsView = {
        this.getPrefs("ew.http.timeout", 15000);
        this.getPrefs("ew.prompt.open.port", true);
        this.getPrefs("ew.advanced.mode", false);
+       this.getPrefs("ew.errors.show", false);
        // Optional debugging support
        $('ew.venkman').hidden = typeof start_venkman != 'function';
    },
@@ -69,6 +70,7 @@ var ew_PrefsView = {
        this.setPrefs('ew.path.cloudwatch');
        this.setPrefs("ew.debug.enabled");
        this.setPrefs("ew.http.enabled");
+       this.setPrefs("ew.errors.show");
        this.setPrefs("ew.idle.timeout");
        this.setPrefs("ew.idle.action");
        this.setPrefs("ew.http.timeout", 5000, 3600000);

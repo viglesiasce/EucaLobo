@@ -62,8 +62,8 @@
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox>
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_RouteTablesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                        <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_RoutesTreeView.createRoute();" tooltiptext="&ew.routes.create.tip;" />
-                        <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_RoutesTreeView.deleteRoute();" tooltiptext="&ew.routes.delete.tip;" />
+                        <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SubnetsTreeView.createRoute();" tooltiptext="&ew.routes.create.tip;" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_SubnetRoutesTreeView.deleteRoute();" tooltiptext="&ew.routes.delete.tip;" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.subnetroutes.view" enableColumnDrag="true" flex="1">
@@ -91,8 +91,8 @@
                 <caption label="ACL Rules" />
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox>
-                        <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclRulesTreeView.createRule();" tooltiptext="Add ACL Rule" />
-                        <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclRulesTreeView.deleteRule();" tooltiptext="Delete ACL Rule" />
+                        <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SubnetsTreeView.createRule();" tooltiptext="Add ACL Rule" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_SubnetAclRulesTreeView.deleteRule();" tooltiptext="Delete ACL Rule" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.subnetacls.view" enableColumnDrag="true" flex="1">

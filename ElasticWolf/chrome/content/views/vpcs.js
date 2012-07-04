@@ -387,14 +387,10 @@ var ew_SubnetsTreeView = {
 
     selectionChanged: function(event)
     {
-        var subnet = this.getSelected();
-        if (subnet == null) return;
-        ew_SubnetRoutesTreeView.display(subnet.routes);
-        ew_SubnetAclRulesTreeView.display(subnet.rules);
-        ew_RouteTablesTreeView.select({ id: subnet.tableId });
-        ew_NetworkAclsTreeView.select({ id: subnet.aclId });
-        ew_NetworkAclAssociationsTreeView.select({ subnetId: subnet.id }, ['subnetId']);
-        ew_RouteAssociationsTreeView.select({ subnetId: subnet.id }, ['subnetId'])
+        var item = this.getSelected();
+        if (!item) return;
+        ew_SubnetRoutesTreeView.display(item.routes);
+        ew_SubnetAclRulesTreeView.display(item.rules);
     },
 
     display: function(list)
@@ -408,6 +404,7 @@ var ew_SubnetsTreeView = {
                         if (tables[i].associations[j].subnetId == list[k].id) {
                             list[k].routes = tables[i].routes;
                             list[k].tableId = tables[i].id;
+                            list[k].routeTable = tables[i];
                             list[k].routeAssocId = tables[i].associations[j].id;
                             break;
                         }
@@ -421,6 +418,7 @@ var ew_SubnetsTreeView = {
                         if (acls[i].associations[j].subnetId == list[k].id) {
                             list[k].rules = acls[i].rules;
                             list[k].aclId = acls[i].id;
+                            list[k].networkAcl = acls[i];
                             list[k].aclAssocId = acls[i].associations[j];
                             break;
                         }
@@ -474,71 +472,42 @@ var ew_SubnetsTreeView = {
         this.core.api.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
 
     },
+
+    createRoute : function(table)
+    {
+        var subnet = this.getSelected();
+        if (!subnet || !subnet.routeTable) return;
+        ew_RoutesTreeView.createRoute(subnet.routeTable);
+    },
+
+    createRule: function()
+    {
+        var subnet = this.getSelected();
+        if (!subnet || !subnet.networkAcl) return alert('No Network ACL attached');
+        ew_NetworkAclRulesTreeView.createRule(subnet.networkAcl);
+    },
+
 };
 
 var ew_SubnetRoutesTreeView = {
+
+    deleteRoute : function(item)
+    {
+        var item = this.getSelected();
+        if (!item) return alert('No Route Table attached');
+        if (item.gatewayId == "local") return alert('Cannot delete local route');
+        if (!confirm("Delete route  " + item.cidr + "?")) return;
+        this.core.api.deleteRoute(item.tableId, item.cidr, function() { ew_SubnetsTreeView.refresh(); });
+    },
 };
 
 var ew_SubnetAclRulesTreeView = {
-};
 
-var ew_InternetGatewayTreeView = {
-    model : ["internetGateways", "vpcs"],
-
-    create : function()
+    deleteRule: function()
     {
-        var me = this;
-        this.core.api.createInternetGateway(function(){me.refresh()});
-    },
-
-    destroy : function()
-    {
-        var igw = this.getSelected();
-        if (!igw) return;
-        if (!this.core.promptYesNo("Confirm", (igw.vpcId ? "Detach and " : "") + "Delete Internet Gateway " + igw.id + "?")) return;
-
-        var me = this;
-        if (igw.vpcId) {
-            this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {
-                me.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
-            });
-        } else {
-            this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
-        }
-    },
-
-    attach: function(vpcid, igwid, selected)
-    {
-        var igw = this.getSelected()
-        if (!igw) return
-        this.attachInternetGateway(null, igw.id)
-    },
-
-    attachInternetGateway : function(vpcid, igwid)
-    {
-        var me = this;
-        var vpcs = this.core.queryModel('vpcs');
-        var igws = this.core.queryModel('internetGateways');
-        var values = this.core.promptInput("Attach Internet Gateway", [ {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},
-                                                                        {label:"Internet Gateway",type:"menulist",list:igws,value:igwid,required:1,oncommand:"rc.items[2].obj.checked=false;"},
-                                                                        {label:"Create New Gateway",type:"checkbox",oncommand:"rc.items[1].obj.value=null"}])
-        if (!values) return;
-        if (values[2]) {
-            this.core.api.createInternetGateway(function(id) {
-                me.core.api.attachInternetGateway(id, vaalues[0], function() {me.refresh()});
-            });
-        } else {
-            this.core.api.attachInternetGateway(values[1], values[0], function() {me.refresh()});
-        }
-    },
-
-    detach : function()
-    {
-        var igw = this.getSelected();
-        if (igw == null) return;
-        if (!this.core.promptYesNo("Confirm", "Detach Internet Gateway " + igw.id + " from " + igw.vpcId + "?")) return;
-        var me = this;
-        this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
+        var item = this.getSelected();
+        if (!item || !confirm("Delete ACL rule " + item.num + "?")) return;
+        this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_SubnetsTreeView.refresh(); });
     },
 };
 
@@ -583,9 +552,9 @@ var ew_RouteTablesTreeView = {
 
 var ew_RoutesTreeView = {
 
-    createRoute : function()
+    createRoute : function(table)
     {
-        var table = ew_RouteTablesTreeView.getSelected();
+        if (!table) table = ew_RouteTablesTreeView.getSelected();
         if (!table) return;
         var gws = this.core.queryModel('internetGateways', 'vpcId', table.vpcId);
         var instances = this.core.queryModel('instances', 'vpcId', table.vpcId);
@@ -598,15 +567,18 @@ var ew_RoutesTreeView = {
                                                             {label:"Instance",type:"menulist",list:instances,oncommand:"rc.items[3].obj.value=null,rc.items[5].obj.value=null;"},
                                                             {label:"Network Interface",type:"menulist",list:enis,oncommand:"rc.items[3].obj.value=null,rc.items[4].obj.value=null;"}]);
         if (!values) return;
-        this.core.api.createRoute(table.id, values[1], values[3], values[4], values[5], function() { ew_RouteTablesTreeView.refresh(true); });
+        this.core.api.createRoute(table.id, values[1], values[3], values[4], values[5], function() {
+            ew_RouteTablesTreeView.refresh();
+            ew_SubnetsTreeView.refresh();
+        });
     },
 
-    deleteRoute : function()
+    deleteRoute : function(item)
     {
         var item = this.getSelected();
         if (!item || item.gatewayId == "local") return;
         if (!confirm("Delete route  " + item.cidr + "?")) return;
-        this.core.api.deleteRoute(item.tableId, item.cidr, function() {ew_RouteTablesTreeView.refresh(true); });
+        this.core.api.deleteRoute(item.tableId, item.cidr, function() { ew_RouteTablesTreeView.refresh(); });
     },
 };
 
@@ -654,16 +626,9 @@ var ew_NetworkAclsTreeView = {
     createACL : function()
     {
         var vpcs = this.core.queryModel('vpcs');
-        if (!vpcs) {
-            alert("No VPCs available, try later")
-            return;
-        }
+        if (!vpcs) return alert("No VPCs available, try later")
         var rc = this.core.promptList("Create Network ACL", "Select VPC", vpcs, ['id', 'cidr' ]);
-        if (rc < 0) {
-            return;
-        }
-
-
+        if (rc < 0) return;
         var me = this;
         this.core.api.createNetworkAcl(vpcs[rc].id, function() { me.refresh(); });
 
@@ -680,19 +645,12 @@ var ew_NetworkAclsTreeView = {
     associateACL : function()
     {
         var acl = this.getSelected();
-        if (!acl) {
-            alert("Please, select ACL");
-            return;
-        }
+        if (!acl) return alert("Please, select ACL");
         var subnets = this.core.queryModel('subnets', 'vpcId', acl.vpcId);
-        if (!subnets.length) {
-            alert("No subnets available, try later")
-            return;
-        }
+        if (!subnets.length) return alert("No subnets available, try later")
         var rc = this.core.promptList("Associate with VPC Subnet", "Select subnet", subnets, [ "id", "cidr" ]);
-        if (rc < 0) {
-            return;
-        }
+        if (rc < 0) return;
+
         // Replace existing association, can only be one
         var acls = this.core.getModel('networkAcls');
         for (var i in acls) {
@@ -713,18 +671,18 @@ var ew_NetworkAclAssociationsTreeView = {
 
 var ew_NetworkAclRulesTreeView = {
 
-    createRule : function()
+    createRule : function(acl)
     {
-        var acl = ew_NetworkAclsTreeView.getSelected();
-        if (!acl) {
-            alert("Please, select ACL");
-            return;
-        }
+        if (!acl) acl = ew_NetworkAclsTreeView.getSelected();
+        if (!acl) return alert("Please, select ACL");
         var retVal = {ok:null};
         window.openDialog("chrome://ew/content/dialogs/create_networkaclentry.xul", null, "chrome,centerscreen,modal,resizable", acl, this.core, retVal);
         if (retVal.ok) {
             debug(JSON.stringify(retVal))
-            this.core.api.createNetworkAclEntry(acl.id, retVal.num, retVal.proto, retVal.action, retVal.egress, retVal.cidr, retVal.var1, retVal.var2, function() { ew_NetworkAclsTreeView.refresh() });
+            this.core.api.createNetworkAclEntry(acl.id, retVal.num, retVal.proto, retVal.action, retVal.egress, retVal.cidr, retVal.var1, retVal.var2, function() {
+                ew_NetworkAclsTreeView.refresh();
+                ew_SubnetsTreeView.refresh();
+            });
         }
     },
 
@@ -732,10 +690,69 @@ var ew_NetworkAclRulesTreeView = {
     {
         var item = this.getSelected();
         if (!item || !confirm("Delete ACL rule " + item.num + "?")) return;
-        var acl = ew_NetworkAclsTreeView.getSelected();
-        this.core.api.deleteNetworkAclEntry(acl.id, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh() });
-    }
+        this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh(); });
+    },
 
+};
+
+var ew_InternetGatewayTreeView = {
+    model : ["internetGateways", "vpcs"],
+
+    create : function()
+    {
+        var me = this;
+        this.core.api.createInternetGateway(function(){me.refresh()});
+    },
+
+    destroy : function()
+    {
+        var igw = this.getSelected();
+        if (!igw) return;
+        if (!this.core.promptYesNo("Confirm", (igw.vpcId ? "Detach and " : "") + "Delete Internet Gateway " + igw.id + "?")) return;
+
+        var me = this;
+        if (igw.vpcId) {
+            this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {
+                me.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+            });
+        } else {
+            this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+        }
+    },
+
+    attach: function(vpcid, igwid, selected)
+    {
+        var igw = this.getSelected()
+        if (!igw) return
+        this.attachInternetGateway(null, igw.id)
+    },
+
+    attachInternetGateway : function(vpcid, igwid)
+    {
+        var me = this;
+        var vpcs = this.core.queryModel('vpcs');
+        var igws = this.core.queryModel('internetGateways');
+        var values = this.core.promptInput("Attach Internet Gateway", [ {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},
+                                                                        {label:"Internet Gateway",type:"menulist",list:igws,value:igwid,required:1,oncommand:"rc.items[2].obj.checked=false;"},
+                                                                        {label:"Create New Gateway",type:"checkbox",oncommand:"rc.items[1].obj.value=null"}]);
+        if (!values) return;
+        if (values[2]) {
+            this.core.api.createInternetGateway(function(id) {
+                me.core.api.attachInternetGateway(id, vaalues[0], function() {me.refresh()});
+            });
+        } else {
+            this.core.api.attachInternetGateway(values[1], values[0], function() {me.refresh()});
+        }
+    },
+
+    detach : function()
+    {
+        var igw = this.getSelected();
+        if (igw == null) return;
+        if (!this.core.promptYesNo("Confirm", "Detach Internet Gateway " + igw.id + " from " + igw.vpcId + "?")) return;
+        var me = this;
+        this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
+    },
 };
 
 var ew_NetworkInterfacesTreeView = {

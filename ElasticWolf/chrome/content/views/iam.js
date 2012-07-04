@@ -236,6 +236,29 @@ var ew_UsersTreeView = {
         });
     },
 
+    createCredentials: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        var values = this.core.promptInput('Create Temp Credentials', [{label:"User name",type:"name",required:1,value:item.name},
+                                                                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36},
+                                                                       {label:"Policy",multiline:true,cols:50,rows:20}]);
+        if (!values) return;
+        var cred = this.core.findCredentials(values[0]);
+        if (cred) {
+            return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
+        }
+
+        this.core.api.getSessionToken(values[1], function(key) {
+            me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
+            var cred = me.core.getActiveCredentials();
+            cred = new Credential(values[0], key.id, key.secret, cred.url, key.securityToken, key.expire.getTime());
+            me.core.saveCredentials(cred);
+            me.core.selectTab('ew.tabs.credential');
+        });
+    },
+
     createVMFA: function()
     {
         var me = this;
@@ -585,9 +608,16 @@ var ew_AccessKeysTreeView = {
         this.select({ id: this.core.accessKey });
     },
 
+    isEmpty: function()
+    {
+        var count = 0;
+        for (var i in this.treeList) count += this.treeList[i].status == "" ? 1 : 0;
+        return count == 0;
+    },
+
     filter: function(list)
     {
-        list = list.concat(this.getTempKeys());
+        list = list.concat(this.core.getTempKeys());
 
         var now = new Date();
         for (var i in list) {
@@ -607,14 +637,14 @@ var ew_AccessKeysTreeView = {
         switch (rc.type) {
         case 'session':
             this.core.api.getSessionToken(rc.duration, function(key) {
-                me.saveTempKeys(me.getTempKeys().concat([ key ]));
+                me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });
             break;
 
         case 'federation':
             this.core.api.getFederationToken(rc.duration, rc.name, rc.policy, function(key) {
-                me.saveTempKeys(me.getTempKeys().concat([ key ]));
+                me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });
             break;
@@ -664,23 +694,6 @@ var ew_AccessKeysTreeView = {
         return secret
     },
 
-    getTempKeys: function()
-    {
-        var list = [];
-        var keys = this.core.getPassword("ew.temp.keys");
-        try { list = JSON.parse(keys); } catch(e) {};
-        for (var i in list) {
-            list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
-        }
-        return list;
-    },
-
-    saveTempKeys: function(list)
-    {
-        list = JSON.stringify(list instanceof Array ? list : []);
-        this.core.savePassword("ew.temp.keys", list);
-    },
-
     deleteSelected  : function () {
         var key = this.getSelected();
         if (key == null) return;
@@ -693,7 +706,7 @@ var ew_AccessKeysTreeView = {
         if (key.status == "Temporary") {
             var list = this.getTempKeys();
             this.core.removeObject(list, key.id);
-            this.saveTempKeys(list);
+            me.core.saveTempKeys(list);
             this.refresh();
             return;
         }
@@ -744,6 +757,7 @@ var ew_CertsTreeView = {
         var body = this.core.generateCertificate();
         if (body) {
             this.upload(body);
+            alert('The certificate has been generated and will be uploaded shortly...')
         } else {
             alert("Could not generate new X509 certificate")
         }
@@ -753,7 +767,7 @@ var ew_CertsTreeView = {
     {
         // Delay to avoid "not valid yet" error due to clock drift
         var me = this;
-        setTimeout(function() { this.core.api.uploadSigningCertificate(user, body, function() { me.refresh();}); }, 30000);
+        setTimeout(function() { me.core.api.uploadSigningCertificate(user, body, function() { me.refresh();}); }, 30000);
     },
 
     uploadCert : function (user) {

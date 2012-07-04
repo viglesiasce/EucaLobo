@@ -648,6 +648,8 @@ var ew_InstancesTreeView = {
                 $("instances.context.bundle").disabled = true;
             }
         }
+        $("instances.context.changeSecurityGroups").disabled = instance.vpcId == "";
+
         // These items are only valid for instances with EBS-backed root devices.
         var optDisabled = !isEbsRootDeviceType(instance.rootDeviceType);
         $("instances.context.start").disabled = optDisabled;
@@ -694,6 +696,20 @@ var ew_InstancesTreeView = {
 
         var me = this;
         this.core.api.stopInstances(instances, force, function() { me.refresh()});
+    },
+
+    changeSecurityGroups: function() {
+        var me = this;
+        var instance = this.getSelected();
+        if (!instance) return;
+        var groups = this.core.queryModel('securityGroups', 'vpcId', instance.vpcId);
+        var list = this.core.promptList('Change Security Groups', 'Select security groups for the instance:', groups, null, null, true);
+        if (!list || !list.length) return;
+        params = []
+        for (var i = 0; i < list.length; i++) {
+            params.push(["GroupId." + (i + 1), list[i].id])
+        }
+        me.core.api.modifyInstanceAttributes(instance.id, params);
     },
 
     changeUserData: function()

@@ -212,6 +212,7 @@
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
        <menuitem label="Check For Updates" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.checkForUpdates();"/>
+       <menuitem label="Show Error Log" image="images/revoke.png" class="menuitem-iconic" oncommand="ew_core.displayErrors();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
        <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
       </menupopup>
@@ -231,7 +232,7 @@
       <treecol id="name" label="Navigation" primary="true" flex="1" persist="width ordinal hidden" />
     </treecols>
 
-    <treechildren>
+    <treechildren id="menuchildren">
       <treeitem container="true" open="true">
        <treerow>
          <treecell label="Elastic Wolf" src="images/logo.png" value="ew.tabs.ew" />
@@ -337,7 +338,7 @@
 
       <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="Simple Storage Service" value="ew.tabs.s3" src="images/s3.png" />
+         <treecell label="Simple Storage Service (S3)" value="ew.tabs.s3" src="images/s3.png" />
        </treerow>
       </treeitem>
 
@@ -457,4 +458,10 @@
     </tabpanels>
     </tabbox>
   </hbox>
+
+  <statusbar>
+    <statusbarpanel id="ew_status" label=""/>
+    <spacer flex="1"/>
+    <statusbarpanel id="ew_message" label="" style="color:darkred;"/>
+  </statusbar>
 </window>

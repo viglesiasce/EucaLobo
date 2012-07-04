@@ -30,6 +30,7 @@
           <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
           <menuitem id="instances.context.changeShutdownBehaviour" oncommand="ew_InstancesTreeView.changeShutdownBehaviour();" label="Change Shutdown Behaviour" />
           <menuitem id="instances.context.changeSourceDestCheck" oncommand="ew_InstancesTreeView.changeSourceDestCheck();" label="Change SourceDesct Check" />
+          <menuitem id="instances.context.changeSecurityGroups" oncommand="ew_InstancesTreeView.changeSecurityGroups();" label="Change Security Groups" />
           <menu label="Monitoring">
             <menupopup>
             <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />

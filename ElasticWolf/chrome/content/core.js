@@ -305,8 +305,9 @@ var ew_core = {
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
             var cred = this.getActiveCredentials();
-            var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
-            tree.view.setCellText(idx, tree.columns[0], label);
+            //var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
+            //tree.view.setCellText(idx, tree.columns[0], label);
+            $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
         var items = document.getElementsByClassName("advanced");
@@ -336,7 +337,7 @@ var ew_core = {
         for (var i = 0; i < list.length; i++) {
             var pw = list[i][1].split(";;");
             if (pw.length > 1) {
-                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "")
+                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "", pw.length > 4 ? pw[4] : "")
                 credentials.push(cred);
             }
         }
@@ -519,6 +520,11 @@ var ew_core = {
                 }
             }
         });
+    },
+
+    displayErrors: function()
+    {
+        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}]);
     },
 
     displayUrl: function(url, protocol)
@@ -913,6 +919,23 @@ var ew_core = {
             }
         }
         return list
+    },
+
+    getTempKeys: function()
+    {
+        var list = [];
+        var keys = this.getPassword("ew.temp.keys");
+        try { list = JSON.parse(keys); } catch(e) {};
+        for (var i in list) {
+            list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
+        }
+        return list;
+    },
+
+    saveTempKeys: function(list)
+    {
+        list = JSON.stringify(list instanceof Array ? list : []);
+        this.savePassword("ew.temp.keys", list);
     },
 
     // Wrapper around global debug with multiple parameters

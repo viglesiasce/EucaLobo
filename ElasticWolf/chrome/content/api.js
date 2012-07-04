@@ -28,6 +28,7 @@ var ew_api = {
     errorMax: 3,
     errorTime: 0,
     errorTimeout: 5000,
+    errorList: [],
 
     isEnabled: function()
     {
@@ -339,6 +340,7 @@ var ew_api = {
     {
         if (!this.isEnabled()) return null;
 
+        var me = this;
         var file = FileIO.streamOpen(filename);
         if (!file) {
             alert('Cannot open ' + filename)
@@ -347,13 +349,13 @@ var ew_api = {
         var length = file[1].available();
         params["Content-Length"] = length;
 
-        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
-
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
             return null;
         }
+
+        var req = this.queryS3Prepare("PUT", bucket, key, path, params, null);
         xmlhttp.open(req.method, req.url, true);
         for (var p in req.headers) {
             xmlhttp.setRequestHeader(p, req.headers[p]);
@@ -367,7 +369,7 @@ var ew_api = {
             }
             catch(e) {
                 debug('Error: ' + e);
-                this.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
+                me.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
             }
         }, 300);
 
@@ -379,8 +381,7 @@ var ew_api = {
                 if (progresscb) progresscb(filename, 100);
                 if (callback) callback(filename);
             } else {
-                var rsp = this.createResponseError(xmlhttp);
-                this.core.errorDialog("S3 responded with an error for "+ bucket + "/" + key + path, rsp);
+                me.handleResponse(xmlhttp, req.url, false, "upload", null, me, callback, [bucket, key, path]);
             }
         };
         return true;
@@ -524,6 +525,7 @@ var ew_api = {
     {
         log(xmlhttp.responseText);
 
+        var now = (new Date()).getTime();
         var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
                  this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
                  this.createResponseError(xmlhttp, url, isSync, action, handlerMethod, callback, params);
@@ -537,16 +539,23 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            var now = (new Date()).getTime();
-            if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
-                if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                    this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+            if (this.core.getBoolPrefs("ew.errors.show", false)) {
+                if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
+                    if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
+                        this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+                    }
                 }
+            } else {
+                $('ew_message').label = rc.action + ":" + rc.errCode +': ' + rc.errString;
             }
             this.errorTime = now;
             this.errorCount++;
+            // Add to the error list
+            this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + rc.action + ": " + rc.errCode + ": " + rc.errString);
+            if (this.errorList.length > 100) this.errorList.splice(0, 1);
         } else {
             this.errorCount = 0;
+            $('ew_message').label = "";
             // Pass the result and the whole response object if it is null
             if (callback) {
                 callback(rc.result, rc);
@@ -1105,7 +1114,7 @@ var ew_api = {
                 if (from != "" && to != "") {
                     portList.push([from, to])
                 }
-                entryList.push(new NetworkAclEntry(num, proto, action, egress, cidr, icmpList, portList))
+                entryList.push(new NetworkAclEntry(id, num, proto, action, egress, cidr, icmpList, portList))
             }
 
             var assoc = item.getElementsByTagName("associationSet")[0].getElementsByTagName("item");
@@ -1698,6 +1707,13 @@ var ew_api = {
     modifyInstanceAttribute : function(instanceId, name, value, callback)
     {
         this.queryEC2("ModifyInstanceAttribute", [ [ "InstanceId", instanceId ], [ name + ".Value", value ] ], this, false, "onComplete", callback);
+    },
+
+    modifyInstanceAttributes : function(instanceId, params, callback)
+    {
+        params.push([ "InstanceId", instanceId ]);
+
+        this.queryEC2("ModifyInstanceAttribute", params, this, false, "onComplete", callback);
     },
 
     describeInstanceStatus : function (callback) {

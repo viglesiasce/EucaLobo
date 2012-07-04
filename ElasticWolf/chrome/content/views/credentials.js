@@ -60,8 +60,12 @@ var ew_CredentialsTreeView = {
 
     filter: function(list)
     {
+        var now = (new Date()).getTime();
         for (var i in list) {
             list[i].status = list[i].accessKey == this.core.api.accessKey ? "Active" : "";
+            if (list[i].type == "Temporary") {
+                if (list[i].expire < now) list[i].status = "Expired";
+            }
         }
         return TreeView.filter.call(this, list);
     },
