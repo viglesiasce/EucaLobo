@@ -1464,7 +1464,7 @@ function NetworkInterface(id, status, descr, subnetId, vpcId, availabilityZone, 
     this.macAddress = macAddress
     this.privateIpAddress = privateIpAddress
     this.sourceDestCheck = sourceDestCheck
-    this.groups = groups || [];
+    this.securityGroups = groups || [];
     this.attachment = attachment
     this.association = association
     this.tags = tags
@@ -2066,7 +2066,7 @@ function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, L
     this.vpcId = vpcId
     this.SourceSecurityGroup = srcGroup;
     this.subnets = subnets
-    this.groups = groups
+    this.securityGroups = groups
 
     this.toString = function() {
         return this.name;

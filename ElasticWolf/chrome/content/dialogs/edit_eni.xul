@@ -26,10 +26,10 @@
         subnetMenu.disabled = true;
 
         var groupMenu = document.getElementById('ew.eni.groups');
-        for (var i in rc.groups) {
+        for (var i in rc.securityGroups) {
             for (var j = 0; j < groupMenu.itemCount; j++) {
                 var item = groupMenu.getItemAtIndex(j);
-                if (item.getAttribute('value') == rc.groups[i].id) {
+                if (item.getAttribute('value') == rc.securityGroups[i].id) {
                     item.setAttribute('label', item.getAttribute('label') + " (*)");
                 }
             }
@@ -64,10 +64,10 @@
   }
 
   function accept() {
-    rc.groups = [];
+    rc.securityGroups = [];
     var groupMenu = document.getElementById('ew.eni.groups');
     for (var i = 0; i < groupMenu.selectedItems.length; i++) {
-        rc.groups.push(groupMenu.selectedItems[i].value);
+        rc.securityGroups.push(groupMenu.selectedItems[i].value);
     }
     rc.subnetId = document.getElementById('ew.eni.subnet').value;
     rc.descr = document.getElementById('ew.eni.descr').value.trim();

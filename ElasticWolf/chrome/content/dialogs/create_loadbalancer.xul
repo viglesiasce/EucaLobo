@@ -67,9 +67,9 @@
     } else {
         this.rc.subnetId = document.getElementById("ew.subnets").selectedItem.value;
         var groupMenu = document.getElementById('ew.groups');
-        this.rc.groups = [];
+        this.rc.securityGroups = [];
         for (var i = 0; i < groupMenu.selectedItems.length; i++) {
-            this.rc.groups.push(groupMenu.selectedItems[i].value);
+            this.rc.securityGroups.push(groupMenu.selectedItems[i].value);
         }
         var subnet = this.core.findModel('subnets', this.rc.subnetId);
         this.rc.Zone = subnet.availabilityZone;

@@ -783,10 +783,10 @@ var ew_NetworkInterfacesTreeView = {
             if (eni.descr != rc.descr) {
                 this.core.api.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
             }
-            if (eni.groups.toString() != rc.groups.toString()) {
+            if (eni.securityGroups.toString() != rc.securityGroups.toString()) {
                 var attrs = [];
-                for (var i in rc.groups) {
-                    attrs.push(['SecurityGroupId.' + (i + 1), rc.groups[i]]);
+                for (var i in rc.securityGroups) {
+                    attrs.push(['SecurityGroupId.' + (i + 1), rc.securityGroups[i]]);
                 }
                 this.core.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
             }
@@ -799,7 +799,7 @@ var ew_NetworkInterfacesTreeView = {
         window.openDialog('chrome://ew/content/dialogs/edit_eni.xul',null,'chrome,centerscreen,modal,resizable', this.core, rc);
         if (rc.ok) {
             var me = this;
-            this.core.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.groups, function() { me.refresh(); });
+            this.core.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.securityGroups, function() { me.refresh(); });
         }
     },
 

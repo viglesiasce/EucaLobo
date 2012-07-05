@@ -55,7 +55,7 @@
           <splitter class="tree-splitter" />
           <treecol id="loadbalancer.subnets" label="Subnets" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
           <splitter class="tree-splitter" />
-          <treecol id="loadbalancer.groups" label="Groups" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
+          <treecol id="loadbalancer.securityGroups" label="Groups" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
           <splitter class="tree-splitter" />
          </treecols>
         <treechildren id="loadbalancer.tree.children" context="loadbalancer.tree.contextmenu" />

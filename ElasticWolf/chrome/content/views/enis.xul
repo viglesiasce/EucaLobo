@@ -43,7 +43,7 @@
                         <splitter class="tree-splitter" />
                         <treecol id="eni.sourceDestCheck" label="SrcDestCheck" flex="2" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
-                        <treecol id="eni.groups" label="Groups" flex="2" persist="width ordinal hidden sortDirection" />
+                        <treecol id="eni.securityGroups" label="Groups" flex="2" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="eni.attachment" label="Instance" flex="2" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />

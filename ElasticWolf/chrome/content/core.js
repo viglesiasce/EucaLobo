@@ -553,7 +553,7 @@ var ew_core = {
         var keyfile = this.getPrivateKeyFile(keyname);
         var pubfile = this.getPublicKeyFile(keyname);
         var openssl = this.getOpenSSLCommand();
-        var conffile = this.getKeyHome() + DirIO.sep + "openssl.cnf"
+        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf"
 
         // Make sure we do not lose existing private keys
         if (FileIO.exists(keyfile)) {
@@ -636,7 +636,7 @@ var ew_core = {
                 continue;
             }
             this.setEnv(paths[i].split(".").pop().toUpperCase(), p);
-            path += sep + p + DirIO.sep + "bin";
+            path += sep + p + DirIO.slash + "bin";
         }
         debug(path)
         this.setEnv("PATH", path);
@@ -700,6 +700,12 @@ var ew_core = {
         return true
     },
 
+    playAlertSound: function()
+    {
+        var sound = Components.classes["@mozilla.org/sound;1"].createInstance(Components.interfaces.nsISound);
+        if (sound) sound.playEventSound(sound.EVENT_ALERT_DIALOG_OPEN);
+    },
+
     // Select from the list
     // items are object to show
     // columns is list of propety names to show, otherwise convert object to string using toString
@@ -717,9 +723,9 @@ var ew_core = {
     // value:  initial value for the input field
     // type: default is textbox, can be checkbox, password, label, image...
     // all other properties will be additional attributes of the element
-    promptInput: function(title, items, modeless)
+    promptInput: function(title, items, modeless, callback)
     {
-        var params = { core: this, title: title, items: items || [ "" ], values: null, modeless: modeless };
+        var params = { core: this, title: title, items: items || [ "" ], values: null, modeless: modeless, callback: callback };
         var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
         return modeless ? win : (params.ok ? params.values : null);
     },
@@ -989,6 +995,16 @@ var ew_core = {
         xmlhttp.open("GET", this.URL, true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.send();
+    },
+
+    errorMessage: function(msg)
+    {
+        if (!msg) msg = "";
+        $('ew_message').label = msg;
+        $('ew_alert').hidden = msg == "";
+
+        if (this.errorTimer) clearTimeout(this.errorTimer);
+        if (msg) this.errorTimer = setTimeout(this.errorMessage, 30000);
     },
 
     // Show non modal error popup
@@ -1357,7 +1373,7 @@ var ew_core = {
         var batch = args.substr(idx + 2).replace(/\#\!/g, "\r\n") + "\r\n";
         batch = this.getTemplateProcessed(batch, params);
 
-        var file = this.getKeyHome() + DirIO.sep + filename + (isWindows(navigator.platform) ? ".bat" : ".sh");
+        var file = this.getKeyHome() + DirIO.slash + filename + (isWindows(navigator.platform) ? ".bat" : ".sh");
         args = this.getTemplateProcessed(args.substr(0, idx) + " " + quotepath(file), params);
 
         var fd = FileIO.open(file);
@@ -1709,7 +1725,7 @@ var ew_core = {
     // Updates existing object or adds a new one to the model
     replaceModel: function(model, obj, field)
     {
-        var o = this.findModel(this.getModel(model), obj[field || 'id']);
+        var o = this.findModel(model, obj[field || 'id']);
         if (o) {
             for (var p in obj) {
                 o[p] = obj[p];
@@ -1960,6 +1976,18 @@ var ew_core = {
                  { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
                  { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
                ]
+    },
+
+    getRoute53Regions: function()
+    {
+        return [ {name: "Asia Pacific (Tokyo)",          id: "ap-northeast-1", toString: function() { return this.name; } },
+                 {name: "Asia Pacific (Singapore)",      id: "ap-southeast-1", toString: function() { return this.name; } },
+                 {name: "EU (Ireland)",                  id: "eu-west-1", toString: function() { return this.name; } },
+                 {name: "South America (Sao Paulo)",     id: "sa-east-1", toString: function() { return this.name; } },
+                 {name: "US East (Northern Virginia)",   id: "us-east-1", toString: function() { return this.name; } },
+                 {name: "US West (Northern California)", id: "us-west-1", toString: function() { return this.name; } },
+                 {name: "US West (Oregon)",              id: "us-west-2", toString: function() { return this.name; } },
+                 ];
     },
 
     getEC2Regions: function()

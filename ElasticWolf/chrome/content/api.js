@@ -539,6 +539,7 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
+            this.core.playAlertSound();
             if (this.core.getBoolPrefs("ew.errors.show", false)) {
                 if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
                     if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
@@ -546,7 +547,7 @@ var ew_api = {
                     }
                 }
             } else {
-                $('ew_message').label = rc.action + ":" + rc.errCode +': ' + rc.errString;
+                this.core.errorMessage(rc.action + ":" + rc.errCode +': ' + rc.errString + ': ' + params);
             }
             this.errorTime = now;
             this.errorCount++;
@@ -555,7 +556,6 @@ var ew_api = {
             if (this.errorList.length > 100) this.errorList.splice(0, 1);
         } else {
             this.errorCount = 0;
-            $('ew_message').label = "";
             // Pass the result and the whole response object if it is null
             if (callback) {
                 callback(rc.result, rc);
@@ -4236,20 +4236,20 @@ var ew_api = {
 
     changeResourceRecordSets: function(action, id, rec, callback)
     {
-        var content = '<?xml version="1.0" encoding="UTF-8"?>' +
-                      '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012- 02-29/">' +
-                      '<ChangeBatch><Comment></Comment>' +
-                      '<Changes>' +
-                      '<Change><Action>' + action + '</Action>'+
-                      '<ResourceRecordSet>' +
-                      '<Name>' + rec.name + '</Name>' +
-                      '<Type>' + rec.type + '</Type>';
+        var contents = '<?xml version="1.0" encoding="UTF-8"?>' +
+                       '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/' + this.versions.R53 + '/">' +
+                       '<ChangeBatch><Comment></Comment>' +
+                       '<Changes>' +
+                       '<Change><Action>' + action + '</Action>'+
+                       '<ResourceRecordSet>' +
+                       '<Name>' + rec.name + '</Name>' +
+                       '<Type>' + rec.type + '</Type>';
 
-        if (rec.ttl) contents += '<TTL>' + rec.ttl + '</TTL>';
-        if (rec.weight) contents += '<Weight>' + rec.weight + '</Weight>';
+        if (rec.ttl > 0) contents += '<TTL>' + rec.ttl + '</TTL>';
+        if (rec.weight > 0) contents += '<Weight>' + rec.weight + '</Weight>';
         if (rec.setId) contents += '<SetIdentifier>' + rec.setId + '</SetIdentifier>';
         if (rec.region) contents += '<Region>' + rec.region + '</Region>';
-        if (rec.hostedZoneId || rec.dnsName) {
+        if (rec.hostedZoneId && rec.dnsName) {
             contents += '<AliasTarget>';
             if (rec.hostedZoneId) contents += '<HostedZoneId>' + rec.hostedZoneId + '</HostedZoneId>';
             if (rec.dnsName) contents += '<DNSName>' + rec.dnsName + '</DNSName>';
@@ -4259,9 +4259,10 @@ var ew_api = {
         if (rec.values.length) {
             contents += '<ResourceRecords><ResourceRecord>';
             for (var i = 0; i < rec.values.length; i++) {
-                content += '<Value>' + rec.values[i] + '</Value>';
+                if (rec.values[i] == "") continue;
+                contents += '<Value>' + rec.values[i] + '</Value>';
             }
-            content += '</ResourceRecord></ResourceRecords>';
+            contents += '</ResourceRecord></ResourceRecords>';
         }
 
         contents += '</ResourceRecordSet>' +
@@ -4270,6 +4271,7 @@ var ew_api = {
                     '</ChangeBatch>' +
                     '</ChangeResourceRecordSetsRequest>';
 
+        debug(contents)
         this.queryRoute53("POST", id + '/rrset', content, {}, this, false, "onCompleteChangeResourceRecordSets", callback);
     },
 

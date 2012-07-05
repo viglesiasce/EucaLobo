@@ -66,9 +66,6 @@ var ew_AMIsTreeView = {
         var image = this.getSelected();
         if (!image) return;
 
-        // If this is not a Windows Instance, Disable the following context menu items.
-        $("amis.context.migrate").disabled = !isWindows(image.platform);
-
         // These items apply only to AMIs
         fDisabled = !(image.id.match(regExs["ami"]));
         $("amis.context.register").disabled = fDisabled;
@@ -177,7 +174,7 @@ var ew_AMIsTreeView = {
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
-                me.core.selectTab('ew.tabs.instance');
+                me.core.selectTab('ew.tabs.instance' + (this.core.isVpcMode() ? ".vpc" : ""));
             });
         }
     },
@@ -369,7 +366,9 @@ var ew_InstancesTreeView = {
         this.core.selectTab('ew.tabs.volume')
     },
 
-    associateWithEIP : function() {
+    associateWithEIP : function()
+    {
+        var me = this;
         var instance = this.getSelected();
         if (instance == null) return;
         if (instance.state != "running") {
@@ -907,11 +906,11 @@ var ew_InstancesTreeView = {
     {
         // Get the group in which this instance was launched
         var groups = this.core.queryModel('securityGroups');
-        var instGroups = new Array(instance.groups.length);
-        for (var j in instance.groups) {
+        var instGroups = new Array(instance.securityGroups.length);
+        for (var j in instance.securityGroups) {
             instGroups[j] = null;
             for (var i in groups) {
-                if (groups[i].id == instance.groups[j]) {
+                if (groups[i].id == instance.securityGroups[j]) {
                     instGroups[j] = groups[i];
                     break;
                 }

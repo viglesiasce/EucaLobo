@@ -74,12 +74,28 @@
              item.setAttribute('crop','end');
              item.setAttribute('sizetopopup','none');
              item.setAttribute('value', value);
+             item.setAttribute('oncommand', "handler(" + i + ")");
+             break;
+
+          case 'radio':
+             var item = document.createElement('radiogroup');
+             for (var j in rc.items[i].list) {
+                 var obj = rc.items[i].list[j];
+                 var e = document.createElement('radio');
+                 e.setAttribute('label', rc.core.toString(obj));
+                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
+                 item.appendChild(e);
+             }
+             item.setAttribute('orient', 'horizontal');
+             item.setAttribute('value', value);
+             item.setAttribute('oncommand', "handler(" + i + ")");
              break;
 
           case 'password':
              item = document.createElement('textbox');
              item.setAttribute('type', type);
              item.setAttribute('value', value);
+             item.setAttribute('onchange', "handler(" + i + ")");
              break;
 
           case 'number':
@@ -87,6 +103,7 @@
              item.setAttribute('type', type);
              item.setAttribute('value', value);
              item.setAttribute('size', rc.items[i].size || 5);
+             item.setAttribute('onchange', "handler(" + i + ")");
              break;
 
           case 'cidr':
@@ -98,6 +115,7 @@
              if (!rc.items[i].multiline) {
                  item.setAttribute('size', rc.items[i].size || 45);
              }
+             item.setAttribute('onchange', "handler(" + i + ")");
              break;
 
           case 'name':
@@ -107,16 +125,19 @@
              item.setAttribute('value', value);
              item.setAttribute('autocompletesearch', "form-history");
              item.setAttribute('size', rc.items[i].size || 45);
+             item.setAttribute('onchange', "handler(" + i + ")");
              break;
 
           case 'checkbox':
              item = document.createElement('checkbox');
              item.setAttribute('checked', value);
+             item.setAttribute('oncommand', "handler(" + i + ")");
              break;
 
           default:
              item = document.createElement(type);
              item.setAttribute('value', value);
+             item.setAttribute('oncommand', "handler(event)");
           }
           rc.items[i].obj = item;
           item.setAttribute('id', 'item' + i);
@@ -171,6 +192,10 @@
           }
           rows.appendChild(row);
       }
+    }
+
+    function handler(idx) {
+        if (rc.callback) rc.callback.call(this, idx);
     }
 
     function browse(id, forDir) {
