@@ -14,7 +14,7 @@ easily configure both ElasticWolf and the CLI to work together.
 
 The project has been supported by the Global Public Sector sales team of AWS to provide a
 better customer experience when using the new GovCloud (ITAR-compliant) AWS region.
-GovClou is not currently supported by the AWS Console.  However, it is designed to work
+GovCloud is not currently supported by the AWS Console.  However, it is designed to work
 with all regions, so please file bugs if you find problems in any region.
 
 The Windows version of the tool is packaged with openssl for generating keys and ssh
