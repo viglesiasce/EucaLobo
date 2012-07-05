@@ -34,7 +34,7 @@ var ew_CredentialsTreeView = {
         if (!values) return;
         var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
         this.core.saveCredentials(cred);
-        this.display(this.core.getCredentials());
+        this.invalidate();
     },
 
     editCredentials : function()
@@ -46,7 +46,7 @@ var ew_CredentialsTreeView = {
         this.core.removeCredentials(cred);
         var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
         this.core.saveCredentials(cred);
-        this.display(this.core.getCredentials());
+        this.invalidate();
     },
 
     deleteCredentials : function()
@@ -55,7 +55,7 @@ var ew_CredentialsTreeView = {
         if (!cred) return;
         if (!confirm("Delete credentials " + cred.name)) return;
         this.core.removeCredentials(cred)
-        this.display(this.core.getCredentials());
+        this.invalidate();
     },
 
     filter: function(list)

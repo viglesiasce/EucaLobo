@@ -689,25 +689,10 @@ var ew_ListBox = {
 };
 
 var FileIO = {
-    localfileCID : '@mozilla.org/file/local;1',
-    localfileIID : Components.interfaces.nsILocalFile,
-    finstreamCID : '@mozilla.org/network/file-input-stream;1',
-    finstreamIID : Components.interfaces.nsIFileInputStream,
-    foutstreamCID : '@mozilla.org/network/file-output-stream;1',
-    foutstreamIID : Components.interfaces.nsIFileOutputStream,
-    sinstreamCID : '@mozilla.org/scriptableinputstream;1',
-    sinstreamIID : Components.interfaces.nsIScriptableInputStream,
-    suniconvCID : '@mozilla.org/intl/scriptableunicodeconverter',
-    suniconvIID : Components.interfaces.nsIScriptableUnicodeConverter,
-    bufstreamCID: "@mozilla.org/network/buffered-input-stream;1",
-    bufstreamIID: Components.interfaces.nsIBufferedInputStream,
-    binstreamCID: "@mozilla.org/binaryinputstream;1",
-    binstreamIID: Components.interfaces.nsIBinaryInputStream,
-
     exists : function(path)
     {
         try {
-            var file = Components.classes[this.localfileCID].createInstance(this.localfileIID);
+            var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
             file.initWithPath(path);
             return file.exists();
         }
@@ -719,7 +704,7 @@ var FileIO = {
     remove : function(path)
     {
         try {
-            var file = Components.classes[this.localfileCID].createInstance(this.localfileIID);
+            var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
             file.initWithPath(path);
             return file.remove(false);
         }
@@ -731,7 +716,7 @@ var FileIO = {
     open : function(path)
     {
         try {
-            var file = Components.classes[this.localfileCID].createInstance(this.localfileIID);
+            var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
             file.initWithPath(path);
             return file;
         }
@@ -744,8 +729,8 @@ var FileIO = {
     {
         try {
             var fd = this.open(file);
-            var fStream = Components.classes[this.finstreamCID].createInstance(this.finstreamIID);
-            var sStream = Components.classes[this.bufstreamCID].createInstance(this.bufstreamIID);
+            var fStream = Components.classes['@mozilla.org/network/file-input-stream;1'].createInstance(Components.interfaces.nsIFileInputStream);
+            var sStream = Components.classes["@mozilla.org/network/buffered-input-stream;1"].createInstance(Components.interfaces.nsIBufferedInputStream);
             fStream.init(fd, 1, 0, false);
             sStream.init(fStream, 9000000);
             return [fStream, sStream, fd];
@@ -766,8 +751,8 @@ var FileIO = {
     {
         try {
             var data = new String();
-            var fStream = Components.classes[this.finstreamCID].createInstance(this.finstreamIID);
-            var sStream = Components.classes[this.sinstreamCID].createInstance(this.sinstreamIID);
+            var fStream = Components.classes['@mozilla.org/network/file-input-stream;1'].createInstance(Components.interfaces.nsIFileInputStream);
+            var sStream = Components.classes['@mozilla.org/scriptableinputstream;1'].createInstance(Components.interfaces.nsIScriptableInputStream);
             fStream.init(file, 1, 0, false);
             sStream.init(fStream);
             data += sStream.read(-1);
@@ -787,8 +772,8 @@ var FileIO = {
     readBinary: function(file, base64)
     {
         try {
-            var fStream = Components.classes[this.finstreamCID].createInstance(this.finstreamIID);
-            var bStream = Components.classes[this.binstreamCID].createInstance(this.binstreamIID);
+            var fStream = Components.classes['@mozilla.org/network/file-input-stream;1'].createInstance(Components.interfaces.nsIFileInputStream);
+            var bStream = Components.classes["@mozilla.org/binaryinputstream;1"].createInstance(Components.interfaces.nsIBinaryInputStream);
             fStream.init(file, 1, 0, false);
             bStream.setInputStream(fStream);
             var data = bStream.readByteArray(bStream.available());
@@ -808,7 +793,7 @@ var FileIO = {
     write : function(file, data, mode, charset)
     {
         try {
-            var fStream = Components.classes[this.foutstreamCID].createInstance(this.foutstreamIID);
+            var fStream = Components.classes['@mozilla.org/network/file-output-stream;1'].createInstance(Components.interfaces.nsIFileOutputStream);
             if (charset) {
                 data = this.fromUnicode(charset, data);
             }
@@ -875,7 +860,7 @@ var FileIO = {
     toUnicode : function(charset, data)
     {
         try {
-            var uniConv = Components.classes[this.suniconvCID].createInstance(this.suniconvIID);
+            var uniConv = Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
             uniConv.charset = charset;
             data = uniConv.ConvertToUnicode(data);
         }
@@ -899,7 +884,7 @@ var FileIO = {
     fromUnicode : function(charset, data)
     {
         try {
-            var uniConv = Components.classes[this.suniconvCID].createInstance(this.suniconvIID);
+            var uniConv = Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
             uniConv.charset = charset;
             data = uniConv.ConvertFromUnicode(data);
         }
@@ -931,15 +916,12 @@ var FileIO = {
 // Settings\username\Start Menu\Programs)
 
 var DirIO = {
-    sep : navigator.platform.toLowerCase().indexOf('win') > -1 ? '\\' : '/',
-    dirservCID : '@mozilla.org/file/directory_service;1',
-    propsIID : Components.interfaces.nsIProperties,
-    fileIID : Components.interfaces.nsIFile,
+    slash : navigator.platform.toLowerCase().indexOf('win') > -1 ? '\\' : '/',
 
     get : function(type)
     {
         try {
-            return Components.classes[this.dirservCID].createInstance(this.propsIID).get(type, this.fileIID);
+            return Components.classes['@mozilla.org/file/directory_service;1'].createInstance(Components.interfaces.nsIProperties).get(type, Components.interfaces.nsIFile);
         }
         catch (e) {
             return false;
@@ -972,7 +954,7 @@ var DirIO = {
     {
         try {
             var i = 0
-            var dirs = path.split(this.sep);
+            var dirs = path.split(this.slash);
             if (dirs.length == 0) return 0
             if (isWindows(navigator.platform)) {
                 path = dirs[0];
@@ -981,7 +963,7 @@ var DirIO = {
                 path = ""
             }
             while (i < dirs.length) {
-                path += this.sep + dirs[i];
+                path += this.slash + dirs[i];
                 if (!FileIO.exists(path) && !DirIO.create(FileIO.open(path))) {
                     return false
                 }
@@ -1017,7 +999,7 @@ var DirIO = {
         var list = new Array();
         try {
             while (dirEntry.hasMoreElements()) {
-                list.push(dirEntry.getNext().QueryInterface(FileIO.localfileIID));
+                list.push(dirEntry.getNext().QueryInterface(Components.interfaces.nsILocalFile));
             }
             if (recursive) {
                 var list2 = new Array();
@@ -1059,7 +1041,7 @@ var DirIO = {
         for (var i = 0; i < arguments.length; i++) {
             if (arguments[i] != "") path.push(arguments[i]);
         }
-        return path.join(this.sep);
+        return path.join(this.slash);
     },
 
     split : function(str, join)
@@ -1077,7 +1059,7 @@ var DirIO = {
         var arr = str.split(split), i;
         str = new String();
         for (i = 0; i < arr.length; ++i) {
-            str += arr[i] + ((i != arr.length - 1) ? this.sep : '');
+            str += arr[i] + ((i != arr.length - 1) ? this.slash : '');
         }
         return str;
     },
@@ -1313,8 +1295,8 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
     this.expire = expire || 0;
-    this.type = this.expire ? " Temporary" : "";
-    this.expirationDate =  this.expire ? new Date(parseInt(this.expire)) : "";
+    this.type = this.expire > 0 || this.securityToken != "" ? "Temporary" : "";
+    this.expirationDate =  this.expire > 0 ? new Date(parseInt(this.expire)) : "";
 
 
     this.toString = function() {
