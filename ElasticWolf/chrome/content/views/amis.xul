@@ -14,7 +14,6 @@
                             <menuseparator />
                             <menuitem id="amis.context.register" oncommand="ew_AMIsTreeView.registerNewImage();" label="Register New" />
                             <menuitem id="amis.context.deregister" oncommand="ew_AMIsTreeView.deregisterImage();" label="Deregister" />
-                            <menuitem id="amis.context.migrate" oncommand="ew_AMIsTreeView.migrateImage();" label="Migrate and Register" />
                             <menuitem id="amis.context.perms" oncommand="ew_AMIsTreeView.viewPermissions();" label="Manage Launch Permissions" />
                             <menuseparator />
                             <menuitem id="amis.context.delete" oncommand="ew_AMIsTreeView.deleteImage();" label="Delete Parts and Deregister" />

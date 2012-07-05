@@ -221,7 +221,7 @@ function formatJSON(obj, indent)
 {
     if (!indent) indent = "";
     var style = "    ";
-    var type = typeOf(obj);
+    var type = typeName(obj);
     var count = 0;
     var text = type == "array" ? "[" : "{";
 
@@ -233,7 +233,7 @@ function formatJSON(obj, indent)
         } else {
             text += ("\n" + indent + style + "\"" + p + "\"" + ": ");
         }
-        switch (typeOf(val)) {
+        switch (typeName(val)) {
         case "array":
         case "object":
             text += formatJSON(val, (indent + style));
@@ -311,26 +311,26 @@ function cloneObject(obj)
     return newObj;
 }
 
+function typeName(v)
+{
+    var t = typeof(v);
+    if (v === null) return "null";
+    if (t !== "object") return t;
+    if (v.constructor == (new Array).constructor) return "array";
+    if (v.constructor == (new Date).constructor) return "date";
+    if (v.constructor == (new RegExp).constructor) return "regex";
+    return "object";
+}
+
 // Return name of the class for given object
-function className(o) {
-    var t;
+function className(o)
+{
+    var t = typeof(o);
     if (o === null) return "null";
-    if ((t = typeof o) !== "object") return t;
+    if (t !== "object") return t;
     if ((t = Object.prototype.toString.call(o).slice(8,-1)) !== "Object") return t;
     if (o.constructor && typeof o.constructor === "function" && (t = o.constructor.className())) return t;
     return "Object";
-}
-
-function typeOf(v)
-{
-    if (typeof(v) == "object") {
-        if (v === null) return "null";
-        if (v.constructor == (new Array).constructor) return "array";
-        if (v.constructor == (new Date).constructor) return "date";
-        if (v.constructor == (new RegExp).constructor) return "regex";
-        return "object";
-    }
-    return typeof(v);
 }
 
 // Return value of the parameter in the list of parameters pairs
@@ -454,18 +454,6 @@ function debug(msg)
     }
 }
 
-function generateS3Policy(bucket, prefix, validity)
-{
-    var validHours = 24;
-    var expiry = new Date();
-    if (validity != null) {
-        validHours = validity;
-    }
-    expiry.setTime(expiry.getTime() + validHours * 60 * 60 * 1000);
-    var expiryStr = expiry.toISO8601String(5);
-    return (policyStr = '{' + '"expiration": "' + expiryStr + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}');
-}
-
 function toByteArray(str)
 {
     var bArray = new Array();
@@ -518,5 +506,12 @@ function getProperty(key)
     }
     catch (e) {
         return "";
+    }
+}
+
+function clearListbox(list)
+{
+    for (var i = list.itemCount - 1; i >= 0; i--) {
+        list.removeItemAt(i);
     }
 }

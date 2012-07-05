@@ -1704,7 +1704,7 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
 }
 
 function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
-                  amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
+                  amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringEnabled, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
                   virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, volumes, enis, tags)
 {
     this.id = instanceId;
@@ -1715,7 +1715,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.imageId = imageId;
     this.state = state;
     this.productCodes = productCodes;
-    this.groups = uniqueList(groups, 'id');
+    this.securityGroups = uniqueList(groups, 'id');
     this.dnsName = dnsName;
     this.privateDnsName = privateDnsName;
     this.privateIpAddress = privateIpAddress;
@@ -1728,7 +1728,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.launchTime = launchTime;
     this.availabilityZone = availabilityZone;
     this.tenancy = tenancy;
-    this.monitoringStatus = monitoringStatus;
+    this.monitoringEnabled = monitoringEnabled;
     this.stateReason = stateReason;
     this.platform = platform;
     this.kernelId = kernelId;

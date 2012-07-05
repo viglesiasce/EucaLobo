@@ -158,3 +158,9 @@ groupbox caption {
     -moz-appearance: none;
     border: 0px;
 }
+
+.line {
+    height:1px;
+    background-color:#000000;
+    width:100%;
+}

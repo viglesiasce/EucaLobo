@@ -169,12 +169,9 @@ var ew_AMIsTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, this.core, retVal);
         if (retVal.ok) {
             if (retVal.name) {
-                retVal.tag += "Name:" + retVal.name;
+                retVal.tag += (retVal.tag ? "," : "") + "Name:" + retVal.name;
             }
-            this.core.api.runInstances(retVal.imageId, retVal.kernelId, retVal.ramdiskId, retVal.minCount, retVal.maxCount, retVal.keyName,
-                                               retVal.securityGroups, retVal.userData, retVal.properties, retVal.instanceType,
-                                               retVal.availabilityZone, retVal.tenancy, retVal.subnetId, retVal.ipAddress,
-                                               retVal.monitoring, function(list) {
+            this.core.api.runInstances(retVal.imageId, retVal.instanceType, retVal.minCount, retVal.maxCount, retVal, function(list) {
                 if (retVal.tag != "") {
                     me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
                 } else {
@@ -228,38 +225,6 @@ var ew_AMIsTreeView = {
         if (!image) return;
         if (!confirmed && !confirm("Deregister AMI " + image.id + " (" + image.location + ")?")) return;
         this.core.api.deregisterImage(image.id, function() {me.refresh()});
-    },
-
-    migrateImage : function()
-    {
-        var image = this.getSelected();
-        if (image == null) return;
-        if (this.currentlyMigrating && this.amiBeingMigrated == image.id) {
-            alert("This AMI is currently being migrated!");
-            return;
-        }
-
-        var retVal = { ok : null };
-        window.openDialog("chrome://ew/content/dialogs/migrate_ami.xul", null, "chrome,centerscreen,modal,resizable", image, this.core, retVal);
-        if (retVal.ok) {
-            this.currentlyMigrating = true;
-            this.amiBeingMigrated = image.id;
-            retVal.ok = false;
-            // TODO: Finish up AMI migration with visual prompts
-            //window.openDialog("chrome://ew/content/dialogs/copy_S3_keys.xul", null, "chrome, dialog, centerscreen, resizable=yes", this.core, retVal);
-        }
-    },
-
-    finishMigration : function(retVal)
-    {
-        if (retVal.ok) {
-            // Register the new AMI
-            var manifest = retVal.destB + "/" + retVal.prefix + ".manifest.xml";
-            log("Registering AMI with manifest: " + manifest);
-            this.callRegisterImageInRegion(manifest, retVal.region);
-        }
-        this.currentlyMigrating = false;
-        this.amiBeingMigrated = null;
     },
 
     deleteImage : function()

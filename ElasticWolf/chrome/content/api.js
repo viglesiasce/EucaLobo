@@ -1552,7 +1552,7 @@ var ew_api = {
                     var imageId = getNodeValue(instance, "imageId");
                     var state = getNodeValue(instance, "instanceState", "name");
                     var productCodes = this.getItems(instance, "productCodes", "item", ["productCode", "type"], function(obj) { return new Group(obj.productCode, obj.type) });
-                    var allGroups = groups.concat(this.getGroups(instance));
+                    var securityGroups = groups.concat(this.getGroups(instance));
                     var dnsName = getNodeValue(instance, "dnsName");
                     var privateDnsName = getNodeValue(instance, "privateDnsName");
                     var privateIpAddress = getNodeValue(instance, "privateIpAddress");
@@ -1609,8 +1609,8 @@ var ew_api = {
 
                     var tags = this.getTags(instance);
 
-                    list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, allGroups, dnsName, privateDnsName, privateIpAddress,
-                                           vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus, stateReason,
+                    list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, securityGroups, dnsName, privateDnsName, privateIpAddress,
+                                           vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus != "", stateReason,
                                            platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName, virtType, hypervisor, ip, srcDstCheck, architecture, instanceLifecycle,
                                            clientToken, spotId, volumes, enis, tags));
                 }
@@ -1624,59 +1624,100 @@ var ew_api = {
     runMoreInstances: function(instance, count, callback)
     {
         var me = this;
+        var params = cloneObject(instance)
         this.describeInstanceAttribute(instance.id, "userData", function(data) {
-            me.runInstances(instance.imageId, instance.kernelId, instance.ramdiskId, count, count, instance.keyName,
-                            instance.groups, data, null, instance.instanceType, instance.availabilityZone,
-                            instance.tenancy, instance.subnetId, null, instance.monitoringStatus != "", callback);
+            params.userData = data;
+            params.privateIpAddress = null;
+            me.runInstances(instance.imageId, instance.instanceType, count, count, params, callback);
         });
     },
 
-    runInstances : function(imageId, kernelId, ramdiskId, minCount, maxCount, keyName, securityGroups, userData, properties, instanceType, availabilityZone, tenancy, subnetId, ipAddress, monitoring, callback)
+    runInstances : function(imageId, instanceType, minCount, maxCount, options, callback)
     {
         var params = []
         params.push([ "ImageId", imageId ]);
-        if (kernelId != null && kernelId != "") {
-            params.push([ "KernelId", kernelId ]);
-        }
-        if (ramdiskId != null && ramdiskId != "") {
-            params.push([ "RamdiskId", ramdiskId ]);
-        }
         params.push([ "InstanceType", instanceType ]);
         params.push([ "MinCount", minCount ]);
         params.push([ "MaxCount", maxCount ]);
-        if (keyName != null && keyName != "") {
-            params.push([ "KeyName", keyName ]);
+
+        if (options.kernelId) {
+            params.push([ "KernelId", options.kernelId ]);
         }
-        for (var i in securityGroups) {
-            params.push([ "SecurityGroupId." + (i + 1), typeof securityGroups[i] == "object" ? securityGroups[i].id : securityGroups[i] ]);
+        if (options.ramdiskId) {
+            params.push([ "RamdiskId", options.ramdiskId ]);
         }
-        if (userData != null) {
+        if (options.keyName) {
+            params.push([ "KeyName", options.keyName ]);
+        }
+        for (var i in options.securityGroups) {
+            params.push([ "SecurityGroupId." + (i + 1), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
+        }
+        if (options.userData != null) {
             var b64str = "Base64:";
-            if (userData.indexOf(b64str) != 0) {
+            if (options.userData.indexOf(b64str) != 0) {
                 // This data needs to be encoded
-                userData = Base64.encode(userData);
+                options.userData = Base64.encode(options.userData);
             } else {
-                userData = userData.substring(b64str.length);
+                options.userData = options.userData.substring(b64str.length);
             }
-            params.push([ "UserData", userData ]);
+            params.push([ "UserData", options.userData ]);
         }
-        if (properties) {
-            params.push([ "AdditionalInfo", properties ]);
+        if (options.additionalInfo) {
+            params.push([ "AdditionalInfo", options.additionalInfo ]);
         }
-        if (monitoring) {
+        if (options.clientToken) {
+            params.push([ "ClientToken", options.clientToken])
+        }
+        if (options.monitoringEnabled) {
             params.push([ "Monitoring.Enabled", "true"]);
         }
-        if (availabilityZone) {
-            params.push([ "Placement.AvailabilityZone", availabilityZone ]);
+        if (options.disableApiTermination) {
+            params.push([ "DisableApiTermination", "true"]);
         }
-        if (tenancy) {
-            params.push([ "Placement.Tenancy", tenancy ]);
+        if (options.instanceInitiatedShutdownBehaviour) {
+            params.push([ "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehaviour]);
         }
-        if (subnetId) {
-            params.push([ "SubnetId", subnetId ]);
-
-            if (ipAddress != null && ipAddress != "") {
-                params.push([ "PrivateIpAddress", ipAddress ]);
+        if (options.availabilityZone) {
+            params.push([ "Placement.AvailabilityZone", options.availabilityZone ]);
+        }
+        if (options.tenancy) {
+            params.push([ "Placement.Tenancy", options.tenancy ]);
+        }
+        if (options.subnetId) {
+            params.push([ "SubnetId", options.subnetId ]);
+            if (options.privateIpAddress) {
+                params.push([ "PrivateIpAddress", options.privateIpAddress ]);
+            }
+        }
+        if (options.blockDeviceMapping) {
+            params.push([ 'BlockDeviceMapping.1.DeviceName', options.blockDeviceMapping.deviceName ]);
+            if (options.blockDeviceMapping.virtualName) {
+                params.push([ 'BlockDeviceMapping.1.VirtualName', options.blockDeviceMapping.virtualName ]);
+            } else
+            if (options.blockDeviceMapping.snapshotId) {
+                params.push([ 'BlockDeviceMapping.1.Ebs.SnapshotId', options.blockDeviceMapping.snapshotId ]);
+                params.push([ 'BlockDeviceMapping.1.Ebs.DeleteOnTermination', options.blockDeviceMapping.deleteOnTermination ? true : false ]);
+            } else
+            if (options.blockDeviceMapping.volumeSize) {
+                params.push([ 'BlockDeviceMapping.1.Ebs.VolumeSize', options.blockDeviceMapping.volumeSize ]);
+            }
+        }
+        if (options.networkInterface) {
+            params.push([ "NetworkInterface.1.DeviceIndex", options.networkInterface.deviceIndex])
+            if (options.networkInterface.eniId) {
+                params.push([ "NetworkInterface.1.NetworkInterfaceId", options.networkInterface.eniId])
+            }
+            if (options.networkInterface.subnetId) {
+                params.push([ "NetworkInterface.1.SubnetId", options.networkInterface.subnetId])
+            }
+            if (options.networkInterface.description) {
+                params.push([ "NetworkInterface.1.Description", options.networkInterface.description])
+            }
+            if (options.networkInterface.privateIpAddress) {
+                params.push([ "NetworkInterface.1.PrivateIpAddres", options.networkInterface.privateIpAddress])
+            }
+            for (var i in options.networkInterface.securityGroups) {
+                params.push([ "NetworkInterface.1.SecurityGroupId." + (parseInt(i) + 1), options.networkInterface.securityGroups[i]])
             }
         }
 
@@ -1797,7 +1838,10 @@ var ew_api = {
     bundleInstance : function(instanceId, bucket, prefix, activeCred, callback)
     {
         // Generate the S3 policy string using the bucket and prefix
-        var s3policy = generateS3Policy(bucket, prefix);
+        var validHours = 24;
+        var expiry = new Date();
+        expiry.setTime(expiry.getTime() + validHours * 60 * 60 * 1000);
+        var s3policy = (policyStr = '{' + '"expiration": "' + expiry.toISO8601String(5) + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}');
         var s3polb64 = Base64.encode(s3policy);
         // Sign the generated policy with the secret key
         var policySig = b64_hmac_sha1(activeCred.secretKey, s3polb64);

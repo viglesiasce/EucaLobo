@@ -106,7 +106,7 @@
           <splitter class="tree-splitter" />
           <treecol id="instance.keyName" label="&ew.instances.keyName.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
-          <treecol id="instance.groups" label="&ew.instances.groups.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <treecol id="instance.securityGroups" label="&ew.instances.groups.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
           <treecol id="instance.instanceType" label="&ew.instances.instanceType.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />

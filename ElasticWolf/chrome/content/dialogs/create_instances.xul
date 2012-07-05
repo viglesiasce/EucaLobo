@@ -17,27 +17,7 @@
 
     function launch()
     {
-        var minbox = $("ew.min");
-        var minval = parseInt(minbox.value);
-        if (isNaN(minval) || minval <= 0 || minval > this.retVal.max) {
-            alert("Minimum value must be a positive integer between 1 and " + this.retVal.max);
-            minbox.select();
-            return false;
-        }
-        // Assumes validateMin has been called
-        var maxbox = $("ew.max");
-        var maxval = parseInt(maxbox.value);
-        if (isNaN(maxval) || maxval <= 0 || maxval > this.retVal.max) {
-            alert("Maximum value must be a positive integer between 1 and " + this.retVal.max);
-            maxbox.select();
-            return false;
-        }
-        if (minval > maxval) {
-            alert("Maximum value may not be smaller than minimum value between 1 and " + maxval);
-            minbox.select();
-            return false;
-        }
-
+        ew_ListBox.done();
         this.retVal.imageId = this.image.id;
         this.retVal.kernelId = $("ew.aki").value;
         this.retVal.ramdiskId = $("ew.ari").value;
@@ -46,28 +26,136 @@
         this.retVal.maxCount = $("ew.max").value.trim();
         this.retVal.tag = $("ew.tag").value.trim();
         this.retVal.name = $("ew.name").value.trim();
-
-        ew_ListBox.done();
-        this.retVal.securityGroups = ew_ListBox.selectedItems;
-
-        var subnet = $("ew.subnetId").value;
-        if (subnet == "" && this.vpcMenu.value != "") {
-            alert("No subnet selected for VPC. Please select a subnet to continue.");
-            return false;
-        }
-        this.retVal.subnetId = subnet;
-        this.retVal.ipAddress = $("ew.ipAddress").value.trim();
-
-        // This will be an empty string if <none> is selected
-        this.retVal.keyName = $("ew.keypairlist").selectedItem.value;
-
-        // This will be an empty string if <any> is selected
+        this.retVal.disableApiTermination = $("ew.disableApiTermination").checked;
+        this.retVal.instanceInitiatedShutdownBehavior = $("ew.shutdown").value;
+        this.retVal.clientToken = $("ew.token").value;
+        this.retVal.monitoringEnabled = $("ew.monitor").checked;
+        this.retVal.userData = $("ew.userdata").value;
+        this.retVal.additionalInfo = $("ew.properties").value;
+        this.retVal.subnetId = $("ew.subnetId").value;
+        this.retVal.privateIpAddress = $("ew.ipAddress").value.trim();
+        this.retVal.keyName = $("ew.keypairlist").value;
         this.retVal.availabilityZone = this.azMenu.value;
         this.retVal.tenancy = this.tnMenu.value;
+        this.retVal.securityGroups = ew_ListBox.selectedItems;
+
+        var device = {};
+        device.type = $("ew.deviceType").value;
+        device.deviceName = $("ew.deviceName").value;
+        if (device.type && !device.deviceName) {
+            alert('Device block mapping type was specified but no device name');
+            $("ew.tabs").selectedIndex = 3;
+            return false;
+        }
+        switch (device.type) {
+        case "snapshot":
+             device.snapshotId = $("ew.snapshotId").value;
+             device.deleteOnTermination = $("ew.deleteOnTermination").checked;
+             if (!device.snapshotId) {
+                 alert('Please, specify snapshot for the attaching device ' + device.deviceName);
+                 $("ew.tabs").selectedIndex = 3;
+                 return false;
+             }
+             this.retVal.blockDeviceMapping = device;
+             break;
+
+        case "new":
+             device.volumeSize = $("ew.volumeSize").value;
+             if (!device.volumeSize) {
+                 alert('Please, specify new volume size in GB for the attaching device ' + device.deviceName);
+                 $("ew.tabs").selectedIndex = 3;
+                 return false;
+             }
+             this.retVal.blockDeviceMapping = device;
+             break;
+
+        case "virtual":
+             device.virtualName = $("ew.virtualName").value;
+             if (!device.virtualName) {
+                 alert('Please, specify virtual device name for the attaching device ' + device.deviceName);
+                 $("ew.tabs").selectedIndex = 3;
+                 return false;
+             }
+             this.retVal.blockDeviceMapping = device;
+             break;
+        }
+
+        var eni = {};
+        eni.type = $("ew.eniType").value;
+        eni.deviceIndex = parseInt($("ew.eniIndex").value);
+        eni.deleteOnTermination = $("ew.eniDelete").checked;
+        if (eni.type && !eni.deviceIndex) {
+            alert('Device Index for ENI must be specified');
+            $("ew.tabs").selectedIndex = 4;
+            return false;
+        }
+        if (eni.type && this.retVal.maxCount > 1) {
+            alert('Cannot attach ENI to multiple instances, must run only 1 instance');
+            $("ew.tabs").selectedIndex = 4;
+            return false;
+        }
+        switch (eni.type) {
+        case "eni":
+             eni.eniId = $("ew.eniId").value;
+             if (!eni.eniId) {
+                 alert('Please, specify existing ENI to attach to the instance');
+                 $("ew.tabs").selectedIndex = 4;
+                 return false;
+             }
+             this.retVal.networkInterface = eni;
+             break;
+
+        case "new":
+             this.retVal.privateIpAddress = $("ew.eniIpAddress").value;
+             this.retVal.description = $("ew.eniDescr").value;
+             this.retVal.subnetId = $("ew.eniSubnet").value;
+             this.retVal.securityGroups = [];
+             var groupMenu = $("ew.eniSubnet");
+             for (var i = 0; i < groupMenu.selectedCount; i++) {
+                 this.retVal.securityGroups.push(groupMenu.getSelectedItem(i).value);
+             }
+             this.retVal.networkInterface = eni;
+             break;
+        }
+
+        var minval = parseInt(this.retVal.minCount);
+        if (isNaN(minval) || minval <= 0 || minval > this.retVal.max) {
+            alert("Minimum value must be a positive integer between 1 and " + this.retVal.max);
+            minbox.select();
+            $("ew.tabs").selectedIndex = 0;
+            return false;
+        }
+        var maxval = parseInt(this.retVal.maxCount);
+        if (isNaN(maxval) || maxval <= 0 || maxval > this.retVal.max) {
+            alert("Maximum value must be a positive integer between 1 and " + this.retVal.max);
+            maxbox.select();
+            $("ew.tabs").selectedIndex = 0;
+            return false;
+        }
+        if (minval > maxval) {
+            alert("Maximum value may not be smaller than minimum value between 1 and " + maxval);
+            minbox.select();
+            $("ew.tabs").selectedIndex = 0;
+            return false;
+        }
+
+        if (!isWindows(this.image.platform) &&
+            !this.retVal.keyName &&
+            !confirm('No keypair is specified for the instance, access will not be possible without it, do still want to continue?')) {
+            $("ew.tabs").selectedIndex = 0;
+            return false;
+        }
+
+        if (this.retVal.subnetId == "" && this.vpcMenu.value != "") {
+            alert("No subnet selected for VPC. Please select a subnet to continue.");
+            $("ew.tabs").selectedIndex = 1;
+            return false;
+        }
 
         if (this.retVal.tenancy == "dedicated") {
             if (this.vpcMenu.value == "") {
                 alert('For dedicated tenancy to work please choose a VPC');
+                $("ew.tabs").selectedIndex = 1;
                 return false;
             }
             if (!confirm("You have chosen to launch your instance(s) with dedicated tenancy. " +
@@ -76,41 +164,75 @@
                 return false;
             }
         }
-        this.retVal.monitoring = $("ew.monitor").checked;
-
-        this.retVal.userData = $("ew.userdata").value;
-        if (this.retVal.userData == "") {
-            this.retVal.userData = null;
-        }
-        this.retVal.properties = $("ew.properties").value;
-        if (this.retVal.properties == "") {
-            this.retVal.properties = null;
-        }
         this.retVal.ok = true;
 
         return true;
     }
 
+    function deviceSelected()
+    {
+        $("ew.virtualName").disabled = $("ew.snapshotId").disabled = $("ew.volumeSize").disabled = $("ew.deleteOnTermination").disabled = true;
+        switch ($("ew.deviceType").value) {
+        case "snapshot":
+             $("ew.snapshotId").disabled = $("ew.deleteOnTermination").disabled = false;
+             break;
+        case "new":
+             $("ew.volumeSize").disabled = false;
+             break;
+        case "virtual":
+             $("ew.virtualName").disabled = false;
+             break;
+        }
+    }
+
+    function eniSelected()
+    {
+        $("ew.eniId").disabled = $("ew.eniDescr").disabled = $("ew.eniIpAddress").disabled = $("ew.eniSubnet").disabled = $("ew.eniGroups").disabled = true;
+        switch ($("ew.eniType").value) {
+        case "eni":
+             $("ew.eniId").disabled = false;
+             break;
+        case "new":
+             $("ew.eniDescr").disabled = $("ew.eniIpAddress").disabled = false;
+             $("ew.eniSubnet").disabled = $("ew.eniGroups").disabled = false;
+             break;
+        }
+    }
+
+    function subnetSelected()
+    {
+        var groupMenu = $("ew.eniGroups");
+        clearListbox(groupMenu)
+        var subnetId = $("ew.eniSubnet").value;
+        var subnet = this.core.findModel('subnets', subnetId);
+        if (subnet) {
+            var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
+            for (var i in groups) {
+                groupMenu.appendItem(groups[i].toString(), groups[i].id);
+            }
+        }
+    }
+
     function vpcSelected()
     {
-        var sel = this.vpcMenu.selectedItem;
+        var vpcId = this.vpcMenu.value;
         var az = this.azMenu.value
 
         // Reset subnets
         this.subnetMenu.removeAllItems();
         $("ew.ipAddress").disabled = true;
 
-        if (sel.value != null && sel.value != '') {
-            var subnets = this.core.queryModel('subnets');
+        if (vpcId) {
+            var subnets = this.core.queryModel('subnets', 'vpcId', vpcId);
             for ( var i in subnets) {
-                if (subnets[i].vpcId == sel.value && (az == "" || az == subnets[i].availabilityZone)) {
+                if (az == "" || az == subnets[i].availabilityZone) {
                     this.subnetMenu.appendItem(subnets[i].toString(), subnets[i].id)
                 }
             }
             this.subnetMenu.selectedIndex = 0;
             $("ew.ipAddress").disabled = false;
         }
-        this.tnMenu.value = sel.value ? "dedicated" : "default";
+        this.tnMenu.value = vpcId ? "dedicated" : "default";
 
         var box = $('ew.groups.box');
         var groups = $('ew.groups');
@@ -118,6 +240,7 @@
             box.removeChild(groups);
         }
 
+        // Re-create new list
         var groups = document.createElement('listbox');
         groups.setAttribute('id', 'ew.groups');
         groups.setAttribute('flex', '1');
@@ -149,57 +272,64 @@
         this.image = window.arguments[0];
         this.core = window.arguments[1];
         this.retVal = window.arguments[2];
+        this.azMenu = $("ew.azId");
+        this.tnMenu = $("ew.tenancy");
+        this.vpcMenu = $("ew.vpcId");
+        this.subnetMenu = $("ew.subnetId");
 
         var images = this.core.queryModel('images');
         var keypairs = this.core.queryModel('keypairs');
         var types = this.core.getInstanceTypes(this.image.arch);
         var availZones = this.core.queryModel('availabilityZones');
         var vpcs = this.core.queryModel('vpcs');
+        var snapshots = this.core.queryModel('snapshots', "status", "completed");
+        var subnets = this.core.queryModel('subnets');
+        var enis = this.core.queryModel('networkInterfaces');
 
         var keypairMenu = $("ew.keypairlist");
         keypairMenu.appendItem("<none>", null);
         for ( var i in keypairs) {
             keypairMenu.appendItem(keypairs[i].name, keypairs[i].name);
         }
-        // If the user created at least one EC2 Keypair, select it.
-        keypairMenu.selectedIndex = (keypairs.length > 0) ? 1 : 0;
+        keypairMenu.selectedIndex = 0;
 
         var typeMenu = $("ew.instancetypelist");
-        // Add the instance sizes based on AMI architecture
         for (var i in types) {
             typeMenu.appendItem(types[i].name, types[i].id);
         }
         typeMenu.selectedIndex = 0;
 
-        var textBox = $("ew.ami");
-        textBox.value = this.image.id;
-
-        textBox = $("ew.ami.tag");
-        textBox.value = this.image.tag || "";
-
-        textBox = $("ew.ami.location");
-        textBox.value = this.image.location.split('/').pop();
-
-        textBox = $("ew.min");
-        textBox.focus();
-
-        // availability zones
-        this.azMenu = $("ew.azId");
         this.azMenu.appendItem("<any>", null);
         for ( var i in availZones) {
             this.azMenu.appendItem(availZones[i].name + " (" + availZones[i].state + ")", availZones[i].name);
         }
         this.azMenu.selectedIndex = 0;
 
-        this.tnMenu = $("ew.tenancy");
+        this.vpcMenu.appendItem("Traditional EC2 Networking", "");
+        for (var i in vpcs) {
+            this.vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
+        }
+        this.vpcMenu.selectedIndex = 0;
+        this.vpcSelected();
 
-        // vpcs
-        this.vpcMenu = $("ew.vpcId");
-        this.subnetMenu = $("ew.subnetId");
-        $("ew.ipAddress").disabled = true;
+        var snapshotMenu = $("ew.snapshotId");
+        for ( var i in snapshots) {
+            snapshotMenu.appendItem(snapshots[i].toString(), snapshots[i].id);
+        }
+        snapshotMenu.selectedIndex = 0;
 
-        var aki = this.image.aki;
-        var ari = this.image.ari;
+        var eniSubnetMenu = $("ew.eniSubnet");
+        eniSubnetMenu.appendItem("<none>", "")
+        for ( var i in subnets) {
+            eniSubnetMenu.appendItem(subnets[i].toString(), subnets[i].id)
+        }
+        eniSubnetMenu.selectedIndex = 0;
+
+        var eniMenu = $("ew.eniId");
+        for ( var i in enis) {
+            eniMenu.appendItem(enis[i].toString(), enis[i].id)
+        }
+        eniMenu.selectedIndex = 0;
 
         // Populate the AKI and ARI lists
         var akiList = $("ew.aki");
@@ -215,26 +345,24 @@
             for (i in images) {
                 imgId = images[i].id;
                 if (imgId.match(akiRegex)) {
-                    akiList.appendItem(imgId);
+                    akiList.appendItem(images[i].toString(), imgId);
                     continue;
                 }
 
                 if (imgId.match(ariRegex)) {
-                    ariList.appendItem(imgId);
+                    ariList.appendItem(images[i].toString(), imgId);
                 }
             }
-
-            akiList.value = aki;
-            ariList.value = ari;
+            akiList.value = this.image.aki;
+            ariList.value = this.image.ari;
         }
 
-        // Populate VPCs
-        this.vpcMenu.appendItem("Traditional EC2 Networking", "");
-        for (var i in vpcs) {
-            this.vpcMenu.appendItem(vpcs[i].toString(), vpcs[i].id);
-        }
-        this.vpcMenu.selectedIndex = 0;
-        this.vpcSelected();
+        $("ew.min").setAttribute('max', this.retVal.max);
+        $("ew.max").setAttribute('max', this.retVal.max);
+        $("ew.ami").value = this.image.id;
+        $("ew.ami.tag").value = this.image.tag || "";
+        $("ew.ami.location").value = this.image.location.split('/').pop();
+        $("ew.min").focus();
     }
 
     ]]>
@@ -245,11 +373,13 @@
          <tab label="General" selected="true" />
          <tab label="VPC/Security"  />
          <tab label="User Data" />
+         <tab label="Attach Device" />
+         <tab label="Network Interface" />
          <tab label="Options" />
        </tabs>
 
-       <tabpanels flex="1" >
-        <tabpanel orient="vertical" flex="1" align="center">
+       <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
         <grid flex="1">
             <columns flex="1">
                 <column />
@@ -274,12 +404,12 @@
                 </row>
                 <row>
                     <label control="ew.instancetypelist" value="Instance Type:" />
-                    <menulist id="ew.instancetypelist" crop="end" sizetopopup="none" style="max-width: 350px;"/>
+                    <menulist id="ew.instancetypelist" crop="end" sizetopopup="none" style="max-width: 450px;"/>
                 </row>
                 <row>
                     <label control="ew.tenancy" value="Instance Tenancy:" />
                     <menulist id="ew.tenancy" size="30" >
-                         <menupopup id="ew.tenancy">
+                         <menupopup>
                             <menuitem label="Default" value="default"/>
                             <menuitem label="Dedicated" value="dedicated"/>
                          </menupopup>
@@ -301,16 +431,16 @@
                     <label control="ew.min" value="Start Instances:" />
                     <hbox>
                         <label control="ew.min" value="Min:" />
-                        <textbox id="ew.min" size="10" value="1" />
+                        <textbox id="ew.min" size="10" value="1" type="number" min="0" />
                         <label control="ew.max" value="Max:" />
-                        <textbox id="ew.max" size="10" value="1" />
+                        <textbox id="ew.max" size="10" value="1" type="number" min="0" />
                     </hbox>
                 </row>
             </rows>
         </grid>
         </tabpanel>
 
-        <tabpanel orient="vertical" flex="1" align="center">
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
         <vbox flex="1">
         <groupbox flex="1" id="ew.vpc.box">
             <caption label="&ew.captions.newinstances.vpc.label;" />
@@ -330,7 +460,7 @@
                     </row>
                     <row>
                        <label control="ew.ipAddress" value="IP Address: " />
-                       <textbox id="ew.ipAddress" size="20" editable="true" />
+                       <textbox id="ew.ipAddress" size="30" />
                     </row>
                 </rows>
             </grid>
@@ -342,7 +472,7 @@
         </vbox>
         </tabpanel>
 
-        <tabpanel orient="vertical" flex="1" align="center">
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
          <vbox flex="1">
             <textbox id="ew.userdata" multiline="true" cols="70" rows="25" wrap="false" style="font-family: monospace;" />
             <hbox>
@@ -352,7 +482,118 @@
          </vbox>
         </tabpanel>
 
-        <tabpanel orient="vertical" flex="1" align="center">
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+         <grid flex="1">
+            <columns flex="1">
+                <column />
+                <column />
+            </columns>
+            <rows flex="1">
+                <row>
+                    <label control="ew.deviceType" value="Device type to attach:" />
+                    <menulist id="ew.deviceType" onselect="deviceSelected()">
+                       <menupopup>
+                         <menuitem label="None" value="" />
+                         <menuitem label="EBS Snapshot" value="snapshot" />
+                         <menuitem label="Virtual" value="virtual" />
+                         <menuitem label="New EBS Volume" value="new" />
+                       </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <label control="ew.deviceName" value="Device Name (e.g. /dev/sda2):" />
+                    <textbox id="ew.deviceName" size="40" />
+                </row>
+                <row>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                </row>
+                <row>
+                    <label control="ew.virtualName" value="Virtual Name (e.g. ephemeral0):" />
+                    <textbox id="ew.virtualName" size="40" disabled="true" />
+                </row>
+                <row>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                </row>
+                <row>
+                    <label control="ew.volumeSize" value="New Volume Size (GB):" />
+                    <textbox id="ew.volumeSize" size="40" type="number" min="1" disabled="true" />
+                </row>
+                <row>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                </row>
+                <row>
+                    <label control="ew.snapshotId" value="Snapshot:" />
+                    <menulist id="ew.snapshotId" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" />
+                </row>
+                <row>
+                    <label control="ew.deleteOnTermination" value="Delete On Termination:" />
+                    <checkbox id="ew.deleteOnTermination" checked="true" disabled="true" />
+                </row>
+            </rows>
+         </grid>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+         <grid flex="1">
+            <columns flex="1">
+                <column />
+                <column />
+            </columns>
+            <rows flex="1">
+                <row>
+                    <label control="ew.eniType" value="Network Interface to attach:" />
+                    <menulist id="ew.eniType" onselect="eniSelected()">
+                       <menupopup>
+                         <menuitem label="None" value="" />
+                         <menuitem label="Existing ENI" value="eni" />
+                         <menuitem label="New ENI" value="new" />
+                       </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <label control="ew.eniIndex" value="ENI Index:" />
+                    <textbox id="ew.eniIndex" size="40" type="number" min="0"/>
+                </row>
+                <row>
+                    <label control="ew.eniDelete" value="Delete On Termination:" />
+                    <checkbox id="ew.eniDelete" checked="true" />
+                </row>
+                <row>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                </row>
+                <row>
+                    <label control="ew.eniId" value="Existing ENI:" />
+                    <menulist id="ew.eniId" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" />
+                </row>
+                <row>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                   <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
+                </row>
+                <row>
+                    <label control="ew.eniDescr" value="New Interface Description:" />
+                    <textbox id="ew.eniDescr" size="40" type="number" min="1" disabled="true" />
+                </row>
+                <row>
+                    <label control="ew.eniIpAddress" value="New Interface Private IP Address:" />
+                    <textbox id="ew.eniIpAddress" size="40" disabled="true" />
+                </row>
+                <row>
+                    <label control="ew.eniSubnet" value="ENI Subnet:" />
+                    <menulist id="ew.eniSubnet" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" onselect="subnetSelected()"/>
+                </row>
+                <row>
+                    <label control="ew.eniGroups" value="Security Groups:" />
+                    <listbox id="ew.eniGroups" rows="7" seltype="multiple" disabled="true" />
+                </row>
+            </rows>
+         </grid>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
          <grid flex="1">
             <columns flex="1">
                 <column />
@@ -361,19 +602,36 @@
             <rows flex="1">
                 <row>
                     <label control="ew.ari" value="ARI ID:" />
-                    <menulist id="ew.ari" size="30" value="" editable="true" />
+                    <menulist id="ew.ari" value="" editable="true" crop="end" sizetopopup="none" style="max-width: 450px;" />
                 </row>
                 <row>
                     <label control="ew.aki" value="AKI ID:" />
-                    <menulist id="ew.aki" size="30" value="" editable="true" />
+                    <menulist id="ew.aki" value="" editable="true" crop="end" sizetopopup="none" style="max-width: 450px;" />
                 </row>
                 <row>
                     <label control="ew.properties" value="Additional Info:" />
-                    <textbox id="ew.properties" size="30" />
+                    <textbox id="ew.properties" size="40" />
+                </row>
+                <row>
+                    <label control="ew.properties" value="Client Token (Ensuring Idempotency):" />
+                    <textbox id="ew.token" size="40" />
+                </row>
+                <row>
+                    <label control="ew.monitor" value="Instance Initiated Shutdown Behaviour:" />
+                    <menulist id="ew.shutdown">
+                         <menupopup>
+                            <menuitem label="Stop" value="stop"/>
+                            <menuitem label="Terminate" value="terminate"/>
+                         </menupopup>
+                    </menulist>
                 </row>
                 <row>
                     <label control="ew.monitor" value="Enable Monitoring:" />
                     <checkbox id="ew.monitor" />
+                </row>
+                <row>
+                    <label control="ew.monitor" value="Disable API Termination:" />
+                    <checkbox id="ew.disableApiTermination" />
                 </row>
             </rows>
          </grid>
