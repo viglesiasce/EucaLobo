@@ -33,7 +33,7 @@
                     <treecols>
                         <treecol id="subnet.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
-                        <treecol id="subnet.id" label="&ew.subnets.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                        <treecol id="subnet.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="subnet.cidr" label="&ew.subnets.cidrblock.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
@@ -48,6 +48,9 @@
                         <treecol id="subnet.tableId" label="Routes" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="subnet.aclId" label="ACLs" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="subnet.igwId" label="IGW" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                     </treecols>
                     <treechildren context="ew.subnets.contextmenu" />
                 </tree>

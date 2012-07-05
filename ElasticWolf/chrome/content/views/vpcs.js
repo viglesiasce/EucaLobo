@@ -350,26 +350,28 @@ var ew_SubnetsTreeView = {
 
     createSubnet : function(vpcId)
     {
+        var me = this;
         var subnet = this.getSelected();
         var azones = this.core.queryModel('availabilityZones');
         var vpcs = this.core.queryModel('vpcs');
 
-        var values = this.core.promptInput('Create Subnet', [{label:'VPC',type:'menulist',list:vpcs,value:vpcId || (subnet && subnet.vpcId)},
-                                                             {label:'Subnet CIDR Block',type:'cidr',required:1} ,
-                                                             {label:'Subnet Name'} ,
-                                                             {label:'Availability zone',type:'menulist',list:azones,empty:1},
-                                                             {label:'Public Subnet?',type:'checkbox'}]);
+        var inputs = [{label:'VPC',type:'menulist',list:vpcs,value:vpcId || (subnet && subnet.vpcId),required:1,oncommand:"rc.items[1].obj.value=rc.items[0].list[rc.items[0].obj.selectedIndex].cidr"},
+                      {label:'Subnet CIDR Block',type:'cidr',required:1} ,
+                      {label:'Subnet Name'} ,
+                      {label:'Availability zone',type:'menulist',list:azones,empty:1},
+                      {label:'Public Subnet?',type:'checkbox',help:"Internet Gateway will be created if does not exist yet"} ];
 
+        var values = this.core.promptInput('Create Subnet', inputs);
         if (!values) return;
+
+        // Do not create IGW if VPC alredy has it
         var igws = this.core.queryModel('internetGateways','vpcId', values[0]);
 
-        var me = this;
         function wrap() {
-            if (values[4]) {
+            if (values[4] && igws.length == 0) {
                 me.core.api.createInternetGateway(function(igwId) {
                     me.core.api.attachInternetGateway(igwId, values[0], function() {
-                        me.refresh();
-                        me.core.refreshModel('internetGateways');
+                        me.refresh(true);
                     });
                 });
             } else {
@@ -398,30 +400,30 @@ var ew_SubnetsTreeView = {
         var tables = this.core.queryModel('routeTables');
         var acls = this.core.queryModel('networkAcls');
         for (var k in list) {
-            if (tables) {
-                for (var i in tables) {
-                    for (var j in tables[i].associations) {
-                        if (tables[i].associations[j].subnetId == list[k].id) {
-                            list[k].routes = tables[i].routes;
-                            list[k].tableId = tables[i].id;
-                            list[k].routeTable = tables[i];
-                            list[k].routeAssocId = tables[i].associations[j].id;
-                            break;
-                        }
+            var igws = this.core.queryModel('internetGateways', 'vpcId', list[k].vpcId);
+            if (igws.length) {
+                list[k].igwId = igws[0].id;
+            }
+            for (var i in tables) {
+                for (var j in tables[i].associations) {
+                    if (tables[i].associations[j].subnetId == list[k].id) {
+                        list[k].routes = tables[i].routes;
+                        list[k].tableId = tables[i].id;
+                        list[k].routeTable = tables[i];
+                        list[k].routeAssocId = tables[i].associations[j].id;
+                        break;
                     }
                 }
             }
 
-            if (acls) {
-                for (var i in acls) {
-                    for (var j in acls[i].associations) {
-                        if (acls[i].associations[j].subnetId == list[k].id) {
-                            list[k].rules = acls[i].rules;
-                            list[k].aclId = acls[i].id;
-                            list[k].networkAcl = acls[i];
-                            list[k].aclAssocId = acls[i].associations[j];
-                            break;
-                        }
+            for (var i in acls) {
+                for (var j in acls[i].associations) {
+                    if (acls[i].associations[j].subnetId == list[k].id) {
+                        list[k].rules = acls[i].rules;
+                        list[k].aclId = acls[i].id;
+                        list[k].networkAcl = acls[i];
+                        list[k].aclAssocId = acls[i].associations[j];
+                        break;
                     }
                 }
             }
