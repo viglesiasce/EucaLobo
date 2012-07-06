@@ -90,4 +90,5 @@ clients for accessing Linux instances.
  * Mark Ryland
  * Ben Butler
  * Tim Wilson
-
+ * Chris Gorski
+ * Nathan McCourtney

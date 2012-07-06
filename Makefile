@@ -15,15 +15,15 @@ dev:	clean
 
 build:	clean build_osx build_win
 
-version:
-	sed -E -i '' -e "s/^Version=.*$$/Version=$(VER)/" $(NAME)/application.ini
-	sed -E -i '' -e "s/\\<em:version\\>([0-9\\.]*)\\<\\/em:version\\>/\\<em:version\\>$(VER)\\<\\/em:version\\>/" $(NAME)/install.rdf
+prepare: clean prepare_osx
 
-build_osx: clean_osx version
-	rsync -a $(NAME)/application.ini $(NAME)/chrome $(NAME)/defaults $(OSX)/Resources
+prepare_osx: clean_osx
+	cp -a $(NAME)/application.ini $(NAME)/chrome $(NAME)/chrome.manifest $(NAME)/defaults $(OSX)/Resources
+
+build_osx: prepare_osx
 	zip -rqy ../$(NAME)-osx-$(VER).zip $(NAME).app
 
-build_win: version
+build_win:
 	zip -rq ../$(NAME)-win-$(VER).zip $(NAME)
 
 xpi:
@@ -33,6 +33,6 @@ clean: clean_osx
 	rm -rf *.zip *.xpi ../$(NAME)-*.zip
 
 clean_osx:
-	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults
+	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest
 
 
