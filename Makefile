@@ -14,7 +14,6 @@ dev:	clean
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
 build:	clean build_osx build_win
-	make dev
 
 version:
 	sed -E -i '' -e "s/^Version=.*$$/Version=$(VER)/" $(NAME)/application.ini
