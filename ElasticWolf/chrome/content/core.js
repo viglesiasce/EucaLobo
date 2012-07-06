@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "2.0",
+    VERSION: "2.0.0",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
     REALM : 'chrome://ew/',

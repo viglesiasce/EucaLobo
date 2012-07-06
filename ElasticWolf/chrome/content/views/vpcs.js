@@ -157,7 +157,7 @@ var ew_VpcsTreeView = {
         var me = this;
         var inputs = [ {label:"VPC",help:"Specify IP block for a VPC and optionally name for easy navigation in the system",type:"section"},
                        {label:'IP CIDR block:',type:'cidr',required:1,help:"Example: 10.0.0.0/16"},
-                       {label:'Tenancy',type:'menulist',list:["default","dedicated"]},
+                       {label:'Tenancy',type:'menulist',list:["default","dedicated"],required:1},
                        {label:'VPC Name:'},
                        {label:"Subnets",type:"section",help:"Optonally, create one or both subnets in the new VPC:"},
                        {label:'Public Subnet',help:"Example: 10.1.0.0/24"},
