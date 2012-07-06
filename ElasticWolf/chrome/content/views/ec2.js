@@ -281,7 +281,7 @@ var ew_AMIsTreeView = {
 };
 
 var ew_InstancesTreeView = {
-    model: ['instances', 'images', 'addresses', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes'],
+    model: ['instances', 'images', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes'],
     properties: [ 'state' ],
     max: 50,
 
@@ -810,7 +810,7 @@ var ew_InstancesTreeView = {
 
     authorizeProtocolForGroup : function(transport, protocol, groups)
     {
-        this.authorizeProtocolPortForGroup(transport,protocol,protPortMap[protocol],groups);
+        this.authorizeProtocolPortForGroup(transport, protocol, protPortMap[protocol], groups);
     },
 
     authorizeProtocolPortForGroup : function (transport, protocol, port, groups)
@@ -820,116 +820,77 @@ var ew_InstancesTreeView = {
         var hostCIDR = this.core.api.queryCheckIP() + "/32";
         var networkCIDR = this.core.api.queryCheckIP("block");
 
-        debug("Host: " + hostCIDR + ", net:" + networkCIDR)
+        debug("Host: " + hostCIDR + ", net:" + networkCIDR + ", transport:" + transport + ", proto:" + protocol + ", port:" + port + ", groups:" + groups)
 
         var permissions = null;
         for (var j in groups) {
-            if (groups[j])
-                permissions = groups[j].permissions;
-            else
-                continue;
+            var group = this.core.findModel('securityGroups', groups[j]);
+            if (!group) continue;
 
-            // Is the Protocol enabled for the group?
-            for (var i in permissions) {
-                var perm = permissions[i];
+            for (var i in group.permissions) {
+                var perm = group.permissions[i];
+                log("perm:" + perm.protocol + ":" + perm.fromPort + ":" + perm.toPort + ':' + perm.cidrIp);
 
-                if (perm.protocol == transport) {
-                    // Nothing needs to be done if:
-                    // 1. Either the from or to port of a permission
-                    // matches the protocol's port or the port is within the
-                    // port range
-                    // AND
-                    // 2. The CIDR for the permission matches either
-                    // the host's CIDR or the network's CIDR or
-                    // the Firewall has been opened to the world
-                    var fromPort = parseInt(perm.fromPort);
-                    var toPort = parseInt(perm.toPort);
-                    port = parseInt(port);
-                    if ((perm.fromPort == port || perm.toPort == port || (perm.fromPort <= port && perm.toPort >= port)) &&
-                        (perm.cidrIp == openCIDR || perm.cidrIp == hostCIDR || perm.cidrIp == networkCIDR)) {
-                        // We have a match!
-                        fAdd = false;
-                        break;
-                    }
+                if (perm.protocol != transport) continue;
+                // Nothing needs to be done if:
+                // 1. Either the from or to port of a permission matches the protocol's port or the port is within the port range
+                // AND
+                // 2. The CIDR for the permission matches either the host's CIDR or the network's CIDR or the Firewall has been opened to the world
+                var fromPort = parseInt(perm.fromPort);
+                var toPort = parseInt(perm.toPort);
+                port = parseInt(port);
+                if ((perm.fromPort == port || perm.toPort == port || (perm.fromPort <= port && perm.toPort >= port)) &&
+                    (perm.cidrIp == openCIDR || perm.cidrIp == hostCIDR || perm.cidrIp == networkCIDR)) {
+                    fAdd = false;
+                    break;
                 }
             }
-
-            if (!fAdd) {
-                break;
-            }
+            if (!fAdd) return;
         }
 
-        if (fAdd) {
-            var result = false;
-            if (this.core.getBoolPrefs("ew.prompt.open.port", true)) {
-                port = port.toString();
-                var msg = this.core.getAppName() + " needs to open " + transport.toUpperCase() + " port " + port + " (" + protocol + ") to continue. Click Ok to authorize this action";
-                var check = {value: false};
-                result = this.core.promptConfirm("EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
-                this.core.setBoolPrefs("ew.prompt.open.port", !check.value);
-            } else {
-                result = true;
-            }
+        var result = true;
+        if (this.core.getBoolPrefs("ew.prompt.open.port", true)) {
+            port = port.toString();
+            var msg = this.core.getAppName() + " needs to open " + transport.toUpperCase() + " port " + port + " (" + protocol + ") to continue. Click Ok to authorize this action";
+            var check = {value: false};
+            result = this.core.promptConfirm("EC2 Firewall Port Authorization", msg, "Do not ask me again", check);
+            this.core.setBoolPrefs("ew.prompt.open.port", !check.value);
+        }
 
-            if (result) {
-                result = false;
-                var wrap = function() {
-                    ew_SecurityGroupsTreeView.refresh();
+        if (result) {
+            result = false;
+            // Authorize first available group
+            for (var i in groups) {
+                if (groups[i]) {
+                    this.core.api.authorizeSourceCIDR('Ingress', groups[i], transport, port, port, hostCIDR, function() { ew_SecurityGroupsTreeView.refresh(); });
+                    result = true
+                    break;
                 }
-                // Authorize first available group
-                for (var i in groups) {
-                    if (groups[i]) {
-                        this.core.api.authorizeSourceCIDR('Ingress', groups[i], transport, port, port, hostCIDR, wrap);
-                        result = true
-                        break;
-                    }
-                }
-            }
-            if (!result) {
-                alert("Could not authorize port " + port)
             }
         }
-    },
-
-    connectToSelectedInstances : function(ipType)
-    {
-        for (var i in this.treeList) {
-            if (this.selection.isSelected(i)) {
-                log ("Connecting to " + ipType + ": " + this.treeList[i].id);
-                this.selection.currentIndex = i;
-                this.connectTo(this.treeList[i], ipType);
-            }
+        if (!result) {
+            this.core.errorMessage("Could not authorize " + transport + ":" + protocol + ":" + port)
         }
     },
 
     openConnectionPort : function(instance)
     {
-        // Get the group in which this instance was launched
-        var groups = this.core.queryModel('securityGroups');
-        var instGroups = new Array(instance.securityGroups.length);
-        for (var j in instance.securityGroups) {
-            instGroups[j] = null;
-            for (var i in groups) {
-                if (groups[i].id == instance.securityGroups[j]) {
-                    instGroups[j] = groups[i];
-                    break;
-                }
-            }
-        }
-
         // If this is a Windows instance, we need to RDP instead
         if (isWindows(instance.platform)) {
             // Ensure that the RDP port is open in one of the instance's groups
-            this.authorizeProtocolForGroup("tcp", "rdp", instGroups);
+            this.authorizeProtocolForGroup("tcp", "rdp", instance.securityGroups);
         } else {
             // Ensure that the SSH port is open in one of the instance's groups
-            this.authorizeProtocolForGroup("tcp", "ssh", instGroups);
+            this.authorizeProtocolForGroup("tcp", "ssh", instance.securityGroups);
         }
     },
 
     // ipType: 0 - private, 1 - public, 2 - elastic, 3 - public or elastic, 4 - dns name
-    connectTo : function(instance, ipType)
+    connectTo : function(ipType)
     {
+        var instance = this.getSelected();
+        if (!instance) return;
+
         var args = this.core.getSSHArgs();
         var cmd = this.core.getSSHCommand();
 

@@ -153,6 +153,10 @@
         }
 
         if (this.retVal.tenancy == "dedicated") {
+            if (this.retVal.instanceType.match('micro')) {
+                alert('Cannot run this instance type in dedicated mode');
+                return false;
+            }
             if (this.vpcMenu.value == "") {
                 alert('For dedicated tenancy to work please choose a VPC');
                 $("ew.tabs").selectedIndex = 1;
@@ -232,7 +236,6 @@
             this.subnetMenu.selectedIndex = 0;
             $("ew.ipAddress").disabled = false;
         }
-        this.tnMenu.value = vpcId ? "dedicated" : "default";
 
         var box = $('ew.groups.box');
         var groups = $('ew.groups');

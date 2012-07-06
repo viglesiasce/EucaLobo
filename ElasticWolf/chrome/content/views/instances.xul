@@ -55,10 +55,10 @@
           <menuseparator />
           <menu label="Connect to Instance">
             <menupopup>
-                <menuitem id="instances.context.connectPrivate" oncommand="ew_InstancesTreeView.connectToSelectedInstances();" label="Connect to Private IP" />
-                <menuitem id="instances.context.connectPublic" oncommand="ew_InstancesTreeView.connectToSelectedInstances(1);" label="Connect to Public IP" />
-                <menuitem id="instances.context.connectElastic" oncommand="ew_InstancesTreeView.connectToSelectedInstances(2);" label="Connect to Elastic IP" />
-                <menuitem id="instances.context.connectPublicDns" oncommand="ew_InstancesTreeView.connectToSelectedInstances(4);" label="Connect to Public DNS" />
+                <menuitem id="instances.context.connectPrivate" oncommand="ew_InstancesTreeView.connectTo();" label="Connect to Private IP" />
+                <menuitem id="instances.context.connectPublic" oncommand="ew_InstancesTreeView.connectTo(1);" label="Connect to Public IP" />
+                <menuitem id="instances.context.connectElastic" oncommand="ew_InstancesTreeView.connectTo(2);" label="Connect to Elastic IP" />
+                <menuitem id="instances.context.connectPublicDns" oncommand="ew_InstancesTreeView.connectTo(4);" label="Connect to Public DNS" />
             </menupopup>
           </menu>
         </menupopup>
@@ -75,7 +75,7 @@
           <toolbarbutton image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
           <toolbarseparator />
           <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
-          <toolbarbutton image="images/key.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectToSelectedInstances(3);" tooltiptext="&ew.instances.connect.tip;" />
+          <toolbarbutton image="images/key.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectTo(3);" tooltiptext="&ew.instances.connect.tip;" />
           <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
           <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
           <toolbarseparator />

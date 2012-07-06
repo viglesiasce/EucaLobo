@@ -547,7 +547,7 @@ var ew_api = {
                     }
                 }
             } else {
-                this.core.errorMessage(rc.action + ":" + rc.errCode +': ' + rc.errString + ': ' + params);
+                this.core.errorMessage(rc.action + ":" + rc.errCode +': ' + rc.errString + ': ' + (params || ""));
             }
             this.errorTime = now;
             this.errorCount++;
@@ -4240,7 +4240,8 @@ var ew_api = {
                        '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/' + this.versions.R53 + '/">' +
                        '<ChangeBatch><Comment></Comment>' +
                        '<Changes>' +
-                       '<Change><Action>' + action + '</Action>'+
+                       '<Change>' +
+                       '<Action>' + action + '</Action>'+
                        '<ResourceRecordSet>' +
                        '<Name>' + rec.name + '</Name>' +
                        '<Type>' + rec.type + '</Type>';
@@ -4257,12 +4258,14 @@ var ew_api = {
         }
 
         if (rec.values.length) {
-            contents += '<ResourceRecords><ResourceRecord>';
+            contents += '<ResourceRecords>' +
+                        '<ResourceRecord>';
             for (var i = 0; i < rec.values.length; i++) {
                 if (rec.values[i] == "") continue;
                 contents += '<Value>' + rec.values[i] + '</Value>';
             }
-            contents += '</ResourceRecord></ResourceRecords>';
+            contents += '</ResourceRecord>' +
+                        '</ResourceRecords>';
         }
 
         contents += '</ResourceRecordSet>' +
