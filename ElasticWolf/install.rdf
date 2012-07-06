@@ -4,7 +4,7 @@
     <em:id>{2564a6b0-73ab-11e0-a1f0-0800200c9a66}</em:id>
     <em:type>2</em:type>
     <em:name>ElasticWolf</em:name>
-    <em:version>1.28</em:version>
+    <em:version>2.0.0</em:version>
     <em:description>A graphical interface to Amazon's EC2 web service.</em:description>
     <em:creator>Vlad Seryakov</em:creator>
     <em:targetApplication>
