@@ -30,7 +30,8 @@ var ew_CredentialsTreeView = {
 
     addCredentials : function()
     {
-        var values = this.core.promptInput('Credentials', [{label:"Credentials Name:",required:1,size:45}, {label:"AWS Access Key:",required:1,size:45}, {label:"AWS Secret Access Key:",type:'password',required:1,size:45}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.core.getEndpoints(),key:'url'}, {label:"Security Token:",multiline:true,rows:3,cols:45}]);
+        var user = this.core.getEnv("USER", this.core.getEnv("USERNAME"));
+        var values = this.core.promptInput('Create new access credentials', [{label:"Name:",required:1,size:45,value:user}, {label:"AWS Access Key:",required:1,size:45}, {label:"AWS Secret Access Key:",type:'password',required:1,size:45}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.core.getEndpoints(),key:'url'}, {label:"Security Token:",multiline:true,rows:3,cols:45}]);
         if (!values) return;
         var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
         this.core.saveCredentials(cred);

@@ -112,7 +112,7 @@ var ew_core = {
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
         this.switchCredentials(this.findCredentials(this.getCurrentUser()));
-        this.selectTab(this.getStrPrefs("ew.tab.current"));
+        this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.credential"));
 
         // Parse command line
         this.cmdLine = window.arguments ? window.arguments[0].QueryInterface(Components.interfaces.nsICommandLine) : null;
@@ -134,7 +134,10 @@ var ew_core = {
                 this.switchEndpoints(e);
             }
 
-            // Disable credentials management
+            // Disable credentials management, this is not true secure bacuse the javascript source code is available and can be installed
+            // alongside in user home and executed directly. This is just simple way to secure already running app when there is no
+            // other access to the machine hard drive, in locked Windows installation for example and EW is used like the only
+            // application running
             this.locked = this.cmdLine.handleFlag('lock', true);
         }
 
@@ -142,6 +145,11 @@ var ew_core = {
         this.promptForPin();
         this.setIdleTimer();
         this.refreshEndpoints();
+
+        // On fresh install offer to enter credentials, need timeout to alow the UI settle in
+        if (this.credentials.length == 0) {
+            setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
+        }
     },
 
     setIdleTimer: function()
@@ -977,7 +985,7 @@ var ew_core = {
         if (!this.isEnabled()) return null;
 
         // File naming convention
-        var rx = new RegExp(this.NAME + (isWindows(navigator.platform) ? "-win-" : "-osx-") + "([0-9]\.[0-9][0-9])\.zip", "g");
+        var rx = new RegExp(this.NAME + (isWindows(navigator.platform) ? "-win-" : "-osx-") + "([0-9]}\.[0-9]+\.[0-9]+)\.zip", "g");
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
@@ -1414,10 +1422,11 @@ var ew_core = {
         return FileIO.readBinary(FileIO.open(path), base64);
     },
 
-    getEnv : function(name)
+    getEnv : function(name, dflt)
     {
         var env = Components.classes["@mozilla.org/process/environment;1"].getService(Components.interfaces.nsIEnvironment);
-        return env.exists(name) ? env.get(name) : "";
+        var rc = env.exists(name) ? env.get(name) : "";
+        return rc != "" ? rc : (dflt || "");
     },
 
     setEnv : function(name, value)
