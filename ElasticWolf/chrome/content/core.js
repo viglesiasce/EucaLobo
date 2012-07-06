@@ -703,7 +703,9 @@ var ew_core = {
     playAlertSound: function()
     {
         var sound = Components.classes["@mozilla.org/sound;1"].createInstance(Components.interfaces.nsISound);
-        if (sound) sound.playEventSound(sound.EVENT_ALERT_DIALOG_OPEN);
+        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+        var uri = io.newURI("chrome://ew/content/images/alert.mp3", null, null);
+        if (sound) sound.play(uri);
     },
 
     // Select from the list
@@ -1004,7 +1006,10 @@ var ew_core = {
         $('ew_alert').hidden = msg == "";
 
         if (this.errorTimer) clearTimeout(this.errorTimer);
-        if (msg) this.errorTimer = setTimeout(this.errorMessage, 30000);
+        if (msg) {
+            this.playAlertSound();
+            this.errorTimer = setTimeout(this.errorMessage, 30000);
+        }
     },
 
     // Show non modal error popup

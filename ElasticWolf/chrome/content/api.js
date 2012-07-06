@@ -534,7 +534,6 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            this.core.playAlertSound();
             if (this.core.getBoolPrefs("ew.errors.show", false)) {
                 if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
                     if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
@@ -4242,10 +4241,18 @@ var ew_api = {
                        '      <Name>' + rec.name + '</Name>\n' +
                        '      <Type>' + rec.type + '</Type>\n';
 
-        if (rec.ttl > 0) contents += '      <TTL>' + rec.ttl + '</TTL>\n';
-        if (rec.weight > 0) contents += '      <Weight>' + rec.weight + '</Weight>\n';
-        if (rec.setId) contents += '      <SetIdentifier>' + rec.setId + '</SetIdentifier>\n';
-        if (rec.region) contents += '      <Region>' + rec.region + '</Region>\n';
+        if (rec.ttl > 0) {
+            contents += '      <TTL>' + rec.ttl + '</TTL>\n';
+        }
+        if (rec.weight > 0) {
+            contents += '      <Weight>' + rec.weight + '</Weight>\n';
+        }
+        if (rec.setId) {
+            contents += '      <SetIdentifier>' + rec.setId + '</SetIdentifier>\n';
+        }
+        if (rec.region) {
+            contents += '      <Region>' + rec.region + '</Region>\n';
+        }
         if (rec.hostedZoneId && rec.dnsName) {
             contents += '      <AliasTarget>\n';
             contents += '       <HostedZoneId>' + rec.hostedZoneId + '</HostedZoneId>\n';
