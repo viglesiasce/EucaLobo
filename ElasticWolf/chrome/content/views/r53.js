@@ -31,7 +31,7 @@ var ew_HostedZonesTreeView = {
         if (!values) return;
         var me = this;
         this.core.api.createHostedZone(values[0], values[1], values[2], function(obj) {
-            me.addModel('hostedZones', obj);
+            me.core.addModel('hostedZones', obj);
             me.invalidate();
         })
     },
@@ -64,6 +64,7 @@ var ew_HostedRecordsTreeView = {
         for (var i in elbs) {
             dnsnames.push(elbs[i].DNSName);
         }
+
         var types = {A: "IPv4 address like 192.0.2.1",
                      AAAA: "IPv6 address like 2001:0db8:85a3:0:0:8a2e:0370:7334",
                      CNAME: "Host name, cannot be used for top domains, only subdomains and hosts",
@@ -75,6 +76,21 @@ var ew_HostedRecordsTreeView = {
                      SRV: "Priority, weight, port, domain name, like 10 5 80 hostname.example.com",
                      TXT: "Space separated list of double-quoted strings, like \"item 1\" \"item 2\"",
                      Simple: ["A", "AAAA", "CNAME", "TXT" ] };
+
+        var inputs = [{label:'Name',type:'name',required:1},
+                      {label:'Type',required:1,type:"menulist",list:["A", "AAAA", "CNAME", "MX", "NS", "PTR", "SOA", "SPF", "SRV", "TXT"]},
+                      {label:"",style:"-moz-appearance:none;border:0;background-color:transparent;",cols:45,rows:2,readonly:true,multiline:true,value:types.A},
+                      {label:"Value"},
+                      {label:"TTL (sec)",type:"number",min:0,value:"3600"},
+                      {label:"",type:"section"},
+                      {label:"ALias Record",type:"radio",list:["No", "Yes"]},
+                      {label:"Host Zone",type:"label"},
+                      {label:"DNS Name",type:"menulist",list:dnsnames,disabled:true},
+                      {label:"",type:"section"},
+                      {label:"Routing Policy",type:"radio",list:["Simple", "Weighted", "Latency"]},
+                      {label:"Weight",disabled:true},
+                      {label:"Region",type:"menulist",list:this.core.getRoute53Regions(),disabled:true},
+                      {label:"Set Id",disabled:true}];
 
         // Handler for input fields
         function callback(idx) {
@@ -121,22 +137,11 @@ var ew_HostedRecordsTreeView = {
                 break;
             }
         }
-        var values = this.core.promptInput('Create Record', [{label:'Name',type:'name',required:1},
-                                                             {label:'Type',required:1,type:"menulist",list:["A", "AAAA", "CNAME", "MX", "NS", "PTR", "SOA", "SPF", "SRV", "TXT"]},
-                                                             {label:"",style:"-moz-appearance:none;border:0;background-color:transparent;",cols:45,rows:2,readonly:true,multiline:true,value:types.A},
-                                                             {label:"Value"},
-                                                             {label:"TTL (sec)",type:"number",min:0,value:"3600"},
-                                                             {label:"",type:"section"},
-                                                             {label:"ALias Record",type:"radio",list:["No", "Yes"]},
-                                                             {label:"Host Zone",type:"label"},
-                                                             {label:"DNS Name",type:"menulist",list:dnsnames,disabled:true},
-                                                             {label:"",type:"section"},
-                                                             {label:"Routing Policy",type:"radio",list:["Simple", "Weighted", "Latency"]},
-                                                             {label:"Weight",disabled:true},
-                                                             {label:"Region",type:"menulist",list:this.core.getRoute53Regions(),disabled:true},
-                                                             {label:"Set Id",disabled:true}], 0, callback);
+
+        var values = this.core.promptInput('Create Record', inputs, 0, callback);
         if (!values) return;
         item = {};
+        item.comment = this.core.getCurrentUser();
         item.name = values[0];
         item.type = values[1];
         item.ttl = values[4];
@@ -146,7 +151,7 @@ var ew_HostedRecordsTreeView = {
         item.weight = values[11];
         item.region = values[12];
         item.setId = values[13];
-        this.core.api.changeResourceRecordSets('CREATE', zone.id, item, function() { me.refresh()})
+        this.core.api.changeResourceRecordSets('CREATE', zone.id, item, function() { ew_HostedZonesTreeView.refresh(); })
     },
 
     deleteSelected: function()
@@ -157,6 +162,6 @@ var ew_HostedRecordsTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Zone Record?')) return;
-        this.core.api.changeResourceRecordSets('DELETE', zone.id, item, function() { me.refresh()})
+        this.core.api.changeResourceRecordSets('DELETE', zone.id, item, function() { ew_HostedZonesTreeView.refresh()})
     },
 };

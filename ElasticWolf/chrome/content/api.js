@@ -235,14 +235,9 @@ var ew_api = {
         if (!params) params = {}
 
         // Required headers
-        if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
-        if (!params["Content-Type"]) params["Content-Type"] = "text/xml; charset=UTF-8";
-        if (!params["Content-Length"]) params["Content-Length"] = content ? content.length : 0;
-
-        // Without media type mozilla changes encoding and signatures do not match
-        if (params["Content-Type"] && params["Content-Type"].indexOf("charset=") == -1) {
-            params["Content-Type"] += "; charset=UTF-8";
-        }
+        params["x-amz-date"] = curTime;
+        params["Content-Type"] = "text/xml; charset=UTF-8";
+        params["Content-Length"] = content ? content.length : 0;
 
         // Construct the string to sign and query string
         var strSig = curTime;
@@ -4236,46 +4231,47 @@ var ew_api = {
 
     changeResourceRecordSets: function(action, id, rec, callback)
     {
-        var contents = '<?xml version="1.0" encoding="UTF-8"?>' +
-                       '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/' + this.versions.R53 + '/">' +
-                       '<ChangeBatch><Comment></Comment>' +
-                       '<Changes>' +
-                       '<Change>' +
-                       '<Action>' + action + '</Action>'+
-                       '<ResourceRecordSet>' +
-                       '<Name>' + rec.name + '</Name>' +
-                       '<Type>' + rec.type + '</Type>';
+        var contents = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                       '<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/' + this.versions.R53 + '/">\n' +
+                       ' <ChangeBatch>\n' +
+                       '  <Comment>' + (rec.comment || "") + '</Comment>\n' +
+                       '   <Changes>\n' +
+                       '    <Change>\n' +
+                       '     <Action>' + action + '</Action>\n' +
+                       '     <ResourceRecordSet>\n' +
+                       '      <Name>' + rec.name + '</Name>\n' +
+                       '      <Type>' + rec.type + '</Type>\n';
 
-        if (rec.ttl > 0) contents += '<TTL>' + rec.ttl + '</TTL>';
-        if (rec.weight > 0) contents += '<Weight>' + rec.weight + '</Weight>';
-        if (rec.setId) contents += '<SetIdentifier>' + rec.setId + '</SetIdentifier>';
-        if (rec.region) contents += '<Region>' + rec.region + '</Region>';
+        if (rec.ttl > 0) contents += '      <TTL>' + rec.ttl + '</TTL>\n';
+        if (rec.weight > 0) contents += '      <Weight>' + rec.weight + '</Weight>\n';
+        if (rec.setId) contents += '      <SetIdentifier>' + rec.setId + '</SetIdentifier>\n';
+        if (rec.region) contents += '      <Region>' + rec.region + '</Region>\n';
         if (rec.hostedZoneId && rec.dnsName) {
-            contents += '<AliasTarget>';
-            if (rec.hostedZoneId) contents += '<HostedZoneId>' + rec.hostedZoneId + '</HostedZoneId>';
-            if (rec.dnsName) contents += '<DNSName>' + rec.dnsName + '</DNSName>';
-            contents += '</AliasTarget>';
+            contents += '      <AliasTarget>\n';
+            contents += '       <HostedZoneId>' + rec.hostedZoneId + '</HostedZoneId>\n';
+            contents += '       <DNSName>' + rec.dnsName + '</DNSName>\n';
+            contents += '      </AliasTarget>\n';
         }
 
         if (rec.values.length) {
-            contents += '<ResourceRecords>' +
-                        '<ResourceRecord>';
+            contents += '      <ResourceRecords>\n' +
+                        '       <ResourceRecord>\n';
             for (var i = 0; i < rec.values.length; i++) {
                 if (rec.values[i] == "") continue;
-                contents += '<Value>' + rec.values[i] + '</Value>';
+                contents += '        <Value>' + rec.values[i] + '</Value>\n';
             }
-            contents += '</ResourceRecord>' +
-                        '</ResourceRecords>';
+            contents += '       </ResourceRecord>\n' +
+                        '      </ResourceRecords>\n';
         }
 
-        contents += '</ResourceRecordSet>' +
-                    '</Change>' +
-                    '</Changes>' +
-                    '</ChangeBatch>' +
-                    '</ChangeResourceRecordSetsRequest>';
+        contents += '     </ResourceRecordSet>\n' +
+                    '    </Change>\n' +
+                    '   </Changes>\n' +
+                    '  </ChangeBatch>\n' +
+                    '</ChangeResourceRecordSetsRequest>\n';
 
         debug(contents)
-        this.queryRoute53("POST", id + '/rrset', content, {}, this, false, "onCompleteChangeResourceRecordSets", callback);
+        this.queryRoute53("POST", id + '/rrset', contents, {}, this, false, "onCompleteChangeResourceRecordSets", callback);
     },
 
     getChange: function(id, callback)
