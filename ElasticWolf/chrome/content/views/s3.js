@@ -50,8 +50,10 @@ var ew_S3BucketsTreeView = {
         var path = this.path.join("/") + "/";
         var nlist = [];
         for (var i in list) {
+            if (list[i].name.match('log')) continue;
             var n = (this.path[0] + "/" + list[i].name).replace(/[ \/]+$/, '');
             var p = n.split("/");
+            //debug(path + ":" + n + ":" + p.length + ":" + this.path.length);
             // Next level only
             if (!this.path.length || n.indexOf(path) == 0 && p.length == this.path.length + 1) {
                 list[i].folder = p[p.length - 1];
@@ -84,16 +86,17 @@ var ew_S3BucketsTreeView = {
 
     show: function()
     {
+        var me = this;
         if (!this.path.length) {
-            ew_S3BucketsTreeView.display(this.core.queryModel('s3Buckets'));
+            this.display(this.core.queryModel('s3Buckets'));
         } else {
             var item = this.core.getS3Bucket(this.path[0])
             if (item.keys && item.keys.length) {
-                ew_S3BucketsTreeView.display(item.keys);
+                this.display(item.keys);
             } else {
                 this.core.api.listS3BucketKeys(item.name, null, function(obj) {
                     if (item.name == obj.name) {
-                        ew_S3BucketsTreeView.display(obj.keys);
+                        me.display(obj.keys);
                     }
                 })
             }
