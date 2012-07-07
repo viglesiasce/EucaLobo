@@ -188,7 +188,7 @@ var ew_S3BucketsTreeView = {
         var me = this;
         var file = this.core.promptForFile("Upload file")
         if (file) {
-            var item = this.core.queryModelS3Bucket(this.path[0])
+            var item = this.core.getS3Bucket(this.path[0])
             item.keys = []
             var f = FileIO.open(file)
             var name = this.keyName(f.leafName)

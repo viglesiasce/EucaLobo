@@ -979,13 +979,21 @@ var ew_core = {
         clip.setData(trans, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
     },
 
+    versionNum: function(ver)
+    {
+        var v = ver.split(".");
+        if (v.length != 3) return 0;
+        return parseInt(v[0]) * 100 + parseInt(v[1]) * 10 + parseInt(v[2]);
+    },
+
     checkForUpdates: function()
     {
         var me = this;
         if (!this.isEnabled()) return null;
 
         // File naming convention
-        var rx = new RegExp(this.NAME + (isWindows(navigator.platform) ? "-win-" : "-osx-") + "([0-9]}\.[0-9]+\.[0-9]+)\.zip", "g");
+        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]}\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
+        var ver = this.versionNum(me.VERSION);
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
@@ -994,7 +1002,7 @@ var ew_core = {
                 var data = xmlhttp.responseText;
                 while (d = rx.exec(data)) {
                     debug(d);
-                    if (parseFloat(d[1]) > parseFloat(me.VERSION)) {
+                    if (me.versionNum(d[1]) > ver) {
                         me.promptInput('Update', [{label:"New version " + d[1] + "is available at",value:me.URL,type:"link",url:me.URL}]);
                         return;
                     }
