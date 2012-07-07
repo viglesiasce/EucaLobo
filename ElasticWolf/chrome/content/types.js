@@ -1994,7 +1994,7 @@ function VpnConnection(id, vgwId, cgwId, type, state, config, tags)
 function InternetGateway(id, vpcId, tags)
 {
     this.id = id
-    this.vpcId = vpcId;
+    this.vpcId = vpcId || "";
     this.tags = tags
     ew_core.processTags(this)
 

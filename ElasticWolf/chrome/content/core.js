@@ -1829,7 +1829,7 @@ var ew_core = {
     // Find object in the list by id or name
     findObjectIndex: function(list, id, field)
     {
-        if (typeof id == "object") id = id[field || "id"];
+        if (id && typeof id == "object") id = id[field || "id"];
         for (var i in list) {
             if (field && list[i][field] == id) return i;
             if (list[i].id && list[i].id == id) return i;

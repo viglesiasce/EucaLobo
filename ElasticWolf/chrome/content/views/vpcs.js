@@ -380,7 +380,7 @@ var ew_SubnetsTreeView = {
         }
         this.core.api.createSubnet(values[0], values[1], values[3], function(subnetId) {
             if (values[2] && subnetId) {
-                me.core.setTags(subnetId, values[2], wrap);
+                me.core.setTags(subnetId, "Name:" + values[2], wrap);
             } else {
                 wrap();
             }
@@ -740,7 +740,7 @@ var ew_InternetGatewayTreeView = {
         if (!values) return;
         if (values[2]) {
             this.core.api.createInternetGateway(function(id) {
-                me.core.api.attachInternetGateway(id, vaalues[0], function() {me.refresh()});
+                me.core.api.attachInternetGateway(id, values[0], function() {me.refresh()});
             });
         } else {
             this.core.api.attachInternetGateway(values[1], values[0], function() {me.refresh()});
