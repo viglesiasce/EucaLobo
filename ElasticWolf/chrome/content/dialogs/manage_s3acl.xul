@@ -53,14 +53,14 @@
             break;
 
         case 'Group':
-            content += '<URI>' + obj.id + '<URI>';
+            content += '<URI>' + obj.id + '</URI>';
             break;
         }
         return content + '</Grantee><Permission>' + perm + '</Permission></Grant>';
     },
 
     apply: function() {
-        var content = '<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>' +  this.item.owner  + '</ID></Owner><AccessControlList>';
+        var content = '<AccessControlPolicy><Owner><ID>' +  this.item.owner  + '</ID></Owner><AccessControlList>';
         for (var i in this.list) {
             if (this.list[i].read) content += this.grant(this.list[i], "READ");
             if (this.list[i].write) content += this.grant(this.list[i], "WRITE");
