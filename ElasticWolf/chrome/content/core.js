@@ -992,7 +992,7 @@ var ew_core = {
         if (!this.isEnabled()) return null;
 
         // File naming convention
-        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]}\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
+        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
         var ver = this.versionNum(me.VERSION);
 
         // HTTP access to the releases, can be any kind of page or listing with files
@@ -1003,7 +1003,7 @@ var ew_core = {
                 while (d = rx.exec(data)) {
                     debug(d);
                     if (me.versionNum(d[1]) > ver) {
-                        me.promptInput('Update', [{label:"New version " + d[1] + "is available at",value:me.URL,type:"link",url:me.URL}]);
+                        me.promptInput('Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
                         return;
                     }
                 }
