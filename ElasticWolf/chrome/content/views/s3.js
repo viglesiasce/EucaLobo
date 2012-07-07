@@ -252,22 +252,38 @@ var ew_S3BucketsTreeView = {
     createFile: function() {
         var me = this;
         if (!this.path.length) return;
-        var file = prompt("File name:")
-        if (file) {
-            var item = this.core.getS3Bucket(this.path[0])
-            item.keys = []
-            var name = this.path.slice(1).join('/') + '/' + this.keyName(file)
-            var values = me.core.promptInput('Create file', [{multiline:true,rows:25,cols:60,flex:1,scale:1},
-                                                             {label:"Make Public",type:"checkbox"}]);
-            if (!values) return;
-            var params = {}
-            if (values[1]) {
-                params["x-amz-acl"] = "public-read";
-            }
-            me.core.api.putS3BucketKey(item.name, name, "", params, values[0], function() {
-                me.show();
-            });
+        var item = this.core.getS3Bucket(this.path[0])
+        item.keys = []
+        var values = me.core.promptInput('Create file', [{label:"File Name",type:"name",required:1},
+                                                         {label:"Text",multiline:true,rows:25,cols:60,flex:1,scale:1,required:1},
+                                                         {label:"Permisions",type:"radio",list:["Private","Public Read","Public Read-Write","Authenticated Read","Owner Read","Owner Full Control"]},
+                                                         ]);
+        if (!values) return;
+        var name = this.path.slice(1).join('/') + '/' + this.keyName(values[0])
+        var params = {}
+        switch (values[2]) {
+        case "Private":
+            params["x-amz-acl"] = "private";
+            break;
+        case "Public Read":
+            params["x-amz-acl"] = "public-read";
+            break;
+        case "Public Read-Write":
+            params["x-amz-acl"] = "public-read-write";
+            break;
+        case "Authenticated Read":
+            params["x-amz-acl"] = "authenticated-read";
+            break;
+        case "Owner Read":
+            params["x-amz-acl"] = "bucket-owner-read";
+            break;
+        case "Owner Full Control":
+            params["x-amz-acl"] = "bucket-owner-full-control";
+            break;
         }
+        me.core.api.putS3BucketKey(item.name, name, "", params, values[1], function() {
+            me.show();
+        });
     },
 
     manageAcls: function() {
@@ -287,14 +303,10 @@ var ew_S3BucketsTreeView = {
             }
         }
 
-        if (!item.acls) {
-            if (!this.path.length) {
-                this.core.api.getS3BucketAcl(item.name, wrap)
-            } else {
-                this.core.api.getS3BucketKeyAcl(item.bucket, item.name, wrap)
-            }
+        if (!this.path.length) {
+            this.core.api.getS3BucketAcl(item.name, wrap)
         } else {
-            wrap();
+            this.core.api.getS3BucketKeyAcl(item.bucket, item.name, wrap)
         }
     },
 
