@@ -7,8 +7,10 @@
 <dialog id="ew.dialog.s3acl" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     buttons="accept,cancel"
     ondialogaccept="return ew_S3Acl.apply();"
-    ondialogcancel="return true;" onload="ew_S3Acl.init();"
-    title="Manage S3 ACLs" buttonlabelaccept="Apply">
+    ondialogcancel="return true;"
+    onload="ew_S3Acl.init();"
+    title="Manage S3 ACLs"
+    buttonlabelaccept="Apply">
 
     <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
     <script type="application/x-javascript" src="chrome://ew/content/types.js" />
@@ -126,8 +128,15 @@
         this.list.splice(idx, 1);
         this.treeBox.rowCountChanged(idx, -1);
     },
-    };
 
+    copy: function(id)
+    {
+        var idx = this.selection.currentIndex;
+        if (idx < 0) return;
+        this.core.copyToClipboard(this.list[idx][id]);
+    },
+
+    }
     ]]>
     </script>
 
@@ -136,16 +145,31 @@
     <textbox id="ew.path" size="40" readonly="true" style="width:550px;" />
     <hbox flex="1">
         <vbox flex="1">
+            <popupset>
+              <menupopup id="ew.tree.contextmenu">
+                <menuitem oncommand="ew_S3Acl.copy('id')" label="Copy Id" />
+                <menuitem oncommand="ew_S3Acl.copy('name')" label="Copy Name" />
+              </menupopup>
+            </popupset>
+
             <tree seltype="single" id="ew.tree" flex="1" rows="5" editable="true">
                 <treecols>
                     <treecol id="name" label="Name" flex="2" editable="false" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                     <treecol id="read" label="Read" flex="1" editable="true" type="checkbox" persist="width ordinal hidden" />
+                    <splitter class="tree-splitter" />
                     <treecol id="write" label="Write" flex="1" editable="true" type="checkbox" persist="width ordinal hidden" />
+                    <splitter class="tree-splitter" />
                     <treecol id="read_acp" label="ReadACP" flex="1" editable="true" type="checkbox" persist="width ordinal hidden" />
+                    <splitter class="tree-splitter" />
                     <treecol id="write_acp" label="WriteACP" flex="1" editable="true" type="checkbox" persist="width ordinal hidden" />
+                    <splitter class="tree-splitter" />
                     <treecol id="full_control" label="FullControl" flex="1" editable="true" type="checkbox" persist="width ordinal hidden" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="id" label="ID" flex="1" editable="false" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren />
+                <treechildren context="ew.tree.contextmenu" />
             </tree>
             <hbox>
                 <button label="Add" type="menu">
