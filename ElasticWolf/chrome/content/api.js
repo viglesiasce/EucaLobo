@@ -4,7 +4,7 @@
 //
 
 var ew_api = {
-    EC2_API_VERSION: '2012-06-01',
+    EC2_API_VERSION: '2012-06-15',
     ELB_API_VERSION: '2011-11-15',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
@@ -1609,6 +1609,7 @@ var ew_api = {
                     var instanceLifecycle = getNodeValue(instance, "instanceLifecycle")
                     var clientToken = getNodeValue(instance, "clientToken")
                     var spotId = getNodeValue(instance ,"spotInstanceRequestId");
+                    var role = getNodeValue(instance, "iamInstanceProfile", "id");
                     var volumes = [];
                     var objs = this.getItems(instance, "blockDeviceMapping", "item");
                     for (var i = 0; i < objs.length; i++) {
@@ -1629,18 +1630,31 @@ var ew_api = {
                         var evpcId = getNodeValue(objs[i], "vpcId");
                         var eownerId = getNodeValue(objs[i], "ownerId");
                         var eprivateIp = getNodeValue(objs[i], "privateIpAddress");
-                        var epublicIp = getNodeValue(objs[i], "publicIp");
+                        var epublicIp = getNodeValue(objs[i], "association", "publicIp");
                         var ednsName = getNodeValue(objs[i], "privateDnsName");
                         var esrcDstCheck = getNodeValue(objs[i], "sourceDestCheck");
-                        enis.push(new InstanceNetworkInterface(eid, estatus, edescr, esubnetId, evpcId, eownerId, eprivateIp, epublicIp, ednsName, esrcDstCheck));
-                    }
 
+                        var attachId = getNodeValue(objs[i], "attachment", "attachmentId");
+                        var attachIndex = getNodeValue(objs[i], "attachment", "deviceIndex");
+                        var attachStatus = getNodeValue(objs[i], "attachment", "status");
+                        var attachDelete = getNodeValue(objs[i], "attachment", "deleteOnTermination");
+
+                        var eips = [];
+                        var objs = this.getItems(instance, "privateIpAddressesSet", "item");
+                        for (var i = 0; i < objs.length; i++) {
+                            var pIp = getNodeValue(objs[i], "privateIpAddress");
+                            var pPrimary = getNodeValue(objs[i], "primary");
+                            var pPublicIp = getNodeValue(objs[i], "association", "publicIp");
+                            eips.push(new PrivateIpAddress(pIp, pPrimary, pPublicIp))
+                        }
+                        enis.push(new InstanceNetworkInterface(eid, estatus, edescr, esubnetId, evpcId, eownerId, eprivateIp, epublicIp, ednsName, esrcDstCheck, attachId, attachIndex, attachStatus, attachDelete, eips));
+                    }
                     var tags = this.getTags(instance);
 
                     list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, securityGroups, dnsName, privateDnsName, privateIpAddress,
                                            vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus != "", stateReason,
                                            platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName, virtType, hypervisor, ip, srcDstCheck, architecture, instanceLifecycle,
-                                           clientToken, spotId, volumes, enis, tags));
+                                           clientToken, spotId, role, volumes, enis, tags));
                 }
             }
         }
@@ -1677,8 +1691,11 @@ var ew_api = {
         if (options.keyName) {
             params.push([ "KeyName", options.keyName ]);
         }
+        if (options.instanceProfile) {
+            params.push(["IamInstanceProfile.Name", options.instanceProfile])
+        }
         for (var i in options.securityGroups) {
-            params.push([ "SecurityGroupId." + (i + 1), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
+            params.push([ "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
         }
         if (options.userData != null) {
             var b64str = "Base64:";
@@ -1731,21 +1748,26 @@ var ew_api = {
             }
         }
         if (options.networkInterface) {
-            params.push([ "NetworkInterface.1.DeviceIndex", options.networkInterface.deviceIndex])
+            params.push([ "NetworkInterface.0.DeviceIndex", options.networkInterface.deviceIndex])
             if (options.networkInterface.eniId) {
-                params.push([ "NetworkInterface.1.NetworkInterfaceId", options.networkInterface.eniId])
+                params.push([ "NetworkInterface.0.NetworkInterfaceId", options.networkInterface.eniId])
             }
             if (options.networkInterface.subnetId) {
-                params.push([ "NetworkInterface.1.SubnetId", options.networkInterface.subnetId])
+                params.push([ "NetworkInterface.0.SubnetId", options.networkInterface.subnetId])
             }
             if (options.networkInterface.description) {
-                params.push([ "NetworkInterface.1.Description", options.networkInterface.description])
+                params.push([ "NetworkInterface.0.Description", options.networkInterface.description])
             }
             if (options.networkInterface.privateIpAddress) {
-                params.push([ "NetworkInterface.1.PrivateIpAddres", options.networkInterface.privateIpAddress])
+                params.push([ "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"])
+                params.push([ "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress])
+            }
+            for (var i in options.networkInterface.secondaryIpAddresses) {
+                params.push([ "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"])
+                params.push([ "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".PrivateIpAddress", options.networkInterface.secondaryIpAddresses[i]])
             }
             for (var i in options.networkInterface.securityGroups) {
-                params.push([ "NetworkInterface.1.SecurityGroupId." + (parseInt(i) + 1), options.networkInterface.securityGroups[i]])
+                params.push([ "NetworkInterface.0.SecurityGroupId." + parseInt(i), options.networkInterface.securityGroups[i]])
             }
         }
 
@@ -2436,7 +2458,6 @@ var ew_api = {
     onCompleteDescribeNetworkInterfaces : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = this.getItems(xmlDoc, "networkInterfaceSet", "item");
         for ( var i = 0; i < items.length; i++) {
@@ -2475,13 +2496,53 @@ var ew_api = {
                 var attId = getNodeValue(aitem, "attachmentID");
                 association = new NetworkInterfaceAssociation(aid, pubip, owner, instId, attId);
             }
+            var pips = [];
+            var objs = this.getItems(item, "privateIpAddressesSet", "item");
+            for (var j = 0; j < objs.length; j++) {
+                var pIp = getNodeValue(objs[j], "privateIpAddress");
+                var pPrimary = getNodeValue(objs[j], "primary");
+                var pPublicIp = getNodeValue(objs[j], "association", "publicIp");
+                var pAssoc = getNodeValue(objs[j], "association", "associationId");
+                pips.push(new PrivateIpAddress(pIp, pPrimary, pPublicIp, pAssoc))
+            }
+
             var groups = this.getGroups(item);
             var tags = this.getTags(item);
-            list.push(new NetworkInterface(id, status, descr, subnetId, vpcId, azone, mac, ip, check, groups, attachment, association, tags));
+            list.push(new NetworkInterface(id, status, descr, subnetId, vpcId, azone, mac, ip, check, groups, attachment, association, pips, tags));
         }
 
         this.core.setModel('networkInterfaces', list);
         response.result = list;
+    },
+
+    assignPrivateIpAddresses : function(networkInterfaceId, privateIpList, privateIpCount, reassign, callback)
+    {
+        var params = [];
+        params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+
+        if (privateIpList && privateIpList.length) {
+            for (var i = 0 ; i < privateIpList.length; i++) {
+                params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ])
+            }
+        } else
+        if (privateIpCount) {
+            params.push([ 'SecondaryPrivateIpAddressCount', privateIpCount ])
+        }
+        if (reassign) {
+            params.push([ 'AllowReassignment', "true" ])
+        }
+        this.queryEC2("AssignPrivateIpAddresses", params, this, false, "onComplete", callback);
+    },
+
+    unassignPrivateIpAddresses : function(networkInterfaceId, privateIpList, callback)
+    {
+        var params = [];
+        params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+
+        for (var i = 0 ; i < privateIpList.length; i++) {
+            params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ])
+        }
+        this.queryEC2("UnassignPrivateIpAddresses", params, this, false, "onComplete", callback);
     },
 
     describeSecurityGroups : function(callback)
@@ -2676,7 +2737,6 @@ var ew_api = {
     onCompleteDescribeAddresses : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("item");
         for ( var i = 0; i < items.length; i++) {
@@ -3330,6 +3390,159 @@ var ew_api = {
         this.queryIAM("DeactivateMFADevice", [["UserName", user], ["SerialNumber", serial] ], this, false, "onComplete", callback);
     },
 
+    unpackInstanceProfile: function(item)
+    {
+        var arn = getNodeValue(item, "Arn");
+        var path = getNodeValue(item, "Path");
+        var id = getNodeValue(item, "InstanceProfileId");
+        var name = getNodeValue(item, "InstanceProfileName");
+        var date = getNodeValue(item, "CreateDate");
+        var roles = [];
+        var objs = this.getItems(item, "Roles", "member");
+        for (var i = 0; i < objs.length; i++) {
+            roles.push(this.unpackRole(objs[i]));
+        }
+        return new InstanceProfile(id, name, arn, path, roles, date)
+    },
+
+    createInstanceProfile : function(name, path, callback)
+    {
+        this.queryIAM("CreateInstanceProfile", [ ["InstanceProfileName", name], [ "Path", path || "/"] ], this, false, "onCompleteGetInstanceProfile", callback);
+    },
+
+    deleteInstanceProfile : function(name, callback)
+    {
+        this.queryIAM("DeleteInstanceProfile", [ ["InstanceProfileName", name] ], this, false, "onComplete", callback);
+    },
+
+    listInstanceProfiles : function(callback)
+    {
+        this.queryIAM("ListInstanceProfiles", [], this, false, "onCompleteListInstanceProfiles", callback);
+    },
+
+    addRoleToInstanceProfile : function(name, role, callback)
+    {
+        this.queryIAM("AddRoleToInstanceProfile", [ ["InstanceProfileName", name], ["RoleName", role] ], this, false, "onComplete", callback);
+    },
+
+    removeRoleFromInstanceProfile : function(name, role, callback)
+    {
+        this.queryIAM("RemoveRoleFromInstanceProfile", [ ["InstanceProfileName", name], ["RoleName", role] ], this, false, "onComplete", callback);
+    },
+
+    onCompleteListInstanceProfiles : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "InstanceProfiles", "member");
+        for ( var i = 0; i < items.length; i++) {
+            list.push(this.unpackInstanceProfile(items[i]));
+        }
+        this.core.setModel('instanceProfiles', list);
+        response.result = list;
+    },
+
+    listInstanceProfilesForRole : function(name, callback)
+    {
+        this.queryIAM("ListInstanceProfilesForRole", [ ["RoleName", name] ], this, false, "onCompleteListInstanceProfilesForRole", callback);
+    },
+
+    onCompleteListInstanceProfilesForRole: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var params = response.params;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "InstanceProfiles", "member");
+        for ( var i = 0; i < items.length; i++) {
+            list.push(this.unpackInstanceProfile(items[i]));
+        }
+        this.core.updateModel('roles', getParam(params, 'RoleName'), 'instanceProfiles', list)
+        response.result = list;
+    },
+
+    getInstanceProfile : function(name, callback)
+    {
+        this.queryIAM("GetInstanceProfile", [ ["InstanceProfileName", user] ], this, false, "onCompleteGetInstanceProfile", callback);
+    },
+
+    onCompleteGetInstanceProfile : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.unpackInstanceProfile(xmlDoc);
+    },
+
+    unpackRole: function(item)
+    {
+        var arn = getNodeValue(item, "Arn");
+        var path = getNodeValue(item, "Path");
+        var id = getNodeValue(item, "RoleId");
+        var name = getNodeValue(item, "RoleName");
+        var policy = decodeURIComponent(getNodeValue(item, "AssumeRolePolicyDocument"));
+        var date = getNodeValue(item, "CreateDate");
+        return new Role(id, name, arn, path, policy, date)
+    },
+
+    listRoles : function(callback)
+    {
+        this.queryIAM("ListRoles", [], this, false, "onCompleteListRoles", callback);
+    },
+
+    onCompleteListRoles : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = xmlDoc.getElementsByTagName("member");
+        for ( var i = 0; i < items.length; i++) {
+            list.push(this.unpackRole(items[i]));
+        }
+        this.core.setModel('roles', list);
+        response.result = list;
+    },
+
+    getRole : function(name, callback)
+    {
+        this.queryIAM("GetRole", [ ["RoleName", user] ], this, false, "onCompleteGetRole", callback);
+    },
+
+    onCompleteGetRole : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.unpackRole(xmlDoc);
+    },
+
+    createRole : function(name, path, policy, callback)
+    {
+        this.queryIAM("CreateRole", [ ["RoleName", name], [ "Path", path || "/"], ["AssumeRolePolicyDocument", policy] ], this, false, "onCompleteGetRole", callback);
+    },
+
+    deleteRole : function(name, callback)
+    {
+        this.queryIAM("DeleteRole", [ ["RoleName", name] ], this, false, "onComplete", callback);
+    },
+
+    listRolePolicies : function(name, callback)
+    {
+        this.queryIAM("ListRolePolicies", [ ["RoleName", name]], this, false, "onCompleteListPolicies", callback);
+    },
+
+    getRolePolicy : function(name, policy, callback)
+    {
+        this.queryIAM("GetRolePolicy", [ ["RoleName", name], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
+    },
+
+    putRolePolicy: function(name, name, text, callback)
+    {
+        this.queryIAM("PutRolePolicy", [ ["RoleName", name], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+    },
+
+    deleteRolePolicy : function(name, policy, callback)
+    {
+        this.queryIAM("DeleteRolePolicy", [ ["RoleName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+    },
+
     listUsers : function(callback)
     {
         this.queryIAM("ListUsers", [], this, false, "onCompleteListUsers", callback);
@@ -3371,17 +3584,17 @@ var ew_api = {
         response.result = this.unpackUser(xmlDoc);
     },
 
-    getUserPolicy : function(user, policy, callback)
+    getUserPolicy : function(name, policy, callback)
     {
-        this.queryIAM("GetUserPolicy", [ ["UserName", user], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
+        this.queryIAM("GetUserPolicy", [ ["UserName", name], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
     },
 
-    putUserPolicy: function(user, name, text, callback)
+    putUserPolicy: function(name, name, text, callback)
     {
-        this.queryIAM("PutUserPolicy", [ ["UserName", user], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutUserPolicy", [ ["UserName", name], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
-    deleteUserPolicy : function(user, policy, callback)
+    deleteUserPolicy : function(name, policy, callback)
     {
         this.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
@@ -3536,8 +3749,11 @@ var ew_api = {
         case "ListUserPolicies":
             this.core.updateModel('users', getParam(params, 'UserName'), 'policies', list)
             break;
-        }
 
+        case "ListRolePolicies":
+            this.core.updateModel('roles', getParam(params, 'RoleName'), 'policies', list)
+            break;
+        }
         response.result = list;
     },
 

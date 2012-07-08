@@ -102,6 +102,29 @@
                     <label control="ew.iam.AccountMFAEnabled" value="The root account has an MFA device assigned to it:" />
                     <label id="ew.iam.AccountMFAEnabled" />
                 </row>
+                <row>
+                    <label value=" " />
+                </row>
+                <row>
+                    <label control="ew.iam.RolePolicySizeQuota" value="Maximum allowed size for role policy documents (in kilobytes):" />
+                    <label id="ew.iam.RolePolicySizeQuota" />
+                </row>
+                <row>
+                    <label control="ew.iam.Roles" value="Number of roles for the AWS account:" />
+                    <label id="ew.iam.Roles" />
+                </row>
+                <row>
+                    <label control="ew.iam.RolesQuota" value="Maximum roles allowed for the AWS account:" />
+                    <label id="ew.iam.RolesQuota" />
+                </row>
+                <row>
+                    <label control="ew.iam.InstanceProfiles" value="Number of instance profiles for the AWS account:" />
+                    <label id="ew.iam.InstanceProfiles" />
+                </row>
+                <row>
+                    <label control="ew.iam.InstanceProfilesQuota" value="Maximum instance profiles allowed for the AWS account:" />
+                    <label id="ew.iam.InstanceProfilesQuota" />
+                </row>
             </rows>
         </grid>
      </groupbox>

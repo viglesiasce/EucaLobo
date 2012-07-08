@@ -62,6 +62,8 @@ var ew_core = {
         topics: null,
         subscriptions: null,
         dbinstances: null,
+        roles: null,
+        instanceProfiles: null,
         hostedZones: null,
         hostedChanges: [],
     },
@@ -824,7 +826,7 @@ var ew_core = {
     promptForText: function(title, text, width, height)
     {
         var rc = { ok: false, text: text, title: title };
-        openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=' + (width || 400) + ',height=' + (height || 240), rc);
+        openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=' + (width || 400) + ',height=' + (height || 400), rc);
         return rc.ok ? rc.text : null;
     },
 
@@ -855,7 +857,7 @@ var ew_core = {
             }
             if (input.label.indexOf("Policy") > -1 && input.value != "") {
                 try {
-                    input.value = formatJSON(JSON.parse(input.value));
+                    input.value = formatJSON(input.value);
                 }
                 catch(e) { debug(e) }
             }
@@ -1556,6 +1558,12 @@ var ew_core = {
             var me = this;
 
             switch (name) {
+            case "instanceProfiles":
+                this.api.listInstanceProfiles();
+                break;
+            case "roles":
+                this.api.listRoles();
+                break;
             case "queues":
                 this.api.listQueues();
                 break;
@@ -1676,6 +1684,8 @@ var ew_core = {
             case "hostedZones":
                 this.api.listHostedZones();
                 break;
+            default:
+                debug('Error: model not known ' + name);
             }
         }
     },
@@ -2057,6 +2067,18 @@ var ew_core = {
             if (types[i][arch]) list.push(types[i]);
         }
         return list;
+    },
+
+    getPolicyTypes: function()
+    {
+        return [ { name: "Administrator Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": "*","Resource": "*"}]}' },
+                 { name: "Power User Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","NotAction": "iam:*","Resource": "*"}]}' },
+                 { name: "Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Action": ["autoscaling:Describe*","cloudformation:DescribeStacks","cloudformation:DescribeStackEvents","cloudformation:DescribeStackResources","cloudformation:GetTemplate","cloudfront:Get*","cloudfront:List*","cloudwatch:Describe*","cloudwatch:Get*","cloudwatch:List*","dynamodb:GetItem","dynamodb:BatchGetItem","dynamodb:Query","dynamodb:Scan","dynamodb:DescribeTable","dynamodb:ListTables","ec2:Describe*","elasticache:Describe*","elasticbeanstalk:Check*","elasticbeanstalk:Describe*","elasticbeanstalk:List*","elasticbeanstalk:RequestEnvironmentInfo","elasticbeanstalk:RetrieveEnvironmentInfo","elasticloadbalancing:Describe*","iam:List*","iam:Get*","route53:Get*","route53:List*","rds:Describe*","s3:Get*","s3:List*","sdb:GetAttributes","sdb:List*","sdb:Select*","ses:Get*","ses:List*","sns:Get*","sns:List*","sqs:GetQueueAttributes","sqs:ListQueues","sqs:ReceiveMessage","storagegateway:List*","storagegateway:Describe*"],"Effect": "Allow","Resource": "*"}]}' },
+                 { name: "EC2 Full Access", toString: function() { return this.name; }, id: '{"Statement": [{"Action": "ec2:*","Effect": "Allow","Resource": "*"},{"Effect": "Allow","Action": "elasticloadbalancing:*","Resource": "*"},{"Effect": "Allow","Action": "cloudwatch:*","Resource": "*"},{"Effect": "Allow","Action": "autoscaling:*","Resource": "*"}]}' },
+                 { name: "IAM Full Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": "iam:*","Resource": "*"}]}' },
+                 { name: "S3 Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": ["s3:Get*","s3:List*"],"Resource": "*"}]}' },
+                 { name: "VPC Full Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Effect": "Allow", "Action": [ "ec2:AllocateAddress", "ec2:AssociateAddress", "ec2:AssociateDhcpOptions", "ec2:AssociateRouteTable", "ec2:AttachInternetGateway", "ec2:AttachVpnGateway", "ec2:AuthorizeSecurityGroupEgress", "ec2:AuthorizeSecurityGroupIngress", "ec2:CreateCustomerGateway", "ec2:CreateDhcpOptions", "ec2:CreateInternetGateway", "ec2:CreateNetworkAcl", "ec2:CreateNetworkAclEntry", "ec2:CreateRoute", "ec2:CreateRouteTable", "ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateVpc", "ec2:CreateVpnConnection", "ec2:CreateVpnGateway", "ec2:DeleteCustomerGateway", "ec2:DeleteDhcpOptions", "ec2:DeleteInternetGateway", "ec2:DeleteNetworkAcl", "ec2:DeleteNetworkAclEntry", "ec2:DeleteRoute", "ec2:DeleteRouteTable", "ec2:DeleteSecurityGroup", "ec2:DeleteSubnet", "ec2:DeleteVpc", "ec2:DeleteVpnConnection", "ec2:DeleteVpnGateway", "ec2:DescribeAddresses", "ec2:DescribeAvailabilityZones", "ec2:DescribeCustomerGateways", "ec2:DescribeDhcpOptions", "ec2:DescribeInstances", "ec2:DescribeInternetGateways", "ec2:DescribeKeyPairs", "ec2:DescribeNetworkAcls", "ec2:DescribeRouteTables", "ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcs", "ec2:DescribeVpnConnections", "ec2:DescribeVpnGateways", "ec2:DetachInternetGateway", "ec2:DetachVpnGateway", "ec2:DisassociateAddress", "ec2:DisassociateRouteTable", "ec2:ReleaseAddress", "ec2:ReplaceNetworkAclAssociation", "ec2:ReplaceNetworkAclEntry", "ec2:ReplaceRouteTableAssociation", "ec2:RevokeSecurityGroupEgress", "ec2:RevokeSecurityGroupIngress" ], "Resource": "*" } ] }' },
+        ];
     },
 
 };

@@ -1451,7 +1451,48 @@ function ProductCode(code, type)
     }
 }
 
-function NetworkInterface(id, status, descr, subnetId, vpcId, availabilityZone, macAddress, privateIpAddress, sourceDestCheck, groups, attachment, association, tags)
+function Role(id, name, arn, path, assumePolicy, date)
+{
+    this.id = id
+    this.name = name
+    this.arn = arn
+    this.path = path
+    this.assumeRolePolicyDocument = assumePolicy
+    this.date = date
+    this.instanceProfiles = null;
+    this.policies = null;
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function InstanceProfile(id, name, arn, path, roles, date)
+{
+    this.id = id
+    this.name = name
+    this.arn = arn
+    this.path = path
+    this.roles = roles
+    this.date = date
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function PrivateIpAddress(privateIp, primary, publicIp, assocId)
+{
+    this.privateIp = privateIp;
+    this.publicIp = publicIp
+    this.primary = primary == "true";
+    this.associationId = assocId || "";
+    this.toString = function() {
+        return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
+    }
+}
+
+function NetworkInterface(id, status, descr, subnetId, vpcId, availabilityZone, macAddress, privateIpAddress, sourceDestCheck, groups, attachment, association, eips, tags)
 {
     this.id = id
     this.status = status
@@ -1465,6 +1506,7 @@ function NetworkInterface(id, status, descr, subnetId, vpcId, availabilityZone, 
     this.securityGroups = groups || [];
     this.attachment = attachment
     this.association = association
+    this.privateIpAddresses = eips;
     this.tags = tags
     ew_core.processTags(this, "descr")
 
@@ -1664,7 +1706,7 @@ function InstanceBlockDeviceMapping(deviceName, volumeId, status, attachTime, de
     }
 }
 
-function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, privateIp, publicIp, dnsName, srcDstCheck)
+function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, privateIp, publicIp, dnsName, srcDstCheck, attachId, attachIndex, attachStatus, attachDelete, privateIps)
 {
     this.id = id
     this.status = status
@@ -1676,16 +1718,21 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
     this.publicIp = publicIp
     this.sourceDestCheck = srcDstCheck
     this.dnsName = dnsName
+    this.attachmentId = attachId
+    this.deviceIndex = attachIndex
+    this.attachmentStatus = attachStatus
+    this.deleteOnTermnation = attachDelete
+    this.privateIpAddresses = privateIps;
 
     this.toString = function() {
-        return this.privateIp + fieldSeparator + this.publicIp + fieldSeparator + this.status + fieldSeparator + this.id + fieldSeparator +  this.descr +
-               " (" + ew_core.modelValue("subnetId", this.subnetId) + ")";
+        return (this.descr ? this.descr + fieldSeparator : "") + this.status + fieldSeparator + 'eth' + this.deviceIndex + fieldSeparator +
+                (this.privateIpAddresses.length ? this.privateIpAddresses : this.privateIp + (this.publicIp ? "/" + this.publicIp : ""));
     }
 }
 
 function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
                   amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringEnabled, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
-                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, volumes, enis, tags)
+                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, role, volumes, enis, tags)
 {
     this.id = instanceId;
     this.reservationId = reservationId;
@@ -1723,8 +1770,9 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.instanceLifecycle = instanceLifecycle;
     this.clientToken = clientToken;
     this.spotInstanceRequestId = spotId;
+    this.instanceProfile = role;
     this.volumes = volumes;
-    this.enis = enis;
+    this.networkInterfaces = enis;
     this.tags = tags;
     this.name = '';
     ew_core.processTags(this);

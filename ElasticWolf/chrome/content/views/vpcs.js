@@ -811,13 +811,33 @@ var ew_NetworkInterfacesTreeView = {
         this.core.api.deleteNetworkInterface(eni.id, function() { me.refresh(); });
     },
 
+    assignPrivateIps: function()
+    {
+        var me = this;
+        var eni = this.getSelected();
+        if (!eni) return;
+        var values = this.core.promptInput("Assign Private IP Addresses", [{label:"List of private IP Addresses",help:"separate by comma"},
+                                                                           {label:"Auto Assign IPs",type:"number",help:"specify how many IPs to auto assign"},
+                                                                           {label:"",value:"Specify either IP address list or number to auto assign, not both",type:"label"},
+                                                                           {label:"Allow auto reassignment of IP addresses",type:"checkbox"}])
+        if (!values) return;
+        this.core.api.assignPrivateIpAddresses(eni.id, values[0] ? values[0].replace(/[ ]+/g,'').split(",") : null, values[1], values[3], function() { me.refresh();});
+    },
+
+    unassignPrivateIps: function()
+    {
+        var me = this;
+        var eni = this.getSelected();
+        if (!eni) return;
+        var list = this.core.promptList('Unassign Private IPs', 'Select IPs to unassign:', eni.privateIpAddresses, null, null, true);
+        if (!list || !list.length) return;
+        this.core.api.unassignPrivateIpAddresses(eni.id, list, function() { me.refresh();});
+    },
+
     attachInterface : function()
     {
         var eni = this.getSelected();
-        if (!eni) {
-            alert("Please, select ENI");
-            return;
-        }
+        if (!eni) return;
         var instances = this.core.queryModel('instances','vpcId', eni.vpcId, 'availabilityZone', eni.availabilityZone);
         var values = this.core.promptInput("Attach ENI", [{label:"Instance",type:"menulist",list:instances,required:1},
                                                           {label:"Device Index",type:"number",required:1}])

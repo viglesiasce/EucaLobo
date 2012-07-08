@@ -173,7 +173,8 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         var values = this.core.promptInput('Add Policy', [{label:"Policy name",type:"name",required:1},
-                                                          {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:'{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}'}]);
+                                                          {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:policy},
+                                                          {label:"Policy Types",type:"menulist",list:this.core.getPolicyTypes(),required:1,onselect:"rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
         if (!values) return;
         this.core.api.putUserPolicy(item.name, values[0], values[1], function() {
             item.policies = null;
@@ -186,7 +187,7 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item || !item.policies || !item.policies.length) {
-            return alert('No policies to edit');
+            return this.addPolicy();
         }
         var idx = 0;
 
@@ -472,7 +473,8 @@ var ew_GroupsTreeView = {
         var item = this.getSelected();
         if (!item) return;
         var values = this.core.promptInput('Add Policy', [{label:"Policy name",type:"name",required:1},
-                                                          {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:'{\n "Statement": [\n  { "Effect": "Allow",\n    "Action": "*",\n    "Resource": "*"\n  }\n ]\n}'}]);
+                                                          {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:policy},
+                                                          {label:"Policy Types",type:"menulist",list:this.core.getPolicyTypes(),required:1,onselect:"rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
         if (!values) return;
         this.core.api.putGroupPolicy(item.name, values[0], values[1], function() {
             item.policies = null;
@@ -485,7 +487,7 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item || !item.policies || !item.policies.length) {
-            return alert('No policied to edit');
+            return this.addPolicy();
         }
         var idx = 0;
         if (item.policies.length > 1) {
@@ -541,6 +543,137 @@ var ew_GroupUsersTreeView = {
             }
         }
     },
+};
+
+var ew_RolesTreeView = {
+   model: [ "roles", "instanceProfiles" ],
+
+   menuChanged: function() {
+       var item = this.getSelected();
+       $("ew.roles.contextmenu.delete").disabled = !item;
+       $("ew.roles.contextmenu.addPolicy").disabled = !item;
+       $("ew.roles.contextmenu.editPolicy").disabled = !item || !item.policies || !item.policies.length;
+       $("ew.roles.contextmenu.deletePolicy").disabled = !item || !item.policies || !item.policies.length;
+   },
+
+   selectionChanged: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+
+       if (!item.policies) {
+           this.core.api.listRolePolicies(item.name, function(list) { me.menuChanged() })
+       }
+       if (!item.instanceProfiles) {
+           this.core.api.listInstanceProfilesForRole(item.name, function(list) { me.menuChanged() })
+       }
+   },
+
+   addRole: function()
+   {
+       var me = this;
+       var policy = formatJSON('{"Statement":[{"Principal":{"Service":["ec2.amazonaws.com"]},"Effect":"Allow","Action":["sts:AssumeRole"]}]}');
+       var values = this.core.promptInput('Create Role', [{label: "Role Name",required:1},
+                                                          {label: "Path"},
+                                                          {label:"Assumed Role Policy",multiline:true,rows:10,cols:50,required:1,value:policy} ]);
+       if (values) {
+           this.core.api.createRole(values[0], values[1], values[3], function(role) {
+               me.core.addModel('roles', role);
+               me.invalidate();
+               me.select(role)
+               me.core.api.createInstanceProfile(values[0], "", function(profile) {
+                   me.core.addRoleToInstanceProfile(profile.name, role.name, function() {
+                       me.selectionChanged();
+                   });
+               });
+           })
+       }
+   },
+
+   deleteRole: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+       if (!confirm("Delete role?")) return;
+       if (item.instanceProfiles) {
+           for (var i in item.instanceProfiles) {
+               this.core.api.removeRoleFromInstanceProfile(item.instanceProfiles[i].name, item.name, function() {
+                   me.core.api.deleteInstanceProfile(item.instanceProfiles[i].name);
+               });
+           }
+           sleep(1000)
+       }
+       if (item.policies) {
+           for (var i in item.policies) {
+               this.core.api.deleteRolePolicy(item.name, item.policies[i]);
+           }
+           sleep(1000)
+       }
+       this.core.api.deleteRole(item.name, function() {
+           if (me.core.removeModel('roles', item.id)) me.invalidate(); else me.refresh();
+       });
+   },
+
+   addPolicy: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+       var values = this.core.promptInput('Add Policy', [{label:"Policy name",type:"name",required:1},
+                                                         {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:policy},
+                                                         {label:"Policy Types",type:"menulist",list:this.core.getPolicyTypes(),required:1,onselect:"rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
+       if (!values) return;
+       this.core.api.putRolePolicy(item.name, values[0], values[1], function() {
+           item.policies = null;
+           me.selectionChanged();
+       });
+   },
+
+   editPolicy: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item || !item.policies || !item.policies.length) {
+           return this.addPolicy();
+       }
+       var idx = 0;
+
+       if (item.policies.length > 1) {
+           idx = this.core.promptList("Policy", "Select policy to edit", item.policies);
+           if (idx < 0) return;
+       }
+
+       this.core.api.getRolePolicy(item.name, item.policies[idx], function(doc) {
+           var text = me.core.promptForText('Enter policy permissions', doc);
+           if (text) {
+               me.core.api.putRolePolicy(item.name, item.policies[idx], text);
+           }
+       });
+   },
+
+   deletePolicy: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item || !item.policies || !item.policies.length) {
+           return alert('No policies to delete');
+       }
+       var idx = 0;
+
+       if (item.policies.length > 0) {
+           idx = this.core.promptList("Policy", "Select policy to delete", item.policies);
+           if (idx < 0) return;
+       } else {
+           if (!confirm('Delete policy ' + item.policies[idx] + '?')) return;
+       }
+       this.core.api.deleteRolePolicy(item.name, item.policies[idx], function() {
+           item.policies = null;
+           me.selectionChanged();
+       });
+   },
+
 };
 
 var ew_KeypairsTreeView = {

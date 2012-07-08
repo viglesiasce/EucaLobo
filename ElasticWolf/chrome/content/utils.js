@@ -219,6 +219,10 @@ function formatSize(size)
 
 function formatJSON(obj, indent)
 {
+    // Shortcut to parse and format json from the string
+    if (typeof obj == "string" && obj != "") {
+        obj = JSON.parse(obj);
+    }
     if (!indent) indent = "";
     var style = "    ";
     var type = typeName(obj);

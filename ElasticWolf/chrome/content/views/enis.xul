@@ -14,6 +14,8 @@
                         <menuitem oncommand="ew_NetworkInterfacesTreeView.deleteInterface();" label="Delete ENI" />
                         <menuitem oncommand="ew_NetworkInterfacesTreeView.attachInterface();" label="Attach to instance" />
                         <menuitem oncommand="ew_NetworkInterfacesTreeView.detachInterface();" label="Detach from instance" />
+                        <menuitem oncommand="ew_NetworkInterfacesTreeView.assignPrivateIps();" label="Assign Private IP Addresses" />
+                        <menuitem oncommand="ew_NetworkInterfacesTreeView.unassignPrivateIps();" label="Unassign Private IP Addresses" />
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">

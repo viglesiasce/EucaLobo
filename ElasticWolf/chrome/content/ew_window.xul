@@ -29,6 +29,7 @@
 <?xul-overlay href="chrome://ew/content/views/credentials.xul"?>
 <?xul-overlay href="chrome://ew/content/views/prefs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/users.xul"?>
+<?xul-overlay href="chrome://ew/content/views/roles.xul"?>
 <?xul-overlay href="chrome://ew/content/views/groups.xul"?>
 <?xul-overlay href="chrome://ew/content/views/policy.xul"?>
 <?xul-overlay href="chrome://ew/content/views/vmfa.xul"?>
@@ -113,6 +114,8 @@
 
             { name: "ew.tabs.groups",        views: [ { id: "ew.groups.view", view: ew_GroupsTreeView, },
                                                       { id: "ew.groupUsers.view", view: ew_GroupUsersTreeView, }, ] },
+
+            { name: "ew.tabs.roles",        views: [ { id: "ew.roles.view", view: ew_RolesTreeView, }, ] },
 
             { name: "ew.tabs.securitygroup", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: true }] },
                                                       { id: "ew.permissions.view", view: ew_PermissionsTreeView }], },
@@ -259,6 +262,7 @@
        <treechildren>
          <treeitem><treerow><treecell label="Users" value="ew.tabs.users" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Groups" value="ew.tabs.groups" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Roles" value="ew.tabs.roles" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Certificates" value="ew.tabs.cert" /></treerow></treeitem>
          <treeitem hidden="true" class="advanced"><treerow><treecell label="Virtual MFA Devices" value="ew.tabs.vmfa" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
@@ -379,6 +383,7 @@
       <tabpanel id="ew.tabs.access"/>
       <tabpanel id="ew.tabs.cert"/>
       <tabpanel id="ew.tabs.users"/>
+      <tabpanel id="ew.tabs.roles"/>
       <tabpanel id="ew.tabs.groups"/>
       <tabpanel id="ew.tabs.securitygroup"/>
       <tabpanel id="ew.tabs.eip"/>
@@ -462,7 +467,7 @@
   <statusbar>
     <statusbarpanel id="ew_status" label=""/>
     <spacer flex="1"/>
-    <statusbarpanel id="ew_message" label="" style="color:#990033;"/>
-    <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" image="images/alert.png" onclick="ew_core.displayErrors();" />
+    <statusbarpanel id="ew_message" label="" style="color:#770022;"/>
+    <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" crop="end" image="images/alert.png" onclick="ew_core.displayErrors();" />
   </statusbar>
 </window>

@@ -57,7 +57,7 @@ var ew_EC2TreeView = {
 };
 
 var ew_AMIsTreeView = {
-    model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones' ],
+    model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles' ],
     favorites: "ew.images.favorites",
     properties: ['ownerAlias', 'status', 'state'],
 
