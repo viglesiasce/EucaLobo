@@ -401,7 +401,10 @@ var ew_InstancesTreeView = {
                 return false;
             }
         }
-        this.core.api.associateAddress(eip, instance.id, null, function() { me.refresh() });
+        this.core.api.associateAddress(eip, instance.id, null, function() {
+            me.refresh();
+            me.core.refreshModel('addresses');
+        });
     },
 
     retrieveRSAKeyFromKeyFile : function(keyFile, fSilent)
