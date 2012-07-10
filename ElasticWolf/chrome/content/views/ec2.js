@@ -174,7 +174,7 @@ var ew_AMIsTreeView = {
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
-                me.core.selectTab('ew.tabs.instance' + (this.core.isVpcMode() ? ".vpc" : ""));
+                me.core.selectTab('ew.tabs.instance' + (me.core.isVpcMode() ? ".vpc" : ""));
             });
         }
     },
@@ -326,7 +326,7 @@ var ew_InstancesTreeView = {
         if (instance == null) return;
 
         var values = this.core.promptInput('Create AMI', [{label:"Instance",type:"label",value:instance.toString()},
-                                                          {label:"AMI Name",type:"name",required:1},
+                                                          {label:"AMI Name",required:1},
                                                           {label:"Description"},
                                                           {label:"Snapshot without rebooting instance",type:"checkbox"} ]);
         if (!values) return;

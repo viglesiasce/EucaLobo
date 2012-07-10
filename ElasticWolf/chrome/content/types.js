@@ -2265,6 +2265,78 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     }
 }
 
+
+function DBEvent(id, type, date, msg)
+{
+    this.id = id
+    this.type = type
+    this.date = date
+    this.msg = msg
+
+    this.toString = function() {
+        return this.id + fieldSeparator + this.type
+    }
+}
+
+function DBEngine(family, engine, vengine, descr, vdescr, chars)
+{
+    this.family = fanily
+    this.engine = engine;
+    this.engineVersion = vengine
+    this.descr = descr
+    this.engineVersionDescr = vdescr
+    this.charsets = chars
+
+    this.toString = function() {
+        return this.engine + fieldSeparator + this.engineVersion
+    }
+}
+
+function DBParameterGroup(name, descr, family)
+{
+    this.name = name
+    this.descr = descr
+    this.family = family
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src)
+{
+    this.name = name
+    this.value = value
+    this.descr = descr
+    this.type = type
+    this.minVersion = mver
+    this.isModifiable = mod
+    this.applyType = atype
+    this.applyMethod = amethod
+    this.allowedValues = values
+    this.source = src
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.value + fieldSeparator + this.type
+    }
+}
+
+function DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones)
+{
+    this.instanceClass = dbclass
+    this.engine = engine
+    this.envineVersion = ver
+    this.licenseModel = license
+    this.multiAZCapable = maz
+    this.vpcCapable = vpc
+    this.vpcMultiAZCapable = vpcmaz
+    this.vpcReadReplicaCapable = vpcreplica
+    this.availabilityZones = azones
+    this.toString = function() {
+        return this.instanceClass + fieldSeparator + this.engine + fieldSeparator + this.engineVersion
+    }
+}
+
 function DBSubnet(id, availabilityZone, status)
 {
     this.id = id

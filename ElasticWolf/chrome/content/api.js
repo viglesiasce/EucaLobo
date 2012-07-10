@@ -4312,6 +4312,54 @@ var ew_api = {
         this.querySNS("SetSubscriptionAttributes", [ ["SubscriptionArn", id], ["AttributeName", name], ["AttributeValue", value] ], this, false, "onComplete", callback);
     },
 
+    unpackDBSubnetGroup: function(item)
+    {
+        if (!item) return null;
+        var name = getNodeValue(item, "DBSubnetGroupName");
+        if (name == "") return null;
+        var descr = getNodeValue(item,"DBSubnetGroupDescription");
+        var status = getNodeValue(item, "DBSubnetGroupStatus");
+        var vpcId = getNodeValue(item, "VpcId");
+        var subnets = this.getItems(item, "Subnets", "Subnet", ["SubnetIdentifier","Name","SubnetStatus"], function(obj) { return new DBSubnet(onj.SubnetIdentifier,obj.Name,obj.SubnetStatus) });
+        return new DBSubnetGroup(name, descr, status, vpcId, subnets);
+    },
+
+    unpackDBInstance: function(item)
+    {
+        var id = getNodeValue(item, "DBInstanceIdentifier");
+        var name = getNodeValue(item, "DBName");
+        var engine = getNodeValue(item, "Engine");
+        var ver = getNodeValue(item, "EngineVersion");
+        var host = getNodeValue(item, "Endpoint", "Address");
+        var port = getNodeValue(item, "Endpoint", "Port");
+        var user = getNodeValue(item, "MasterUsername");
+        var dbclass = getNodeValue(item, "DBInstanceClass");
+        var status = getNodeValue(item, "DBInstanceStatus");
+        var azone = getNodeValue(item, "AvailabilityZone");
+        var space = getNodeValue(item, "AllocatedStorage");
+        var created = getNodeValue(item, "InstanceCreateTime");
+        var license = getNodeValue(item, "LicenseModel");
+        var autoupgrade = getNodeValue(item, "AutoMinorVersionUpgrade");
+        var brperiod = getNodeValue(item, "BackupRetentionPeriod");
+        var charset = getNodeValue(item, "CharacterSetName");
+        var lrtime = getNodeValue(item, "LatestRestorableTime");
+        var multiAZ = getNodeValue(item, "MultiAZ");
+        var bkwin = getNodeValue(item, "PreferredBackupWindow");
+        var prefwin = getNodeValue(item, "PreferredMaintenanceWindow");
+        var replicas = getNodeValue(item, "ReadReplicaDBInstanceIdentifiers");
+        var srcreplica = getNodeValue(item, "ReadReplicaSourceDBInstanceIdentifier");
+        var optstatus = getNodeValue(item, "OptionGroupMembership", "Status");
+        var optname = getNodeValue(item, "OptionGroupMembership", "OptionGroupName");
+        var pendingMods = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return new Tag(obj.tagName, obj.firstChild.nodeValue); });
+        var sgroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
+        var pgroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Tag(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
+        var subnetGroup = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
+
+        return new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created, license, autoupgrade,
+                              brperiod, charset, lrtime, multiAZ, bkwin, prefwin, replicas, srcreplica, optname, optstatus,
+                              pendingMods, subnetGroup, sgroups, pgroups);
+    },
+
     describeDBInstances : function(callback)
     {
         this.queryRDS("DescribeDBInstances", [], this, false, "onCompleteDescribeDBInstances", callback);
@@ -4323,49 +4371,7 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "DBInstances", "DBInstance");
         for (var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "DBInstanceIdentifier");
-            var name = getNodeValue(items[i], "DBName");
-            var engine = getNodeValue(items[i], "Engine");
-            var ver = getNodeValue(items[i], "EngineVersion");
-            var host = getNodeValue(items[i], "Endpoint", "Address");
-            var port = getNodeValue(items[i], "Endpoint", "Port");
-            var user = getNodeValue(items[i], "MasterUsername");
-            var dbclass = getNodeValue(items[i], "DBInstanceClass");
-            var status = getNodeValue(items[i], "DBInstanceStatus");
-            var azone = getNodeValue(items[i], "AvailabilityZone");
-            var space = getNodeValue(items[i], "AllocatedStorage");
-            var created = getNodeValue(items[i], "InstanceCreateTime");
-            var license = getNodeValue(items[i], "LicenseModel");
-            var autoupgrade = getNodeValue(items[i], "AutoMinorVersionUpgrade");
-            var brperiod = getNodeValue(items[i], "BackupRetentionPeriod");
-            var charset = getNodeValue(items[i], "CharacterSetName");
-            var lrtime = getNodeValue(items[i], "LatestRestorableTime");
-            var multiAZ = getNodeValue(items[i], "MultiAZ");
-            var bkwin = getNodeValue(items[i], "PreferredBackupWindow");
-            var prefwin = getNodeValue(items[i], "PreferredMaintenanceWindow");
-            var replicas = getNodeValue(items[i], "ReadReplicaDBInstanceIdentifiers");
-            var srcreplica = getNodeValue(items[i], "ReadReplicaSourceDBInstanceIdentifier");
-            var optstatus = getNodeValue(items[i], "OptionGroupMembership", "Status");
-            var optname = getNodeValue(items[i], "OptionGroupMembership", "OptionGroupName");
-
-            var pendingMods = this.getItems(items[i], "PendingModifiedValues", null, null, function(obj) { return new Tag(obj.tagName, obj.firstChild.nodeValue); });
-
-            var subnetGroup = ""
-            var gname = getNodeValue(items[i], "DBSubnetGroup", "DBSubnetGroupName");
-            if (gname) {
-                var gdescr = getNodeValue(items[i], "DBSubnetGroup", "DBSubnetGroupDescription");
-                var gstatus = getNodeValue(items[i], "DBSubnetGroup", "DBSubnetGroupStatus");
-                var vpcId = getNodeValue(items[i], "DBSubnetGroup", "VpcId");
-                var subnets = this.getItems(items[i], "DBSubnetGroup", "Subnets", ["SubnetIdentifier","SubnetAvailabilityZone","SubnetStatus"], function(obj) { return new DBSubnet(onj.SubnetIdentifier,obj.SubnetAvailabilityZone,obj.SubnetStatus) });
-                subnetGroup = new DBSubnetGroup(gname, gdescr, gstatus, vpcId, subnets);
-            }
-
-            var sgroups = this.getItems(items[i], "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
-
-            var pgroups = this.getItems(items[i], "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Tag(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
-
-            list.push(new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created, license, autoupgrade,
-                                     brperiod, charset, lrtime, multiAZ, bkwin, prefwin, replicas, srcreplica, optname, optstatus, pendingMods, subnetGroup, sgroups, pgroups))
+            list.push(this.unpackDBInstance(items[i]));
         }
 
         this.core.setModel('dbinstances', list);
@@ -4381,6 +4387,399 @@ var ew_api = {
         }
 
         this.queryRDS("DeleteDBInstance", params, this, false, "onComplete", callback);
+    },
+
+    createDBInstance : function(id, AllocatedStorage, DBInstanceClass, Engine, MasterUserName, MasterUserPassword, options, callback)
+    {
+        var params = []
+        params.push([ "DBInstanceIdentifier", id ]);
+        params.push([ "AllocatedStorage", storage ]);
+        params.push([ "DBInstanceClass", DBInstanceClass ]);
+        params.push([ "Engine", Engine ]);
+        params.push([ "MasterUserName", MasterUserName])
+        params.push([ "MasterUserPassword", MasterUserPassword])
+
+        if (options.AutoMinorVersionUpgrade) {
+            params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
+        }
+        if (options.availabilityZone) {
+            params.push([ "AvailabilityZone", options.availabilityZone ]);
+        }
+        if (options.BackupRetentionPeriod) {
+            params.push([ "BackupRetentionPeriod", options.BackupRetentionPeriod ]);
+        }
+        if (options.CharacterSetName) {
+            params.push([ "CharacterSetName", options.CharacterSetName ]);
+        }
+        if (options.DBName) {
+            params.push(["DBName", options.DBName])
+        }
+        if (options.DBParameterGroupName) {
+            params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
+        }
+        for (var i in options.DBSecurityGroups) {
+            params.push([ "DBSecurityGroups." + parseInt(i), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].id : options.DBSecurityGroups[i] ]);
+        }
+        if (options.DBSubnetGroupName) {
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+        }
+        if (options.EngineVersion) {
+            params.push([ "EngineVersion", options.EngineVersion]);
+        }
+        if (options.LicenseModel) {
+            params.push([ "LicenseModel", options.LicenseModel]);
+        }
+        if (options.MultiAZ) {
+            params.push([ "MultiAZ", "true"]);
+        }
+        if (options.OptionGroupName) {
+            params.push([ "OptionGroupName", options.OptionGroupName ]);
+        }
+        if (options.Port) {
+            params.push([ "Port", options.Port ]);
+        }
+        if (options.PreferredBackupWindow) {
+            params.push([ 'PreferredBackupWindow', options.PreferredBackupWindow ]);
+        }
+        if (options.PreferredMaintenanceWindow) {
+            params.push([ 'PreferredMaintenanceWindow', options.PreferredMaintenanceWindow ]);
+        }
+        this.queryRDS("CreateDBInstance", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
+    onCompleteCreateDBInstance : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.unpackDBInstance(xmlDoc);
+    },
+
+    modifyDBInstance : function(id, options, callback)
+    {
+        var params = []
+        params.push([ "DBInstanceIdentifier", id ]);
+
+        if (options.AllocatedStorage) {
+            params.push([ "AllocatedStorage", options.AllocatedStorage ]);
+        }
+        if (options.AllowMajorVersionUpgrade) {
+            params.push([ "AllowMajorVersionUpgrade", options.AllowMajorVersionUpgrade ]);
+        }
+        if (options.ApplyImmediately) {
+            params.push([ "ApplyImmediately", "true" ]);
+        }
+        if (options.AutoMinorVersionUpgrade) {
+            params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
+        }
+        if (options.DBInstanceClass) {
+            params.push([ "DBInstanceClass", options.DBInstanceClass ]);
+        }
+        if (options.BackupRetentionPeriod) {
+            params.push([ "BackupRetentionPeriod", options.BackupRetentionPeriod ]);
+        }
+        if (options.MasterUserPassword) {
+            params.push([ "MasterUserPassword", options.MasterUserPassword ]);
+        }
+        if (options.MultiAZ) {
+            params.push(["MultiAZ", options.MultiAZ])
+        }
+        if (options.DBParameterGroupName) {
+            params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
+        }
+        for (var i in options.DBSecurityGroups) {
+            params.push([ "DBSecurityGroups." + parseInt(i), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].id : options.DBSecurityGroups[i] ]);
+        }
+        if (options.DBSubnetGroupName) {
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+        }
+        if (options.EngineVersion) {
+            params.push([ "EngineVersion", options.EngineVersion]);
+        }
+        if (options.OptionGroupName) {
+            params.push([ "OptionGroupName", options.OptionGroupName ]);
+        }
+        if (options.PreferredBackupWindow) {
+            params.push([ 'PreferredBackupWindow', options.PreferredBackupWindow ]);
+        }
+        if (options.PreferredMaintenanceWindow) {
+            params.push([ 'PreferredMaintenanceWindow', options.PreferredMaintenanceWindow ]);
+        }
+        this.queryRDS("ModifyDBInstance", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
+    restoreDBInstanceFromDBSnapshot : function(id, snapshotId, options, callback)
+    {
+        var params = []
+        params.push([ "DBInstanceIdentifier", id ]);
+        params.push([ "DBSnapshotIdentifier", snapshotId ]);
+
+        if (options.AvailabilityZone) {
+            params.push([ "AvailabilityZone", options.AvailabilityZone ]);
+        }
+        if (options.AutoMinorVersionUpgrade) {
+            params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
+        }
+        if (options.DBInstanceClass) {
+            params.push([ "DBInstanceClass", options.DBInstanceClass ]);
+        }
+        if (options.DBName) {
+            params.push([ "DBName", options.DBName ]);
+        }
+        if (options.DBSubnetGroupName) {
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+        }
+        if (options.Engine) {
+            params.push([ "Engine", options.Engine]);
+        }
+        if (options.OptionGroupName) {
+            params.push([ "OptionGroupName", options.OptionGroupName ]);
+        }
+        if (options.LicenseModel) {
+            params.push([ 'LicenseModel', options.LicenseModel ]);
+        }
+        if (options.MultiAZ) {
+            params.push(["MultiAZ", options.MultiAZ])
+        }
+        if (options.Port) {
+            params.push([ "Port", options.Port ]);
+        }
+        this.queryRDS("RestoreDBInstanceFromDBSnapshot", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
+    restoreDBInstanceToPointInTime : function(sourceId, targetId, options, callback)
+    {
+        var params = []
+        params.push([ "SourceDBInstanceIdentifier", sourceId ]);
+        params.push([ "TargetDBInstanceIdentifier", targetId ]);
+
+        if (options.AvailabilityZone) {
+            params.push([ "AvailabilityZone", options.AvailabilityZone ]);
+        }
+        if (options.AutoMinorVersionUpgrade) {
+            params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
+        }
+        if (options.DBInstanceClass) {
+            params.push([ "DBInstanceClass", options.DBInstanceClass ]);
+        }
+        if (options.DBName) {
+            params.push([ "DBName", options.DBName ]);
+        }
+        if (options.DBSubnetGroupName) {
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+        }
+        if (options.Engine) {
+            params.push([ "Engine", options.Engine]);
+        }
+        if (options.OptionGroupName) {
+            params.push([ "OptionGroupName", options.OptionGroupName ]);
+        }
+        if (options.LicenseModel) {
+            params.push([ 'LicenseModel', options.LicenseModel ]);
+        }
+        if (options.MultiAZ) {
+            params.push(["MultiAZ", options.MultiAZ])
+        }
+        if (options.Port) {
+            params.push([ "Port", options.Port ]);
+        }
+        if (options.RestoreTime) {
+            params.push([ "RestoreTime", options.RestoreTime])
+        }
+        if (options.UseLatestRestorableTime) {
+            params.pus(["UseLatestRestorableTime", options.UseLatestRestorableTime])
+        }
+        this.queryRDS("RestoreDBInstanceToPointInTime", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
+    rebootDBInstance: function(id, ForceFailover, callback)
+    {
+        var params = [];
+        params.push(["DBInstanceIdentifier", id])
+        if (ForceFailover) params.push(["ForceFailover", "true"])
+        this.queryRDS("RebootDBInstance", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
+    createDBParameterGroup: function(family, name, descr, callback)
+    {
+        var params = [];
+        params.push(["DBParameterGroupFamily", family])
+        params.push(["DBParameterGroupName", name])
+        params.push(["Description", descr])
+        this.queryRDS("CreateDBParameterGroup", params, this, false, "onComplete", callback);
+    },
+
+    deleteDBParameterGroup: function(name, callback)
+    {
+        var params = [];
+        params.push(["DBParameterGroupName", name])
+        this.queryRDS("DeleteDBParameterGroup", params, this, false, "onComplete", callback);
+    },
+
+    describeDBParameterGroups: function(callback)
+    {
+        this.queryRDS("DescribeDBParameterGroups", params, this, false, "onCompleteDescribeDBParameterGroups", callback);
+    },
+
+    onCompleteDescribeDBParameterGroups: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(obj) { return new DBParameterGroup(obj.DBParameterGroupName,obj.Description,obj.DBParameterGroupName)});
+    },
+
+    describeDBParameters: function(name, callback)
+    {
+        this.queryRDS("DescribeDBParameters", [ [ "DBParameterGroupName", name]], this, false, "onCompleteDescribeDBParameters", callback);
+    },
+
+    describeEngineDefaultParameters: function(family, callback)
+    {
+        this.queryRDS("DescribeEngineDefaultParameters", [ [ "DBParameterGroupFamily", family]], this, false, "onCompleteDescribeDBParameters", callback);
+    },
+
+    onCompleteDescribeDBParameters: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "Parameters", "Parameter");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "ParameterName")
+            var name = getNodeValue(items[i], "ParameterName")
+            var type = getNodeValue(items[i], "DataType")
+            var descr = getNodeValue(items[i], "Description")
+            var mver = getNodeValue(items[i], "MinimumEngineVersion")
+            var mod = getNodeValue(items[i], "IsModifiable")
+            var atype = getNodeValue(items[i], "ApplyType")
+            var amethod = getNodeValue(items[i], "ApplyMethod")
+            var values = getNodeValue(items[i], "AllowedValues")
+            var src = getNodeValue(items[i], "Source")
+
+            list.push(new DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src))
+        }
+        response.result = list;
+    },
+
+    describeDBEngineVersions: function(family, callback)
+    {
+        this.queryRDS("DescribeDBEngineVersions", [], this, false, "onCompleteDescribeDBEngineVersions", callback);
+    },
+
+    onCompleteDescribeDBEngineVersions: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBEngineVersions", "DBEngineVersion");
+        for (var i = 0; i < items.length; i++) {
+            var family = getNodeValue(items[i], "DBParameterGroupFamily");
+            var descr = getNodeValue(items[i], "DBEngineDescription");
+            var vdescr = getNodeValue(items[i], "DBEngineVersionDescription");
+            var engne = getNodeValue(items[i], "Engine");
+            var vengime = getNodeValue(items[i], "EngineVersion");
+            var chars = getNodeValue(items[i], "SupportedCharacterSets");
+            list.push(new DBEngine(family, engine, vengine, descr, vdescr, chars))
+        }
+        response.result = list;
+    },
+
+    modifyDBParameterGroup: function(name, options, callback)
+    {
+        var params =  [ [ "DBParameterGroupName", name]];
+        for (var i  = 0; i < options.length; i++) {
+            params.push(["Parameters.member." + i + ".ParameterName", options[i].name]);
+            params.push(["Parameters.member." + i + ".ParameterValue", options[i].value]);
+            params.push(["Parameters.member." + i + ".ApplyMethod", options[i].applyMethod]);
+        }
+
+        this.queryRDS("ModifyDBParameterGroup", params, this, false, "onComplete", callback);
+    },
+
+    resetDBParameterGroup: function(name, resetAll, options, callback)
+    {
+        var params =  [ [ "DBParameterGroupName", name]];
+        if (resetAll) params.push(["ResetAllParameters", "true"])
+        for (var i  = 0; i < options.length; i++) {
+            params.push(["Parameters.member." + i + ".ParameterName", options[i].name]);
+            params.push(["Parameters.member." + i + ".ApplyMethod", options[i].applyMethod]);
+        }
+
+        this.queryRDS("ResetDBParameterGroup", params, this, false, "onComplete", callback);
+    },
+
+    describeEvents: function(duration, name, callback)
+    {
+        this.queryRDS("DescribeEvents", [ [ "Duration", duration || 60]], this, false, "onCompleteDescribeEvents", callback);
+    },
+
+    onCompleteDescribeEvents: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        response.result = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(obj) { return new DBEventp(obj.SourceIdentifier,obj.SourceType,obj.Date,obj.Message)});
+    },
+
+    createDBSubnetGroup: function(name, descr, subnets, callback)
+    {
+        var params = [ ["DBSubnetGroupName", name]];
+        params.push([ "DBSubnetGroupDescription", descr]);
+        for (var i = 0; i < subnets.length; i++) {
+            params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+        }
+        this.queryRDS("createDBSubnetGroup", params, this, false, "onComplete", callback);
+    },
+
+    modifyDBSubnetGroup: function(name, descr, subnets, callback)
+    {
+        var params = [ ["DBSubnetGroupName", name]];
+        if (descr) params.push([ "DBSubnetGroupDescription", descr]);
+        for (var i = 0; i < subnets.length; i++) {
+            params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+        }
+        this.queryRDS("modifyDBSubnetGroup", params, this, false, "onComplete", callback);
+    },
+
+    deleteDBSubnetGroup: function(name, callback)
+    {
+        var params = [ ["DBSubnetGroupName", name]];
+        this.queryRDS("deleteDBSubnetGroup", params, this, false, "onComplete", callback);
+    },
+
+    describeDBSubnetGroups: function(callback)
+    {
+        this.queryRDS("DescribeDBSubnetGroups", [], this, false, "onCompleteDescribeDBSubnetGroups", callback);
+    },
+
+    onCompleteDescribeDBSubnetGroups: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBSubnetGroups", "DBSubnetGroup");
+        for (var i = 0; i < items.length; i++) {
+            list.push(new this.unpackDBSubnetGroup(item));
+        }
+        response.result = list;
+    },
+
+    describeOrderableDBInstanceOptions: function(engine, callback)
+    {
+        this.queryRDS("DescribeOrderableDBInstanceOptions", [ ["Engine", engine]], this, false, "onCompleteDescribeOrderableDBInstanceOptions", callback);
+    },
+
+    onCompleteDescribeOrderableDBInstanceOptions: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "OrderableDBInstanceOptions", "OrderableDBInstanceOption");
+        for (var i = 0; i < items.length; i++) {
+            var dbclass = getNodeValue(items[i], "DBInstanceClass");
+            var engine = getNodeValue(items[i], "Engine");
+            var ver = getNodeValue(items[i], "EngineVersion");
+            var license = getNodeValue(items[i], "LicenseModel");
+            var maz = getNodeValue(items[i], "MultiAZCapable");
+            var replica = getNodeValue(items[i], "ReadReplicaCapable");
+            var vpc = getNodeValue(items[i], "VpcCapable");
+            var vpcmaz = getNodeValue(items[i], "VpcMultiAZCapable");
+            var vpcreplica = getNodeValue(items[i], "VpcReadReplicaCapable");
+            var azones = this.getItem(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
+            list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azone));
+        }
+        response.result = list;
     },
 
     unpackHostedZone: function(item)
