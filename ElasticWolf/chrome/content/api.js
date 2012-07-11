@@ -3345,7 +3345,7 @@ var ew_api = {
 
     deleteUserPolicy : function(user, policy, callback)
     {
-        this.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteUserPolicy", [ ["UserName", user], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
 
     onCompleteGetPolicy : function(response)
