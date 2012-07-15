@@ -229,6 +229,12 @@ var ew_S3BucketsTreeView = {
             alert(item.name + " is too big");
             return;
         }
+        // Read current ACLs
+        if (!this.path.length) {
+            this.core.api.getS3BucketAcl(item.name);
+        } else {
+            this.core.api.getS3BucketKeyAcl(item.bucket, item.name);
+        }
 
         this.core.api.readS3BucketKey(item.bucket, item.name, "", {}, function(t) {
             var values = me.core.promptInput('Edit ' + item.name, [{multiline:true,rows:25,cols:60,value:t,flex:1,scale:1}]);
@@ -236,6 +242,9 @@ var ew_S3BucketsTreeView = {
             me.core.api.putS3BucketKey(item.bucket, item.name, "", {}, values[0], function() {
                 item.size = values[0].length;
                 me.show();
+                debug(item.acls);
+                // Apply same ACLs
+                me.core.api.updateS3Acl(item);
             });
         });
     },
@@ -248,9 +257,14 @@ var ew_S3BucketsTreeView = {
             var item = this.core.getS3Bucket(this.path[0])
             item.keys = []
             var name = this.path.slice(1).join('/') + '/' + this.keyName(file)
-            var values = me.core.promptInput('Create file', [{multiline:true,rows:25,cols:60,flex:1,scale:1}]);
+            var values = me.core.promptInput('Create file', [{multiline:true,rows:25,cols:60,flex:1,scale:1},
+                                                             {label:"Make Public",type:"checkbox"}]);
             if (!values) return;
-            me.core.api.putS3BucketKey(item.name, name, "", {}, values[0], function() {
+            var params = {}
+            if (values[1]) {
+                params["x-amz-acl"] = "public-read";
+            }
+            me.core.api.putS3BucketKey(item.name, name, "", params, values[0], function() {
                 me.show();
             });
         }
