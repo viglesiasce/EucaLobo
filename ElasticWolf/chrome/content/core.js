@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "2.0.0",
+    VERSION: "2.1.0",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
     REALM : 'chrome://ew/',
@@ -330,8 +330,6 @@ var ew_core = {
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
             var cred = this.getActiveCredentials();
-            //var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
-            //tree.view.setCellText(idx, tree.columns[0], label);
             $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
@@ -969,6 +967,13 @@ var ew_core = {
             list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
         }
         return list;
+    },
+
+    deleteTempKey: function(key)
+    {
+        var list = this.getTempKeys();
+        this.removeObject(list, key.id);
+        this.saveTempKeys(list);
     },
 
     saveTempKeys: function(list)

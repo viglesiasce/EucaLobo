@@ -783,12 +783,20 @@ var ew_AccessKeysTreeView = {
     {
         list = list.concat(this.core.getTempKeys());
 
+        var nlist = [];
         var now = new Date();
         for (var i in list) {
             list[i].state = this.core.api.accessKey == list[i].id ? "Current" : "";
-            if (list[i].status == "Temporary" && list[i].expire < now) list[i].state = "Expired";
+            if (list[i].status == "Temporary" && list[i].expire < now) {
+                list[i].state = "Expired";
+                if (now.getTime() - list[i].expire.getTime() > 86400 * 1000) {
+                    this.core.deleteTempKey(list[i]);
+                    continue;
+                }
+            }
+            nlist.push(list[i]);
         }
-        return TreeView.filter.call(this, list);
+        return TreeView.filter.call(this, nlist);
     },
 
     createTemp: function()
@@ -881,9 +889,7 @@ var ew_AccessKeysTreeView = {
         if (!this.core.promptYesNo("Confirm", "Delete access key "+key.id+"?")) return;
 
         if (key.status == "Temporary") {
-            var list = this.core.getTempKeys();
-            this.core.removeObject(list, key.id);
-            me.core.saveTempKeys(list);
+            this.core.deleteTempKey(key);
             this.refresh();
             return;
         }
