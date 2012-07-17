@@ -748,7 +748,7 @@ var ew_AccessKeysTreeView = {
         if (!this.core.promptYesNo("Confirm", "Delete access key "+key.id+"?")) return;
 
         if (key.status == "Temporary") {
-            var list = this.getTempKeys();
+            var list = this.core.getTempKeys();
             this.core.removeObject(list, key.id);
             me.core.saveTempKeys(list);
             this.refresh();
