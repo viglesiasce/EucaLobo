@@ -103,6 +103,7 @@ var ew_core = {
                 view.init(tree, this.tabs[i], this);
             }
         }
+        this.restoreMenu();
 
         this.credentials = this.getCredentials();
         this.getEndpoints();
@@ -290,6 +291,7 @@ var ew_core = {
         if (id == "" || id.indexOf(".folder") > 0) {
             var label = tree.view.getCellText(tree.currentIndex, tree.columns[0]).replace(/[()]+/g, '');
             tree.view.setCellText(tree.currentIndex, tree.columns[0], tree.view.isContainerOpen(tree.currentIndex) ? label : "(" + label + ")");
+            this.setBoolPrefs("menu.state." + label, tree.view.isContainerOpen(tree.currentIndex));
         }
     },
 
@@ -308,6 +310,18 @@ var ew_core = {
             if (val == id) return i;
         }
         return -1;
+    },
+
+    restoreMenu: function()
+    {
+        var tree = $('ew.menu');
+        for (var i = 0; i < tree.view.rowCount; i++) {
+            var label = tree.view.getCellText(i, tree.columns[0]).replace(/[()]+/g, '');
+            if (!this.getBoolPrefs("menu.state." + label, true)) {
+                tree.view.toggleOpenState(i);
+                tree.view.setCellText(i, tree.columns[0], tree.view.isContainerOpen(i) ? label : "(" + label + ")");
+            }
+        }
     },
 
     updateMenu: function()
