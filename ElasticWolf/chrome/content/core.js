@@ -628,22 +628,28 @@ var ew_core = {
             this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
             this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
         }
-        this.setEnv("EC2_URL", this.urlEC2);
-        this.setEnv("AWS_IAM_URL", this.urlIAM);
-        this.setEnv("AWS_CLOUDWATCH_URL", this.urlCW);
+        this.setEnv("EC2_URL", this.api.urls.EC2);
+        this.setEnv("AWS_IAM_URL", this.api.urls.IAM);
+        this.setEnv("AWS_CLOUDWATCH_URL", this.api.urls.CW);
 
         // Current PATH
         var path = this.getEnv("PATH");
         var sep = isWindows(navigator.platform) ? ";" : ":";
 
         // Update path to the command line tools
-        var paths = ["ec2", "java", "iam", "ami", "cloudwatch", "autoscaling"];
+        var paths = [{ name: "ec2", home: "EC2_HOME" },
+                     { name: "java", home: "JAVA_HOME" },
+                     { name: "iam", home:"AWS_IAM_HOME" },
+                     { name: "ami", home: "EC2_AMITOOL_HOME" },
+                     { name: "cloudwatch", home: "AWS_CLOUDWATCH_HOME" },
+                     { name: "autoscaling", home: "AWS_AUTO_SCALING_HOME" } ];
+
         for(var i in paths) {
-            var p = this.getStrPrefs("ew.path." + paths[i], "");
+            var p = this.getStrPrefs("ew.path." + paths[i].name, "");
             if (p == "") {
                 continue;
             }
-            this.setEnv(paths[i].split(".").pop().toUpperCase(), p);
+            this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
         debug(path)
