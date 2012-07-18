@@ -616,15 +616,15 @@ var ew_core = {
         if (!this.makeKeyHome()) return 0
 
         // Save access key into file
-        var file = this.getCredentialFile(keyPair.name);
+        var file = this.getCredentialFile(keyPair ? keyPair.name : this.getCurrentUser());
         if (!accessKey) accessKey = { id: this.accessKey, secret: this.secretKey };
         if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
             return alert('Unable to create credentials file ' + file + ", please check directory permissions");
         }
+        this.setEnv("AWS_CREDENTIAL_FILE", file);
 
         // Setup environment
         if (keyPair) {
-            this.setEnv("AWS_CREDENTIAL_FILE", this.getCredentialFile(keyPair.name));
             this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
             this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
         }

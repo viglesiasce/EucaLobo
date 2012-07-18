@@ -362,11 +362,11 @@
 <!ENTITY ew.keypairs.import.tip "Create keypair from existing SSH key">
 <!ENTITY ew.keypairs.generate.tip "Create X.509 cert and SSH keys and import into keypair">
 <!ENTITY ew.keypairs.make.tip "Create SSH keys and import into keypair">
+<!ENTITY ew.keypairs.shell.tip "Run shell with selected keypair and current access key">
 
 <!ENTITY ew.accesskeys.create.tip "Create a new access key">
 <!ENTITY ew.accesskeys.delete.tip "Delete selected access key">
 <!ENTITY ew.accesskeys.switch.tip "Use selected access key for credentials authentication">
-<!ENTITY ew.accesskeys.shell.tip "Run shell with selected access key and keypair">
 <!ENTITY ew.accesskeys.export.tip "Export into file">
 
 <!ENTITY ew.certs.create.tip "Create a new certificate">
