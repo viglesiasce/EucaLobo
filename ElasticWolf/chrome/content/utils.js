@@ -332,6 +332,19 @@ function getParam(list, name)
     return '';
 }
 
+// Add or update item in the list
+function setParam(list, name, value)
+{
+    for (var i in list) {
+        if (list[i][0] == name) {
+            list[i][1] = value;
+            return false;
+        }
+    }
+    list.push([name, value]);
+    return true;
+}
+
 function getNodeValue(item, nodeName, childName)
 {
     function _getNodeValue(parent, nodeName) {

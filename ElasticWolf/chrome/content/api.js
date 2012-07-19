@@ -680,7 +680,7 @@ var ew_api = {
             var items = itemsNode ? tagSet.getElementsByTagName(itemsNode) : tagSet.childNodes;
             for (var i = 0; i < items.length; i++) {
                 if (items[i].parentNode && items[i].parentNode.tagName != parentNode) continue;
-                if (columns) {
+                if (columns != null) {
                     // Return object or just plain list if columns is a string
                     if (columns instanceof Array) {
                         var obj = {};
@@ -690,7 +690,7 @@ var ew_api = {
                         }
                         list.push(callback ? callback(obj) : obj);
                     } else {
-                        var val = getNodeValue(items[i], columns);
+                        var val = columns == "" ? items[i].firstChild.nodeValue : getNodeValue(items[i], columns);
                         if (val) list.push(callback ? callback(val) : val);
                     }
                 } else {
@@ -3976,30 +3976,117 @@ var ew_api = {
             var stateReason = getNodeValue(item, "StateReason");
             var stateReasonData = getNodeValue(item, "StateReasonData");
             var stateValue = getNodeValue(item, "StateValue");
+            var date = getNodeValue(item, "StateUpdatedTimestamp");
             var namespace = getNodeValue(item, "Namespace");
             var period = getNodeValue(item, "Period");
+            var unit = getNodeValue(item, "Unit");
             var threshold = getNodeValue(item, "Threshold");
             var statistic = getNodeValue(item, "Statistic");
             var oper = getNodeValue(item, "ComparisonOperator");
             var metricName = getNodeValue(item, "MetricName");
             var evalPeriods = getNodeValue(item, "EvaluationPeriods");
-            var dims = [];
-            var list = this.getItems(item, "Dimensions", "member", ["Name", "Value"]);
-            for (var j = 0; j < list.length; j++) {
-                dims.push(new Tag(list[j].Name, list[j].Value));
-            }
-            var actions = [];
-            list = this.getItems(item, "AlarmActions", "member");
-            for (var j = 0; j < list.length; j++) {
-                actions.push(list[j].firstChild.nodeValue);
-            }
+            var insufActions = getNodeValue(item, "InsufficientDataActions");
+            var okActions = getNodeValue(item, "OKActions");
+            var dims = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
+            var actions = this.getItems(item, "AlarmActions", "member", "");
 
-            alarms.push(new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, namespace, period, threshold, statistic, oper, metricName, evalPeriods, dims, actions));
+            alarms.push(new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, date, namespace, period, unit, threshold, statistic, oper, metricName, evalPeriods, dims, enabled, actions, insufActions, okActions));
         }
 
         this.core.setModel('alarms', alarms);
 
         response.result = alarms;
+    },
+
+    describeAlarmHistory : function(name, callback)
+    {
+        var params = [];
+        if (name) params.push(["AlarmName", name])
+        this.queryCloudWatch("DescribeAlarmHistory", params, this, false, "onCompleteDescribeAlarmHistory", callback);
+    },
+
+    onCompleteDescribeAlarmHistory : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "AlarmHistoryItems", "member");
+        for ( var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "AlarmName");
+            var type = getNodeValue(items[i], "HistoryItemType");
+            var data = getNodeValue(items[i], "HistoryData");
+            var descr = getNodeValue(items[i], "HistorySummary");
+            var date = getNodeValue(items[i], "Timestamp");
+            list.push(new AlarmHistory(name, type, data, descr, date));
+        }
+        response.result = list;
+    },
+
+    deleteAlarms : function(list, callback)
+    {
+        var params = [];
+        for (var i = 0; i < list.length; i++) {
+            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+        }
+        this.queryCloudWatch("DeleteAlarms", params, this, false, "onComplete", callback);
+    },
+
+    disableAlarmActions : function(list, callback)
+    {
+        var params = [];
+        for (var i = 0; i < list.length; i++) {
+            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+        }
+        this.queryCloudWatch("DisableAlarmActions", params, this, false, "onComplete", callback);
+    },
+
+    enableAlarmActions : function(list, callback)
+    {
+        var params = [];
+        for (var i = 0; i < list.length; i++) {
+            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+        }
+        this.queryCloudWatch("EnableAlarmActions", params, this, false, "onComplete", callback);
+    },
+
+    setAlarmState : function(name, state, reason, callback)
+    {
+        var params = [];
+        params.push(["AlarmName", name ]);
+        params.push(["StateValue", state ]);
+        params.push(["StateReason", reason ]);
+        this.queryCloudWatch("SetAlarmState", params, this, false, "onComplete", callback);
+    },
+
+    listMetrics : function(name, namespace, callback)
+    {
+        var params = [];
+        if (name) params.push(["MetricName", name])
+        if (namespace) params.push(["Namespace", namespace])
+        this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", callback);
+    },
+
+    onCompleteListMetrics : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "Metrics", "member");
+        for ( var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "MetricName");
+            var nm = getNodeValue(items[i], "Namespace");
+            var dims = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
+            list.push(new Metric(name, nm, dims));
+        }
+
+        var nextToken = getNodeValue(xmlDoc, "NextToken");
+        if (nextToken) {
+            var params = cloneObject(response.params);
+            setParam(params, "NextToken", nextToken);
+            //this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", response.callback);
+        }
+        if (getParam(response.params, "NextToken") == "") this.core.setModel('metrics', []);
+
+        this.core.appendModel('metrics', list);
+        response.result = list;
     },
 
     getSessionToken : function (duration, serial, token, callback)

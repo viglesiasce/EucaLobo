@@ -57,6 +57,7 @@ var ew_core = {
         vmfas: null,
         mfas: null,
         alarms: null,
+        metrics: null,
         queues: null,
         elbPolicyTypes: null,
         topics: null,
@@ -1614,6 +1615,9 @@ var ew_core = {
             case "alarms":
                 this.api.describeAlarms();
                 break;
+            case "metrics":
+                this.api.listMetrics();
+                break;
             case "vmfas":
                 this.api.listVirtualMFADevices();
                 break;
@@ -1753,13 +1757,22 @@ var ew_core = {
         this.notifyComponents(name);
     },
 
+    appendModel: function(name, list)
+    {
+        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        this.progress[name] = 0;
+        if (!this.model[name]) this.model[name] = [];
+        this.model[name] = this.model[name].concat(list);
+        this.notifyComponents(name);
+    },
+
     // Find object in the model list, optional field can be used first before comparing id and name fields
     findModel: function(model, id, field)
     {
         return this.findObject(this.getModel(model), id, field);
     },
 
-    // Remove object from the model
+    // Add object to the model
     addModel: function(name, obj)
     {
         var list = this.getModel(name);
@@ -2114,6 +2127,21 @@ var ew_core = {
                  { name: "S3 Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": ["s3:Get*","s3:List*"],"Resource": "*"}]}' },
                  { name: "VPC Full Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Effect": "Allow", "Action": [ "ec2:AllocateAddress", "ec2:AssociateAddress", "ec2:AssociateDhcpOptions", "ec2:AssociateRouteTable", "ec2:AttachInternetGateway", "ec2:AttachVpnGateway", "ec2:AuthorizeSecurityGroupEgress", "ec2:AuthorizeSecurityGroupIngress", "ec2:CreateCustomerGateway", "ec2:CreateDhcpOptions", "ec2:CreateInternetGateway", "ec2:CreateNetworkAcl", "ec2:CreateNetworkAclEntry", "ec2:CreateRoute", "ec2:CreateRouteTable", "ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateVpc", "ec2:CreateVpnConnection", "ec2:CreateVpnGateway", "ec2:DeleteCustomerGateway", "ec2:DeleteDhcpOptions", "ec2:DeleteInternetGateway", "ec2:DeleteNetworkAcl", "ec2:DeleteNetworkAclEntry", "ec2:DeleteRoute", "ec2:DeleteRouteTable", "ec2:DeleteSecurityGroup", "ec2:DeleteSubnet", "ec2:DeleteVpc", "ec2:DeleteVpnConnection", "ec2:DeleteVpnGateway", "ec2:DescribeAddresses", "ec2:DescribeAvailabilityZones", "ec2:DescribeCustomerGateways", "ec2:DescribeDhcpOptions", "ec2:DescribeInstances", "ec2:DescribeInternetGateways", "ec2:DescribeKeyPairs", "ec2:DescribeNetworkAcls", "ec2:DescribeRouteTables", "ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcs", "ec2:DescribeVpnConnections", "ec2:DescribeVpnGateways", "ec2:DetachInternetGateway", "ec2:DetachVpnGateway", "ec2:DisassociateAddress", "ec2:DisassociateRouteTable", "ec2:ReleaseAddress", "ec2:ReplaceNetworkAclAssociation", "ec2:ReplaceNetworkAclEntry", "ec2:ReplaceRouteTableAssociation", "ec2:RevokeSecurityGroupEgress", "ec2:RevokeSecurityGroupIngress" ], "Resource": "*" } ] }' },
         ];
+    },
+
+    getCloudWatchNamespaces: function()
+    {
+        return [{ name: "AWS Billing", type: "AWS/Billing" },
+               { name: "Amazon DynamoDB", type: "AWS/DynamoDB" },
+               { name: "Amazon Elastic Block Store", type: "AWS/EBS" },
+               { name: "Amazon Elastic Compute Cloud", type: "AWS/EC2" },
+               { name: "Amazon Elastic MapReduce", type: "AWS/EMR" },
+               { name: "Amazon Relational Database", type: "AWS/RDS" },
+               { name: "Amazon Simple Notification Service", type: "AWS/SNS" },
+               { name: "Amazon Simple Queue Service", type: "AWS/SQS" },
+               { name: "Amazon Storage Gateway", type: "AWS/StorageGateway" },
+               { name: "Auto Scaling", type: "AWS/AutoScaling" },
+               { name: "Elastic Load Balancing", type: "AWS/ELB" } ];
     },
 
 };

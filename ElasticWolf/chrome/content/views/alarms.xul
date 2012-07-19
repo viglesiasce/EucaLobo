@@ -7,39 +7,44 @@
             <caption label="Cloud Watch Alarms" />
             <popupset>
                 <menupopup id="ew.alarms.contextmenu">
+                  <menuitem id="displayHistory" oncommand="ew_MetricAlarmsTreeView.displayHistory();" label="Show History" />
+                  <menuitem id="deleteAlarm" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" label="Delete Alarm" />
+                  <menuitem id="disableActions" oncommand="ew_MetricAlarmsTreeView.disableActions();" label="Enable/Disable Actions" />
+                  <menuitem id="setState" oncommand="ew_MetricAlarmsTreeView.setState();" label="Set Alarm State" />
                 </menupopup>
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.alarms.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_AlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_MetricAlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" tooltiptext="Delete Alarm" />
+                <toolbarbutton image="images/attach.png" oncommand="ew_MetricAlarmsTreeView.setState();" tooltiptext="Set Alarm State" />
+                <toolbarbutton image="images/details.png" oncommand="ew_MetricAlarmsTreeView.displayHistory();" tooltiptext="Display Alarm History" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.alarms.view" flex="1">
                 <treecols>
-                    <treecol id="alarms.name" label="Serial" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.arn" label="Date" flex="2" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.arn" label="ARN" flex="2" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.descr" label="ARN" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.descr" label="Descr" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.stateReason" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.stateReason" label="Reason" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.stateValue" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.stateValue" label="State" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.stateValue" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.namespace" label="Namespace" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.namespace" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.period" label="Period" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.period" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.threshold" label="Threshold" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.threshold" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.statistic" label="Statistic" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.statistic" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.comparisonOperator" label="Oper" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="alarms.oper" label="User" flex="1" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="alarms.metricName" label="User" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="alarms.metricName" label="Metric" flex="1" persist="width ordinal hidden sortDirection" />
                 </treecols>
                 <treechildren id="ew.alarms.children" context="ew.alarms.contextmenu" />
             </tree>

@@ -563,6 +563,7 @@ var ew_ListBox = {
     columns: null,
     multiple: false,
     width: 400,
+    rows: 10,
     listItems: [],
     checkedItems: [],
     checkedProperty: null,
@@ -596,6 +597,7 @@ var ew_ListBox = {
         this.selectedItems = [];
         var list = $(this.name);
         list.width = this.width;
+        list.setAttribute('rows', this.rows || 10);
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
 
         var head = document.createElement('listhead');
@@ -609,12 +611,12 @@ var ew_ListBox = {
             var hdr = document.createElement('listheader');
             hdr.setAttribute('flex', '1');
             hdr.setAttribute('id', this.name + '.header0');
-            hdr.setAttribute('label', this.headers ? this.headers[0] : "");
+            hdr.setAttribute('label', this.headers && this.headers[0] ? this.headers[0] : "");
             head.appendChild(hdr);
             hdr = document.createElement('listheader');
             hdr.setAttribute('id', this.name + '.header1');
             hdr.setAttribute('flex', '2');
-            hdr.setAttribute('label', this.headers ? this.headers[1] : this.title);
+            hdr.setAttribute('label', this.headers && this.headers[1] ? this.headers[1] : this.title);
             head.appendChild(hdr);
             var col = document.createElement('listcol');
             cols.appendChild(col);
@@ -625,7 +627,7 @@ var ew_ListBox = {
             var hdr = document.createElement('listheader');
             hdr.setAttribute('id', this.name + '.header1');
             hdr.setAttribute('flex', '2');
-            hdr.setAttribute('label', this.headers ? this.headers[1] :this.title);
+            hdr.setAttribute('label', this.headers && this.headers[0] ? this.headers[0] : this.title);
             head.appendChild(hdr);
             var col = document.createElement('listcol');
             col.setAttribute('flex', '2');
@@ -2175,7 +2177,18 @@ function InstanceHealth(Description, State, InstanceId, ReasonCode)
     }
 }
 
-function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, namespace, period, threshold, statistic, oper, metricName, evalPeriods, dimensions, actions)
+function Metric(name, namespace, dims)
+{
+    this.name = name
+    this.namespace = namespace
+    this.dimensions = dims
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.namespace;
+    }
+}
+
+function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, stateTimestamp, namespace, period, unit, threshold, statistic, oper, metricName, evalPeriods, dimensions, enabled, actions, insufActions, okActions)
 {
     this.name = name;
     this.arn = arn;
@@ -2183,18 +2196,36 @@ function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue,
     this.stateReason = stateReason
     this.stateReasonData = stateReasonData
     this.stateValue = stateValue
+    this.stateTimestamp = stateTimestamp;
     this.namespace = namespace
     this.period = period
+    this.unit = unit
     this.threshold = threshold
     this.statistic = statistic
-    this.oper = oper
+    this.comparisonOperator = oper
     this.metricName = metricName
     this.evaluationPeriods = evalPeriods
     this.dimensions = dimensions
+    this.actionsEnabled = toBool(enabled)
     this.actions = actions
+    this.insufficientDataActions = insufActions;
+    this.okActions = okActions;
 
     this.toString = function() {
         return this.name + fieldSeparator + this.descr;
+    }
+}
+
+function AlarmHistory(name, type, data, descr, date)
+{
+    this.name = name;
+    this.type = type;
+    this.data = data;
+    this.descr = descr;
+    this.date = date;
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.type + fieldSeparator + this.date + fieldSeparator + this.descr;
     }
 }
 

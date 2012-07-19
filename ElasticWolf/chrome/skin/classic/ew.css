@@ -62,6 +62,10 @@ treechildren::-moz-tree-cell(images_amazon) {
     background-color: #FFFF99;
 }
 
+treechildren::-moz-tree-cell(alarms_alarm) {
+    background-color: #FFCCCC;
+}
+
 treechildren::-moz-tree-checkbox {
     list-style-image: url("chrome://ew/skin/unchecked.png");
 }

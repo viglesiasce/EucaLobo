@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.metric" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="Cloud Watch Metrics" />
+            <popupset>
+                <menupopup id="ew.metrics.contextmenu">
+                  <menuitem id="displayHistory" oncommand="ew_MetricAlarmsTreeView.displayHistory();" label="Show History" />
+                  <menuitem id="deleteAlarm" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" label="Delete Alarm" />
+                  <menuitem id="disableActions" oncommand="ew_MetricAlarmsTreeView.disableActions();" label="Enable/Disable Actions" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.metrics.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_MetricAlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" tooltiptext="Delete Alarm" />
+                <menulist id="ew.metrics.namespace" oncommand="ew_MetricsTreeView.filterChanged();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.metrics.view" flex="1">
+                <treecols>
+                    <treecol id="metrics.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="metrics.namespace" label="Namespace" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="metrics.dimensions" label="Dimensions" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.metrics.children" context="ew.metrics.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

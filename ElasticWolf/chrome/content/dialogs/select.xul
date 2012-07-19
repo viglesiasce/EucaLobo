@@ -33,7 +33,7 @@
 
     <vbox flex="1">
       <label id="msg" value="" flex="1" />
-      <listbox id="list" flex="1" rows="10" />
+      <listbox id="list" flex="1" />
     </vbox>
 </dialog>
 
