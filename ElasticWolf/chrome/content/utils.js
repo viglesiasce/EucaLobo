@@ -39,20 +39,6 @@ var regExs = {
     "mac" : new RegExp(/^Mac/),
 };
 
-var instanceTypes = [
-    { name: "t1.micro", value: "t1.micro" },
-    { name: "m1.small (32-bit only)", value: "m1.small" },
-    { name: "c1.medium (32-bit only)", value: "c1.medium" },
-    { name: "m1.large (64-bit only)", value: "m1.large" },
-    { name: "m1.xlarge (64-bit only)", value: "m1.xlarge" },
-    { name: "m2.xlarge (64-bit only)", value: "m2.xlarge" },
-    { name: "m2.2xlarge (64-bit only)", value: "m2.2xlarge" },
-    { name: "m2.4xlarge (64-bit only)", value: "m2.4xlarge" },
-    { name: "c1.xlarge (64-bit only)", value: "c1.xlarge" },
-    { name: "cc1.4xlarge (64-bit only)", value: "cc1.4xlarge" },
-    { name: "cg1.4xlarge (64-bit only)", value: "cg1.4xlarge" },
-];
-
 Function.prototype.className = function()
 {
     if ("name" in this) return this.name;
@@ -465,6 +451,11 @@ function toByteArray(str)
         bArray.push(str.charCodeAt(i));
     }
     return bArray;
+}
+
+function toBool(val)
+{
+    return !val || val == "false" || val == "FALSE" || val == "f" || val == "F" || val == "0" ? false : true;
 }
 
 function byteArrayToString(arr)

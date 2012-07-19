@@ -819,22 +819,15 @@ var ew_api = {
             createTime.setISO8601(getNodeValue(item, "createTime"));
 
             // Zero out the values for attachment
-            var instanceId = "";
-            var device = "";
-            var attachStatus = "";
+            var aitem = this.getItems(item, "attachmentSet", "item");
+            var instanceId = getNodeValue(aitem[0], "instanceId");
+            var device = getNodeValue(aitem[0], "device");
+            var attachStatus = getNodeValue(aitem[0], "status");
+            var deleteOnTermination = getNodeValue(aitem[0], "deleteOnTermination");
             var attachTime = new Date();
-            // Make sure there is an attachment
-            if (item.getElementsByTagName("attachmentSet")[0].firstChild) {
-                instanceId = getNodeValue(item, "instanceId");
-                device = getNodeValue(item, "device");
-                attachStatus = item.getElementsByTagName("status")[1].firstChild;
-                if (attachStatus) {
-                    attachStatus = attachStatus.nodeValue;
-                }
-                attachTime.setISO8601(getNodeValue(item, "attachTime"));
-            }
+            attachTime.setISO8601(getNodeValue(aitem[0], "attachTime"));
             var tags = this.getTags(item);
-            list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags));
+            list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags));
         }
 
         this.core.setModel('volumes', list);

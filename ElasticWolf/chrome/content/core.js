@@ -737,14 +737,24 @@ var ew_core = {
     },
 
     // Select from the list
-    // items are object to show
-    // columns is list of propety names to show, otherwise convert object to string using toString
-    // checked is list of initially selected item indexes
-    promptList: function(title, msg, items, columns, width, multiple, checked)
+    // items are objects to show
+    // multiple: if checkbox can be used to selected items
+    // width: absolute width of the dialog
+    // columns: is list of propety names to show, otherwise convert object to string using toString
+    // checkedItems: is list of initially selected items
+    // checkedTitle: is name of checkbox column
+    // checkProperty: if not null all the items will be returned with this property set or unset
+    promptList: function(title, msg, items, params)
     {
-        var params = { core: this, listItems: items, checkedItems: checked, selectedIndex: -1, selectedItems: [], selectedIndexes: [], columns: columns, width: width, multiple: multiple, title: title, msg: msg };
+        if (!params) params = {};
+        params.core = this;
+        params.title = title;
+        params.msg = msg;
+        params.listItems = items;
+        params.selectedIndex = -1;
+        params.selectedItems = [];
         window.openDialog("chrome://ew/content/dialogs/select.xul", null, "chrome,centerscreen,modal,resizable", params);
-        return params.multiple ? params.selectedItems : params.selectedIndex;
+        return params.multiple ? (params.checkedProperty ? params.listItems : params.selectedItems) : params.selectedIndex;
     },
 
     // MultiInput dialog:
@@ -1855,7 +1865,7 @@ var ew_core = {
                 item = obj.toString()
             } else {
                 for (p in obj) {
-                    if (typeof obj[p] == "function") {
+                    if (!columns && typeof obj[p] == "function") {
                         if (p != "toString") continue;
                         item += (item != "" ? fieldSeparator : "") + obj.toString();
                     } else
@@ -2089,7 +2099,7 @@ var ew_core = {
 
         var list = [];
         for (var i in types) {
-            if (types[i][arch]) list.push(types[i]);
+            if (!arch || types[i][arch]) list.push(types[i]);
         }
         return list;
     },

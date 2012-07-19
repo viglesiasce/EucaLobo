@@ -441,7 +441,7 @@ var ew_SubnetsTreeView = {
             alert("No ACLs available, try later")
             return;
         }
-        var rc = this.core.promptList("Replace Network ACL", "Select ACL", acls, [ "id", "vpcId" ]);
+        var rc = this.core.promptList("Replace Network ACL", "Select ACL", acls, { columns: [ "id", "vpcId" ] });
         if (rc < 0) {
             return;
         }
@@ -458,7 +458,7 @@ var ew_SubnetsTreeView = {
             alert("No route tables available, try later")
             return;
         }
-        var rc = this.core.promptList("Associate Route Table", "Select route table", routes, [ "id", "vpcId" ]);
+        var rc = this.core.promptList("Associate Route Table", "Select route table", routes, { columns: [ "id", "vpcId" ] });
         if (rc < 0) {
             return;
         }
@@ -532,7 +532,7 @@ var ew_RouteTablesTreeView = {
             alert("No VPCs available, try later")
             return;
         }
-        var rc = this.core.promptList("Create Route Table", "Select VPC", vpcs, [ 'id', 'cidr' ]);
+        var rc = this.core.promptList("Create Route Table", "Select VPC", vpcs, {columns: [ 'id', 'cidr' ] });
         if (rc < 0) {
             return;
         }
@@ -598,7 +598,7 @@ var ew_RouteAssociationsTreeView = {
             alert("No subnets available, try later")
             return;
         }
-        var rc = this.core.promptList("Create Route", "Select subnet", subnets, [ "id", "cidr" ]);
+        var rc = this.core.promptList("Create Route", "Select subnet", subnets, { columns: [ "id", "cidr" ] });
         if (rc < 0) {
             return;
         }
@@ -629,7 +629,7 @@ var ew_NetworkAclsTreeView = {
     {
         var vpcs = this.core.queryModel('vpcs');
         if (!vpcs) return alert("No VPCs available, try later")
-        var rc = this.core.promptList("Create Network ACL", "Select VPC", vpcs, ['id', 'cidr' ]);
+        var rc = this.core.promptList("Create Network ACL", "Select VPC", vpcs, { columns: ['id', 'cidr' ] });
         if (rc < 0) return;
         var me = this;
         this.core.api.createNetworkAcl(vpcs[rc].id, function() { me.refresh(); });
@@ -650,7 +650,7 @@ var ew_NetworkAclsTreeView = {
         if (!acl) return alert("Please, select ACL");
         var subnets = this.core.queryModel('subnets', 'vpcId', acl.vpcId);
         if (!subnets.length) return alert("No subnets available, try later")
-        var rc = this.core.promptList("Associate with VPC Subnet", "Select subnet", subnets, [ "id", "cidr" ]);
+        var rc = this.core.promptList("Associate with VPC Subnet", "Select subnet", subnets, { columns: [ "id", "cidr" ] });
         if (rc < 0) return;
 
         // Replace existing association, can only be one
@@ -829,7 +829,7 @@ var ew_NetworkInterfacesTreeView = {
         var me = this;
         var eni = this.getSelected();
         if (!eni) return;
-        var list = this.core.promptList('Unassign Private IPs', 'Select IPs to unassign:', eni.privateIpAddresses, null, null, true);
+        var list = this.core.promptList('Unassign Private IPs', 'Select IPs to unassign:', eni.privateIpAddresses, { multiple: true });
         if (!list || !list.length) return;
         this.core.api.unassignPrivateIpAddresses(eni.id, list, function() { me.refresh();});
     },
@@ -896,7 +896,7 @@ var ew_VpnConnectionTreeView = {
         }
 
         var devices = this.core.queryVpnConnectionStylesheets();
-        var idx = this.core.promptList("Customer Gateway configuration", "Select device type:", devices, ['title']);
+        var idx = this.core.promptList("Customer Gateway configuration", "Select device type:", devices, {columns: ['title'] });
         if (idx >= 0) {
             var result = this.core.queryVpnConnectionStylesheets(devices[idx].filename, vpn.config);
             if (!result) {

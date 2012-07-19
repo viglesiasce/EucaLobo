@@ -87,7 +87,7 @@ var ew_LoadbalancerTreeView = {
         } else {
             instances = this.core.queryModel('instances', 'state', 'running');
         }
-        var list = this.core.promptList('Register Instances', 'Select instances to register with this load balancer:', instances, null, null, true);
+        var list = this.core.promptList('Register Instances', 'Select instances to register with this load balancer:', instances, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
         instances = []
@@ -104,7 +104,7 @@ var ew_LoadbalancerTreeView = {
         for (var  i in elb.Instances) {
             instances.push(this.core.findModel('instances', elb.Instances[i]))
         }
-        var list = this.core.promptList('Deregister Instances', 'Select instances to deregister with this load balancer:', instances, null, null, true);
+        var list = this.core.promptList('Deregister Instances', 'Select instances to deregister with this load balancer:', instances, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
         instances = []
@@ -126,7 +126,7 @@ var ew_LoadbalancerTreeView = {
                 }
             }
         }
-        var list = this.core.promptList((enable ? "Enable" : "Disable") + 'Availability Zones', 'Select Zones to ' + (enable ? "enable" : "disable") + ' for this load balancer:', zones, null, null, true, checked);
+        var list = this.core.promptList((enable ? "Enable" : "Disable") + 'Availability Zones', 'Select Zones to ' + (enable ? "enable" : "disable") + ' for this load balancer:', zones, { multiple: true, checkedItems: checked });
         if (!list || !list.length) return;
         var zonelist = []
         for (var i in list) {
@@ -214,7 +214,7 @@ var ew_LoadbalancerTreeView = {
         var elb = this.getSelected();
         if (!elb) return;
         var groups = this.core.queryModel('securityGroups', 'vpcId', elb.vpcId);
-        var list = this.core.promptList('Change Security Groups', 'Select security groups for load balancer:', groups, null, null, true);
+        var list = this.core.promptList('Change Security Groups', 'Select security groups for load balancer:', groups, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
         groups = []
@@ -239,7 +239,7 @@ var ew_LoadbalancerTreeView = {
             alert('No available subnets to attach to')
             return;
         }
-        list = this.core.promptList('Attach to Subnets', 'Select subnets to attach this load balancer to', list, null, null, true);
+        list = this.core.promptList('Attach to Subnets', 'Select subnets to attach this load balancer to', list, { multiple: true });
         if (!list || !list.length) return;
         subnets = []
         for (var i in list) {
@@ -259,7 +259,7 @@ var ew_LoadbalancerTreeView = {
             if (elb.subnets.indexOf(subnets[i].id) == -1) continue;
             list.push(subnets[i])
         }
-        list = this.core.promptList('Detach from Subnets', 'Select subnets to dettach from this load balancer', list, null, null, true);
+        list = this.core.promptList('Detach from Subnets', 'Select subnets to dettach from this load balancer', list, { multiple: true });
         if (!list || !list.length) return;
         subnets = []
         for (var i in list) {

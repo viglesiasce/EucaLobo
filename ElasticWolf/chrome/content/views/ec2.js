@@ -670,13 +670,29 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
         var groups = this.core.queryModel('securityGroups', 'vpcId', instance.vpcId);
-        var list = this.core.promptList('Change Security Groups', 'Select security groups for the instance:', groups, null, null, true);
+        var list = this.core.promptList('Change Security Groups', 'Select security groups for the instance:', groups, { multiple: true });
         if (!list || !list.length) return;
-        params = []
+        var params = []
         for (var i = 0; i < list.length; i++) {
             params.push(["GroupId." + (i + 1), list[i].id])
         }
         me.core.api.modifyInstanceAttributes(instance.id, params);
+    },
+
+    changeDeleteOnTermination: function() {
+        var me = this;
+        var instance = this.getSelected();
+        if (!instance) return;
+        var checked = instance.volumes.filter(function(v) { return v.deleteOnTermination; });
+        var params = { multiple: true, columns: ["deviceName"], headers: [ "DeleteOnTermination", "Device Name" ], checkedItems: checked, checkedProperty: "deleteOnTermination" };
+        var list = this.core.promptList('Change Volumes Delete On Termination status', 'Select volumes:', instance.volumes, params);
+        if (!list || !list.length) return;
+        var params = [];
+        for (var i = 0; i < list.length; i++) {
+            params.push([ "BlockDeviceMapping." + (i + 1) + ".DeviceName" , list[i].deviceName ]);
+            params.push([ "BlockDeviceMapping." + (i + 1) + ".Ebs.DeleteOnTermination", list[i].deleteOnTermination ]);
+        }
+        me.core.api.modifyInstanceAttributes(instance.id, params, function() { me.refresh(); });
     },
 
     changeUserData: function()
@@ -697,10 +713,11 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
         var me = this;
+        var types = this.core.getInstanceTypes();
         this.core.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
-            var idx = me.core.promptList('Instance Type', 'Select instance type:', instanceTypes );
+            var idx = me.core.promptList('Instance Type', 'Select instance type:', types );
             if (idx == -1) return;
-            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', instanceTypes[idx].value, function() { me.refresh() });
+            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', types[idx].value, function() { me.refresh() });
         });
     },
 
@@ -1031,6 +1048,7 @@ var ew_VolumeTreeView = {
         document.getElementById("volumes.context.attach").disabled = fAssociated;
         document.getElementById("volumes.context.detach").disabled = !fAssociated;
         document.getElementById("volumes.context.forcedetach").disabled = !fAssociated;
+        document.getElementById("volumes.context.deleteOnTermination").disabled = !fAssociated;
     },
 
     createSnapshot : function ()
@@ -1149,6 +1167,20 @@ var ew_VolumeTreeView = {
             }
         }
         return false;
+    },
+
+    changeDeleteOnTermination: function()
+    {
+        var me = this;
+        var image = this.getSelected();
+        if (image == null | !image.instanceId) return;
+        if (!confirm("Change Delete On Termination to " + !image.deleteOnTermination + "?")) return;
+        image.deleteOnTermination = !image.deleteOnTermination;
+
+        var params = [];
+        params.push([ "BlockDeviceMapping.1.DeviceName" , image.device]);
+        params.push([ "BlockDeviceMapping.1.Ebs.DeleteOnTermination", image.deleteOnTermination ]);
+        this.core.api.modifyInstanceAttributes(image.instanceId, params, function() { me.core.refreshModel('instances'); });
     },
 
     getWindowsDeviceList: function()
@@ -1320,7 +1352,7 @@ var ew_ElasticIPTreeView = {
             var list = this.getUnassociatedInstances();
             list = list.concat(this.core.queryModel('networkInterfaces'))
 
-            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, ['__class__', 'toString'], 550);
+            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, { columns: ['__class__', 'toString'], width: 550 });
             if (idx < 0) return;
             // Determine what type we selected
             if (list[idx].imageId) {

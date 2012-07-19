@@ -26,16 +26,7 @@
             params = window.arguments[0];
             document.title = params.title;
             document.getElementById("msg").value = params.msg;
-            
-            ew_ListBox.core = params.core;
-            ew_ListBox.name = 'list';
-            ew_ListBox.title = params.title;
-            ew_ListBox.columns = params.columns;
-            ew_ListBox.width = params.width || 500;
-            ew_ListBox.listItems = params.listItems;
-            ew_ListBox.multiple = params.multiple;
-            ew_ListBox.checkedItems = params.checkedItems;
-            ew_ListBox.init();
+            ew_ListBox.init(params);
         }
     ]]>
     </script>

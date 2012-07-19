@@ -159,7 +159,7 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         var list = this.core.queryModel('groups');
-        var idx = this.core.promptList("Group", "Select group to add this user to", list, ["name"]);
+        var idx = this.core.promptList("Group", "Select group to add this user to", list, {columns: ["name"] });
         if (idx < 0) return;
         this.core.api.addUserToGroup(item.name, list[idx].name, function() {
             item.groups = null;

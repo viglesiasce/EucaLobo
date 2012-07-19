@@ -557,15 +557,16 @@ var TreeView = {
 
 // Dynamic multicolumn listbox
 var ew_ListBox = {
-    header: [],
-    name: null,
+    headers: [],
+    name: 'list',
+    title: null,
     columns: null,
     multiple: false,
     width: 400,
     listItems: [],
     checkedItems: [],
+    checkedProperty: null,
     selectedIndex: -1,
-    selectedIndexes: [],
     selectedItems: [],
     core: null,
 
@@ -576,8 +577,8 @@ var ew_ListBox = {
         if (this.multiple) {
             for (var i in this.listItems) {
                 var cell = $(this.name + '.check' + i);
-                if (cell && cell.hasAttribute('checked', 'true')) {
-                    this.selectedIndexes.push(i);
+                var checked = cell && cell.hasAttribute('checked', 'true') ? true : false;
+                if (checked) {
                     this.selectedItems.push(this.listItems[i]);
                 }
             }
@@ -585,10 +586,13 @@ var ew_ListBox = {
         return true;
     },
 
-    init: function()
+    init: function(params)
     {
+        for (var p in params) {
+            if (typeof params[p] == "undefined" || params[p] == null) continue;
+            this[p] = params[p];
+        }
         this.selectedIndex = -1;
-        this.selectedIndexes = [];
         this.selectedItems = [];
         var list = $(this.name);
         list.width = this.width;
@@ -604,10 +608,13 @@ var ew_ListBox = {
         if (this.multiple) {
             var hdr = document.createElement('listheader');
             hdr.setAttribute('flex', '1');
+            hdr.setAttribute('id', this.name + '.header0');
+            hdr.setAttribute('label', this.headers ? this.headers[0] : "");
             head.appendChild(hdr);
             hdr = document.createElement('listheader');
             hdr.setAttribute('id', this.name + '.header1');
             hdr.setAttribute('flex', '2');
+            hdr.setAttribute('label', this.headers ? this.headers[1] : this.title);
             head.appendChild(hdr);
             var col = document.createElement('listcol');
             cols.appendChild(col);
@@ -618,6 +625,7 @@ var ew_ListBox = {
             var hdr = document.createElement('listheader');
             hdr.setAttribute('id', this.name + '.header1');
             hdr.setAttribute('flex', '2');
+            hdr.setAttribute('label', this.headers ? this.headers[1] :this.title);
             head.appendChild(hdr);
             var col = document.createElement('listcol');
             col.setAttribute('flex', '2');
@@ -661,8 +669,6 @@ var ew_ListBox = {
                 list.appendChild(row);
             }
         }
-        var hdr = $(this.name + '.header1')
-        if (hdr) hdr.setAttribute('label', this.title);
     },
 
     selectionChanged: function()
@@ -672,11 +678,10 @@ var ew_ListBox = {
             if (list.currentIndex == -1) return;
             var cell = $(this.name + '.check' + list.currentIndex);
             if (!cell) return;
-            var checked = cell.getAttribute('checked');
-            if (!checked || checked == "false") {
-                cell.setAttribute('checked', 'true');
-            } else {
-                cell.setAttribute('checked','false');
+            var checked = !toBool(cell.getAttribute('checked'));
+            cell.setAttribute('checked', checked);
+            if (this.checkedProperty) {
+                this.listItems[list.currentIndex][this.checkedProperty] = checked;
             }
         }
     },
@@ -1485,7 +1490,7 @@ function PrivateIpAddress(privateIp, primary, publicIp, assocId)
 {
     this.privateIp = privateIp;
     this.publicIp = publicIp
-    this.primary = primary == "true";
+    this.primary = toBool(primary)
     this.associationId = assocId || "";
     this.toString = function() {
         return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
@@ -1524,10 +1529,10 @@ function NetworkInterfaceAttachment(id, instanceId, instanceOwnerId, deviceIndex
     this.deviceIndex = deviceIndex;
     this.status = status;
     this.attachTime = attachTime;
-    this.deleteOnTermination = deleteOnTermination;
+    this.deleteOnTermination = toBool(deleteOnTermination);
 
     this.toString = function() {
-        return this.deviceIndex + fieldSeparator + this.status + fieldSeparator + this.id +
+        return this.deviceIndex + fieldSeparator + this.status + fieldSeparator + this.id + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
     }
 }
@@ -1636,7 +1641,7 @@ function Snapshot(id, volumeId, status, startTime, progress, volumeSize, descrip
     }
 }
 
-function Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, tags)
+function Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags)
 {
     this.id = id;
     this.size = size;
@@ -1650,11 +1655,14 @@ function Volume(id, size, snapshotId, zone, status, createTime, instanceId, devi
     if (attachStatus != "") {
         this.attachTime = attachTime.strftime('%Y-%m-%d %H:%M:%S');
     }
+    this.deleteOnTermination = toBool(deleteOnTermination);
     this.tags = tags;
     ew_core.processTags(this);
 
     this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.device + fieldSeparator + this.status + fieldSeparator + this.size + "GB" +
+        return (this.name ? this.name + fieldSeparator : "") +
+                this.id + fieldSeparator + this.device + fieldSeparator + this.status + fieldSeparator + this.size + "GB" +
+               (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
     }
 }
@@ -1680,7 +1688,7 @@ function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, del
     this.deviceName = deviceName;
     this.virtualName = virtualName;
     this.volumeSize = volumeSize
-    this.deleteOnTermination = deleteOnTermination;
+    this.deleteOnTermination = toBool(deleteOnTermination);
     this.noDevice = noDevice;
 
     this.toString = function() {
@@ -1699,7 +1707,7 @@ function InstanceBlockDeviceMapping(deviceName, volumeId, status, attachTime, de
     this.deviceName = deviceName;
     this.status = status;
     this.attachTime = attachTime;
-    this.deleteOnTermination = deleteOnTermination;
+    this.deleteOnTermination = toBool(deleteOnTermination);
 
     this.toString = function() {
         return this.deviceName + fieldSeparator + this.status + fieldSeparator + this.volumeId + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "");
@@ -1721,7 +1729,7 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
     this.attachmentId = attachId
     this.deviceIndex = attachIndex
     this.attachmentStatus = attachStatus
-    this.deleteOnTermnation = attachDelete
+    this.deleteOnTermnation = toBool(attachDelete)
     this.privateIpAddresses = privateIps;
 
     this.toString = function() {
@@ -1755,7 +1763,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.launchTime = launchTime;
     this.availabilityZone = availabilityZone;
     this.tenancy = tenancy;
-    this.monitoringEnabled = monitoringEnabled;
+    this.monitoringEnabled = toBool(monitoringEnabled);
     this.stateReason = stateReason;
     this.platform = platform;
     this.kernelId = kernelId;
@@ -1765,7 +1773,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.virtualizationType = virtualizationType;
     this.hypervisor = hypervisor;
     this.ipAddress = ipAddress;
-    this.sourceDestCheck = sourceDestCheck;
+    this.sourceDestCheck = toBool(sourceDestCheck);
     this.architecture = architecture;
     this.instanceLifecycle = instanceLifecycle;
     this.clientToken = clientToken;
