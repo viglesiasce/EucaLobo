@@ -174,7 +174,7 @@ var ew_AMIsTreeView = {
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
-                me.core.selectTab('ew.tabs.instance' + (this.core.isVpcMode() ? ".vpc" : ""));
+                me.core.selectTab('ew.tabs.instance' + (me.core.isVpcMode() ? ".vpc" : ""));
             });
         }
     },
@@ -218,7 +218,7 @@ var ew_AMIsTreeView = {
     deregisterImage : function(confirmed)
     {
         var me = this;
-        var image = this.getSelecteed();
+        var image = this.getSelected();
         if (!image) return;
         if (!confirmed && !confirm("Deregister AMI " + image.id + " (" + image.location + ")?")) return;
         this.core.api.deregisterImage(image.id, function() {me.refresh()});
@@ -326,7 +326,7 @@ var ew_InstancesTreeView = {
         if (instance == null) return;
 
         var values = this.core.promptInput('Create AMI', [{label:"Instance",type:"label",value:instance.toString()},
-                                                          {label:"AMI Name",type:"name",required:1},
+                                                          {label:"AMI Name",required:1},
                                                           {label:"Description"},
                                                           {label:"Snapshot without rebooting instance",type:"checkbox"} ]);
         if (!values) return;
@@ -401,7 +401,10 @@ var ew_InstancesTreeView = {
                 return false;
             }
         }
-        this.core.api.associateAddress(eip, instance.id, null, function() { me.refresh() });
+        this.core.api.associateAddress(eip, instance.id, null, function() {
+            me.refresh();
+            me.core.refreshModel('addresses');
+        });
     },
 
     retrieveRSAKeyFromKeyFile : function(keyFile, fSilent)

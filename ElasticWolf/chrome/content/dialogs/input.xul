@@ -305,7 +305,7 @@
 
           case 'name':
              rc.values[i] = obj.value;
-             if (obj.value && !/^[.0-9a-zA-Z_\(\),\/-]{3,128}$/.test(obj.value)) {
+             if (obj.value && !/^[\.0-9a-zA-Z_\(\),\/-]{3,128}$/.test(obj.value)) {
                  alert("The name is not formatted properly; it must be 3-128 characters in length containing alphanumerics, parantheses, commas, slashes, dashes, and underscores.");
                  return false;
              }

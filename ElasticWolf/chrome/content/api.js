@@ -402,6 +402,40 @@ var ew_api = {
         return this.sendRequest(xmlhttp, req.url, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
     },
 
+    updateS3Acl: function(item, callback)
+    {
+        function grant(obj, perm) {
+            var content = '<Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="' + obj.type + '">';
+            switch (obj.type) {
+            case 'CanonicalUser':
+                content += '<ID>' + obj.id + '</ID>';
+                break;
+
+            case 'AmazonCustomerByEmail':
+                content += '<EmailAddress>' + obj.id + '</EmailAddress>';
+                break;
+
+            case 'Group':
+                content += '<URI>' + obj.id + '</URI>';
+                break;
+            }
+            return content + '</Grantee><Permission>' + obj.permission + '</Permission></Grant>';
+        }
+
+        var content = '<AccessControlPolicy><Owner><ID>' +  item.owner  + '</ID></Owner><AccessControlList>';
+        for (var i in item.acls) {
+            content += grant(item.acls[i]);
+        }
+        content += '</AccessControlList></AccessControlPolicy>';
+        debug(content)
+
+        if (item.bucket) {
+            this.setS3BucketKeyAcl(item.bucket, item.name, content, callback)
+        } else {
+            this.setS3BucketAcl(item.name, content, callback)
+        }
+    },
+
     queryVpnConnectionStylesheets : function(stylesheet, config)
     {
         var xmlhttp = this.getXmlHttp();
@@ -1963,7 +1997,7 @@ var ew_api = {
             var uri = getNodeValue(items[i], "URI");
             var email = getNodeValue(items[i], "EmailAddress");
             var name = getNodeValue(items[i], "DisplayName");
-            var perms = getNodeValue(items[i], "Permission");
+            var permission = getNodeValue(items[i], "Permission");
             switch (type) {
             case "CanonicalUser":
                 break;
@@ -1978,7 +2012,7 @@ var ew_api = {
                 name = uri.split("/").pop()
                 break;
             }
-            list.push(new S3BucketAcl(id, type, name, perms));
+            list.push(new S3BucketAcl(id, type, name, permission));
         }
         var obj = this.core.getS3Bucket(bucket)
         if (obj) obj.acls = list; else obj = { acls: list };
@@ -1988,7 +2022,9 @@ var ew_api = {
 
     setS3BucketAcl : function(bucket, content, callback)
     {
-        this.queryS3("PUT", bucket, "", "?acl", {}, content, this, false, "onCompleteSetS3BucketAcl", callback);
+        var params = {}
+        params["Content-Type"] = "application/xml; charset=UTF-8";
+        this.queryS3("PUT", bucket, "", "?acl", params, content, this, false, "onCompleteSetS3BucketAcl", callback);
     },
 
     onCompleteSetS3BucketAcl : function(response)
@@ -2147,7 +2183,9 @@ var ew_api = {
 
     setS3BucketKeyAcl : function(bucket, key, content, callback)
     {
-        this.queryS3("PUT", bucket, key, "?acl", {}, content, this, callback ? false : true, "onCompleteSetS3BucketKeyAcl", callback);
+        var params = {}
+        params["Content-Type"] = "application/xml; charset=UTF-8";
+        this.queryS3("PUT", bucket, key, "?acl", params, content, this, callback ? false : true, "onCompleteSetS3BucketKeyAcl", callback);
     },
 
     onCompleteSetS3BucketKeyAcl : function(response)
@@ -3345,7 +3383,7 @@ var ew_api = {
 
     deleteUserPolicy : function(user, policy, callback)
     {
-        this.queryIAM("DeleteUserPolicy", [ ["UserName", name], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
+        this.queryIAM("DeleteUserPolicy", [ ["UserName", user], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
 
     onCompleteGetPolicy : function(response)

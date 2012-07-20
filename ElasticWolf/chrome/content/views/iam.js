@@ -626,6 +626,12 @@ var ew_KeypairsTreeView = {
         var me = this;
         this.core.api.deleteKeypair(keypair.name, function() {me.refresh();});
     },
+
+    runShell: function()
+    {
+        var keypair = this.getSelected();
+        this.core.launchShell(keypair, null);
+    },
 };
 
 
@@ -695,23 +701,10 @@ var ew_AccessKeysTreeView = {
         }
     },
 
-    runShell: function()
-    {
-        var accesskey = this.getSelected();
-        if (accesskey) {
-            accesskey.secret = this.getAccessKeySecret(accesskey.id);
-            if (!accesskey.secret) alert('Cannot get secret for the access key, AWS command line tools will not work');
-        }
-        // Use currently selected keypair
-        var keypair = ew_KeypairsTreeView.getSelected();
-        this.core.launchShell(keypair, accesskey);
-    },
-
     selectionChanged: function()
     {
         var key = this.getSelected();
         if (key == null || key.secret) return;
-        key.secret = this.getAccessKeySecret(key.id);
         TreeView.selectionChanged.call(this);
     },
 
@@ -730,14 +723,6 @@ var ew_AccessKeysTreeView = {
         });
     },
 
-    getAccessKeySecret : function(key) {
-        var secret = this.core.getPassword('AccessKey:' + key)
-        if (secret == "" && key == this.core.api.accessKey) {
-            secret = this.core.api.secretKey
-        }
-        return secret
-    },
-
     deleteSelected  : function () {
         var key = this.getSelected();
         if (key == null) return;
@@ -748,7 +733,7 @@ var ew_AccessKeysTreeView = {
         if (!this.core.promptYesNo("Confirm", "Delete access key "+key.id+"?")) return;
 
         if (key.status == "Temporary") {
-            var list = this.getTempKeys();
+            var list = this.core.getTempKeys();
             this.core.removeObject(list, key.id);
             me.core.saveTempKeys(list);
             this.refresh();
@@ -762,34 +747,6 @@ var ew_AccessKeysTreeView = {
         });
     },
 
-    exportSelected  : function () {
-        var key = this.getSelected();
-        if (key == null) return;
-        if (!key.secret) key.secret = this.getAccessKeySecret(key.id)
-        if (key.secret == "") {
-            alert("No secret key available for this access key")
-            return
-        }
-        var path = this.core.promptForFile("Choose file where to export this access key", true)
-        if (path) {
-            FileIO.write(FileIO.open(path), "AWSAccessKeyId=" + key.id + "\nAWSSecretKey=" + key.secret + "\n")
-        }
-    },
-
-    switchCredentials  : function () {
-        var key = this.getSelected();
-        if (key == null) return;
-        if (!key.secret) key.secret = this.getAccessKeySecret(key.id)
-        if (key.secret == "") {
-            alert("Access key " + key.id + " does not have secret code available, cannot use this key");
-            return;
-        }
-        if (!this.core.promptYesNo("Confirm", "Use access key " + key.id + " for authentication for user " + key.useName + "?, current access key/secret will be discarded.")) return;
-        this.core.setCredentials(key.id, key.secret);
-        // Update current credentials record with new access key but keep current endpoint
-        this.core.updateCredentials(this.core.getActiveCredentials(), key.id, key.secret, null, key.securityToken);
-        this.refresh();
-    },
 };
 
 var ew_CertsTreeView = {

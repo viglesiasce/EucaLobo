@@ -616,34 +616,40 @@ var ew_core = {
         if (!this.makeKeyHome()) return 0
 
         // Save access key into file
-        var file = this.getCredentialFile(keyPair.name);
+        var file = this.getCredentialFile(keyPair ? keyPair.name : this.getCurrentUser());
         if (!accessKey) accessKey = { id: this.accessKey, secret: this.secretKey };
         if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
             return alert('Unable to create credentials file ' + file + ", please check directory permissions");
         }
+        this.setEnv("AWS_CREDENTIAL_FILE", file);
 
         // Setup environment
         if (keyPair) {
-            this.setEnv("AWS_CREDENTIAL_FILE", this.getCredentialFile(keyPair.name));
             this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
             this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
         }
-        this.setEnv("EC2_URL", this.urlEC2);
-        this.setEnv("AWS_IAM_URL", this.urlIAM);
-        this.setEnv("AWS_CLOUDWATCH_URL", this.urlCW);
+        this.setEnv("EC2_URL", this.api.urls.EC2);
+        this.setEnv("AWS_IAM_URL", this.api.urls.IAM);
+        this.setEnv("AWS_CLOUDWATCH_URL", this.api.urls.CW);
 
         // Current PATH
         var path = this.getEnv("PATH");
         var sep = isWindows(navigator.platform) ? ";" : ":";
 
         // Update path to the command line tools
-        var paths = ["ec2", "java", "iam", "ami", "cloudwatch", "autoscaling"];
+        var paths = [{ name: "ec2", home: "EC2_HOME" },
+                     { name: "java", home: "JAVA_HOME" },
+                     { name: "iam", home:"AWS_IAM_HOME" },
+                     { name: "ami", home: "EC2_AMITOOL_HOME" },
+                     { name: "cloudwatch", home: "AWS_CLOUDWATCH_HOME" },
+                     { name: "autoscaling", home: "AWS_AUTO_SCALING_HOME" } ];
+
         for(var i in paths) {
-            var p = this.getStrPrefs("ew.path." + paths[i], "");
+            var p = this.getStrPrefs("ew.path." + paths[i].name, "");
             if (p == "") {
                 continue;
             }
-            this.setEnv(paths[i].split(".").pop().toUpperCase(), p);
+            this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
         debug(path)
@@ -992,7 +998,7 @@ var ew_core = {
         if (!this.isEnabled()) return null;
 
         // File naming convention
-        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]}\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
+        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
         var ver = this.versionNum(me.VERSION);
 
         // HTTP access to the releases, can be any kind of page or listing with files
@@ -1003,7 +1009,7 @@ var ew_core = {
                 while (d = rx.exec(data)) {
                     debug(d);
                     if (me.versionNum(d[1]) > ver) {
-                        me.promptInput('Update', [{label:"New version " + d[1] + "is available at",value:me.URL,type:"link",url:me.URL}]);
+                        me.promptInput('Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
                         return;
                     }
                 }
