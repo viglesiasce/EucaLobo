@@ -50,9 +50,10 @@ String.prototype.trim = function()
     return this.replace(/^\s+|\s+$/g, "");
 }
 
-//With thanks to http://delete.me.uk/2005/03/iso8601.html
+// With thanks to http://delete.me.uk/2005/03/iso8601.html
 Date.prototype.setISO8601 = function(string)
 {
+    if (!string) return;
     var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" + "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" + "(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?";
     var d = string.match(new RegExp(regexp));
     if (d == null) {

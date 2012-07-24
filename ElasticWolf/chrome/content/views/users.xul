@@ -17,7 +17,8 @@
                 <menuseparator />
                 <menuitem id="ew.users.contextmenu.createKey" oncommand="ew_UsersTreeView.createAccessKey();" label="Create Access Key" />
                 <menuitem id="ew.users.contextmenu.deleteKey" oncommand="ew_UsersTreeView.deleteAccessKey();" label="Delete Access Key" />
-                <menuitem id="ew.users.contextmenu.createCred" oncommand="ew_UsersTreeView.createCredentials();" label="Create Temp Credentials" />
+                <menuitem id="ew.users.contextmenu.createCred" oncommand="ew_UsersTreeView.createCredentials();" label="Create Credentials" />
+                <menuitem id="ew.users.contextmenu.createTemp" oncommand="ew_UsersTreeView.createTempCredentials();" label="Create Temp Credentials" />
                 <menuseparator />
                 <menuitem id="ew.users.contextmenu.enableMFA" oncommand="ew_UsersTreeView.enableMFA();" label="Activate MFA Device" />
                 <menuitem id="ew.users.contextmenu.enableVMFA" oncommand="ew_UsersTreeView.createVMFA();" label="Activate Virtual MFA Device" />
@@ -28,8 +29,8 @@
                 <menuitem id="ew.users.contextmenu.editPolicy" oncommand="ew_UsersTreeView.editPolicy();" label="Edit Policy" />
                 <menuitem id="ew.users.contextmenu.deletePolicy" oncommand="ew_UsersTreeView.deletePolicy();" label="Delete Policy" />
                 <menuseparator />
-                <menuitem oncommand="ew_UsersTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
-                <menuitem oncommand="ew_UsersTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
+                <menuitem id="ew.users.contextmenu.genKey" oncommand="ew_UsersTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
+                <menuitem id="ew.users.contextmenu.makeKey" oncommand="ew_UsersTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
                 </menupopup>
             </popupset>
 

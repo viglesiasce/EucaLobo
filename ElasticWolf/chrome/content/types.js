@@ -1266,6 +1266,7 @@ function AccessKey(id, secret, status, user, date)
     this.secret = secret || "";
     this.date = date || "";
     this.state = "";
+    this.securityToken = "";
 
     this.toString = function() {
         return this.id + (this.state ? fieldSeparator + this.state : "");
@@ -1301,10 +1302,9 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
     this.url = typeof url == "string" ? url : "";
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
-    this.expire = expire || 0;
+    this.expire = expire instanceof Date ? expire.getTime() : (typeof expire == "number" ? expire : 0);
     this.type = this.expire > 0 || this.securityToken != "" ? "Temporary" : "";
-    this.expirationDate =  this.expire > 0 ? new Date(parseInt(this.expire)) : "";
-
+    this.expirationDate =  this.expire > 0 ? new Date(this.expire) : "";
 
     this.toString = function() {
         return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken + ";;" + this.expire;

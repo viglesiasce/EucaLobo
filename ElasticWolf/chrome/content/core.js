@@ -438,6 +438,14 @@ var ew_core = {
         return false;
     },
 
+    createCredentials: function(name, key, url)
+    {
+        var cred = this.getActiveCredentials();
+        cred = new Credential(name, key.id, key.secret, url || cred.url, key.securityToken, key.expire);
+        this.saveCredentials(cred);
+        this.selectTab('ew.tabs.credential');
+    },
+
     getActiveEndpoint : function()
     {
         var endpoint = this.getEndpoint(this.api.region);

@@ -127,9 +127,9 @@ var ew_api = {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW);
     },
 
-    querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback, accessKey)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS, accessKey);
     },
 
     querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
@@ -147,22 +147,27 @@ var ew_api = {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS);
     },
 
-    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion)
+    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, accessKey)
     {
         if (!this.isEnabled()) return null;
 
         var curTime = new Date();
         var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
+        if (!accessKey) {
+            accessKey = { id: this.accessKey, secret: this.secretKey, securityToken: this.securityToken || "" };
+        }
 
         var url = apiURL ? apiURL : this.urls.EC2;
         var sigValues = new Array();
         sigValues.push(new Array("Action", action));
-        sigValues.push(new Array("AWSAccessKeyId", this.accessKey));
-        sigValues.push(new Array("SignatureVersion", sigVersion ? sigVersion : this.SIG_VERSION));
+        sigValues.push(new Array("AWSAccessKeyId", accessKey.id));
+        sigValues.push(new Array("SignatureVersion", this.SIG_VERSION));
         sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
         sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
         sigValues.push(new Array("Timestamp", formattedTime));
-        if (this.securityToken != "") sigValues.push(new Array("SecurityToken", this.securityToken));
+        if (accessKey.securityToken != "") {
+            sigValues.push(new Array("SecurityToken", accessKey.securityToken));
+        }
 
         // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
         for (var i = 0; i < params.length; i++) {
@@ -182,27 +187,14 @@ var ew_api = {
             return str.replace(/[!'()*~]/g, efunc);
         }
 
-        if (this.sigVersion == "1") {
-            function sigParamCmp(x, y) {
-                if (x[0].toLowerCase() < y[0].toLowerCase ()) return -1;
-                if (x[0].toLowerCase() > y[0].toLowerCase()) return 1;
-                return 0;
-            }
-            sigValues.sort(sigParamCmp);
-            for (var i = 0; i < sigValues.length; i++) {
-                strSig += sigValues[i][0] + sigValues[i][1];
-                queryParams += (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-            }
-        }  else {
-            sigValues.sort();
-            strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
-            for (var i = 0; i < sigValues.length; i++) {
-                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-                strSig += item;
-                queryParams += item;
-            }
+        sigValues.sort();
+        strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
+        for (var i = 0; i < sigValues.length; i++) {
+            var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
+            strSig += item;
+            queryParams += item;
         }
-        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(this.secretKey, strSig));
+        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSig));
 
         log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSig);
 
@@ -3604,9 +3596,9 @@ var ew_api = {
         this.queryIAM("GetUserPolicy", [ ["UserName", name], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
     },
 
-    putUserPolicy: function(name, name, text, callback)
+    putUserPolicy: function(name, policy, text, callback)
     {
-        this.queryIAM("PutUserPolicy", [ ["UserName", name], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutUserPolicy", [ ["UserName", name], [ "PolicyName", policy ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
     deleteUserPolicy : function(name, policy, callback)
@@ -3782,9 +3774,9 @@ var ew_api = {
         this.queryIAM("DeleteGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy ] ], this, false, "onComplete", callback);
     },
 
-    putGroupPolicy: function(group, name, text, callback)
+    putGroupPolicy: function(group, policy, text, callback)
     {
-        this.queryIAM("PutGroupPolicy", [ ["GroupName", group], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutGroupPolicy", [ ["GroupName", group], [ "PolicyName", policy ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
     createGroup : function(name, path, callback)
@@ -4111,14 +4103,14 @@ var ew_api = {
         response.result = list;
     },
 
-    getSessionToken : function (duration, serial, token, callback)
+    getSessionToken : function (duration, serial, token, accesskey, callback)
     {
         var params = [];
         if (duration) params.push(["DurationSeconds", duration]);
         if (serial) params.push(["SerialNumber", serial]);
         if (token) params.push(["TokenCode", token]);
 
-        this.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback);
+        this.querySTS("GetSessionToken", params, this, false, "onCompleteGetSessionToken", callback, accesskey);
     },
 
     getFederationToken : function (duration, name, policy, callback)

@@ -10,6 +10,9 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.changePassword").disabled = !item || (!item.loginProfileDate && !this.core.isGovCloud());
         $("ew.users.contextmenu.deletePassword").disabled = !item || (!item.loginProfileDate && !this.core.isGovCloud());
         $("ew.users.contextmenu.createKey").disabled = !item;
+        $("ew.users.contextmenu.genKey").disabled = !item;
+        $("ew.users.contextmenu.makeKey").disabled = !item;
+        $("ew.users.contextmenu.createTemp").disabled = !item;
         $("ew.users.contextmenu.deleteKey").disabled = !item || !item.accessKeys || !item.accessKeys.length;
         $("ew.users.contextmenu.enableVMFA").disabled = !item;
         $("ew.users.contextmenu.enableMFA").disabled = !item;
@@ -264,6 +267,28 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
+        if (item.accessKeys && item.accessKeys.length >= 2) {
+            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+        }
+        var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name} ];
+        var values = this.core.promptInput('Create Credentials', inputs);
+        if (!values) return;
+
+        me.core.api.createAccessKey(item.name, function(key) {
+            me.core.createCredentials(values[0], key);
+            me.core.api.deleteAccessKey(key.id, item.name);
+        });
+    },
+
+    createTempCredentials: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        if (item.accessKeys && item.accessKeys.length >= 2) {
+            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+        }
+
         var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name},
                        {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
 
@@ -271,6 +296,7 @@ var ew_UsersTreeView = {
             inputs.push({label:"MFA Device:",type:"menulist",list:item.mfaDevices});
             inputs.push({label:"MFA Token Code"});
         }
+
         var values = this.core.promptInput('Create Temp Credentials', inputs);
         if (!values) return;
         var cred = this.core.findCredentials(values[0]);
@@ -278,12 +304,11 @@ var ew_UsersTreeView = {
             return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
         }
 
-        this.core.api.getSessionToken(values[1], values[2], values[3], function(key) {
-            me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
-            var cred = me.core.getActiveCredentials();
-            cred = new Credential(values[0], key.id, key.secret, cred.url, key.securityToken, key.expire.getTime());
-            me.core.saveCredentials(cred);
-            me.core.selectTab('ew.tabs.credential');
+        me.core.api.createAccessKey(item.name, function(key) {
+            me.core.api.getSessionToken(values[1], values[2], values[3], key, function(tempkey) {
+                me.core.createCredentials(values[0], tempkey);
+                me.core.api.deleteAccessKey(key.id, item.name);
+            });
         });
     },
 
@@ -830,7 +855,7 @@ var ew_AccessKeysTreeView = {
         if (!values) return;
         switch (values[0]) {
         case 'Session':
-            this.core.api.getSessionToken(values[1], values[6], values[7], function(key) {
+            this.core.api.getSessionToken(values[1], values[6], values[7], null, function(key) {
                 me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                 me.refresh();
             });
