@@ -25,6 +25,8 @@
                         <menuitem id="ew.s3Buckets.upload" oncommand="ew_S3BucketsTreeView.upload();" label="Upload file" />
                         <menuitem id="ew.s3Buckets.edit" oncommand="ew_S3BucketsTreeView.edit();" label="Edit selected text file" />
                         <menuitem id="ew.s3Buckets.createFile" oncommand="ew_S3BucketsTreeView.createFile();" label="Create and edit new text file" />
+                        <menuitem id="ew.s3Buckets.download2" oncommand="ew_S3BucketsTreeView.download(true);" label="Download by path" />
+                        <menuitem id="ew.s3Buckets.upload2" oncommand="ew_S3BucketsTreeView.upload(true);" label="Upload by path" />
                     </menupopup>
                 </popupset>
 

@@ -1054,6 +1054,7 @@ var DirIO = {
         var arr = str.split(/\/|\\/), i;
         str = new String();
         for (i = 0; i < arr.length; ++i) {
+            if (arr[i] == '') continue;
             str += arr[i] + ((i != arr.length - 1) ? join : '');
         }
         return str;
@@ -1061,9 +1062,10 @@ var DirIO = {
 
     join : function(str, split)
     {
-        var arr = str.split(split), i;
+        var i, arr = str.split(split);
         str = new String();
         for (i = 0; i < arr.length; ++i) {
+            if (arr[i] == '') continue;
             str += arr[i] + ((i != arr.length - 1) ? this.slash : '');
         }
         return str;
@@ -1071,8 +1073,8 @@ var DirIO = {
 
     fileName: function(path)
     {
-        var arr = path.split(/\/|\\/)
-        return arr.length ? arr[arr.length - 1] : ""
+        var arr = path.split(/\/|\\/);
+        return arr.length ? arr[arr.length - 1] : "";
     },
 }
 

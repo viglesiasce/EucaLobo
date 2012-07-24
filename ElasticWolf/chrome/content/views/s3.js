@@ -86,6 +86,7 @@ var ew_S3BucketsTreeView = {
         $("ew.s3Buckets.back").disabled = !this.path.length;
         $("ew.s3Buckets.edit").disabled = !this.path.length || !item || !item.bucket || item.size > 1024*1024;
         $("ew.s3Buckets.createFile").disabled = !this.path.length;
+        $("ew.s3Buckets.upload").disabled = !this.path.length;
         $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
     },
 
@@ -158,7 +159,8 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    remove: function() {
+    remove: function()
+    {
         var me = this;
         var item = this.getSelected();
         if (item == null) return;
@@ -172,10 +174,19 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    download: function() {
+    download: function(ask)
+    {
         var me = this;
-        var item = this.getSelected()
-        if (this.isFolder(item)) return
+
+        // Specify full S3 path from where to download
+        if (ask) {
+            var values = this.core.promptInput("Download from S3", [{label:"S3 Bucket Name:",required:1}, {label:"S3 File Name:",required:1}]);
+            if (!values) return;
+            var item = { bucket: values[0], name: values[1] };
+        } else {
+            var item = this.getSelected()
+            if (this.isFolder(item)) return;
+        }
 
         var file = this.core.promptForFile("Save to file", true, DirIO.fileName(item.name))
         if (file) {
@@ -185,16 +196,28 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    upload: function() {
-        if (!this.path.length) return;
+    upload: function(ask)
+    {
         var me = this;
+
+        // If we do not see any buckets in the list, ask for the bucket name
+        if (ask) {
+            var values = this.core.promptInput("Upload to S3", [{label:"S3 Bucket Name:",required:1}, {label:"S3 Folder Name:"}]);
+            if (!values) return;
+            var item = { name: values[0] };
+            var path = values[1] || "";
+        } else {
+            if (!this.path.length) return;
+            var item = this.core.getS3Bucket(this.path[0])
+            var path = this.path.slice(1).join('/');
+        }
+
         var file = this.core.promptForFile("Upload file")
         if (file) {
-            var item = this.core.getS3Bucket(this.path[0])
             item.keys = []
             var f = FileIO.open(file)
             var name = this.keyName(f.leafName)
-            this.core.api.uploadS3BucketFile(item.name, this.path.slice(1).join('/') + '/' + name, "", {}, file,
+            this.core.api.uploadS3BucketFile(item.name, path + '/' + name, "", {}, file,
                     function(fn) { me.show(); },
                     function(fn, p) { me.setStatus(fn, p); });
         }
@@ -223,7 +246,8 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    edit: function() {
+    edit: function()
+    {
         var me = this;
         var item = this.getSelected()
         if (this.isFolder(item)) return
@@ -251,7 +275,8 @@ var ew_S3BucketsTreeView = {
         });
     },
 
-    createFile: function() {
+    createFile: function()
+    {
         var me = this;
         if (!this.path.length) return;
         var item = this.core.getS3Bucket(this.path[0])
@@ -288,7 +313,8 @@ var ew_S3BucketsTreeView = {
         });
     },
 
-    managePolicy: function() {
+    managePolicy: function()
+    {
         var me = this;
         var item = this.getSelected()
         if (item == null) return
@@ -300,7 +326,8 @@ var ew_S3BucketsTreeView = {
         this.core.api.setS3BucketPolicy(item.name, values[1]);
     },
 
-    manageAcls: function() {
+    manageAcls: function()
+    {
         var me = this;
         var item = this.getSelected()
         if (item == null) return
@@ -324,7 +351,8 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    manageWebsite: function() {
+    manageWebsite: function()
+    {
         if (this.path.length) return;
         var me = this;
         var item = this.getSelected()
