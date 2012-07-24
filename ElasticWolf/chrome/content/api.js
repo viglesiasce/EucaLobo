@@ -24,10 +24,6 @@ var ew_api = {
     secretKey: "",
     securityToken: "",
     httpCount: 0,
-    errorCount: 0,
-    errorMax: 3,
-    errorTime: 0,
-    errorTimeout: 5000,
     errorList: [],
 
     isEnabled: function()
@@ -50,7 +46,6 @@ var ew_api = {
 
     setCredentials : function (accessKey, secretKey, securityToken)
     {
-        this.errorCount = 0;
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.securityToken = typeof securityToken == "string" ? securityToken : "";
@@ -60,7 +55,6 @@ var ew_api = {
     setEndpoint : function (endpoint)
     {
         if (!endpoint) return;
-        this.errorCount = 0;
         this.region = endpoint.name;
         this.urls.EC2 = endpoint.url;
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
@@ -569,14 +563,13 @@ var ew_api = {
         if (handlerObj) {
             handlerObj.onResponseComplete(rc);
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + this.errorCount + ' ' + rc.errCode + ' ' + rc.errString);
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString);
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            this.displayError((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
+            this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
         } else {
-            this.errorCount = 0;
             // Pass the result and the whole response object if it is null
             if (callback) {
                 callback(rc.result, rc);
@@ -587,21 +580,15 @@ var ew_api = {
 
     displayError: function(msg)
     {
-        var now = (new Date()).getTime();
         if (this.core.getBoolPrefs("ew.errors.show", false)) {
-            if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
-                if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                    this.core.errorDialog("Server responded with an error for " + rc.action, rc)
-                }
+            if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
+                this.core.errorDialog("Server responded with an error for " + rc.action, rc)
             }
-        } else {
-            this.core.errorMessage(msg);
         }
-        this.errorTime = now;
-        this.errorCount++;
+        this.core.errorMessage(msg);
         // Add to the error list
-        this.errorList.push(msg);
-        if (this.errorList.length > 100) this.errorList.splice(0, 1);
+        this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + msg);
+        if (this.errorList.length > 500) this.errorList.splice(0, 1);
     },
 
     // Extract standard AWS error code and message
@@ -2004,6 +1991,29 @@ var ew_api = {
         this.core.setModel('s3Buckets', list);
 
         response.result = list;
+    },
+
+    getS3BucketPolicy : function(bucket, callback)
+    {
+        return this.queryS3("GET", bucket, "", "?policy", {}, content, this, callback ? false : true, "onCompleteGetS3BucketPoilicy", callback);
+    },
+
+    onCompleteGetS3BucketPoilicy : function(response)
+    {
+        if (response.hasErrors) {
+            if (response.errCode == "NoSuchBucketPolicy") {
+                response.hasErrors = false;
+            }
+        } else {
+            response.result = formatJSON(response.responseText);
+        }
+    },
+
+    setS3BucketPolicy : function(bucket, policy, callback)
+    {
+        var params = {}
+        params["Content-Type"] = "application/xml; charset=UTF-8";
+        this.queryS3("PUT", bucket, "", "?policy", params, policy, this, false, "onComplete", callback);
     },
 
     getS3BucketAcl : function(bucket, callback)
