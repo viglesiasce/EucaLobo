@@ -478,19 +478,25 @@ var ew_api = {
               alert('Cannot create ' + filename)
               return false;
           }
-
+          var me = this;
           var io = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI(url, null, null);
           var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Components.interfaces.nsIWebBrowserPersist);
-          persist.persistFlags = Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
+          persist.persistFlags = Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES | Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_NO_CONVERSION;
           persist.progressListener = {
             onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress) {
                 var percent = (aCurTotalProgress/aMaxTotalProgress) * 100;
                 if (progresscb) progresscb(filename, percent);
             },
             onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
-                debug("download: " + filename + " " + aStateFlags + " " + aStatus)
-                if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP) {
-                    if (callback) callback(filename);
+                var chan = aRequest.QueryInterface(Components.interfaces.nsIHttpChannel);
+                debug("download: " + filename + " " + aStateFlags + " " + aStatus + " " + persist.currentState + " " + chan.responseStatus + " " + chan.responseStatusText)
+                if (persist.currentState == persist.PERSIST_STATE_FINISHED) {
+                    if (chan.responseStatus == 200) {
+                        if (callback) callback(filename);
+                    } else {
+                        FileIO.remove(filename);
+                        me.displayError(chan.responseStatus + " " + chan.responseStatusText);
+                    }
                 }
             }
           }
@@ -568,20 +574,7 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            if (this.core.getBoolPrefs("ew.errors.show", false)) {
-                if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
-                    if (this.actionIgnore.indexOf(rc.action) == -1 && !rc.errString.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                        this.core.errorDialog("Server responded with an error for " + rc.action, rc)
-                    }
-                }
-            } else {
-                this.core.errorMessage(rc.action + ":" + rc.errCode +': ' + rc.errString + ': ' + (params || ""));
-            }
-            this.errorTime = now;
-            this.errorCount++;
-            // Add to the error list
-            this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + rc.action + ": " + rc.errCode + ": " + rc.errString);
-            if (this.errorList.length > 100) this.errorList.splice(0, 1);
+            this.displayError((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
         } else {
             this.errorCount = 0;
             // Pass the result and the whole response object if it is null
@@ -590,6 +583,25 @@ var ew_api = {
             }
         }
         return rc.result;
+    },
+
+    displayError: function(msg)
+    {
+        var now = (new Date()).getTime();
+        if (this.core.getBoolPrefs("ew.errors.show", false)) {
+            if (this.errorCount < this.errorMax || now - this.errorTime > this.errorTimeout) {
+                if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
+                    this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+                }
+            }
+        } else {
+            this.core.errorMessage(msg);
+        }
+        this.errorTime = now;
+        this.errorCount++;
+        // Add to the error list
+        this.errorList.push(msg);
+        if (this.errorList.length > 100) this.errorList.splice(0, 1);
     },
 
     // Extract standard AWS error code and message
@@ -3526,9 +3538,9 @@ var ew_api = {
         this.queryIAM("GetRolePolicy", [ ["RoleName", name], [ "PolicyName", policy] ], this, false, "onCompleteGetPolicy", callback);
     },
 
-    putRolePolicy: function(name, name, text, callback)
+    putRolePolicy: function(name, policy, text, callback)
     {
-        this.queryIAM("PutRolePolicy", [ ["RoleName", name], [ "PolicyName", name ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
+        this.queryIAM("PutRolePolicy", [ ["RoleName", name], [ "PolicyName", policy ], ["PolicyDocument", text] ], this, false, "onComplete", callback);
     },
 
     deleteRolePolicy : function(name, policy, callback)

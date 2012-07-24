@@ -472,7 +472,7 @@
   <statusbar>
     <statusbarpanel id="ew_status" label=""/>
     <spacer flex="1"/>
-    <statusbarpanel id="ew_message" label="" style="color:#770022;"/>
+    <statusbarpanel id="ew_message" label="" crop="end" style="color:#770022;"/>
     <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" crop="end" image="images/alert.png" onclick="ew_core.displayErrors();" />
   </statusbar>
 </window>

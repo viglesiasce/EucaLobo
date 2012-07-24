@@ -1839,6 +1839,7 @@ var ew_core = {
                       networkInterfaceId: this.model.networkInterfaces,
                       groupId: this.model.securityGroups,
                       groups: this.model.securityGroups,
+                      instanceProfile: this.model.instanceProfiles,
                       subnets: this.model.subnets };
 
         var list = idMap[name];
@@ -2126,6 +2127,8 @@ var ew_core = {
                  { name: "IAM Full Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": "iam:*","Resource": "*"}]}' },
                  { name: "S3 Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": ["s3:Get*","s3:List*"],"Resource": "*"}]}' },
                  { name: "VPC Full Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Effect": "Allow", "Action": [ "ec2:AllocateAddress", "ec2:AssociateAddress", "ec2:AssociateDhcpOptions", "ec2:AssociateRouteTable", "ec2:AttachInternetGateway", "ec2:AttachVpnGateway", "ec2:AuthorizeSecurityGroupEgress", "ec2:AuthorizeSecurityGroupIngress", "ec2:CreateCustomerGateway", "ec2:CreateDhcpOptions", "ec2:CreateInternetGateway", "ec2:CreateNetworkAcl", "ec2:CreateNetworkAclEntry", "ec2:CreateRoute", "ec2:CreateRouteTable", "ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateVpc", "ec2:CreateVpnConnection", "ec2:CreateVpnGateway", "ec2:DeleteCustomerGateway", "ec2:DeleteDhcpOptions", "ec2:DeleteInternetGateway", "ec2:DeleteNetworkAcl", "ec2:DeleteNetworkAclEntry", "ec2:DeleteRoute", "ec2:DeleteRouteTable", "ec2:DeleteSecurityGroup", "ec2:DeleteSubnet", "ec2:DeleteVpc", "ec2:DeleteVpnConnection", "ec2:DeleteVpnGateway", "ec2:DescribeAddresses", "ec2:DescribeAvailabilityZones", "ec2:DescribeCustomerGateways", "ec2:DescribeDhcpOptions", "ec2:DescribeInstances", "ec2:DescribeInternetGateways", "ec2:DescribeKeyPairs", "ec2:DescribeNetworkAcls", "ec2:DescribeRouteTables", "ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcs", "ec2:DescribeVpnConnections", "ec2:DescribeVpnGateways", "ec2:DetachInternetGateway", "ec2:DetachVpnGateway", "ec2:DisassociateAddress", "ec2:DisassociateRouteTable", "ec2:ReleaseAddress", "ec2:ReplaceNetworkAclAssociation", "ec2:ReplaceNetworkAclEntry", "ec2:ReplaceRouteTableAssociation", "ec2:RevokeSecurityGroupEgress", "ec2:RevokeSecurityGroupIngress" ], "Resource": "*" } ] }' },
+                 { name: "DynamoDB Full Access", toString: function() { return this.name;}, id: '{ "Statement": [ { "Action": [ "dynamodb:*" ], "Effect": "Allow", "Resource": "*" } ]}' },
+                 { name: "DynamoDB Read Only Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Action": [ "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:DescribeTable", "dynamodb:ListTables" ], "Effect": "Allow", "Resource": "*" } ]}' },
         ];
     },
 

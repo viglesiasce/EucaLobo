@@ -1474,20 +1474,6 @@ function Role(id, name, arn, path, assumePolicy, date)
     }
 }
 
-function InstanceProfile(id, name, arn, path, roles, date)
-{
-    this.id = id
-    this.name = name
-    this.arn = arn
-    this.path = path
-    this.roles = roles
-    this.date = date
-
-    this.toString = function() {
-        return this.name
-    }
-}
-
 function PrivateIpAddress(privateIp, primary, publicIp, assocId)
 {
     this.privateIp = privateIp;
@@ -1700,6 +1686,20 @@ function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, del
                (this.snapshotId ? fieldSeparator + this.snapshotId : "") +
                (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                (this.noDevice ? fieldSeparator + "noDevice" : "");
+    }
+}
+
+function InstanceProfile(id, name, arn, path, roles, date)
+{
+    this.id = id
+    this.name = name
+    this.arn = arn
+    this.path = path
+    this.roles = roles || [];
+    this.date = date
+
+    this.toString = function() {
+        return this.name + (this.roles.length && this.name != this.roles[0].name ? "(" + this.roles[0].name + ")" : "")
     }
 }
 

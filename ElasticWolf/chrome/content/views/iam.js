@@ -197,10 +197,11 @@ var ew_UsersTreeView = {
         }
 
         this.core.api.getUserPolicy(item.name, item.policies[idx], function(doc) {
-            var text = me.core.promptForText('Enter policy permissions', doc);
-            if (text) {
-                me.core.api.putUserPolicy(item.name, item.policies[idx], text);
-            }
+            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.name},
+                                                             {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:doc},
+                                                             {label:"Policy Types",type:"menulist",list:me.core.getPolicyTypes(),onselect:"if(rc.items[2].obj.value)rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
+             if (!values) return;
+             me.core.api.putUserPolicy(item.name, item.policies[idx], values[1]);
         });
     },
 
@@ -496,10 +497,11 @@ var ew_GroupsTreeView = {
         }
 
         this.core.api.getGroupPolicy(item.name, item.policies[idx], function(doc) {
-            var text = me.core.promptForText('Enter policy permissions', doc);
-            if (text) {
-                me.core.api.putGroupPolicy(item.name, item.policies[idx], text);
-            }
+            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.name},
+                                                             {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:doc},
+                                                             {label:"Policy Types",type:"menulist",list:me.core.getPolicyTypes(),onselect:"if(rc.items[2].obj.value)rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
+             if (!values) return;
+             me.core.api.putGroupPolicy(item.name, item.policies[idx], values[1]);
         });
     },
 
@@ -646,10 +648,11 @@ var ew_RolesTreeView = {
        }
 
        this.core.api.getRolePolicy(item.name, item.policies[idx], function(doc) {
-           var text = me.core.promptForText('Enter policy permissions', doc);
-           if (text) {
-               me.core.api.putRolePolicy(item.name, item.policies[idx], text);
-           }
+           var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.name},
+                                                           {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:doc},
+                                                           {label:"Policy Types",type:"menulist",list:me.core.getPolicyTypes(),onselect:"if(rc.items[2].obj.value)rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
+           if (!values) return;
+           me.core.api.putRolePolicy(item.name, item.policies[idx], values[1]);
        });
    },
 

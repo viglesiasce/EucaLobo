@@ -96,6 +96,7 @@ var ew_S3BucketsTreeView = {
             this.display(this.core.queryModel('s3Buckets'));
         } else {
             var item = this.core.getS3Bucket(this.path[0])
+            if (!item) return;
             if (item.keys && item.keys.length) {
                 this.display(item.keys);
             } else {
@@ -114,6 +115,7 @@ var ew_S3BucketsTreeView = {
             TreeView.refresh.call(this);
         } else {
             var item = this.core.getS3Bucket(this.path[0]);
+            if (!item) return;
             item.keys = null;
             this.show();
         }
