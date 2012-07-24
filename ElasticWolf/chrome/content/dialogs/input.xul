@@ -35,8 +35,9 @@
 
           case 'dir':
           case 'file':
-             rc.items[i].nobox = 0;
+             rc.items[i].custombox = 1;
              item = document.createElement('textbox');
+             box.appendChild(item);
              var button = document.createElement('button');
              button.setAttribute('label', "Browse");
              button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
@@ -161,10 +162,12 @@
           }
 
           // Embed inside the box
-          if (!rc.items[i].nobox) {
-             box.appendChild(item);
-          } else {
-             box = item;
+          if (!rc.items[i].custombox) {
+              if (!rc.items[i].nobox) {
+                  box.appendChild(item);
+              } else {
+                  box = item;
+              }
           }
 
           // This can apply to the box or the item

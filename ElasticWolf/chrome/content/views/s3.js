@@ -19,6 +19,32 @@ var ew_S3BucketsTreeView = {
         return !this.path.length || item.label[item.label.length - 1] == "/";
     },
 
+    toParams: function(val)
+    {
+        var params = {}
+        switch (val) {
+        case "Private":
+            params["x-amz-acl"] = "private";
+            break;
+        case "Public Read":
+            params["x-amz-acl"] = "public-read";
+            break;
+        case "Public Read-Write":
+            params["x-amz-acl"] = "public-read-write";
+            break;
+        case "Authenticated Read":
+            params["x-amz-acl"] = "authenticated-read";
+            break;
+        case "Owner Read":
+            params["x-amz-acl"] = "bucket-owner-read";
+            break;
+        case "Owner Full Control":
+            params["x-amz-acl"] = "bucket-owner-full-control";
+            break;
+        }
+        return params;
+    },
+
     displayDetails: function(event)
     {
         var item = this.getSelected()
@@ -199,28 +225,29 @@ var ew_S3BucketsTreeView = {
     upload: function(ask)
     {
         var me = this;
+        var path = this.path.slice(1).join('/');
 
         // If we do not see any buckets in the list, ask for the bucket name
         if (ask) {
             var values = this.core.promptInput("Upload to S3", [{label:"S3 Bucket Name:",required:1}, {label:"S3 Folder Name:"}]);
             if (!values) return;
             var item = { name: values[0] };
-            var path = values[1] || "";
+            path = values[1] || "";
         } else {
             if (!this.path.length) return;
             var item = this.core.getS3Bucket(this.path[0])
-            var path = this.path.slice(1).join('/');
         }
 
-        var file = this.core.promptForFile("Upload file")
-        if (file) {
-            item.keys = []
-            var f = FileIO.open(file)
-            var name = this.keyName(f.leafName)
-            this.core.api.uploadS3BucketFile(item.name, path + '/' + name, "", {}, file,
-                    function(fn) { me.show(); },
-                    function(fn, p) { me.setStatus(fn, p); });
-        }
+        var values = me.core.promptInput('Upload file', [{label:"File Name",type:"file",size:50,required:1},
+                                                         {label:"Permisions",type:"radio",list:["Private","Public Read","Public Read-Write","Authenticated Read","Owner Read","Owner Full Control"]},
+                                                         ]);
+        if (!values) return;
+        item.keys = []
+        var f = FileIO.open(values[0])
+        var name = this.keyName(f.leafName)
+        this.core.api.uploadS3BucketFile(item.name, path + '/' + name, "", this.toParams(values[1]), values[0],
+                function(fn) { me.show(); },
+                function(fn, p) { me.setStatus(fn, p); });
     },
 
     showFile: function()
@@ -287,28 +314,7 @@ var ew_S3BucketsTreeView = {
                                                          ]);
         if (!values) return;
         var name = this.path.slice(1).join('/') + '/' + this.keyName(values[0])
-        var params = {}
-        switch (values[2]) {
-        case "Private":
-            params["x-amz-acl"] = "private";
-            break;
-        case "Public Read":
-            params["x-amz-acl"] = "public-read";
-            break;
-        case "Public Read-Write":
-            params["x-amz-acl"] = "public-read-write";
-            break;
-        case "Authenticated Read":
-            params["x-amz-acl"] = "authenticated-read";
-            break;
-        case "Owner Read":
-            params["x-amz-acl"] = "bucket-owner-read";
-            break;
-        case "Owner Full Control":
-            params["x-amz-acl"] = "bucket-owner-full-control";
-            break;
-        }
-        me.core.api.putS3BucketKey(item.name, name, "", params, values[1], function() {
+        me.core.api.putS3BucketKey(item.name, name, "", this.toParams(values[2]), values[1], function() {
             me.show();
         });
     },
