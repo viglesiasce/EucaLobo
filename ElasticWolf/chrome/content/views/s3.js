@@ -102,20 +102,6 @@ var ew_S3BucketsTreeView = {
         this.folder = '';
     },
 
-    selectionChanged: function()
-    {
-    },
-
-    menuChanged: function()
-    {
-        var item = this.getSelected()
-        $("ew.s3Buckets.back").disabled = !this.path.length;
-        $("ew.s3Buckets.edit").disabled = !this.path.length || !item || !item.bucket || item.size > 1024*1024;
-        $("ew.s3Buckets.createFile").disabled = !this.path.length;
-        $("ew.s3Buckets.upload").disabled = !this.path.length;
-        $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
-    },
-
     show: function()
     {
         var me = this;
@@ -127,11 +113,17 @@ var ew_S3BucketsTreeView = {
             if (item.keys && item.keys.length) {
                 this.display(item.keys);
             } else {
-                this.core.api.listS3BucketKeys(item.name, null, function(obj) {
-                    if (item.name == obj.name) {
+                this.core.api.listS3BucketKeys(item.name, null, {
+                    success: function(obj) {
+                        // By the time we got the whole list a user may click on back or another sub folder so we have to be sure we still want on this level
+                        if (item.name != obj.name) return;
                         me.display(obj.keys);
+                    },
+                    error: function() {
+                        // error, access denied or something else but we have to roll back
+                        me.back();
                     }
-                })
+                });
             }
         }
     },
@@ -146,6 +138,20 @@ var ew_S3BucketsTreeView = {
             item.keys = null;
             this.show();
         }
+    },
+
+    selectionChanged: function()
+    {
+    },
+
+    menuChanged: function()
+    {
+        var item = this.getSelected()
+        $("ew.s3Buckets.back").disabled = !this.path.length;
+        $("ew.s3Buckets.edit").disabled = !this.path.length || !item || !item.bucket || item.size > 1024*1024;
+        $("ew.s3Buckets.createFile").disabled = !this.path.length;
+        $("ew.s3Buckets.upload").disabled = !this.path.length;
+        $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
     },
 
     back: function(event)

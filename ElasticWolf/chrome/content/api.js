@@ -561,10 +561,21 @@ var ew_api = {
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
+            // Call error handler if passed as an object
+            if (callback) {
+                if (typeof callback == "object" && callback.error) {
+                    callback.error(rc);
+                }
+            }
         } else {
             // Pass the result and the whole response object if it is null
             if (callback) {
-                callback(rc.result, rc);
+                if (typeof callback == "function") {
+                    callback(rc.result, rc);
+                } else
+                if (typeof callback == "object" && callback.success) {
+                    callback.success(rc.result, rc);
+                }
             }
         }
         return rc.result;

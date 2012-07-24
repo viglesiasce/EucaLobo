@@ -641,9 +641,7 @@ var ew_core = {
         // Save access key into file
         var file = this.getCredentialFile(keyPair ? keyPair.name : this.getCurrentUser());
         if (!accessKey) accessKey = { id: this.accessKey, secret: this.secretKey };
-        if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
-            return alert('Unable to create credentials file ' + file + ", please check directory permissions");
-        }
+        this.saveAccessKey(file, accessKey);
         this.setEnv("AWS_CREDENTIAL_FILE", file);
 
         // Setup environment
@@ -915,6 +913,15 @@ var ew_core = {
             }
         }
         return updated;
+    },
+
+    saveAccessKey: function(file, accessKey)
+    {
+        if (!file || !accessKey) return false;
+        if (!FileIO.write(FileIO.open(file), "AWSAccessKeyId=" + accessKey.id + "\nAWSSecretKey=" + accessKey.secret + "\n")) {
+            return alert('Unable to create credentials file ' + file + ", please check directory permissions");
+        }
+        return true;
     },
 
     savePassword : function(key, secret)

@@ -276,7 +276,6 @@ var ew_UsersTreeView = {
 
         me.core.api.createAccessKey(item.name, function(key) {
             me.core.createCredentials(values[0], key);
-            me.core.api.deleteAccessKey(key.id, item.name);
         });
     },
 
@@ -879,9 +878,23 @@ var ew_AccessKeysTreeView = {
 
     showAccessKey: function(key, secret)
     {
-        var text = 'AccessKeyId: ' + key + '\nAccessSecretKey: ' + secret;
-        alert('Access Key is ready:\n' + text);
-        this.core.copyToClipboard(text);
+        var values = this.core.promptInput("Access Key", [{label:"Access Key Id",readonly:true,value:key},
+                                                          {label:"Access Secret Key",readonly:true,value:secret},
+                                                          {label:"Actions",type:"section"},
+                                                          {label:"Save to file:",type:"checkbox"},
+                                                          {label:"Temporary use as current credentials",type:"checkbox"},
+                                                          {label:"Save as current credentials",type:"checkbox"}]);
+        if (!values) return;
+        if (values[3]) {
+            var file = this.core.promptForFile("File to save the access key", true, "AWSCredentials.txt");
+            if (file) this.core.saveAccessKey(file, { id: key, secret: secret });
+        }
+        if (values[4]) {
+            this.core.api.setCredentials(key, secret);
+        }
+        if (values[5]) {
+            this.core.updateCredentials(this.core.getActiveCredentials(), key, secret);
+        }
     },
 
     createAccessKey : function () {
