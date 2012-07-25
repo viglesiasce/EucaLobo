@@ -13,6 +13,9 @@ var ew_CredentialsTreeView = {
         this.refresh();
         TreeView.activate.call(this);
         this.select(this.core.getActiveCredentials());
+        // Manually retrieve thses models
+        this.core.queryModel('mfas');
+        this.core.queryModel('accesskeys');
     },
 
     deactivate: function()
@@ -30,7 +33,11 @@ var ew_CredentialsTreeView = {
 
     createTempCredentials: function()
     {
-        var item = {};
+        // No keys retrieved yet, wait a little
+        for (var i = 0; this.core.getModel('accesskeys') == null && i < 3; i++) {
+            sleep(1000);
+        }
+        var item = { name: null, mfaDevices: this.core.getModel('mfas'), accessKeys: this.core.getModel('accesskeys') };
         this.core.createTempCredentials(item);
     },
 

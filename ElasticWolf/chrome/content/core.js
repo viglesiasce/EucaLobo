@@ -451,10 +451,10 @@ var ew_core = {
     {
         if (!item) return;
         if (item.accessKeys && item.accessKeys.length >= 2) {
-            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+            return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
         }
 
-        var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name},
+        var inputs = [ {label:"Credentials name",type:"name",required:1,value:(item.name || 'Temporary')},
                        {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
 
         if (item.mfaDevices && item.mfaDevices.length) {
