@@ -281,34 +281,8 @@ var ew_UsersTreeView = {
 
     createTempCredentials: function()
     {
-        var me = this;
         var item = this.getSelected();
-        if (!item) return;
-        if (item.accessKeys && item.accessKeys.length >= 2) {
-            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
-        }
-
-        var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name},
-                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
-
-        if (item.mfaDevices && item.mfaDevices.length) {
-            inputs.push({label:"MFA Device:",type:"menulist",list:item.mfaDevices});
-            inputs.push({label:"MFA Token Code"});
-        }
-
-        var values = this.core.promptInput('Create Temp Credentials', inputs);
-        if (!values) return;
-        var cred = this.core.findCredentials(values[0]);
-        if (cred && (!cred.expire || cred.expire > (new Date()).getTime())) {
-            return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
-        }
-
-        me.core.api.createAccessKey(item.name, function(key) {
-            me.core.api.getSessionToken(values[1], values[2], values[3], key, function(tempkey) {
-                me.core.createCredentials(values[0], tempkey);
-                me.core.api.deleteAccessKey(key.id, item.name);
-            });
-        });
+        this.core.createTempCredentials(item);
     },
 
     createVMFA: function()

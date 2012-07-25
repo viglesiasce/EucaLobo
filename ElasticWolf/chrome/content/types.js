@@ -1302,7 +1302,7 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
     this.url = typeof url == "string" ? url : "";
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
-    this.expire = expire instanceof Date ? expire.getTime() : (typeof expire == "number" ? expire : 0);
+    this.expire = expire instanceof Date || (typeof expire == "object" && expire.getTime) ? expire.getTime() : (!isNaN(parseInt(expire)) ? parseInt(expire) : 0);
     this.type = this.expire > 0 || this.securityToken != "" ? "Temporary" : "";
     this.expirationDate =  this.expire > 0 ? new Date(this.expire) : "";
 

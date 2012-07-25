@@ -28,6 +28,12 @@ var ew_CredentialsTreeView = {
         return this.core.getCredentials()
     },
 
+    createTempCredentials: function()
+    {
+        var item = {};
+        this.core.createTempCredentials(item);
+    },
+
     addCredentials : function()
     {
         var user = this.core.getEnv("USER", this.core.getEnv("USERNAME"));

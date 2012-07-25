@@ -381,6 +381,7 @@ var ew_core = {
     removeCredentials : function(cred)
     {
         this.deletePassword('Cred:' + cred.name)
+        this.credentials = this.getCredentials();
     },
 
     saveCredentials : function(cred)
@@ -444,6 +445,47 @@ var ew_core = {
         cred = new Credential(name, key.id, key.secret, url || cred.url, key.securityToken, key.expire);
         this.saveCredentials(cred);
         this.selectTab('ew.tabs.credential');
+    },
+
+    createTempCredentials: function(item)
+    {
+        if (!item) return;
+        if (item.accessKeys && item.accessKeys.length >= 2) {
+            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+        }
+
+        var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name},
+                       {label:"Duration(sec)",type:"number",min:3600,max:3600*36} ];
+
+        if (item.mfaDevices && item.mfaDevices.length) {
+            inputs.push({label:"MFA Device:",type:"menulist",list:item.mfaDevices});
+            inputs.push({label:"MFA Token Code"});
+        }
+
+        var me = this;
+        var values = this.promptInput('Create Temp Credentials', inputs);
+        if (!values) return;
+        var cred = this.findCredentials(values[0]);
+        if (cred && (!cred.expire || cred.expire > (new Date()).getTime())) {
+            return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
+        }
+
+        this.api.createAccessKey(item.name, function(key) {
+            me.api.showBusy(true);
+            setTimeout(function() {
+                me.api.getSessionToken(values[1], values[2], values[3], key, {
+                    success: function(tempkey) {
+                        me.createCredentials(values[0], tempkey);
+                        me.api.deleteAccessKey(key.id, item.name);
+                        me.api.showBusy(false);
+                    },
+                    error: function() {
+                        me.api.deleteAccessKey(key.id, item.name);
+                        me.api.showBusy(false);
+                    }
+                });
+            }, 10000);
+        });
     },
 
     getActiveEndpoint : function()
