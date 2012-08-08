@@ -881,8 +881,8 @@ var ew_AccessKeysTreeView = {
 
     deleteSelected  : function () {
         var key = this.getSelected();
-        if (key == null) return;
-        if (key.state == "Current") {
+        if (!key) return;
+        if (this.core.api.accessKey == key.id) {
             alert("You cannot delete current access key")
             return;
         }

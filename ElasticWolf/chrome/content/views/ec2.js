@@ -1064,6 +1064,7 @@ var ew_VolumeTreeView = {
         var me = this;
         var zones = this.core.queryModel('availabilityZones');
         var snapshots = this.core.queryModel('snapshots', "status", "completed");
+        this.core.sortObjects(snapshots, ['name','description']);
         var values = this.core.promptInput('Create Volume', [{label:"Size (GB)",type:"number",min:1,required:1},
                                                              {label:"Name"},
                                                              {label:"Availability Zone",type:"menulist",list:zones,required:1},

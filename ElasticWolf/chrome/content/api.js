@@ -13,6 +13,7 @@ var ew_api = {
     SNS_API_VERSION: '2010-03-31',
     RDS_API_VERSION: '2012-04-23',
     R53_API_VERSION: '2012-02-29',
+    AS_API_VERSION: '2011-01-01',
     SIG_VERSION: '2',
 
     core: null,
@@ -74,6 +75,8 @@ var ew_api = {
         this.versions.RDS = endpoint.versionRDS || this.RDS_API_VERSION;
         this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
+        this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
+        this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
         this.actionIgnore = endpoint.actionIgnore || [];
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
     },
@@ -115,6 +118,11 @@ var ew_api = {
     queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
+    },
+
+    queryAS : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.AS, this.versions.AS);
     },
 
     queryIAM : function (action, params, handlerObj, isSync, handlerMethod, callback)
@@ -3980,6 +3988,47 @@ var ew_api = {
         response.result = list;
     },
 
+    putMetricAlarm : function(AlarmName, MetricName, Namespace, ComparisonOperator, Period, EvaluationPeriods, Threshold, Statistic, params, callback)
+    {
+        if (!params) params = [];
+        params.push(["AlarmName", AlarmName])
+        params.push(["MetricName", MetricName])
+        params.push(["Namespace", Namespace])
+        params.push(["ComparisonOperator", ComparisonOperator])
+        params.push(["Period", Period])
+        params.push(["EvaluationPeriods", EvaluationPeriods])
+        params.push(["Threshold", Threshold])
+        params.push(["Statistic", Statistic])
+
+        this.queryCloudWatch("PutMetricAlarm", params, this, false, "onComplete", callback);
+    },
+
+    unpackAlarm: function(item)
+    {
+        var arn = getNodeValue(item, "AlarmArn");
+        var name = getNodeValue(item, "AlarmName");
+        var enabled = getNodeValue(item, "ActionsEnabled");
+        var actions = getNodeValue(item, "AlarmActions");
+        var descr = getNodeValue(item, "AlarmDescription");
+        var stateReason = getNodeValue(item, "StateReason");
+        var stateReasonData = getNodeValue(item, "StateReasonData");
+        var stateValue = getNodeValue(item, "StateValue");
+        var date = getNodeValue(item, "StateUpdatedTimestamp");
+        var namespace = getNodeValue(item, "Namespace");
+        var period = getNodeValue(item, "Period");
+        var unit = getNodeValue(item, "Unit");
+        var threshold = getNodeValue(item, "Threshold");
+        var statistic = getNodeValue(item, "Statistic");
+        var oper = getNodeValue(item, "ComparisonOperator");
+        var metricName = getNodeValue(item, "MetricName");
+        var evalPeriods = getNodeValue(item, "EvaluationPeriods");
+        var insufActions = getNodeValue(item, "InsufficientDataActions");
+        var okActions = getNodeValue(item, "OKActions");
+        var dims = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
+        var actions = this.getItems(item, "AlarmActions", "member", "");
+        return new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, date, namespace, period, unit, threshold, statistic, oper, metricName, evalPeriods, dims, enabled, actions, insufActions, okActions);
+    },
+
     describeAlarms : function(callback)
     {
         this.queryCloudWatch("DescribeAlarms", [], this, false, "onCompleteDescribeAlarms", callback);
@@ -3992,30 +4041,7 @@ var ew_api = {
 
         var items = this.getItems(xmlDoc, "MetricAlarms", "member");
         for ( var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var arn = getNodeValue(item, "AlarmArn");
-            var name = getNodeValue(item, "AlarmName");
-            var enabled = getNodeValue(item, "ActionsEnabled");
-            var actions = getNodeValue(item, "AlarmActions");
-            var descr = getNodeValue(item, "AlarmDescription");
-            var stateReason = getNodeValue(item, "StateReason");
-            var stateReasonData = getNodeValue(item, "StateReasonData");
-            var stateValue = getNodeValue(item, "StateValue");
-            var date = getNodeValue(item, "StateUpdatedTimestamp");
-            var namespace = getNodeValue(item, "Namespace");
-            var period = getNodeValue(item, "Period");
-            var unit = getNodeValue(item, "Unit");
-            var threshold = getNodeValue(item, "Threshold");
-            var statistic = getNodeValue(item, "Statistic");
-            var oper = getNodeValue(item, "ComparisonOperator");
-            var metricName = getNodeValue(item, "MetricName");
-            var evalPeriods = getNodeValue(item, "EvaluationPeriods");
-            var insufActions = getNodeValue(item, "InsufficientDataActions");
-            var okActions = getNodeValue(item, "OKActions");
-            var dims = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
-            var actions = this.getItems(item, "AlarmActions", "member", "");
-
-            alarms.push(new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, date, namespace, period, unit, threshold, statistic, oper, metricName, evalPeriods, dims, enabled, actions, insufActions, okActions));
+            alarms.push(this.unpackAlarm(items[i]));
         }
 
         this.core.setModel('alarms', alarms);

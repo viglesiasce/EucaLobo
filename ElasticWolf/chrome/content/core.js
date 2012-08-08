@@ -422,7 +422,7 @@ var ew_core = {
                 if (!endpoint) endpoint = new Endpoint("", cred.url)
                 this.selectEndpoint(endpoint, true);
             } else
-            // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errros
+            // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errors
             if (wasGovCloud) {
                 // Reset and then use last saved endpoint
                 this.api.setEndpoint(new Endpoint());
@@ -682,8 +682,7 @@ var ew_core = {
 
         // Save access key into file
         var file = this.getCredentialFile(keyPair ? keyPair.name : this.getCurrentUser());
-        if (!accessKey) accessKey = { id: this.accessKey, secret: this.secretKey };
-        this.saveAccessKey(file, accessKey);
+        this.saveAccessKey(file, accessKey || { id: this.api.accessKey, secret: this.api.secretKey });
         this.setEnv("AWS_CREDENTIAL_FILE", file);
 
         // Setup environment
@@ -2010,8 +2009,16 @@ var ew_core = {
         if (!(list instanceof Array)) return;
 
         var sortFunc = function(a, b) {
-            var aVal = a[col] || "";
-            var bVal = b[col] || "";
+            var aVal = "", bVal = "";
+            if (col instanceof Array) {
+                for (var i in col) {
+                    aVal += (a[col[i]] || "") + fieldSeparator;
+                    bVal += (b[col[i]] || "") + fieldSeparator;
+                }
+            } else {
+                aVal = a[col] || "";
+                bVal = b[col] || "";
+            }
             var aF = parseFloat(aVal);
             if (!isNaN(aF) && aF.toString() == aVal) {
                 aVal = aF;

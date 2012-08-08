@@ -46,6 +46,27 @@ var ew_MetricAlarmsTreeView = {
         $("setState").disabled = !item;
     },
 
+    addAlarm: function()
+    {
+        AlarmName, MetricName, Namespace, ComparisonOperator, Period, EvaluationPeriods, Threshold, Statistic
+        var alues = this.core.promptInout("Add Alarm",
+                [{label:"AlarmName",required:1},
+                 {label:"MetricName",required:1},
+                 {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"name"},
+                 {label:"Period",type:"number",required:1,help:"seconds"},
+                 {label:"EvaluationPeriods",type:"number",required:1},
+                 {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold",
+                                                                   "GreaterThanThreshold",
+                                                                   "LessThanThreshold",
+                                                                   "LessThanOrEqualToThreshold"]},
+                 {label:"Threshold",type:"number",decimalplaces:5},
+                 {},
+                 {},
+                 {}
+                 ]);
+        if(!values) return;
+    },
+
     deleteAlarm: function()
     {
         var me = this;

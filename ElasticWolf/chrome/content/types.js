@@ -1617,7 +1617,7 @@ function Snapshot(id, volumeId, status, startTime, progress, volumeSize, descrip
     this.status = status;
     this.startTime = startTime.strftime('%Y-%m-%d %H:%M:%S');
     this.progress = progress;
-    this.description = description;
+    this.description = description || "";
     this.volumeSize = volumeSize;
     this.owner = owner;
     this.ownerAlias = ownerAlias;
