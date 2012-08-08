@@ -50,6 +50,20 @@ var ew_PrefsView = {
        $('ew.venkman').hidden = typeof start_venkman != 'function';
    },
 
+   reset: function() {
+       if (!this.rowCount) return;
+       this.resetPrefs("ew.ssh.command");
+       this.resetPrefs("ew.ssh.args");
+       this.resetPrefs("ew.ssh.user");
+       this.resetPrefs("ew.rdp.command");
+       this.resetPrefs("ew.rdp.args");
+       this.resetPrefs("ew.openssl.command");
+       this.resetPrefs("ew.shell.command");
+       this.resetPrefs("ew.shell.args");
+       this.resetPrefs("ew.key.home");
+       this.refresh();
+   },
+
    deactivate: function() {
        if (!this.rowCount) return;
        this.setPrefs("ew.ssh.command");
@@ -97,6 +111,11 @@ var ew_PrefsView = {
        for (var i = 0; i < items.length; i++) {
            items[i].value = ""
        }
+   },
+
+   resetPrefs: function(name)
+   {
+       this.core.setStrPrefs(name, '');
    },
 
    setPrefs: function(name, min, max)

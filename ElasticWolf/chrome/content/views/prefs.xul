@@ -121,6 +121,16 @@
                         <textbox id="ew.path.autoscaling" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.autoscaling')" />
                     </hbox>
                 </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label value="" />
+                    <hbox>
+                    <button id="ew.reset" label="Reset to defaults" oncommand="ew_PrefsView.reset()" />
+                    </hbox>
+                </row>
             </rows>
         </grid>
         </tabpanel>

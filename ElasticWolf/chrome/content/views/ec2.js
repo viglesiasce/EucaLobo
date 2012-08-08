@@ -917,9 +917,9 @@ var ew_InstancesTreeView = {
         var hostname = !ipType ? instance.privateIpAddress :
                        ipType == 1 || ipType == 3 ? instance.ipAddress :
                        ipType == 4 ? instance.dnsName :
-                       ipType == 2 ? instance.elasticIP : "";
-        if (hostname == "" && ipType == 3) {
-            hostname = this.instance.elasticIP
+                       ipType == 2 ? instance.elasticIp : "";
+        if (!hostname && ipType == 3) {
+            hostname = this.instance.elasticIp
         }
 
         // Open ports for non private connection
@@ -935,7 +935,7 @@ var ew_InstancesTreeView = {
         if (isWindows(instance.platform)) {
             args = this.core.getRDPArgs();
             cmd = this.core.getRDPCommand();
-            if (isMac(navigator.platform)) {
+            if (isMacOS(navigator.platform)) {
                 // On Mac OS X, we use a totally different connection mechanism that isn't particularly extensible
                 this.getAdminPassword(instance);
                 this.rdpToMac(hostname, cmd);

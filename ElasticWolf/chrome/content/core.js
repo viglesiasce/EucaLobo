@@ -751,7 +751,7 @@ var ew_core = {
             args = tokens;
         }
 
-        debug("launch: " + cmd + " " + args.join(" "));
+        debug("launch: " + cmd + " with args: " + args.join(" "));
 
         var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
         file.initWithPath(cmd);
@@ -1353,7 +1353,7 @@ var ew_core = {
         if (isWindows(navigator.platform)) {
             args = '/v ${host}';
         }
-        return this.getStrPrefs("ew.rdp.command", args);
+        return this.getStrPrefs("ew.rdp.args", args);
     },
 
     getSSHCommand : function()
@@ -1389,7 +1389,7 @@ var ew_core = {
         } else
 
         if (isWindows(navigator.platform)) {
-            args = "#!set HOME=" + this.getHome() + "#!" + quotepath(this.getAppPath() + '\\bin\\ssh.exe') + " -o \"ServerAliveInterval 5\" -i ${key} ${login}@${host}";
+            args = "/c #!set HOME=" + this.getHome() + "#!" + quotepath(this.getAppPath() + '\\bin\\ssh.exe') + " -o \"ServerAliveInterval 5\" -i ${key} ${login}@${host}";
         }
         return this.getStrPrefs("ew.ssh.args", args);
     },
