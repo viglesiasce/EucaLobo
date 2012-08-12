@@ -48,22 +48,31 @@ var ew_MetricAlarmsTreeView = {
 
     addAlarm: function()
     {
-        AlarmName, MetricName, Namespace, ComparisonOperator, Period, EvaluationPeriods, Threshold, Statistic
-        var alues = this.core.promptInout("Add Alarm",
+        function callback(idx) {
+            switch (idx) {
+            case 1:
+                buildListbox(this.rc.items[2].obj, this.rc.core.getCloudWatchMetrics(this.rc.items[1].obj.value, 'name'));
+                break;
+            }
+        }
+        var values = this.core.promptInput("Add Alarm",
                 [{label:"AlarmName",required:1},
-                 {label:"MetricName",required:1},
-                 {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"name"},
+                 {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
+                 {label:"MetricName",type:"menulist",required:1},
                  {label:"Period",type:"number",required:1,help:"seconds"},
                  {label:"EvaluationPeriods",type:"number",required:1},
                  {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold",
                                                                    "GreaterThanThreshold",
                                                                    "LessThanThreshold",
-                                                                   "LessThanOrEqualToThreshold"]},
-                 {label:"Threshold",type:"number",decimalplaces:5},
-                 {},
-                 {},
-                 {}
-                 ]);
+                                                                   "LessThanOrEqualToThreshold"],required:1},
+                 {label:"Threshold",type:"number",decimalplaces:5,required:1},
+                 {label:"Statistic",type:"menulist",list:["SampleCount","Average","Sum","Minimum","Maximum"],required:1},
+                 {label:"Unit",type:"menulist",list:['Seconds','Microseconds','Milliseconds','Bytes','Kilobytes','Megabytes','Gigabytes','Terabytes','Bits','Kilobits','Megabits','Gigabits','Terabits','Percent','Count','Bytes/Second','Kilobytes/Second','Megabytes/Second','Gigabytes/Second','Terabytes/Second','Bits/Second','Kilobits/Second','Megabits/Second','Gigabits/Second','Terabits/Second','Count/Second']},
+                 {label:"AlarmActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
+                 {label:"InsufficientDataActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
+                 {label:"OKActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
+                 {label:"Dimensions",multiline:true,cols:40,rows:2,help:"Name:Value pairs separated by comma"}
+                 ], false, callback);
         if(!values) return;
     },
 

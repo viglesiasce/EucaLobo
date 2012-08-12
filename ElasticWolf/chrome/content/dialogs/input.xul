@@ -71,7 +71,6 @@
                  e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
                  popup.appendChild(e);
              }
-             item.setAttribute('flex','1');
              item.setAttribute('crop','end');
              item.setAttribute('sizetopopup','none');
              item.setAttribute('value', value);

@@ -679,6 +679,20 @@ var ew_api = {
         response.result = response.responseText.trim();
     },
 
+    // Iterate through all pages while NextToken is present, collect all items in the model
+    getNext: function(response, method, list, model)
+    {
+        var xmlDoc = response.responseXML;
+        var nextToken = getNodeValue(xmlDoc, "NextToken");
+        if (nextToken) {
+            var params = cloneObject(response.params);
+            setParam(params, "NextToken", nextToken);
+            method.call(this, response.action, params, this, false, response.method, response.callback);
+        }
+        this.core.appendModel(model, list, getParam(response.params, "NextToken") == "" ? 1 : 0);
+        return this.core.getModel(model);
+    },
+
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
     // fields needs to be extracted and put into Javascript object as properties. If callback specified, the final object will be passed through the
     // callback as parameters which shoulkd return valid object or value to be included in the list
@@ -4127,17 +4141,7 @@ var ew_api = {
             var dims = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
             list.push(new Metric(name, nm, dims));
         }
-
-        var nextToken = getNodeValue(xmlDoc, "NextToken");
-        if (nextToken) {
-            var params = cloneObject(response.params);
-            setParam(params, "NextToken", nextToken);
-            //this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", response.callback);
-        }
-        if (getParam(response.params, "NextToken") == "") this.core.setModel('metrics', []);
-
-        this.core.appendModel('metrics', list);
-        response.result = list;
+        response.result = this.getNext(response, this.queryCloudWatch, list, "metrics");
     },
 
     getSessionToken : function (duration, serial, token, accesskey, callback)

@@ -524,3 +524,12 @@ function clearListbox(list)
         list.removeItemAt(i);
     }
 }
+
+function buildListbox(list, items, key)
+{
+    clearListbox(list);
+    for (var i in items) {
+        var obj = items[i];
+        list.appendItem(ew_core.toString(obj), typeof obj == "object" ? obj[key || "id"] : obj);
+    }
+}

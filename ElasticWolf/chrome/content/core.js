@@ -1813,11 +1813,11 @@ var ew_core = {
         this.notifyComponents(name);
     },
 
-    appendModel: function(name, list)
+    appendModel: function(name, list, reset)
     {
-        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records' + (reset ? " with reset" : ""))
         this.progress[name] = 0;
-        if (!this.model[name]) this.model[name] = [];
+        if (!this.model[name] || reset) this.model[name] = [];
         this.model[name] = this.model[name].concat(list);
         this.notifyComponents(name);
     },
@@ -2209,6 +2209,17 @@ var ew_core = {
                { name: "Amazon Storage Gateway", type: "AWS/StorageGateway" },
                { name: "Auto Scaling", type: "AWS/AutoScaling" },
                { name: "Elastic Load Balancing", type: "AWS/ELB" } ];
+    },
+
+    getCloudWatchMetrics: function(namespace)
+    {
+        var list = [];
+        var items = this.model.metrics;
+        for (var i in items) {
+            if (namespace && items[i].namespace != namespace) continue;
+            if (list.indexOf(items[i].name) == -1) list.push(items[i].name)
+        }
+        return list;
     },
 
 };
