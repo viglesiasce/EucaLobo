@@ -6,6 +6,11 @@
 var ew_MetricsTreeView = {
     model: [ "metrics", "alarms"],
 
+    menuChanged : function(event)
+    {
+        var item = this.getSelected();
+    },
+
     activate: function()
     {
         var nm = $('ew.metrics.namespace');
@@ -30,50 +35,117 @@ var ew_MetricsTreeView = {
         return TreeView.filter.call(this, nlist);
     },
 
+    chart: function() {
+        var item = this.getSelected();
+        if (!item) return;
+
+        var statistics = $('ew.metrics.statistics').value;
+        var period = $('ew.metrics.period').value;
+        var t = $('ew.metrics.time').value;
+        var end = new Date();
+        var start = new Date(end.getTime() - t*1000);
+
+        this.core.api.getMetricStatistics(item.name, item.namespace, start.toISO8601String(), end.toISO8601String(), period, statistics, null, item.dimensions, function(list) {
+            debug(list);
+        });
+    }
+
 };
 
 var ew_MetricAlarmsTreeView = {
-    model: [ "alarms", "metrics"],
+    model: ["alarms","topics","volumes","instances","metrics"],
     properties: ["stateValue"],
 
     menuChanged : function(event)
     {
         var item = this.getSelected();
 
+        $("editAlarm").disabled = !item;
         $("deleteAlarm").disabled = !item;
         $("displayHistory").disabled = !item;
         $("disableActions").disabled = !item;
         $("setState").disabled = !item;
     },
 
-    addAlarm: function()
+    putAlarm: function(edit)
     {
+        var me = this;
+
         function callback(idx) {
-            switch (idx) {
-            case 1:
-                buildListbox(this.rc.items[2].obj, this.rc.core.getCloudWatchMetrics(this.rc.items[1].obj.value, 'name'));
+            switch (this.rc.items[idx].label) {
+            case "Namespace":
+                this.rc.metrics = this.rc.core.queryModel('metrics', 'namespace', this.rc.items[idx].obj.value);
+                this.rc.core.sortObjects(this.rc.metrics, 'dimensions');
+                buildListbox(this.rc.items[idx+1].obj, this.rc.metrics, 'name');
+                break;
+
+            case "MetricName":
+                var metric = this.rc.metrics[this.rc.items[idx].obj.selectedIndex];
+                this.rc.items[idx+1].obj.value = '';
+                if (!metric) break;
+                for (var i in metric.dimensions) {
+                    this.rc.items[idx+1].obj.value += metric.dimensions[i] + "\n";
+                }
+                break;
+
+            case "AlarmActions Topics":
+            case "InsufficientDataActions Topics":
+            case "OKActions Topics":
+                if (this.rc.items[idx].obj.value) {
+                    if (this.rc.items[idx-1].obj.value) this.rc.items[idx-1].obj.value += "\n";
+                    this.rc.items[idx-1].obj.value += this.rc.items[idx].obj.value;
+                    this.rc.items[idx].obj.value = '';
+                }
                 break;
             }
         }
-        var values = this.core.promptInput("Add Alarm",
-                [{label:"AlarmName",required:1},
-                 {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
-                 {label:"MetricName",type:"menulist",required:1},
-                 {label:"Period",type:"number",required:1,help:"seconds"},
-                 {label:"EvaluationPeriods",type:"number",required:1},
-                 {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold",
-                                                                   "GreaterThanThreshold",
-                                                                   "LessThanThreshold",
-                                                                   "LessThanOrEqualToThreshold"],required:1},
-                 {label:"Threshold",type:"number",decimalplaces:5,required:1},
-                 {label:"Statistic",type:"menulist",list:["SampleCount","Average","Sum","Minimum","Maximum"],required:1},
-                 {label:"Unit",type:"menulist",list:['Seconds','Microseconds','Milliseconds','Bytes','Kilobytes','Megabytes','Gigabytes','Terabytes','Bits','Kilobits','Megabits','Gigabits','Terabits','Percent','Count','Bytes/Second','Kilobytes/Second','Megabytes/Second','Gigabytes/Second','Terabytes/Second','Bits/Second','Kilobits/Second','Megabits/Second','Gigabits/Second','Terabits/Second','Count/Second']},
-                 {label:"AlarmActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
-                 {label:"InsufficientDataActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
-                 {label:"OKActions",multiline:true,cols:40,rows:2,help:"Comma separated ARNs"},
-                 {label:"Dimensions",multiline:true,cols:40,rows:2,help:"Name:Value pairs separated by comma"}
-                 ], false, callback);
+        var inputs = [{label:"AlarmName",required:1},
+                      {label:"AlarmDescription"},
+                      {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
+                      {label:"MetricName",type:"menulist",required:1},
+                      {label:"Dimensions",multiline:true,cols:30,rows:3,wrap:'off',help:"One name:value pair per line"},
+                      {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold","GreaterThanThreshold","LessThanThreshold","LessThanOrEqualToThreshold"],required:1},
+                      {label:"Threshold",type:"number",decimalplaces:5,required:1},
+                      {label:"Period",type:"number",required:1,help:"seconds",value:300},
+                      {label:"EvaluationPeriods",type:"number",required:1,value:1},
+                      {label:"Statistic",type:"menulist",list:["Average","SampleCount","Sum","Minimum","Maximum"],required:1},
+                      {label:"Unit",type:"menulist",list:['Seconds','Microseconds','Milliseconds','Bytes','Kilobytes','Megabytes','Gigabytes','Terabytes','Bits','Kilobits','Megabits','Gigabits','Terabits','Percent','Count','Bytes/Second','Kilobytes/Second','Megabytes/Second','Gigabytes/Second','Terabytes/Second','Bits/Second','Kilobits/Second','Megabits/Second','Gigabits/Second','Terabits/Second','Count/Second']},
+                      {label:"AlarmActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"AlarmActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      {label:"InsufficientDataActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"InsufficientDataActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      {label:"OKActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"OKActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      ];
+
+        // Modify existing alarm
+        if (edit) {
+            var item = this.getSelected();
+            if (!item) return;
+        }
+
+        var values = this.core.promptInput("Put CloudWatch Alarm", inputs, false, callback);
         if(!values) return;
+        var params = [];
+        for (var i in inputs) {
+            if (inputs[i].required || !values[i]) continue;
+            if (inputs[i].multiline) {
+                var lines = values[i].split("\n");
+                for (var j = 0; j < lines.length; j++) {
+                    if (!lines[j]) continue;
+                    if (inputs[i].label == "Dimensions") {
+                        var pair = lines[j].split(":");
+                        params.push([inputs[i].label + ".member." + (j + 1) + ".Name", pair[0]]);
+                        params.push([inputs[i].label + ".member." + (j + 1) + ".Value", pair[1]]);
+                    } else {
+                        params.push([inputs[i].label + ".member." + (j + 1), lines[j]]);
+                    }
+                }
+            } else {
+                params.push([inputs[1].label, values[1]]);
+            }
+        }
+        this.core.api.putMetricAlarm(values[0], values[2], values[3], values[5], values[6], values[7], values[8], values[9], params, function() { me.refresh() });
     },
 
     deleteAlarm: function()

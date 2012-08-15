@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
 <!DOCTYPE window SYSTEM "chrome://ew/locale/main.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -59,6 +60,7 @@
           case 'menulist':
              item = document.createElement(type);
              var popup = document.createElement('menupopup');
+             popup.setAttribute('crop','none');
              item.appendChild(popup);
              if (!rc.items[i].required) {
                  var e = document.createElement('menuitem');
@@ -193,6 +195,10 @@
               rows = createSection(parent, rc.title, rc.help);
           }
           rows.appendChild(row);
+      }
+      // Call handler on init
+      for (var i = 0; i < rc.items.length; i++) {
+          handler(i);
       }
     }
 

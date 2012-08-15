@@ -163,10 +163,9 @@ Date.prototype.toISO8601String = function(format, offset)
         var secs = Number(date.getUTCSeconds() + "." + ((date.getUTCMilliseconds() < 100) ? '0' : '') + zeropad(date.getUTCMilliseconds()));
         str += ":" + zeropad(secs);
     } else
-        if (format > 4) {
-            str += ":" + zeropad(date.getUTCSeconds());
-        }
-
+    if (format > 4) {
+        str += ":" + zeropad(date.getUTCSeconds());
+    }
     if (format > 3) {
         str += offset;
     }
@@ -187,7 +186,7 @@ function formatDuration(duration)
             return Math.floor(duration) + " secs"
         }
     }
-    return ""
+    return "";
 }
 
 function formatSize(size)
@@ -477,6 +476,16 @@ function byteArrayToString(arr)
     return eval("String.fromCharCode(" + arr.join(",") + ")");
 }
 
+function toId(name)
+{
+    return name[0].toLowerCase() + name.substr(1);
+}
+
+function toTitle(name)
+{
+    return name[0].toUpperCase() + name.substr(1);
+}
+
 function isWindows(platform)
 {
     return platform.match(regExs['win']);
@@ -523,6 +532,7 @@ function clearListbox(list)
     for (var i = list.itemCount - 1; i >= 0; i--) {
         list.removeItemAt(i);
     }
+    list.selectedIndex = -1;
 }
 
 function buildListbox(list, items, key)
@@ -532,4 +542,6 @@ function buildListbox(list, items, key)
         var obj = items[i];
         list.appendItem(ew_core.toString(obj), typeof obj == "object" ? obj[key || "id"] : obj);
     }
+    list.selectedIndex = 0;
+    list.doCommand();
 }

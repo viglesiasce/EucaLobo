@@ -168,3 +168,7 @@ groupbox caption {
     background-color:#000000;
     width:100%;
 }
+
+menupopup > menuitem, menupopup > menulist {
+    max-width: none;
+}

@@ -1880,11 +1880,12 @@ var ew_core = {
     },
 
     // Common replacement for cells by name, builds human readable value
-    modelValue: function(name, value)
+    modelValue: function(name, value, keepName)
     {
         var idMap = { vpcId: this.model.vpcs,
                       subnetId: this.model.subnets,
                       instanceId: this.model.instances,
+                      volumeId: this.model.volumes,
                       tableId: this.model.routeTables,
                       imageId: this.model.images,
                       gatewayId: this.model.internetGateways,
@@ -1898,7 +1899,7 @@ var ew_core = {
                       instanceProfile: this.model.instanceProfiles,
                       subnets: this.model.subnets };
 
-        var list = idMap[name];
+        var list = idMap[toId(name)];
         if (list) {
             if (value instanceof Array) {
                 var rc = [];
@@ -1918,7 +1919,7 @@ var ew_core = {
                 }
             }
         }
-        return value;
+        return (keepName ? name + ": " : "") + value;
     },
 
     // Convert object into string, used in listboxes, can use list of columns to limit what properties to show
@@ -2209,17 +2210,6 @@ var ew_core = {
                { name: "Amazon Storage Gateway", type: "AWS/StorageGateway" },
                { name: "Auto Scaling", type: "AWS/AutoScaling" },
                { name: "Elastic Load Balancing", type: "AWS/ELB" } ];
-    },
-
-    getCloudWatchMetrics: function(namespace)
-    {
-        var list = [];
-        var items = this.model.metrics;
-        for (var i in items) {
-            if (namespace && items[i].namespace != namespace) continue;
-            if (list.indexOf(items[i].name) == -1) list.push(items[i].name)
-        }
-        return list;
     },
 
 };

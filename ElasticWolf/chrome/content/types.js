@@ -486,6 +486,11 @@ var TreeView = {
                 $(items[i].id).checked = this.core.getBoolPrefs(items[i].id, false);
                 break;
 
+            case "menulist":
+                var val = this.core.getStrPrefs(items[i].id, '#');
+                if (val != '#') $(items[i].id).value = val;
+                break;
+
             default:
                 $(items[i].id).value = this.core.getStrPrefs(items[i].id);
             }
@@ -2183,10 +2188,10 @@ function Metric(name, namespace, dims)
 {
     this.name = name
     this.namespace = namespace
-    this.dimensions = dims
+    this.dimensions = dims || [];
 
     this.toString = function() {
-        return this.name + fieldSeparator + this.namespace;
+        return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");
     }
 }
 
@@ -2215,6 +2220,22 @@ function MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue,
 
     this.toString = function() {
         return this.name + fieldSeparator + this.descr;
+    }
+}
+
+function Datapoint(tm, unit, ave, sum, sample, max, min)
+{
+    this.timestamp = tm;
+    this.unit = unit;
+    this.average = ave;
+    this.sum = sum;
+    this.sampleCount = sample;
+    this.maximum = max;
+    this.minimum = min;
+    this.value = this.average || this.sum || this.sampleCount || this.maximum || this.minimum || "";
+
+    this.toString = function() {
+        return this.timestamp + fieldSeparator + this.unit + fieldSeparator + this.value;
     }
 }
 
@@ -2249,9 +2270,10 @@ function Topic(arn)
 {
     this.id = arn || "";
     this.name = this.id.split(/[:\/]/).pop();
+    this.subscriptions = [];
 
     this.toString = function() {
-        return this.name;
+        return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions : "");
     }
 }
 
@@ -2265,7 +2287,7 @@ function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
     this.Owner = Owner
 
     this.toString = function() {
-        return this.Protocol + fieldSepararor + this.Endpoint;
+        return this.Protocol + fieldSeparator + this.Endpoint;
     }
 }
 

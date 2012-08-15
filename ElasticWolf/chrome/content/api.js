@@ -4002,7 +4002,7 @@ var ew_api = {
         response.result = list;
     },
 
-    putMetricAlarm : function(AlarmName, MetricName, Namespace, ComparisonOperator, Period, EvaluationPeriods, Threshold, Statistic, params, callback)
+    putMetricAlarm : function(AlarmName, Namespace, MetricName, ComparisonOperator, Threshold, Period, EvaluationPeriods, Statistic, params, callback)
     {
         if (!params) params = [];
         params.push(["AlarmName", AlarmName])
@@ -4142,6 +4142,49 @@ var ew_api = {
             list.push(new Metric(name, nm, dims));
         }
         response.result = this.getNext(response, this.queryCloudWatch, list, "metrics");
+    },
+
+    getMetricStatistics : function(name, namespace, start, end, period, statistics, unit, dimensions, callback)
+    {
+        var params = [];
+        params.push(["MetricName", name])
+        params.push(["Namespace", namespace])
+        params.push(["StartTime", start])
+        params.push(["EndTime", end])
+        params.push(["Period", period])
+        if (unit) params.push(["Unit", unit])
+        if (statistics instanceof Array) {
+            for (var i = 0; i < statistics.length; i++) {
+                params.push(["Statistics.member." + (i + 1), statistics[i]])
+            }
+        } else {
+            params.push(["Statistics.member.1", statistics])
+        }
+        if (dimensions instanceof Array)
+        for (var i = 0; i < dimensions.length; i++) {
+            params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
+            params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+        }
+        this.queryCloudWatch("GetMetricStatistics", params, this, false, "onCompleteGetMetricStatistics", callback);
+    },
+
+    onCompleteGetMetricStatistics : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "Datapoints", "member");
+        for ( var i = 0; i < items.length; i++) {
+            var tm = new Date();
+            tm.setISO8601(getNodeValue(items[i], "Timestamp"));
+            var u = getNodeValue(items[i], "Unit");
+            var a = getNodeValue(items[i], "Average");
+            var s = getNodeValue(items[i], "Sum");
+            var c = getNodeValue(items[i], "SampleCount");
+            var x = getNodeValue(items[i], "Maximum");
+            var m = getNodeValue(items[i], "Minimum");
+            list.push(new Datapoint(tm, u, a, s, c, x, m));
+        }
+        response.result = list;
     },
 
     getSessionToken : function (duration, serial, token, accesskey, callback)
@@ -4433,6 +4476,10 @@ var ew_api = {
 
         if (response.action == "ListSubscriptions") {
             this.core.setModel('subscriptions', list);
+            var topics = this.core.getModel('topics')
+            for (var i in topics) {
+                topics[i].subscriptions = this.core.queryModel('subscriptions', 'TopicArn', topics[i].id);
+            }
         }
         response.result = list;
     },
