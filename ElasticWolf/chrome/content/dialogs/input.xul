@@ -198,12 +198,12 @@
       }
       // Call handler on init
       for (var i = 0; i < rc.items.length; i++) {
-          handler(i);
+          handler(i, true);
       }
     }
 
-    function handler(idx) {
-        if (rc.callback) rc.callback.call(this, idx);
+    function handler(idx, onstart) {
+        if (rc.callback) rc.callback.call(this, idx, onstart);
     }
 
     function browse(id, forDir) {

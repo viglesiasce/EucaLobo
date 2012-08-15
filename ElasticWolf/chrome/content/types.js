@@ -1269,7 +1269,7 @@ function AccessKey(id, secret, status, user, date)
     this.status = status;
     this.userName = user || "";
     this.secret = secret || "";
-    this.date = date || "";
+    this.date = date ? new Date(date) : "";
     this.state = "";
     this.securityToken = "";
 
@@ -1285,15 +1285,10 @@ function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
     this.secret = secret || "";
     this.state = "";
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
-    this.expire = expire || "";
+    this.expire = typeof expire == "string" ? new Date(expire) : "";
     this.userName = userName || "";
     this.userId = userId || "";
     this.arn = arn || "";
-
-    if (typeof this.expire == "string") {
-        this.expire = new Date();
-        this.expire.setISO8601(expire);
-    }
 
     this.toString = function() {
         return this.id + (this.state ? fieldSeparator + this.state : "");
@@ -1636,9 +1631,10 @@ function Snapshot(id, volumeId, status, startTime, progress, volumeSize, descrip
     }
 }
 
-function Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags)
+function Volume(id, type, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags)
 {
     this.id = id;
+    this.type = type;
     this.size = size;
     this.snapshotId = snapshotId;
     this.availabilityZone = zone;
@@ -1656,24 +1652,29 @@ function Volume(id, size, snapshotId, zone, status, createTime, instanceId, devi
 
     this.toString = function() {
         return (this.name ? this.name + fieldSeparator : "") +
-                this.id + fieldSeparator + this.device + fieldSeparator + this.status + fieldSeparator + this.size + "GB" +
+                this.id + fieldSeparator + this.type + fieldSeparator + this.device + fieldSeparator + this.status + fieldSeparator + this.size + "GB" +
                (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
     }
 }
 
-function VolumeStatusEvent(volumeId, availabilityZone, eventId, eventType, description, startTime, endTime)
+function VolumeStatusEvent(volumeId, status, availabilityZone, eventId, eventType, description, startTime, endTime, action, actionDescr)
 {
     this.volumeId = volumeId;
+    this.status = status;
     this.availabilityZone = availabilityZone;
     this.eventId = eventId;
     this.eventType = eventType;
-    this.description = description;
+    this.eventDescr = description;
     this.startTime = startTime;
     this.endTime = endTime;
+    this.action = action;
+    this.actionDescr = actionDescr;
 
     this.toString = function() {
-        return this.volumeId + fieldSeparator + this.description;
+        return this.volumeId + fieldSeparator + this.status + fieldSeparator + this.availabilityZone +
+               (this.eventType ? fieldSeparator + this.eventType + fieldSeparator + this.eventDescr : "") +
+               (this.action ? fieldSeparator + this.action + fieldSeparator + this.actionDescr : "");
     }
 }
 
@@ -2232,7 +2233,7 @@ function Datapoint(tm, unit, ave, sum, sample, max, min)
     this.sampleCount = sample;
     this.maximum = max;
     this.minimum = min;
-    this.value = this.average || this.sum || this.sampleCount || this.maximum || this.minimum || "";
+    this.value = parseFloat(parseFloat(this.average || this.sum || this.sampleCount || this.maximum || this.minimum || '0').toFixed(2));
 
     this.toString = function() {
         return this.timestamp + fieldSeparator + this.unit + fieldSeparator + this.value;

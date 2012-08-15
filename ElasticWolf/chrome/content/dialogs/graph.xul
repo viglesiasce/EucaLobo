@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="init()">
+
+<script type="application/x-javascript" src="chrome://ew/content/jsgraph.js" />
+
+<script type="application/x-javascript">
+<![CDATA[
+
+  function init() {
+    var rc = window.arguments[0];
+    if (!rc.list || !rc.list.length) return;
+
+    graph = new Graph(rc.title + " : " + rc.list[0].unit, "canvas", "line");
+    graph.options.xlabel = 'Timeframe: ' + rc.start.strftime('%Y-%m-%d %H:%M') + " to " + rc.end.strftime('%Y-%m-%d %H:%M');
+
+    for (var i = 0; i < rc.list.length; i++) {
+        var label = i == 0 || i == rc.list.length-1 || i == Math.floor(rc.list.length*0.25) || i == Math.floor(rc.list.length*0.75) ? rc.list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M') : "";
+        graph.addPoint(i, rc.list[i].value, label);
+    }
+    jsgraph_leftSpace = 50;
+    jsgraph_rightSpace = 50;
+    jsgraph_bottomSpace = 25;
+    jsgraph_heightSpacing = 25;
+    jsgraph_begin();
+  }
+]]>
+</script>
+
+<box flex="1">
+  <html:canvas id="canvas" width="600" height="400" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+</box>
+</window>

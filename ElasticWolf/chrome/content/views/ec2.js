@@ -1068,9 +1068,16 @@ var ew_VolumeTreeView = {
         var values = this.core.promptInput('Create Volume', [{label:"Size (GB)",type:"number",min:1,required:1},
                                                              {label:"Name"},
                                                              {label:"Availability Zone",type:"menulist",list:zones,required:1},
-                                                             {label:"Snapshot",type:"menulist",list:snapshots}]);
+                                                             {label:"Snapshot",type:"menulist",list:snapshots},
+                                                             {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
+                                                             {label:"IOPS",type:"number",min:1,max:1000}]);
         if (!values) return;
-        this.core.api.createVolume(values[0],values[3],values[2],function(id) {
+        var params = [];
+        if (values[4] == "io1") {
+            params.push(["VolumeType", values[4]]);
+            params.push(["Iops", values[5]])
+        }
+        this.core.api.createVolume(values[0],values[3],values[2], params, function(id) {
             if (values[1]) {
                 me.core.setTags(id, "Name:" + values[1], function() { me.refresh() });
             } else {
@@ -1142,6 +1149,24 @@ var ew_VolumeTreeView = {
             }
         }
         return "";
+    },
+
+    enableIO : function ()
+    {
+        var image = this.getSelected();
+        if (image == null) return;
+        if (!confirm("Enable IO for volume " + image.id + "?")) return;
+        this.core.api.enableVolumeIO(image.id, function() { me.refresh() });
+    },
+
+    showStatus : function ()
+    {
+        var me = this;
+        var image = this.getSelected();
+        if (image == null) return;
+        this.core.api.describeVolumeStatus(image.id, function(list) {
+            me.core.promptInput('Volume Status', [{notitle:1,multiline:true,cols:120,rows:10,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:list.join("\n")}])
+        });
     },
 
     detachVolume : function () {

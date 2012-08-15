@@ -4,7 +4,7 @@
 //
 
 var ew_api = {
-    EC2_API_VERSION: '2012-06-15',
+    EC2_API_VERSION: '2012-07-20',
     ELB_API_VERSION: '2011-11-15',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
@@ -682,12 +682,13 @@ var ew_api = {
     // Iterate through all pages while NextToken is present, collect all items in the model
     getNext: function(response, method, list, model)
     {
+        var me = this;
         var xmlDoc = response.responseXML;
         var nextToken = getNodeValue(xmlDoc, "NextToken");
         if (nextToken) {
             var params = cloneObject(response.params);
             setParam(params, "NextToken", nextToken);
-            method.call(this, response.action, params, this, false, response.method, response.callback);
+            setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
         }
         this.core.appendModel(model, list, getParam(response.params, "NextToken") == "" ? 1 : 0);
         return this.core.getModel(model);
@@ -791,9 +792,9 @@ var ew_api = {
         this.queryEC2("AttachVolume", params, this, false, "onComplete", callback);
     },
 
-    createVolume : function(size, snapshotId, zone, callback)
+    createVolume : function(size, snapshotId, zone, params, callback)
     {
-        var params = []
+        if (!params) params = []
         if (size != null) params.push([ "Size", size ]);
         if (snapshotId != null) params.push([ "SnapshotId", snapshotId ]);
         if (zone != null) params.push([ "AvailabilityZone", zone ]);
@@ -834,13 +835,13 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
             var id = getNodeValue(item, "volumeId");
+            var type = getNodeValue(item, "volumeType");
             var size = getNodeValue(item, "size");
             var snapshotId = getNodeValue(item, "snapshotId");
 
             var zone = getNodeValue(item, "availabilityZone");
             var status = getNodeValue(item, "status");
-            var createTime = new Date();
-            createTime.setISO8601(getNodeValue(item, "createTime"));
+            var createTime = new Date(getNodeValue(item, "createTime"));
 
             // Zero out the values for attachment
             var aitem = this.getItems(item, "attachmentSet", "item");
@@ -848,13 +849,51 @@ var ew_api = {
             var device = getNodeValue(aitem[0], "device");
             var attachStatus = getNodeValue(aitem[0], "status");
             var deleteOnTermination = getNodeValue(aitem[0], "deleteOnTermination");
-            var attachTime = new Date();
-            attachTime.setISO8601(getNodeValue(aitem[0], "attachTime"));
+            var attachTime = new Date(getNodeValue(aitem[0], "attachTime"));
             var tags = this.getTags(item);
-            list.push(new Volume(id, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags));
+            list.push(new Volume(id, type, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags));
         }
 
         this.core.setModel('volumes', list);
+        response.result = list;
+    },
+
+    enableVolumeIO : function (id, callback) {
+        this.queryEC2("EnableVolumeIO", [["VolumeId", id]], this, false, "onComplete", callback);
+    },
+
+    describeVolumeStatus : function (id, callback) {
+        var params = [];
+        if (id) params.push(["VolumeId.1", id]);
+        this.queryEC2("DescribeVolumeStatus", params, this, false, "onCompleteDescribeVolumeStatus", callback);
+    },
+
+    onCompleteDescribeVolumeStatus : function (response) {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+
+        var items = this.getItems(xmlDoc, "volumeStatusSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+
+            var volumeId = getNodeValue(item, "volumeId");
+            var availabilityZone = getNodeValue(item, "availabilityZone");
+            var status = getNodeValue(item, "status");
+
+            var vitems = this.getItems(item, "eventSet", "item");
+            var eventId = vitems.length ? getNodeValue(vitems[0], "eventId") : "";
+            var eventType = vitems.length ? getNodeValue(vitems[0], "eventType") : "";
+            var edescr = vitems.length ? getNodeValue(vitems[0], "description") : "";
+            var startTime = vitems.length ? getNodeValue(vitems[0], "notBefore") : "";
+            var endTime = vitems.length ? getNodeValue(vitems[0], "notAfter") : "";
+
+            var aitems = this.getItems(item, "actionSet", "item");
+            var action = aitems.length ? getNodeValue(aitems[0], "code") : "";
+            var adescr = aitems.length ? getNodeValue(aitems[0], "description") : "";
+
+            list.push(new VolumeStatusEvent(volumeId, status, availabilityZone, eventId, eventType, edescr, startTime, endTime, action, adescr));
+        }
+
         response.result = list;
     },
 
@@ -874,8 +913,7 @@ var ew_api = {
             var id = getNodeValue(item, "snapshotId");
             var volumeId = getNodeValue(item, "volumeId");
             var status = getNodeValue(item, "status");
-            var startTime = new Date();
-            startTime.setISO8601(getNodeValue(item, "startTime"));
+            var startTime = new Date(getNodeValue(item, "startTime"));
             var progress = getNodeValue(item, "progress");
             var volumeSize = getNodeValue(item, "volumeSize");
             var description = getNodeValue(item, "description");
@@ -1484,8 +1522,7 @@ var ew_api = {
             var id = getNodeValue(item, "reservedInstancesId");
             var type = getNodeValue(item, "instanceType");
             var az = getNodeValue(item, "availabilityZone");
-            var start = new Date();
-            start.setISO8601(getNodeValue(item, "start"));
+            var start = new Date(getNodeValue(item, "start"));
             var duration = secondsToYears(getNodeValue(item, "duration"));
             var fPrice = parseInt(getNodeValue(item, "fixedPrice")).toString();
             var uPrice = getNodeValue(item, "usagePrice");
@@ -1607,8 +1644,7 @@ var ew_api = {
                     var reason = getNodeValue(instance, "reason");
                     var amiLaunchIdx = getNodeValue(instance, "amiLaunchIndex");
                     var instanceType = getNodeValue(instance, "instanceType");
-                    var launchTime = new Date();
-                    launchTime.setISO8601(getNodeValue(instance, "launchTime"));
+                    var launchTime = new Date(getNodeValue(instance, "launchTime"));
                     var availabilityZone = getNodeValue(instance, "placement", "availabilityZone");
                     var tenancy = getNodeValue(instance, "placement", "tenancy");
                     var monitoringStatus = getNodeValue(instance, "monitoring", "status");
@@ -1908,7 +1944,7 @@ var ew_api = {
         var validHours = 24;
         var expiry = new Date();
         expiry.setTime(expiry.getTime() + validHours * 60 * 60 * 1000);
-        var s3policy = (policyStr = '{' + '"expiration": "' + expiry.toISO8601String(5) + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}');
+        var s3policy = (policyStr = '{' + '"expiration": "' + expiry.toISOString(5) + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}');
         var s3polb64 = Base64.encode(s3policy);
         // Sign the generated policy with the secret key
         var policySig = b64_hmac_sha1(activeCred.secretKey, s3polb64);
@@ -1947,12 +1983,8 @@ var ew_api = {
         var id = getNodeValue(item, "bundleId");
         var state = getNodeValue(item, "state");
 
-        var startTime = new Date();
-        startTime.setISO8601(getNodeValue(item, "startTime"));
-
-        var updateTime = new Date();
-        updateTime.setISO8601(getNodeValue(item, "updateTime"));
-
+        var startTime = new Date(getNodeValue(item, "startTime"));
+        var updateTime = new Date(getNodeValue(item, "updateTime"));
         var storage = item.getElementsByTagName("storage")[0];
         var s3bucket = getNodeValue(storage, "bucket");
         var s3prefix = getNodeValue(storage, "prefix");
@@ -3225,39 +3257,6 @@ var ew_api = {
         response.result = tags;
     },
 
-    describeVolumeStatus : function (callback) {
-        this.queryEC2("DescribeVolumeStatus", [], this, false, "onCompleteDescribeVolumeStatus", callback);
-    },
-
-    onCompleteDescribeVolumeStatus : function (response) {
-        var xmlDoc = response.responseXML;
-        var list = new Array();
-
-        var items = this.getItems(xmlDoc, "volumeStatusSet", "item");
-        for ( var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var eventsSet = item.getElementsByTagName("eventsSet")[0];
-            if (!eventsSet) { continue; }
-
-            var volumeId = getNodeValue(item, "volumeId");
-            var availabilityZone = getNodeValue(item, "availabilityZone");
-            var eventsSetItems = eventsSet.childNodes;
-
-            for (var j = 0; j < eventsSetItems.length; j++) {
-                var event = eventsSetItems[j];
-                if (event.nodeName == '#text') continue;
-                var eventId = getNodeValue(event, "eventId");
-                var eventType = getNodeValue(event, "eventType");
-                var description = getNodeValue(event, "description");
-                var startTime = getNodeValue(event, "notBefore");
-                var endTime = getNodeValue(event, "notAfter");
-                list.push(new VolumeStatusEvent(volumeId, availabilityZone, code, description, startTime, endTime));
-            }
-        }
-
-        response.result = list;
-    },
-
     listAccountAliases : function(callback)
     {
         this.queryIAM("ListAccountAliases", [], this, false, "onCompleteListAccountAliases", callback);
@@ -4027,7 +4026,7 @@ var ew_api = {
         var stateReason = getNodeValue(item, "StateReason");
         var stateReasonData = getNodeValue(item, "StateReasonData");
         var stateValue = getNodeValue(item, "StateValue");
-        var date = getNodeValue(item, "StateUpdatedTimestamp");
+        var date = new Date(getNodeValue(item, "StateUpdatedTimestamp"));
         var namespace = getNodeValue(item, "Namespace");
         var period = getNodeValue(item, "Period");
         var unit = getNodeValue(item, "Unit");
@@ -4080,7 +4079,7 @@ var ew_api = {
             var type = getNodeValue(items[i], "HistoryItemType");
             var data = getNodeValue(items[i], "HistoryData");
             var descr = getNodeValue(items[i], "HistorySummary");
-            var date = getNodeValue(items[i], "Timestamp");
+            var date = new Date(getNodeValue(items[i], "Timestamp"));
             list.push(new AlarmHistory(name, type, data, descr, date));
         }
         response.result = list;
@@ -4174,8 +4173,7 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "Datapoints", "member");
         for ( var i = 0; i < items.length; i++) {
-            var tm = new Date();
-            tm.setISO8601(getNodeValue(items[i], "Timestamp"));
+            var tm = new Date(getNodeValue(items[i], "Timestamp"));
             var u = getNodeValue(items[i], "Unit");
             var a = getNodeValue(items[i], "Average");
             var s = getNodeValue(items[i], "Sum");

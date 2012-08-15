@@ -1882,6 +1882,7 @@ var ew_core = {
     // Common replacement for cells by name, builds human readable value
     modelValue: function(name, value, keepName)
     {
+        if (!value) return "";
         var idMap = { vpcId: this.model.vpcs,
                       subnetId: this.model.subnets,
                       instanceId: this.model.instances,
