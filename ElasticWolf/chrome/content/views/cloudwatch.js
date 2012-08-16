@@ -184,6 +184,7 @@ var ew_MetricAlarmsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
+        if (!confirm('Delete alarm ' + item.name + "?")) return;
         this.core.api.deleteAlarms([item], function() { me.refresh() });
     },
 
