@@ -2455,3 +2455,79 @@ function HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region)
         return this.name + fieldSeparator + this.type + fieldSeparator + this.values;
     }
 }
+
+function ASTag(name, value, id, type, propagate)
+{
+    this.name = name;
+    this.value = value;
+    this.resourceId = id;
+    this.resourceType = type;
+    this.propagateAtLaunch = propagate;
+
+    this.toString = function() {
+        return this.name + ":" + this.value;
+    }
+}
+
+function ASInstance(HealthStatus, AvailabilityZone, InstanceId, LaunchConfigurationName, LifecycleState)
+{
+    this.healthStatus = HealthStatus
+    this.availabilityZone = AvailabilityZone
+    this.instanceId = InstanceId
+    this.launchConfigurationName = LaunchConfigurationName
+    this.state = LifecycleState
+
+    this.toString = function() {
+        return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
+    }
+}
+
+function AutoScalingGroup(name, arn, date, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metric, granularity, instances, suspended, tags)
+{
+    this.name = name;
+    this.arn = arn;
+    this.date = date;
+    this.capacity = capacity;
+    this.minSize = min;
+    this.maxSize = max;
+    this.defaultCooldown = cooldown;
+    this.status = status;
+    this.healthCheckType = healthType;
+    this.healthCheckGracePeriod = healthGrace;
+    this.vpcZone = vpczone;
+    this.placementGroup = placement;
+    this.loadBalancers = elbs;
+    this.availabilityZones = azones;
+    this.metricName = metric;
+    this.metricGranularity = granularity;
+    this.instances = instances;
+    this.suspendedProcesses = suspended;
+    this.tags = tags;
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.capacity + fieldSeparator + this.healthCheckType;
+    }
+}
+
+function LaunchConfiguration(name, arn, date, type, key, profile, image, kernel, ramdisk, userdata, spotprice, monitoring, groups, devices)
+{
+    this.name = name;
+    this.arn = arn;
+    this.date = date;
+    this.instanceType = type;
+    this.keyName = key;
+    this.profile = profile;
+    this.imageId = image;
+    this.kernelId = kernel;
+    this.ramdiskId = ramdisk;
+    this.userData = userdata;
+    this.spotPrice = spotprice;
+    this.monitoring = monitoring;
+    this.groups = groups;
+    this.devices = devices;
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.instanceType + fieldSeparator + ew_core.modelValue('imageId', this.imageId);
+    }
+}
+

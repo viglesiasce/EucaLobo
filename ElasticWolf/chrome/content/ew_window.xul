@@ -40,6 +40,7 @@
 <?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
+<?xul-overlay href="chrome://ew/content/views/asgroups.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
@@ -72,6 +73,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/enis.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/s3.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/cloudwatch.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/views/autoscaling.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/credentials.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/prefs.js" />
 
@@ -115,6 +117,9 @@
 
             { name: "ew.tabs.groups",        views: [ { id: "ew.groups.view", view: ew_GroupsTreeView, },
                                                       { id: "ew.groupUsers.view", view: ew_GroupUsersTreeView, }, ] },
+
+            { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
+                                                      { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
 
             { name: "ew.tabs.roles",        views: [ { id: "ew.roles.view", view: ew_RolesTreeView, }, ] },
 
@@ -365,6 +370,15 @@
        </treechildren>
       </treeitem>
 
+      <treeitem container="true" open="true">
+       <treerow>
+         <treecell label="Auto Scaling" src="images/autoscaling.png" />
+       </treerow>
+       <treechildren>
+         <treeitem><treerow><treecell label="Groups" value="ew.tabs.as.group" /></treerow></treeitem>
+       </treechildren>
+      </treeitem>
+
     </treechildren>
     </tree>
 
@@ -412,6 +426,7 @@
       <tabpanel id="ew.tabs.alarm"/>
       <tabpanel id="ew.tabs.metric"/>
       <tabpanel id="ew.tabs.db.instance"/>
+      <tabpanel id="ew.tabs.as.group"/>
 
       <tabpanel id="ew.tabs.ec2">
        <vbox flex="1">

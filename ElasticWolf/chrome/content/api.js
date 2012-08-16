@@ -5131,4 +5131,80 @@ var ew_api = {
         this.core.replaceModel('hostedChanges', obj)
         response.result = obj;
     },
+
+    describeAutoScalingGroups: function(callback)
+    {
+        this.queryAS("DescribeAutoScalingGroups", [], this, false, "onCompleteDescribeAutoScalingGroups", callback);
+    },
+
+    onCompleteDescribeAutoScalingGroups: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "AutoScalingGroups", "member");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "AutoScalingGroupName");
+            var arn = getNodeValue(items[i], "AutoScalingGroupARN");
+            var date = new Date(getNodeValue(items[i], "CreatedTime"));
+            var capacity = getNodeValue(items[i], "DesiredCapacity");
+            var min = getNodeValue(items[i], "MinSize");
+            var max = getNodeValue(items[i], "MaxSize");
+            var cooldown = getNodeValue(items[i], "DefaultCooldown");
+            var status = getNodeValue(items[i], "Status");
+            var healthType = getNodeValue(items[i], "HealthCheckType");
+            var healthGrace = getNodeValue(items[i], "HealthCheckGracePeriod");
+            var vpczone = getNodeValue(items[i], "VPCZoneIdentifier");
+            var placement = getNodeValue(items[i], "PlacementGroup");
+            var elbs = this.getItems(items[i], "LoadBalancerNames", "member", "");
+            var azones = this.getItems(items[i], "AvailabilityZones", "member", "");
+            var metric = getNodeValue(items[i], "EnabledMetric", "Metric");
+            var granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
+            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new ASInstance(obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
+            var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Tag(obj.ProcessName,obj.SuspensionReason)})
+            var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new ASTag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,obj.PropagateAtLaunch)})
+            list.push(new AutoScalingGroup(name, arn, date, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metric, granularity, instances, suspended, tags));
+        }
+        this.core.setModel('asgroups', list);
+        response.result = list;
+    },
+
+    describeLaunchConfigurations: function(callback)
+    {
+        this.queryAS("DescribeLaunchConfigurations", [], this, false, "onCompleteDescribeLaunchConfigurations", callback);
+    },
+
+    onCompleteDescribeLaunchConfigurations: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "LaunchConfigurations", "member");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "LaunchConfigurationName");
+            var arn = getNodeValue(items[i], "LaunchConfigurationARN");
+            var date = new Date(getNodeValue(items[i], "CreatedTime"));
+            var type = getNodeValue(items[i], "InstanceType");
+            var key = getNodeValue(items[i], "KeyName");
+            var profile = getNodeValue(items[i], "IamInstanceProfile");
+            var image = getNodeValue(items[i], "ImageId");
+            var kernel = getNodeValue(items[i], "KernelId");
+            var ramdisk = getNodeValue(items[i], "RamdiskId");
+            var userdata = getNodeValue(items[i], "UserData");
+            var spotprice = getNodeValue(items[i], "SpotPrice");
+            var monitoring = toBool(getNodeValue(items[i], "InstanceMonitoring", "Enabled"));
+            var groups = this.getItems(items[i], "SecurityGroups", "member", "");
+            var devices = [];
+            var objs = this.getItems(items[i], "BlockDeviceMappings", "member");
+            for (var i = 0; i < objs.length; i++) {
+                var vdevice = getNodeValue(objs[i], "DeviceName");
+                var vname = getNodeValue(objs[i], "VirtualName");
+                var vid = getNodeValue(objs[i], "ebs", "SnapshotId");
+                var vsize = getNodeValue(objs[i], "ebs", "VolumeSize");
+                devices.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, 0, 0));
+            }
+            list.push(new LaunchConfiguration(name, arn, date, type, key, profile, image, kernel, ramdisk, userdata, spotprice, monitoring, groups, devices));
+        }
+        this.core.setModel('asconfigs', list);
+        response.result = list;
+    },
+
 };

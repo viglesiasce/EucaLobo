@@ -67,6 +67,8 @@ var ew_core = {
         instanceProfiles: null,
         hostedZones: null,
         hostedChanges: [],
+        asgroups: null,
+        asconfigs: null,
     },
 
     // Intialize core object with current menu and api implementation
@@ -1650,6 +1652,12 @@ var ew_core = {
             var me = this;
 
             switch (name) {
+            case "asgroups":
+                this.api.describeAutoScalingGroups();
+                break;
+            case "asconfigs":
+                this.api.describeLaunchConfigurations();
+                break;
             case "instanceProfiles":
                 this.api.listInstanceProfiles();
                 break;
