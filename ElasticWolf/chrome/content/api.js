@@ -5,7 +5,7 @@
 
 var ew_api = {
     EC2_API_VERSION: '2012-07-20',
-    ELB_API_VERSION: '2011-11-15',
+    ELB_API_VERSION: '2012-06-01',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
     STS_API_VERSION: '2011-06-15',
@@ -2925,7 +2925,8 @@ var ew_api = {
             var subnets = this.getItems(items[i], "Subnets", "member", null, function(obj) { return obj.firstChild.nodeValue; });
             var srcGroup = getNodeValue(items[i], "SourceSecurityGroup", "GroupName");
             var vpcId = getNodeValue(items[i], "VPCId");
-            list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, zoneId, Instances, listeners, HealthCheck, azones, apolicies, lbpolicies, opolicies, vpcId, subnets, srcGroup, groups));
+            var scheme = getNodeValue(items[i], "Scheme");
+            list.push(new LoadBalancer(LoadBalancerName, CreatedTime, DNSName, hostName, zoneId, Instances, listeners, HealthCheck, azones, apolicies, lbpolicies, opolicies, vpcId, scheme, subnets, srcGroup, groups));
         }
         this.core.setModel('loadBalancers', list);
         response.result = list;
@@ -2995,21 +2996,22 @@ var ew_api = {
         this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
     },
 
-    createLoadBalancer : function(LoadBalancerName, Protocol, elbport, instanceport, Zone, subnet, groups, callback)
+    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azone, subnet, groups, scheme, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
-        params.push([ "AvailabilityZones.member.1", Zone ]);
+        params.push([ "AvailabilityZones.member.1", azone ]);
         if (subnet) {
             params.push(["Subnets.member.1", subnet]);
             for (var i = 0; i < groups.length; i++) {
                 params.push(["SecurityGroups.member." + (i + 1), groups[i]]);
             }
         }
-        params.push([ "Listeners.member.Protocol", Protocol ]);
-        if (Protocol == "HTTPS") {
+        params.push([ "Listeners.member.Protocol", protocol ]);
+        if (protocol == "HTTPS") {
             params.push([ "Listeners.member.SSLCertificateId", "arn:aws:iam::322191361670:server-certificate/testCert" ]);
         }
+        if (scheme) params.push(["Scheme", scheme]);
         params.push([ "Listeners.member.LoadBalancerPort", elbport ]);
         params.push([ "Listeners.member.InstancePort", instanceport ]);
         this.queryELB("CreateLoadBalancer", params, this, false, "onComplete", callback);

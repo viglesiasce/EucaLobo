@@ -2113,7 +2113,7 @@ function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
     }
 }
 
-function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, Listeners, HealthCheck, availabilityZones, appPolicies, lbPolicies, oPolicies, vpcId, subnets, srcGroup, groups)
+function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, Listeners, HealthCheck, availabilityZones, appPolicies, lbPolicies, oPolicies, vpcId, scheme, subnets, srcGroup, groups)
 {
     this.name = name;
     this.CreatedTime = CreatedTime;
@@ -2128,6 +2128,7 @@ function LoadBalancer(name, CreatedTime, DNSName, HostName, ZoneId, Instances, L
     this.lbStickinessPolicies = lbPolicies;
     this.otherPolicies = oPolicies;
     this.vpcId = vpcId
+    this.scheme = scheme
     this.SourceSecurityGroup = srcGroup;
     this.subnets = subnets
     this.securityGroups = groups

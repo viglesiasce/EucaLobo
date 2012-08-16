@@ -40,6 +40,12 @@
     subnetMenu.selectedIndex = 0;
 
     var azsn = document.getElementById("ew.azsn").selectedIndex = this.rc.vpc ? 1 : 0;
+    onChange();
+  }
+
+  function onChange()
+  {
+     document.getElementById('ew.scheme').disabled = document.getElementById("ew.azsn").value == "az";
   }
 
   function launch() {
@@ -65,6 +71,7 @@
     if (azsn == 'az') {
         this.rc.Zone = document.getElementById("ew.azones").selectedItem.value;
     } else {
+        this.rc.scheme = document.getElementById("ew.scheme").value.trim();
         this.rc.subnetId = document.getElementById("ew.subnets").selectedItem.value;
         var groupMenu = document.getElementById('ew.groups');
         this.rc.securityGroups = [];
@@ -206,7 +213,7 @@
   </script>
 
   <wizardpage description="&ew.dialog.description.step1;" onpageadvanced="return validate1();">
-     <radiogroup id="ew.azsn" orient="vertical">
+     <radiogroup id="ew.azsn" orient="vertical" >
      <grid flex="1">
       <rows>
         <row>
@@ -216,12 +223,12 @@
         <row>
         <label control="ew.Protocol" value="&ew.loadbalancerview.protocol.label;" />
         <menulist id="ew.Protocol" style="min-width: 8em">
-           <menupopup id="ew.Protocol">
-              <menuitem label="HTTP" value="HTTP"/>
-              <menuitem label="HTTPS" value="HTTPS"/>
-              <menuitem label="TCP" value="TCP"/>
-              <menuitem label="SSL" value="SSL"/>
-           </menupopup>
+          <menupopup>
+            <menuitem label="HTTP" value="HTTP"/>
+            <menuitem label="HTTPS" value="HTTPS"/>
+            <menuitem label="TCP" value="TCP"/>
+            <menuitem label="SSL" value="SSL"/>
+          </menupopup>
         </menulist>
       </row>
         <row>
@@ -233,15 +240,24 @@
           <textbox id="ew.instanceport" size="4" value="80" />
         </row>
         <row>
-          <radio id="ew.azsn" checked="true" value="az" label="Availability Zone" />
+          <radio id="ew.azsn" checked="true" value="az" label="Availability Zone" oncommand="onChange()" />
           <menulist id="ew.azones" />
         </row>
         <row align="start">
-            <radio id="ew.azsn" value="sn" label="Subnet/Group" />
-            <vbox flex="1">
-              <menulist id="ew.subnets" onselect="refresh_group();" />
-              <listbox id="ew.groups" seltype="multiple" style="height:100px;" />
-            </vbox>
+          <radio id="ew.azsn" value="sn" label="Subnet/Group" oncommand="onChange()" />
+          <vbox flex="1">
+            <menulist id="ew.subnets" onselect="refresh_group();" />
+            <listbox id="ew.groups" seltype="multiple" style="height:100px;" />
+          </vbox>
+        </row>
+        <row>
+          <label control="ew.scheme" value="Scheme" />
+          <menulist id="ew.scheme" style="min-width: 8em" >
+           <menupopup>
+             <menuitem label="Internet Facing" value=""/>
+             <menuitem label="Internal" value="internal"/>
+           </menupopup>
+        </menulist>
         </row>
      </rows>
     </grid>
@@ -257,7 +273,7 @@
          <row>
           <label control="ew.pingprotocol" value="&ew.loadbalancerview.PingProtocol.label;" />
           <menulist id="ew.pingprotocol" style="min-width: 8em" oncommand="document.getElementById('ew.pingpath').disabled = (this.selectedItem.value.substr(0,4) != 'HTTP');">
-           <menupopup id="ew.pingprotocol">
+           <menupopup>
               <menuitem label="HTTP" value="HTTP"/>
               <menuitem label="HTTP" value="HTTPS"/>
               <menuitem label="TCP" value="TCP"/>

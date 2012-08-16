@@ -29,11 +29,11 @@ var ew_LoadbalancerTreeView = {
 
     create: function() {
         var tab = this.core.getCurrentTab();
-        var retVal = {ok:null, vpc: tab && tab.name.match("vpc") };
+        var retVal = {ok:null, vpc: this.core.isVpcMode() };
         window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",this.core, retVal);
         var me = this;
         if (retVal.ok) {
-            this.core.api.createLoadBalancer(retVal.name,retVal.Protocol,retVal.elbport,retVal.instanceport,retVal.Zone,retVal.subnetId,retVal.securityGroups, function() {
+            this.core.api.createLoadBalancer(retVal.name, retVal.Protocol, retVal.elbport, retVal.instanceport, retVal.Zone, retVal.subnetId, retVal.securityGroups, retVal.scheme, function() {
                 this.core.api.configureHealthCheck(retVal.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold, function() {
                     if (retVal.instances.length > 0) {
                         this.core.api.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh() });
