@@ -284,10 +284,15 @@ var TreeView = {
     {
         log('refreshAll' + (force ? "force" : "") + ' ' + this.model)
         if (this.model instanceof Array) {
+            var args = [];
             for (var i = 1; i < this.model.length; i++) {
                 if (force || this.core.getModel(this.model[i]) == null) {
-                    this.core.refreshModel(this.model[i]);
+                    args.push(this.model[i]);
                 }
+            }
+            if (args.length) {
+                debug('refreshAll: ' + args)
+                this.core.refreshModel.apply(this.core, args);
             }
         }
     },

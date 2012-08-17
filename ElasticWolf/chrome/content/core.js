@@ -1645,7 +1645,7 @@ var ew_core = {
             var name = arguments[i];
             var now = (new Date).getTime();
             if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
-                log('refresh: ' + name + ' in progress')
+                debug('refresh: ' + name + ' in progress')
                 return;
             }
             log('refresh model ' + name)
