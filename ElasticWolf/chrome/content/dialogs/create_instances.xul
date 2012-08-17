@@ -39,6 +39,7 @@
         this.retVal.tenancy = this.tnMenu.value;
         this.retVal.securityGroups = ew_ListBox.selectedItems;
         this.retVal.instanceProfile = $("ew.roles").value;
+        this.retVal.ebsOptimized = $("ew.ebsOptimized").checked;
 
         var device = {};
         device.type = $("ew.deviceType").value;
@@ -443,7 +444,7 @@
                 </row>
                 <row>
                     <label control="ew.roles" value="IAM Role:" />
-                    <menulist id="ew.roles" crop="end" sizetopopup="none" style="max-width: 450px;"/>
+                    <menulist id="ew.roles" crop="end" sizetopopup="none" style="max-width: 450px;" tooltiptext="The name of the IAM Instance Profile (IIP) to associate with the instances."/>
                 </row>
                 <row>
                     <label control="ew.min" value="Start Instances:" />
@@ -660,7 +661,11 @@
                 </row>
                 <row>
                     <label control="ew.monitor" value="Disable API Termination:" />
-                    <checkbox id="ew.disableApiTermination" />
+                    <checkbox id="ew.disableApiTermination" tooltiptext="Whether you can terminate the instance using the EC2 API. A value of true means you cannot terminate the instance using the API (i.e., the instance is locked); a value of false means you can. If you set this to true, and you later want to terminate the instance, you must first change the disableApiTermination attributes value to false using ModifyInstanceAttribute."/>
+                </row>
+                <row>
+                    <label control="ew.ebsOptimized" value="EBS Optimized:" />
+                    <checkbox id="ew.ebsOptimized" tooltiptext="Whether the instance is optimized for EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal EBS I/O performance. This optimization is not available with all instance types. Additional usage charges apply when using an EBS Optimized instance."/>
                 </row>
             </rows>
          </grid>

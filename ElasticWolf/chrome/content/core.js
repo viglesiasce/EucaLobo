@@ -65,6 +65,7 @@ var ew_core = {
         dbinstances: null,
         roles: null,
         instanceProfiles: null,
+        instanceStatus: null,
         hostedZones: null,
         hostedChanges: [],
         asgroups: null,
@@ -1890,7 +1891,7 @@ var ew_core = {
     // Common replacement for cells by name, builds human readable value
     modelValue: function(name, value, keepName)
     {
-        if (!value) return "";
+        if (!value) return typeof value == "boolean" ? false : "";
         var idMap = { vpcId: this.model.vpcs,
                       subnetId: this.model.subnets,
                       instanceId: this.model.instances,
@@ -1928,7 +1929,7 @@ var ew_core = {
                 }
             }
         }
-        return (keepName ? name + ": " : "") + value;
+        return (keepName ? name + ":" : "") + value;
     },
 
     // Convert object into string, used in listboxes, can use list of columns to limit what properties to show

@@ -1647,7 +1647,7 @@ var ew_api = {
                     var launchTime = new Date(getNodeValue(instance, "launchTime"));
                     var availabilityZone = getNodeValue(instance, "placement", "availabilityZone");
                     var tenancy = getNodeValue(instance, "placement", "tenancy");
-                    var monitoringStatus = getNodeValue(instance, "monitoring", "status");
+                    var monitoringStatus = toBool(getNodeValue(instance, "monitoring", "state"));
                     var stateReason = getNodeValue(instance, "stateReason", "code");
                     var platform = getNodeValue(instance, "platform");
                     var kernelId = getNodeValue(instance, "kernelId");
@@ -1663,13 +1663,14 @@ var ew_api = {
                     var clientToken = getNodeValue(instance, "clientToken")
                     var spotId = getNodeValue(instance ,"spotInstanceRequestId");
                     var role = getNodeValue(instance, "iamInstanceProfile", "id");
+                    var ebsOpt = toBool(getNodeValue(instance, "ebsOptimized"));
                     var volumes = [];
                     var objs = this.getItems(instance, "blockDeviceMapping", "item");
                     for (var i = 0; i < objs.length; i++) {
                         var vdevice = getNodeValue(objs[i], "deviceName");
                         var vid = getNodeValue(objs[i], "ebs", "volumeId");
                         var vstatus = getNodeValue(objs[i], "ebs", "status");
-                        var vtime = getNodeValue(objs[i], "ebs", "attachTime");
+                        var vtime = new Date(getNodeValue(objs[i], "ebs", "attachTime"));
                         var vdel = getNodeValue(objs[i], "ebs", "deleteOnTermination");
                         volumes.push(new InstanceBlockDeviceMapping(vdevice, vid, vstatus, vtime, vdel));
                     }
@@ -1707,7 +1708,7 @@ var ew_api = {
                     list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, securityGroups, dnsName, privateDnsName, privateIpAddress,
                                            vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus != "", stateReason,
                                            platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName, virtType, hypervisor, ip, srcDstCheck, architecture, instanceLifecycle,
-                                           clientToken, spotId, role, volumes, enis, tags));
+                                           clientToken, spotId, role, ebsOpt, volumes, enis, tags));
                 }
             }
         }
@@ -1765,6 +1766,9 @@ var ew_api = {
         }
         if (options.clientToken) {
             params.push([ "ClientToken", options.clientToken])
+        }
+        if (options.ebsOptimized) {
+            params.push(["EbsOptimized", "true"]);
         }
         if (options.monitoringEnabled) {
             params.push([ "Monitoring.Enabled", "true"]);
@@ -1864,27 +1868,49 @@ var ew_api = {
         this.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
     },
 
-    onCompleteDescribeInstanceStatus : function (response) {
+    onCompleteDescribeInstanceStatus : function (response)
+    {
         var xmlDoc = response.responseXML;
         var items = this.getItems(xmlDoc, "instanceStatusSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var eventsSet = item.getElementsByTagName("eventsSet")[0];
-            if (!eventsSet) { continue; }
+            var list = new Array();
             var instanceId = getNodeValue(item, "instanceId");
             var availabilityZone = getNodeValue(item, "availabilityZone");
-            var eventsSetItems = eventsSet.childNodes;
-            var list = new Array();
 
-            for (var j = 0; j < eventsSetItems.length; j++) {
-                var event = eventsSetItems[j];
-                if (event.nodeName == '#text') continue;
-                var code = getNodeValue(event, "code");
-                var description = getNodeValue(event, "description");
-                var startTime = getNodeValue(event, "notBefore");
-                var endTime = getNodeValue(event, "notAfter");
-                list.push(new InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime));
+            var objs = item.getElementsByTagName("systemStatus");
+            for (var j = 0; j < objs.length; j++) {
+                var status = getNodeValue(objs[j], "status");
+                var details = this.getItems(objs[j], "details", "item");
+                for (var k = 0; k < details.length; k++) {
+                    var name = getNodeValue(details[k], "name");
+                    var code = getNodeValue(details[k], "status");
+                    var date = getNodeValue(details[k], "impairedSince");
+                    list.push(new InstanceStatusEvent(instanceId, availabilityZone, status, code, name, date, ""));
+                }
             }
+
+            var objs = item.getElementsByTagName("instanceStatus");
+            for (var j = 0; j < objs.length; j++) {
+                var status = getNodeValue(objs[j], "status");
+                var details = this.getItems(objs[j], "details", "item");
+                for (var k = 0; k < details.length; k++) {
+                    var name = getNodeValue(details[k], "name");
+                    var code = getNodeValue(details[k], "status");
+                    var date = getNodeValue(details[k], "impairedSince");
+                    list.push(new InstanceStatusEvent(instanceId, availabilityZone, status, code, name, date, ""));
+                }
+            }
+
+            var objs = this.getItems(item, "eventsSet", "items");
+            for (var j = 0; j < objs.length; j++) {
+                var code = getNodeValue(objs[j], "code");
+                var description = getNodeValue(objs[j], "description");
+                var startTime = getNodeValue(objs[j], "notBefore");
+                var endTime = getNodeValue(objs[j], "notAfter");
+                list.push(new InstanceStatusEvent(instanceId, availabilityZone, "", code, description, startTime, endTime));
+            }
+
             var instance = this.core.findModel('instances', instanceId);
             if (instance) instance.events = list;
         }

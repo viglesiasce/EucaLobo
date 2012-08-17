@@ -1750,7 +1750,7 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
 
 function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
                   amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringEnabled, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
-                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, role, volumes, enis, tags)
+                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, role, ebsOptimized, volumes, enis, tags)
 {
     this.id = instanceId;
     this.reservationId = reservationId;
@@ -1789,6 +1789,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     this.clientToken = clientToken;
     this.spotInstanceRequestId = spotId;
     this.instanceProfile = role;
+    this.ebsOptimized = ebsOptimized;
     this.volumes = volumes;
     this.networkInterfaces = enis;
     this.tags = tags;
@@ -1796,7 +1797,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     ew_core.processTags(this);
 
     this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state;
+        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator + this.instanceType + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
     }
 
     this.validate = function() {
@@ -1811,17 +1812,29 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     }
 }
 
-function InstanceStatusEvent(instanceId, availabilityZone, code, description, startTime, endTime)
+function InstanceStatusEvent(instanceId, availabilityZone, status, code, description, startTime, endTime)
 {
     this.instanceId = instanceId;
     this.availabilityZone = availabilityZone;
+    this.status = status;
     this.code = code;
     this.description = description;
     this.startTime = startTime;
     this.endTime = endTime;
 
     this.toString = function() {
-        return this.instanceId + fieldSeparator + this.description;
+        return this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator + this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
+    }
+}
+
+function InstanceHealth(Description, State, InstanceId, ReasonCode)
+{
+    this.Description = Description;
+    this.State = State;
+    this.InstanceId = InstanceId;
+    this.ReasonCode = ReasonCode;
+    this.toString = function() {
+        return this.Description + fieldSeparator + this.State + fieldSeparator + ew_core.modelValue("instanceId", this.InstanceId);
     }
 }
 
@@ -2175,22 +2188,12 @@ function LoadBalancerHealthCheck(Target, Interval, Timeout, HealthyThreshold, Un
     }
 }
 
-function InstanceHealth(Description, State, InstanceId, ReasonCode)
-{
-    this.Description = Description;
-    this.State = State;
-    this.InstanceId = InstanceId;
-    this.ReasonCode = ReasonCode;
-    this.toString = function() {
-        return this.Description + fieldSeparator + this.State + fieldSeparator + ew_core.modelValue("instanceId", this.InstanceId);
-    }
-}
-
 function Metric(name, namespace, dims)
 {
     this.name = name
     this.namespace = namespace
     this.dimensions = dims || [];
+    this.info = "";
 
     this.toString = function() {
         return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");

@@ -281,7 +281,7 @@ var ew_AMIsTreeView = {
 };
 
 var ew_InstancesTreeView = {
-    model: ['instances', 'images', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes', 'instanceProfiles'],
+    model: ['instances', 'images', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes', 'instanceProfiles', 'instanceStatus'],
     properties: [ 'state' ],
     max: 50,
 

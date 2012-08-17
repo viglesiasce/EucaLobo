@@ -4,7 +4,7 @@
 //
 
 var ew_MetricsTreeView = {
-    model: [ "metrics", "alarms"],
+    model: [ "metrics", "alarms", "instances", "volumes"],
 
     menuChanged : function(event)
     {
@@ -30,6 +30,10 @@ var ew_MetricsTreeView = {
         var nm = $('ew.metrics.namespace').value;
         for (var i in list) {
             if (nm && list[i].namespace != nm) continue;
+            if (list[i].dimensions.length == 1 && list[i].info == "") {
+                list[i].info = this.core.modelValue(list[i].dimensions[0].name, list[i].dimensions[0].value, true);
+                if (list[i].info == list[i].dimensions) list[i].info = "";
+            }
             nlist.push(list[i])
         }
         return TreeView.filter.call(this, nlist);
