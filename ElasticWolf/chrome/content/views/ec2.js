@@ -1169,14 +1169,17 @@ var ew_VolumeTreeView = {
         });
     },
 
-    detachVolume : function () {
+    detachVolume : function ()
+    {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Detach volume " + image.id + "?")) return;
         this.core.api.detachVolume(image.id, function() { me.refresh() });
     },
 
-    forceDetachVolume : function () {
+    forceDetachVolume : function ()
+    {
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Force detach volume " + image.id + "?")) return;
@@ -1184,7 +1187,8 @@ var ew_VolumeTreeView = {
         this.core.api.forceDetachVolume(image.id, function() { me.refresh() });
     },
 
-    isRefreshable: function() {
+    isRefreshable: function()
+    {
         // Walk the list of volumes to see whether there is a volume whose state needs to be refreshed
         for (var i in this.treeList) {
             var volume = this.treeList[i];

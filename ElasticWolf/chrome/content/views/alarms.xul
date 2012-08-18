@@ -25,7 +25,7 @@
                 <toolbarbutton image="images/attach.png" oncommand="ew_MetricAlarmsTreeView.setState();" tooltiptext="Set Alarm State" />
                 <toolbarbutton image="images/details.png" oncommand="ew_MetricAlarmsTreeView.displayHistory();" tooltiptext="Display Alarm History" />
                 <label value=" | " />
-                <menulist id="ew.metrics.statistics" >
+                <menulist id="ew.alarms.statistics" >
                 <menupopup>
                     <menuitem label="Average" value="Average" selected="true" />
                     <menuitem label="Sum" value="Sum"/>
@@ -34,21 +34,21 @@
                     <menuitem label="Minimum" value="Minimum"/>
                 </menupopup>
                 </menulist>
-                <menulist id="ew.metrics.period">
+                <menulist id="ew.alarms.period">
                 <menupopup>
-                  <menuitem label="1 Minute" value="60" selected="true" />
-                  <menuitem label="5 Minutes" value="300"/>
+                  <menuitem label="1 Minute" value="60" />
+                  <menuitem label="5 Minutes" value="300"  selected="true" />
                   <menuitem label="15 Minutes" value="900"/>
                   <menuitem label="1 Hour" value="3600"/>
                   <menuitem label="6 Hours" value="21600"/>
                   <menuitem label="1 Day" value="86400"/>
                 </menupopup>
                 </menulist>
-                <menulist id="ew.metrics.time">
+                <menulist id="ew.alarms.time">
                 <menupopup>
-                  <menuitem label="15 Minutes" value="900" selected="true" />
+                  <menuitem label="15 Minutes" value="900" />
                   <menuitem label="30 Minutes ago" value="1800" />
-                  <menuitem label="1 Hour ago" value="3600" />
+                  <menuitem label="1 Hour ago" value="3600"  selected="true" />
                   <menuitem label="3 Hours ago" value="10800"/>
                   <menuitem label="6 Hours ago" value="21600"/>
                   <menuitem label="1 Day" value="86400"/>

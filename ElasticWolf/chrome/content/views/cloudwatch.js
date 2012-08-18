@@ -46,12 +46,7 @@ var ew_MetricsTreeView = {
         var statistics = $('ew.metrics.statistics').value;
         var period = $('ew.metrics.period').value;
         var interval = parseInt($('ew.metrics.time').value);
-        var end = new Date();
-        var start = new Date(end.getTime() - interval * 1000);
-
-        this.core.api.getMetricStatistics(item.name, item.namespace, start.toISOString(), end.toISOString(), period, statistics, null, item.dimensions, function(list) {
-            openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, title: item.name, statistics: statistics, interval: interval, start: start, end: end, list: list });
-        });
+        openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.name, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
 };
@@ -64,15 +59,10 @@ var ew_MetricAlarmsTreeView = {
         var item = this.getSelected();
         if (!item) return;
 
-        var statistics = $('ew.metrics.statistics').value;
-        var period = $('ew.metrics.period').value;
-        var interval = parseInt($('ew.metrics.time').value);
-        var end = new Date();
-        var start = new Date(end.getTime() - interval * 1000);
-
-        this.core.api.getMetricStatistics(item.metricName, item.namespace, start.toISOString(), end.toISOString(), period, statistics, null, item.dimensions, function(list) {
-            openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, title: item.name + " " + item.metricName, statistics: statistics, interval: interval, start: start, end: end, list: list });
-        });
+        var statistics = $('ew.alarms.statistics').value;
+        var period = $('ew.alarms.period').value;
+        var interval = parseInt($('ew.alarms.time').value);
+        openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.metricName, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
     menuChanged : function(event)

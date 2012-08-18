@@ -570,14 +570,14 @@ var ew_api = {
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
             // Call error handler if passed as an object
-            if (callback) {
+            if (callback && !rc.skipCallback) {
                 if (typeof callback == "object" && callback.error) {
                     callback.error(rc);
                 }
             }
         } else {
             // Pass the result and the whole response object if it is null
-            if (callback) {
+            if (callback  && !rc.skipCallback) {
                 if (typeof callback == "function") {
                     callback(rc.result, rc);
                 } else
@@ -638,6 +638,7 @@ var ew_api = {
                  method: handlerMethod,
                  isSync: isSync,
                  hasErrors: false,
+                 skipCallback: false,
                  params: params || {},
                  callback: callback,
                  result: null,
@@ -685,13 +686,16 @@ var ew_api = {
         var me = this;
         var xmlDoc = response.responseXML;
         var nextToken = getNodeValue(xmlDoc, "NextToken");
+        // Collected result will be returned by the last call
         if (nextToken) {
             var params = cloneObject(response.params);
             setParam(params, "NextToken", nextToken);
             setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
+            response.skipCallback = true;
+            return;
         }
         this.core.appendModel(model, list, getParam(response.params, "NextToken") == "" ? 1 : 0);
-        return this.core.getModel(model);
+        response.result = this.core.getModel(model);
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -4149,11 +4153,16 @@ var ew_api = {
         this.queryCloudWatch("SetAlarmState", params, this, false, "onComplete", callback);
     },
 
-    listMetrics : function(name, namespace, callback)
+    listMetrics : function(name, namespace, dimensions, callback)
     {
         var params = [];
         if (name) params.push(["MetricName", name])
         if (namespace) params.push(["Namespace", namespace])
+        if (dimensions instanceof Array)
+        for (var i = 0; i < dimensions.length; i++) {
+            params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
+            params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+        }
         this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", callback);
     },
 
@@ -4168,7 +4177,7 @@ var ew_api = {
             var dims = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
             list.push(new Metric(name, nm, dims));
         }
-        response.result = this.getNext(response, this.queryCloudWatch, list, "metrics");
+        this.getNext(response, this.queryCloudWatch, list, "metrics");
     },
 
     getMetricStatistics : function(name, namespace, start, end, period, statistics, unit, dimensions, callback)
