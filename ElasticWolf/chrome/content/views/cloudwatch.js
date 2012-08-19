@@ -216,4 +216,30 @@ var ew_MetricAlarmsTreeView = {
     },
 };
 
+var ew_GraphsView = {
+    rowCount: 0,
 
+    activate: function() {
+        this.refresh();
+    },
+
+    refresh: function() {
+//        <hbox style="padding:5px;" pack="center" >
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        <spacer flex="1"/>
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        <spacer flex="1"/>
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        </hbox>
+
+    },
+
+    deactivate: function() {
+    },
+
+    display: function() {
+    },
+
+    invalidate: function() {
+    },
+};

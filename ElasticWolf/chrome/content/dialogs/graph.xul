@@ -16,16 +16,16 @@
     $('ew.statistics').value = this.rc.statistics;
     $('ew.period').value = this.rc.period;
     $('ew.interval').value = this.rc.interval;
-    show();
+    show(this.rc);
   }
 
-  function render(list) {
+  function render(rc, list) {
     if (!list || !list.length) return;
-    graph = new Graph(this.rc.name + " : " + list[0].unit, "canvas", "line");
-    graph.options.xlabel = 'Timeframe: ' + this.rc.start.strftime('%Y-%m-%d %H:%M') + " to " + this.rc.end.strftime('%Y-%m-%d %H:%M');
+    graph = new Graph(rc.name + " : " + list[0].unit, "canvas", "line");
+    graph.options.xlabel = 'Timeframe: ' + rc.start.strftime('%Y-%m-%d %H:%M') + " to " + rc.end.strftime('%Y-%m-%d %H:%M');
 
     for (var i = 0; i < list.length; i++) {
-        var label = i == 0 || i == list.length-1 || i == Math.floor(list.length*0.25) || i == Math.floor(list.length*0.75) ? list[i].timestamp.strftime(this.rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M') : "";
+        var label = i == 0 || i == list.length-1 || i == Math.floor(list.length*0.25) || i == Math.floor(list.length*0.75) ? list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M') : "";
         graph.addPoint(i, list[i].value, label);
     }
     jsgraph_leftSpace = 50;
@@ -35,15 +35,15 @@
     jsgraph_begin();
   }
 
-  function show() {
-    this.rc.statistics = $('ew.statistics').value;
-    this.rc.period = $('ew.period').value;
-    this.rc.interval = parseInt($('ew.interval').value);
-    this.rc.end = new Date();
-    this.rc.start = new Date(this.rc.end.getTime() - this.rc.interval * 1000);
+  function show(rc) {
+    rc.statistics = $('ew.statistics').value;
+    rc.period = $('ew.period').value;
+    rc.interval = parseInt($('ew.interval').value);
+    rc.end = new Date();
+    rc.start = new Date(rc.end.getTime() - rc.interval * 1000);
 
-    this.rc.core.api.getMetricStatistics(this.rc.name, this.rc.namespace, this.rc.start.toISOString(), this.rc.end.toISOString(), this.rc.period, this.rc.statistics, null, this.rc.dimensions, function(list) {
-       render(list)
+    rc.core.api.getMetricStatistics(rc.name, rc.namespace, rc.start.toISOString(), rc.end.toISOString(), rc.period, rc.statistics, null, rc.dimensions, function(list) {
+       render(rc, list)
     });
   }
 ]]>
@@ -61,12 +61,12 @@
     </menulist>
     <menulist id="ew.period">
       <menupopup>
-        <menuitem label="1 Minute" value="60"/>
-        <menuitem label="5 Minutes" value="300" />
-        <menuitem label="15 Minutes" value="900"/>
-        <menuitem label="1 Hour" value="3600"/>
-        <menuitem label="6 Hours" value="21600"/>
-        <menuitem label="1 Day" value="86400"/>
+        <menuitem label="1 Minute Periods" value="60"/>
+        <menuitem label="5 Minutes Periods" value="300" />
+        <menuitem label="15 Minutes Periods" value="900"/>
+        <menuitem label="1 Hour Periods" value="3600"/>
+        <menuitem label="6 Hours Periods" value="21600"/>
+        <menuitem label="1 Day Periods" value="86400"/>
       </menupopup>
     </menulist>
     <menulist id="ew.interval">
@@ -82,7 +82,7 @@
         <menuitem label="2 Weeks ago" value="1209600"/>
       </menupopup>
     </menulist>
-    <toolbarbutton image="../images/chart.png" oncommand="show();" tooltiptext="Show metric graph" />
+    <toolbarbutton image="../images/chart.png" oncommand="show(rc);" tooltiptext="Show metric graph" />
  </hbox>
  <box flex="1">
    <html:canvas id="canvas" width="600" height="400" style="background-color:#fafafa; border:1px solid black;"></html:canvas>

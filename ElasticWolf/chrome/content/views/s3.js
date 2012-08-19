@@ -152,6 +152,7 @@ var ew_S3BucketsTreeView = {
         $("ew.s3Buckets.createFile").disabled = !this.path.length;
         $("ew.s3Buckets.upload").disabled = !this.path.length;
         $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
+        $("ew.s3Buckets.proto").disabled = !item || !this.isFolder(item);
     },
 
     back: function(event)
@@ -380,6 +381,15 @@ var ew_S3BucketsTreeView = {
                 me.core.api.deleteS3BucketWebsite(item.name, function() { me.selectionChanged(); })
             }
         });
+    },
+
+    setProto: function()
+    {
+        var item = this.getSelected()
+        if (!item || !this.isFolder(item)) return;
+        var proto = this.core.getS3Protocol(this.core.api.region, item.name);
+        if (!confirm('Use ' + (proto == 'http://' ? 'HTTPS' : '"HTTP') + ' for access to bucket ' + item.name + '?')) return;
+        this.core.setS3Protocol(this.core.api.region, item.name, proto == 'http://' ? 'https://' : '');
     },
 
 };
