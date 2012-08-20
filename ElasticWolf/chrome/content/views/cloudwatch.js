@@ -43,14 +43,16 @@ var ew_MetricsTreeView = {
         TreeView.modelChanged.call(this);
 
         // Show only live objects in the graphs page
+        var map = {};
         var dm = $('ew.graphs.dimensions');
         dm.removeAllItems();
         dm.appendItem('Choose Metrics', '')
         dm.selectedIndex = 0;
         var list = this.core.getModel('metrics');
         for (var i in list) {
-            if (list[i].info) {
+            if (list[i].info && !map[list[i].info]) {
                 dm.appendItem(list[i].info, list[i].dimensions);
+                map[list[i].info] = true;
             }
         }
     },
@@ -233,62 +235,99 @@ var ew_MetricAlarmsTreeView = {
 };
 
 var ew_GraphsView = {
-    model: [ "metrics", "alarms", "instances", "volumes"],
+    dimensions: [],
+    metrics: [],
     rowCount: 0,
 
-    activate: function() {
-        jsgraph_leftSpace = 50;
-        jsgraph_rightSpace = 50;
-        jsgraph_bottomSpace = 25;
-        jsgraph_heightSpacing = 25;
+    activate: function()
+    {
+        jsgraph_leftSpace = 35;
+        jsgraph_rightSpace = 20;
+        jsgraph_fontsize = 9;
         // If called with this view active, refresh all models
+        this.refresh()
+    },
+
+    refresh: function()
+    {
         if (this.core.getModel('metrics') == null) {
             ew_MetricsTreeView.refresh();
         }
     },
 
-    deactivate: function() {
+    deactivate: function()
+    {
     },
 
-    display: function() {
+    display: function()
+    {
     },
 
-    invalidate: function() {
+    invalidate: function()
+    {
     },
 
-    refresh: function() {
+    onChange: function()
+    {
+        this.setDimensions($('ew.graphs.dimensions').value);
+    },
+
+    setDimensions: function(value)
+    {
         var me = this;
-        var dm = $('ew.graphs.dimensions').value;
-        if (!dm) return;
-        dm = this.core.parseTags(dm);
-        if (!dm.length) return;
+        var page = $('ew.graphs.page');
+        while (page.firstChild) {
+            page.removeChild(page.firstChild);
+        }
+        this.metrics = [];
+        this.dimensions = this.core.parseTags(value);
+        if (!this.dimensions.length) return;
 
-        var statistics = $('ew.graphs.statistics').value;
-        var period = $('ew.graphs.period').value;
-        var interval = parseInt($('ew.graphs.interval').value);
+        var page = $('ew.graphs.page');
+        this.core.api.listMetrics(null, null, this.dimensions, function(list) {
+            me.metrics = list;
+            for (var i = 0; i < list.length; i++) {
+                if (i % 3 == 0) {
+                    hbox = document.createElement('hbox');
+                    hbox.setAttribute('pack', 'center');
+                    hbox.setAttribute('style', 'padding:5px;');
+                    page.appendChild(hbox);
+                }
+                var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+                canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
+                canvas.setAttribute('class', 'graph');
+                hbox.appendChild(canvas);
+                var spacer = document.createElement('spacer');
+                spacer.setAttribute('flex', '1');
+                hbox.appendChild(spacer);
+            }
+        });
+    },
 
-//        <hbox style="padding:5px;" pack="center" >
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        <spacer flex="1"/>
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        <spacer flex="1"/>
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        </hbox>
-
+    show: function()
+    {
+        for (var i = 0; i < this.metrics.length; i++) {
+            this.render(this.metrics[i].name, this.metrics[i].namespace);
+        }
     },
 
     // Render graph into canvas by id for specific metric and dimensions
-    render: function(id, name, namespace, dimensions, statistics, period, interval)
+    render: function(name, namespace)
     {
+        var id = 'ew.graphs.' + name;
+        var statistics = $('ew.graphs.statistics').value;
+        var period = $('ew.graphs.period').value;
+        var interval = parseInt($('ew.graphs.interval').value);
         var end = new Date();
         var start = new Date(end.getTime() - interval * 1000);
-        this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, dimensions, function(list) {
+
+        this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, this.dimensions, function(list) {
             if (!list || !list.length) return;
             graph = new Graph(name + " : " + list[0].unit, id, "line");
-            graph.options.xlabel = 'Timeframe: ' + start.strftime('%Y-%m-%d %H:%M') + " to " + end.strftime('%Y-%m-%d %H:%M');
             for (var i = 0; i < list.length; i++) {
                 graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
             }
+            graph.draw();
         });
     },
 

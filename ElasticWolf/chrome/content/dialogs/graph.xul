@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
 
 <window xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -29,7 +30,6 @@
     jsgraph_leftSpace = 50;
     jsgraph_rightSpace = 50;
     jsgraph_bottomSpace = 25;
-    jsgraph_heightSpacing = 25;
     jsgraph_begin();
   }
 
@@ -46,7 +46,7 @@
 ]]>
 </script>
 <vbox flex="1">
- <hbox flex="1" pack="center">
+ <hbox pack="center">
     <menulist id="ew.statistics" >
       <menupopup>
         <menuitem label="Average" value="Average" />
@@ -82,7 +82,7 @@
     <toolbarbutton image="../images/chart.png" oncommand="show(rc);" tooltiptext="Show metric graph" />
  </hbox>
  <box flex="1">
-   <html:canvas id="canvas" width="600" height="400" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+   <html:canvas id="canvas" width="600" height="400" style="background-color:#fafafa;border:1px solid black;"></html:canvas>
  </box>
 </vbox>
 </window>

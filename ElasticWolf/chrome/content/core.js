@@ -1681,7 +1681,7 @@ var ew_core = {
                 this.api.describeAlarms();
                 break;
             case "metrics":
-                this.api.listMetrics();
+                this.api.listMetrics(null, null, null, function(list) { me.setModel(name, list); });
                 break;
             case "vmfas":
                 this.api.listVirtualMFADevices();

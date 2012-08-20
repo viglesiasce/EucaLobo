@@ -7,7 +7,7 @@
   <groupbox orient="vertical" flex="1" >
    <caption label="Cloud Watch Graphs" />
    <toolbar style="padding: 0px 3px; -moz-box-align: center">
-    <menulist id="ew.graphs.dimensions" style="max-width:200px;" crop="end" sizetopopup="none" />
+    <menulist id="ew.graphs.dimensions" style="max-width:200px;" crop="end" sizetopopup="none" oncommand="ew_GraphsView.onChange()"/>
     <menulist id="ew.graphs.statistics" >
       <menupopup>
         <menuitem label="Average" value="Average" />
@@ -40,10 +40,10 @@
         <menuitem label="2 Weeks ago" value="1209600"/>
       </menupopup>
     </menulist>
-    <toolbarbutton image="images/chart.png" oncommand="ew_GraphView.refresh();" tooltiptext="Show metric graph" />
+    <toolbarbutton image="images/chart.png" oncommand="ew_GraphsView.show();" tooltiptext="Show metric graph" />
   </toolbar>
 
-  <scrollbox id="box" flex="1" orient="vertical" style="overflow:auto;" />
+  <scrollbox id="ew.graphs.page" flex="1" orient="vertical" style="overflow:auto;" />
 
   </groupbox>
   </tabpanel>

@@ -18,6 +18,7 @@ var ew_api = {
 
     core: null,
     timers: {},
+    cache: {},
     urls: {},
     versions: {},
     region: "",
@@ -685,17 +686,22 @@ var ew_api = {
     {
         var me = this;
         var xmlDoc = response.responseXML;
+
+        // Collect all items into temporary cache list
+        if (!this.cache[model]) this.cache[model] = [];
+        this.cache[model] = this.cache[model].concat(list);
+
+        // Collected result will be returned by the last call only
         var nextToken = getNodeValue(xmlDoc, "NextToken");
-        // Collected result will be returned by the last call
         if (nextToken) {
             var params = cloneObject(response.params);
             setParam(params, "NextToken", nextToken);
             setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
             response.skipCallback = true;
-            return;
+        } else {
+            response.result = this.cache[model];
+            this.cache[model] = null;
         }
-        this.core.appendModel(model, list, getParam(response.params, "NextToken") == "" ? 1 : 0);
-        response.result = this.core.getModel(model);
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -4158,10 +4164,11 @@ var ew_api = {
         var params = [];
         if (name) params.push(["MetricName", name])
         if (namespace) params.push(["Namespace", namespace])
-        if (dimensions instanceof Array)
-        for (var i = 0; i < dimensions.length; i++) {
-            params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
-            params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+        if (dimensions instanceof Array) {
+            for (var i = 0; i < dimensions.length; i++) {
+                params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
+                params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+            }
         }
         this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", callback);
     },

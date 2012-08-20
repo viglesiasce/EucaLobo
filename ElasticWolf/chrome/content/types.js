@@ -35,7 +35,7 @@ var TreeView = {
     },
     getModel: function()
     {
-        return this.model ? this.core.getModel(this.getModelName(this.model)) : null;
+        return this.model ? this.core.getModel(this.getModelName()) : null;
     },
     getData: function()
     {

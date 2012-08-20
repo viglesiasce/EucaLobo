@@ -25,15 +25,15 @@ Copyright (c) 2010 Daniel 'Haribo' Evans
 
 var jsgraph_graphs = new Array();
 var jsgraph_heightSpacing = 10;
-var jsgraph_bottomSpace = 13;
+var jsgraph_bottomSpace = 0;
 var jsgraph_leftSpace = 30;
-var jsgraph_rightSpace = 6;
+var jsgraph_rightSpace = 10;
 var jsgraph_textcol = "rgb(0,0,0)";
 var jsgraph_linecol = "rgb(240,240,240)";
 var jsgraph_keyposition = "right";
 var jsgraph_barwidth = 1;
-var jsgraph_showtime = 1000;
-var jsgraph_font = "11px sans-serif";
+var jsgraph_fontname = "sans-serif";
+var jsgraph_fontsize = 10;
 
 // Shallow merge functon
 function jsgraph_merge(a, b)
@@ -66,17 +66,28 @@ function Series(name, colour)
     this.points = new Array();
 }
 
-function Graph(title, canvasN, type)
+function Graph(title, canvasId, type)
 {
-    this.defaultOptions = { "type" : "bar", "barOverlap" : false, "barWidth" : 1, "vstep" : "auto", "vstart" : "auto", "vfinish" : "auto", "hstart" : "auto", "hfinish" : "auto", "data" : null, "title" : "", "xlabel" : "", "fillColor" : "", "canvasName" : null }
+    this.defaultOptions = { "type" : "bar",
+                            "barOverlap" : false,
+                            "barWidth" : 1,
+                            "vstep" : "auto",
+                            "vstart" : "auto",
+                            "vfinish" : "auto",
+                            "hstart" : "auto",
+                            "hfinish" : "auto",
+                            "data" : null,
+                            "title" : "",
+                            "xlabel" : "",
+                            "fillColor" : "",
+                            "canvasName" : null }
 
-    if (typeof (title) == 'object' && title != null) {
+    if (typeof title == 'object') {
         this.options = jsgraph_merge(this.defaultOptions, title);
-
     } else {
         this.options = this.defaultOptions;
         this.options.title = title;
-        this.options.canvasName = canvasN;
+        this.options.canvasName = canvasId;
         this.options.type = type;
     }
 
@@ -192,21 +203,20 @@ function Graph(title, canvasN, type)
             canvas.width = canvas.width;
         }
 
-        cont.font = jsgraph_font;
+        cont.font = jsgraph_fontsize + "px " + jsgraph_fontname;
         cont.textBaseline = "top";
 
         var vRange = this.vrange();
-        var bottomSpace = jsgraph_bottomSpace;
-
+        var bottomSpace = jsgraph_bottomSpace || (jsgraph_fontsize + 4);
         if (this.options.xlabel != "") {
-            bottomSpace += 13;
+            bottomSpace += jsgraph_fontsize + 4;
         }
 
         var vScale = (canvas.height - 18 - bottomSpace) / this.vrange();
         var vMin = this.vmin();
         var leftSpace = jsgraph_leftSpace;
         var rightSpace = jsgraph_rightSpace;
-        var spacing = jsgraph_heightSpacing;
+        var spacing = jsgraph_heightSpacing || (jsgraph_fontsize + 4);
 
         if (this.keypos != '' && this.lastSeries.name != '') {
             cont.textBaseline = "top";
@@ -255,8 +265,11 @@ function Graph(title, canvasN, type)
             }
         }
 
+        var pos = 0;
         for (var i = vMin; i <= vMin + vRange; i += spacing) {
             var y = (canvas.height - bottomSpace) - (i) * vScale + (vMin * vScale);
+            if (pos > 0 && pos - y <= jsgraph_fontsize + 4) continue;
+            pos = y;
             // Value label
             cont.textBaseline = "bottom";
             cont.textAlign = "right";

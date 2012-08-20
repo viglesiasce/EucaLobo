@@ -172,3 +172,10 @@ groupbox caption {
 menupopup > menuitem, menupopup > menulist {
     max-width: none;
 }
+
+.graph {
+    width:280px;
+    height:240px;
+    background-color:#fafafa;
+    border:1px solid black;
+}
