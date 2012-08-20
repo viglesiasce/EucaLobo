@@ -23,10 +23,8 @@
     if (!list || !list.length) return;
     graph = new Graph(rc.name + " : " + list[0].unit, "canvas", "line");
     graph.options.xlabel = 'Timeframe: ' + rc.start.strftime('%Y-%m-%d %H:%M') + " to " + rc.end.strftime('%Y-%m-%d %H:%M');
-
     for (var i = 0; i < list.length; i++) {
-        var label = i == 0 || i == list.length-1 || i == Math.floor(list.length*0.25) || i == Math.floor(list.length*0.75) ? list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M') : "";
-        graph.addPoint(i, list[i].value, label);
+        graph.addPoint(i, list[i].value, list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
     }
     jsgraph_leftSpace = 50;
     jsgraph_rightSpace = 50;
@@ -41,7 +39,6 @@
     rc.interval = parseInt($('ew.interval').value);
     rc.end = new Date();
     rc.start = new Date(rc.end.getTime() - rc.interval * 1000);
-
     rc.core.api.getMetricStatistics(rc.name, rc.namespace, rc.start.toISOString(), rc.end.toISOString(), rc.period, rc.statistics, null, rc.dimensions, function(list) {
        render(rc, list)
     });

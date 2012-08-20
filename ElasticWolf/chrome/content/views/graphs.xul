@@ -43,9 +43,7 @@
     <toolbarbutton image="images/chart.png" oncommand="ew_GraphView.refresh();" tooltiptext="Show metric graph" />
   </toolbar>
 
-  <scrollbox id="box" flex="1" orient="vertical" style="overflow:auto;" >
-
-  </scrollbox>
+  <scrollbox id="box" flex="1" orient="vertical" style="overflow:auto;" />
 
   </groupbox>
   </tabpanel>

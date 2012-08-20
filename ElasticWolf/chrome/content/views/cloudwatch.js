@@ -26,7 +26,6 @@ var ew_MetricsTreeView = {
     filter: function(list)
     {
         var nlist = [];
-
         var nm = $('ew.metrics.namespace').value;
         for (var i in list) {
             if (nm && list[i].namespace != nm) continue;
@@ -37,6 +36,23 @@ var ew_MetricsTreeView = {
             nlist.push(list[i])
         }
         return TreeView.filter.call(this, nlist);
+    },
+
+    modelChanged : function(name)
+    {
+        TreeView.modelChanged.call(this);
+
+        // Show only live objects in the graphs page
+        var dm = $('ew.graphs.dimensions');
+        dm.removeAllItems();
+        dm.appendItem('Choose Metrics', '')
+        dm.selectedIndex = 0;
+        var list = this.core.getModel('metrics');
+        for (var i in list) {
+            if (list[i].info) {
+                dm.appendItem(list[i].info, list[i].dimensions);
+            }
+        }
     },
 
     chart: function() {
@@ -217,21 +233,18 @@ var ew_MetricAlarmsTreeView = {
 };
 
 var ew_GraphsView = {
+    model: [ "metrics", "alarms", "instances", "volumes"],
     rowCount: 0,
 
     activate: function() {
-        this.refresh();
-    },
-
-    refresh: function() {
-//        <hbox style="padding:5px;" pack="center" >
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        <spacer flex="1"/>
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        <spacer flex="1"/>
-//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
-//        </hbox>
-
+        jsgraph_leftSpace = 50;
+        jsgraph_rightSpace = 50;
+        jsgraph_bottomSpace = 25;
+        jsgraph_heightSpacing = 25;
+        // If called with this view active, refresh all models
+        if (this.core.getModel('metrics') == null) {
+            ew_MetricsTreeView.refresh();
+        }
     },
 
     deactivate: function() {
@@ -242,4 +255,41 @@ var ew_GraphsView = {
 
     invalidate: function() {
     },
+
+    refresh: function() {
+        var me = this;
+        var dm = $('ew.graphs.dimensions').value;
+        if (!dm) return;
+        dm = this.core.parseTags(dm);
+        if (!dm.length) return;
+
+        var statistics = $('ew.graphs.statistics').value;
+        var period = $('ew.graphs.period').value;
+        var interval = parseInt($('ew.graphs.interval').value);
+
+//        <hbox style="padding:5px;" pack="center" >
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        <spacer flex="1"/>
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        <spacer flex="1"/>
+//        <html:canvas id="canvas" width="280" height="240" style="background-color:#fafafa; border:1px solid black;"></html:canvas>
+//        </hbox>
+
+    },
+
+    // Render graph into canvas by id for specific metric and dimensions
+    render: function(id, name, namespace, dimensions, statistics, period, interval)
+    {
+        var end = new Date();
+        var start = new Date(end.getTime() - interval * 1000);
+        this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, dimensions, function(list) {
+            if (!list || !list.length) return;
+            graph = new Graph(name + " : " + list[0].unit, id, "line");
+            graph.options.xlabel = 'Timeframe: ' + start.strftime('%Y-%m-%d %H:%M') + " to " + end.strftime('%Y-%m-%d %H:%M');
+            for (var i = 0; i < list.length; i++) {
+                graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
+            }
+        });
+    },
+
 };

@@ -53,6 +53,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/types.js" />
   <script type="application/x-javascript" src="chrome://ew/content/core.js" />
   <script type="application/x-javascript" src="chrome://ew/content/api.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/jsgraph.js" />
 
   <script type="application/x-javascript" src="chrome://ew/content/views/r53.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/rds.js" />

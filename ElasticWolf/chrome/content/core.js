@@ -1175,7 +1175,7 @@ var ew_core = {
                 var value = (pair[1] || "").trim();
                 value = value.replace(/,\s*$/, '').trim();
                 value = value.replace(/^"/, '').replace(/"$/, '').replace(/""/, '"');
-                if (key.length == 0 || value.length == 0) continue;
+                if (key.length == 0) continue;
                 list.push(new Tag(key, value));
             }
         } else

@@ -36,7 +36,20 @@ var jsgraph_showtime = 1000;
 var jsgraph_font = "11px sans-serif";
 
 // Shallow merge functon
-function jsg_shallow_merge( a, b ) { var c = {}; for( x in a ) { c[x] = a[x] } for( x in b ) { c[x] = b[x] } return c; }
+function jsgraph_merge(a, b)
+{
+    var c = {};
+    for ( x in a ) c[x] = a[x];
+    for ( x in b ) c[x] = b[x];
+    return c;
+}
+
+function jsgraph_begin()
+{
+    for (var g = 0; g < jsgraph_graphs.length; g++) {
+        jsgraph_graphs[g].draw();
+    }
+}
 
 function Point(x, y, colour, label)
 {
@@ -58,7 +71,7 @@ function Graph(title, canvasN, type)
     this.defaultOptions = { "type" : "bar", "barOverlap" : false, "barWidth" : 1, "vstep" : "auto", "vstart" : "auto", "vfinish" : "auto", "hstart" : "auto", "hfinish" : "auto", "data" : null, "title" : "", "xlabel" : "", "fillColor" : "", "canvasName" : null }
 
     if (typeof (title) == 'object' && title != null) {
-        this.options = jsg_shallow_merge(this.defaultOptions, title);
+        this.options = jsgraph_merge(this.defaultOptions, title);
 
     } else {
         this.options = this.defaultOptions;
@@ -193,10 +206,11 @@ function Graph(title, canvasN, type)
         var vMin = this.vmin();
         var leftSpace = jsgraph_leftSpace;
         var rightSpace = jsgraph_rightSpace;
+        var spacing = jsgraph_heightSpacing;
 
         if (this.keypos != '' && this.lastSeries.name != '') {
             cont.textBaseline = "top";
-            //Find the widest series name
+            // Find the widest series name
             var widest = 1;
             for (var k = 0; k < this.series.length; k++) {
                 if (cont.measureText(this.series[k].name).width > widest) widest = cont.measureText(this.series[k].name).width;
@@ -216,19 +230,15 @@ function Graph(title, canvasN, type)
         }
 
         if (leftSpace < cont.measureText(vMin + vRange).width) leftSpace = cont.measureText(vMin + vRange).width + 2;
-
         var hScale = (canvas.width - leftSpace - rightSpace) / (this.range() + (this.options.type == "bar" ? 1 : 0));
         var hMin = this.min();
-        var spacing = jsgraph_heightSpacing;
 
-        //Draw title & Labels
+        // Draw title & Labels
         cont.textAlign = "center";
         cont.fillStyle = jsgraph_textcol;
         cont.fillText(this.options.title, (canvas.width - rightSpace - leftSpace) / 2, 1);
-
         cont.textBaseline = "bottom";
         cont.fillText(this.options.xlabel, (canvas.width - rightSpace - leftSpace) / 2, canvas.height - 2);
-
         cont.textAlign = "left";
 
         if (this.options.vstep != "auto" && !isNaN(this.options.vstep)) {
@@ -247,19 +257,46 @@ function Graph(title, canvasN, type)
 
         for (var i = vMin; i <= vMin + vRange; i += spacing) {
             var y = (canvas.height - bottomSpace) - (i) * vScale + (vMin * vScale);
+            // Value label
             cont.textBaseline = "bottom";
             cont.textAlign = "right";
             cont.fillStyle = jsgraph_textcol;
             cont.fillText(i + '', leftSpace - 2, y);
             cont.fillStyle = jsgraph_linecol;
-            if (i != vMin && i != vMin + vRange) {
-                cont.strokeStyle = "rgb(220,220,220)";
-                cont.beginPath();
-                cont.moveTo(leftSpace, y);
-                cont.lineTo(canvas.width - rightSpace, y);
-                cont.stroke();
-                cont.strokeStyle = "rgb(0,0,0)";
-            }
+            // Horizontal lines
+            if (i == vMin || i == vMin + vRange) continue;
+            cont.strokeStyle = "rgb(220,220,220)";
+            cont.beginPath();
+            cont.moveTo(leftSpace, y);
+            cont.lineTo(canvas.width - rightSpace, y);
+            cont.stroke();
+            cont.strokeStyle = "rgb(0,0,0)";
+        }
+
+        // Vertical lines with labels
+        var pos = 0;
+        for (var p = 0; p < this.series[0].points.length; p++) {
+            var curr = this.series[0].points[p];
+            if (!curr.label) continue;
+            var y = canvas.height - bottomSpace;
+            var x = hScale * (curr.x - hMin) + leftSpace;
+            var tw = cont.measureText(curr.label).width;
+            if (pos > 0 && x - pos <= tw + 13) continue;
+            pos = x;
+            // Time label
+            cont.textBaseline = "top";
+            cont.textAlign = "center";
+            cont.fillStyle = jsgraph_textcol;
+            cont.fillText(curr.label, x, y + 3);
+            cont.fillStyle = jsgraph_linecol;
+            // Vertical line
+            if (x <= leftSpace || x >= canvas.width - leftSpace - rightSpace) continue;
+            cont.strokeStyle = "rgb(220,220,220)";
+            cont.beginPath();
+            cont.moveTo(x, y);
+            cont.lineTo(x, 18);
+            cont.stroke();
+            cont.strokeStyle = "rgb(0,0,0)";
         }
 
         for (var s = 0; s < this.series.length; s++) {
@@ -267,23 +304,25 @@ function Graph(title, canvasN, type)
             cont.beginPath();
             for (var p = 0; p < series.points.length; p++) {
                 var curr = series.points[p];
-                //Move point into graph-space
+                // Move point into graph-space
                 var height = canvas.height;
                 var y = (canvas.height - bottomSpace) - (curr.y) * vScale + (vMin * vScale);
                 var x = hScale * (curr.x - hMin) + leftSpace;
 
-                if (this.options.type == "line" || this.options.type == "scatter") {
+                switch (this.options.type) {
+                case "line":
+                case "scatter":
                     if (this.options.type == "line") {
-                        //Main line
+                        // Main line
                         cont.lineTo(x, y);
                     }
-                    //Draw anchor for this point
+                    // Draw anchor for this point
                     cont.fillStyle = curr.colour;
                     cont.fillRect(x - 2, y - 2, 4, 4);
                     cont.fillStyle = "rgb(0,0,0)";
-                }
+                    break;
 
-                if (this.options.type == "bar") {
+                case "bar":
                     cont.fillStyle = curr.colour;
                     var barwidth = hScale;
                     if (this.options.barWidth != null && this.options.barWidth <= 1) {
@@ -294,36 +333,14 @@ function Graph(title, canvasN, type)
                     var seriesWidth = (!this.options.barOverlap ? barwidth : 0);
                     cont.fillRect((x + baroffs) + seriesWidth * s, y, barwidth, (curr.y * vScale));
                     cont.fillStyle = "rgb(0,0,0)";
+                    break;
                 }
-                //Add label for this point
-                cont.textBaseline = "top";
-                cont.textAlign = "center";
-                cont.fillStyle = jsgraph_textcol;
-                if (curr.label == null)
-                    cont.fillText(curr.x, x, canvas.height - bottomSpace + 3);
-                else
-                    cont.fillText(curr.label, x, canvas.height - bottomSpace + 3);
-                cont.fillStyle = jsgraph_linecol;
             }
             cont.stroke();
         }
 
-        //Draw border of graph
+        // Draw border of graph
         cont.strokeRect(leftSpace, 18, canvas.width - leftSpace - rightSpace, canvas.height - 18 - bottomSpace);
     }
-
-    //Add graph to jsgraph_graphs list
     jsgraph_graphs[jsgraph_graphs.length] = this;
-}
-
-function jsgraph_begin()
-{
-    draw();
-}
-
-function draw()
-{
-    for (var g = 0; g < jsgraph_graphs.length; g++) {
-        jsgraph_graphs[g].draw();
-    }
 }
