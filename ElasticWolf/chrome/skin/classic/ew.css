@@ -174,8 +174,6 @@ menupopup > menuitem, menupopup > menulist {
 }
 
 .graph {
-    width:280px;
-    height:240px;
     background-color:#fafafa;
     border:1px solid black;
 }

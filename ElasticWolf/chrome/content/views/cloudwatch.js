@@ -41,7 +41,11 @@ var ew_MetricsTreeView = {
     modelChanged : function(name)
     {
         TreeView.modelChanged.call(this);
+        this.fillMetrics();
+    },
 
+    fillMetrics: function()
+    {
         // Show only live objects in the graphs page
         var map = {};
         var dm = $('ew.graphs.dimensions');
@@ -241,9 +245,6 @@ var ew_GraphsView = {
 
     activate: function()
     {
-        jsgraph_leftSpace = 35;
-        jsgraph_rightSpace = 20;
-        jsgraph_fontsize = 9;
         // If called with this view active, refresh all models
         this.refresh()
     },
@@ -252,6 +253,9 @@ var ew_GraphsView = {
     {
         if (this.core.getModel('metrics') == null) {
             ew_MetricsTreeView.refresh();
+        }
+        if ($('ew.graphs.dimensions').itemCount == 0) {
+            ew_MetricsTreeView.fillMetrics();
         }
     },
 
@@ -289,16 +293,17 @@ var ew_GraphsView = {
             for (var i = 0; i < list.length; i++) {
                 if (i % 3 == 0) {
                     hbox = document.createElement('hbox');
-                    hbox.setAttribute('pack', 'center');
                     hbox.setAttribute('style', 'padding:5px;');
                     page.appendChild(hbox);
                 }
                 var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
                 canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
                 canvas.setAttribute('class', 'graph');
+                canvas.setAttribute('width', '280');
+                canvas.setAttribute('height', '240');
                 hbox.appendChild(canvas);
                 var spacer = document.createElement('spacer');
-                spacer.setAttribute('flex', '1');
+                spacer.setAttribute('width', '25px');
                 hbox.appendChild(spacer);
             }
         });
@@ -322,8 +327,8 @@ var ew_GraphsView = {
         var start = new Date(end.getTime() - interval * 1000);
 
         this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, this.dimensions, function(list) {
-            if (!list || !list.length) return;
-            graph = new Graph(name + " : " + list[0].unit, id, "line");
+            if (!list) list = [];
+            graph = new Graph(name + " : " + (list.length ? list[0].unit : "None"), id, "line");
             for (var i = 0; i < list.length; i++) {
                 graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
             }

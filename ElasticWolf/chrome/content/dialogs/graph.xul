@@ -27,10 +27,7 @@
     for (var i = 0; i < list.length; i++) {
         graph.addPoint(i, list[i].value, list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
     }
-    jsgraph_leftSpace = 50;
-    jsgraph_rightSpace = 50;
-    jsgraph_bottomSpace = 25;
-    jsgraph_begin();
+    graph.draw();
   }
 
   function show(rc) {
@@ -82,7 +79,7 @@
     <toolbarbutton image="../images/chart.png" oncommand="show(rc);" tooltiptext="Show metric graph" />
  </hbox>
  <box flex="1">
-   <html:canvas id="canvas" width="600" height="400" style="background-color:#fafafa;border:1px solid black;"></html:canvas>
+   <html:canvas id="canvas" width="600" height="400" class="graph"></html:canvas>
  </box>
 </vbox>
 </window>

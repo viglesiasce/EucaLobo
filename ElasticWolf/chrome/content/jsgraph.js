@@ -23,89 +23,64 @@ Copyright (c) 2010 Daniel 'Haribo' Evans
  OTHER DEALINGS IN THE SOFTWARE.
 */
 
-var jsgraph_graphs = new Array();
-var jsgraph_heightSpacing = 10;
-var jsgraph_bottomSpace = 0;
-var jsgraph_leftSpace = 30;
-var jsgraph_rightSpace = 10;
+var jsgraph_leftSpace = 35;
+var jsgraph_rightSpace = 35;
 var jsgraph_textcol = "rgb(0,0,0)";
 var jsgraph_linecol = "rgb(240,240,240)";
 var jsgraph_keyposition = "right";
 var jsgraph_barwidth = 1;
 var jsgraph_fontname = "sans-serif";
-var jsgraph_fontsize = 10;
+var jsgraph_fontsize = 11;
 
-// Shallow merge functon
-function jsgraph_merge(a, b)
-{
-    var c = {};
-    for ( x in a ) c[x] = a[x];
-    for ( x in b ) c[x] = b[x];
-    return c;
-}
-
-function jsgraph_begin()
-{
-    for (var g = 0; g < jsgraph_graphs.length; g++) {
-        jsgraph_graphs[g].draw();
-    }
-}
-
-function Point(x, y, colour, label)
+function Point(x, y, color, label)
 {
     this.x = x;
     this.y = y;
-    this.colour = colour;
+    this.color = color;
     this.label = label;
 }
 
-function Series(name, colour)
+function Series(name, color)
 {
     this.name = name;
-    this.colour = colour;
+    this.color = color;
     this.points = new Array();
 }
 
 function Graph(title, canvasId, type)
 {
-    this.defaultOptions = { "type" : "bar",
-                            "barOverlap" : false,
-                            "barWidth" : 1,
-                            "vstep" : "auto",
-                            "vstart" : "auto",
-                            "vfinish" : "auto",
-                            "hstart" : "auto",
-                            "hfinish" : "auto",
-                            "data" : null,
-                            "title" : "",
-                            "xlabel" : "",
-                            "fillColor" : "",
-                            "canvasName" : null }
+    this.options = { "type" : "line",
+                     "barOverlap" : false,
+                     "barWidth" : 1,
+                     "vstep" : "auto",
+                     "vstart" : "auto",
+                     "vfinish" : "auto",
+                     "hstart" : "auto",
+                     "hfinish" : "auto",
+                     "data" : null,
+                     "title" : "",
+                     "xlabel" : "",
+                     "fillColor" : "",
+                     "canvasName" : null }
 
-    if (typeof title == 'object') {
-        this.options = jsgraph_merge(this.defaultOptions, title);
-    } else {
-        this.options = this.defaultOptions;
-        this.options.title = title;
-        this.options.canvasName = canvasId;
-        this.options.type = type;
-    }
+    this.options.title = title;
+    this.options.canvasName = canvasId;
+    this.options.type = type;
 
     this.series = new Array();
     this.lastSeries = new Series('', 'blue');
     this.series[this.series.length] = this.lastSeries;
     this.keypos = jsgraph_keyposition;
-    this.start_time = new Date().getTime();
 
-    this.addSeries = function(name, colour)
+    this.addSeries = function(name, color)
     {
-        this.series[this.series.length] = new Series(name, colour);
+        this.series[this.series.length] = new Series(name, color);
         this.lastSeries = this.series[this.series.length - 1];
     }
 
     this.addPoint = function(x, y, label)
     {
-        this.lastSeries.points[this.lastSeries.points.length] = new Point(x, y, this.lastSeries.colour, label);
+        this.lastSeries.points[this.lastSeries.points.length] = new Point(x, y, this.lastSeries.color, label);
     }
 
     this.vmin = function()
@@ -191,99 +166,100 @@ function Graph(title, canvasId, type)
     this.draw = function()
     {
         var canvas = document.getElementById(this.options.canvasName);
-        var cont = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d');
 
         // Clear the canvas
         if (this.options.fillColor != "") {
-            var origFil = cont.fillStyle;
-            cont.fillStyle = this.options.fillColor;
-            cont.fillRect(0, 0, canvas.width, canvas.height);
-            cont.fillStyle = origFil;
+            var origFil = ctx.fillStyle;
+            ctx.fillStyle = this.options.fillColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = origFil;
         } else {
             canvas.width = canvas.width;
         }
 
-        cont.font = jsgraph_fontsize + "px " + jsgraph_fontname;
-        cont.textBaseline = "top";
-
-        var vRange = this.vrange();
-        var bottomSpace = jsgraph_bottomSpace || (jsgraph_fontsize + 4);
-        if (this.options.xlabel != "") {
-            bottomSpace += jsgraph_fontsize + 4;
-        }
-
-        var vScale = (canvas.height - 18 - bottomSpace) / this.vrange();
+        ctx.font = jsgraph_fontsize + "px " + jsgraph_fontname;
+        ctx.textBaseline = "top";
+        var hMin = this.min();
         var vMin = this.vmin();
+        var vRange = this.vrange();
+        var topSpace = jsgraph_fontsize * 1.5;
+        var bottomSpace = (jsgraph_fontsize + 4) * (this.options.xlabel ? 2 : 1);
         var leftSpace = jsgraph_leftSpace;
         var rightSpace = jsgraph_rightSpace;
-        var spacing = jsgraph_heightSpacing || (jsgraph_fontsize + 4);
 
         if (this.keypos != '' && this.lastSeries.name != '') {
-            cont.textBaseline = "top";
+            ctx.textBaseline = "top";
             // Find the widest series name
             var widest = 1;
             for (var k = 0; k < this.series.length; k++) {
-                if (cont.measureText(this.series[k].name).width > widest) widest = cont.measureText(this.series[k].name).width;
+                if (ctx.measureText(this.series[k].name).width > widest) widest = ctx.measureText(this.series[k].name).width;
             }
             if (this.keypos == 'right') {
                 rightSpace += widest + 22;
-                cont.strokeRect(canvas.width - rightSpace + 4, 18, widest + 20, ((this.series.length + 1) * 12) + 4);
-                cont.fillText("Key", canvas.width - rightSpace + 6, 20);
+                ctx.strokeRect(canvas.width - rightSpace + 4, 18, widest + 20, ((this.series.length + 1) * 12) + 4);
+                ctx.fillText("Key", canvas.width - rightSpace + 6, 20);
                 for (var k = 0; k < this.series.length; k++) {
-                    cont.fillText(this.series[k].name, canvas.width - rightSpace + 18, 20 + (12 * (k + 1)));
-                    cont.save();
-                    cont.fillStyle = this.series[k].colour;
-                    cont.fillRect(canvas.width - rightSpace + 8, 21 + (12 * (k + 1)), 8, 8);
-                    cont.restore();
+                    ctx.fillText(this.series[k].name, canvas.width - rightSpace + 18, 20 + (12 * (k + 1)));
+                    ctx.save();
+                    ctx.fillStyle = this.series[k].color;
+                    ctx.fillRect(canvas.width - rightSpace + 8, 21 + (12 * (k + 1)), 8, 8);
+                    ctx.restore();
                 }
             }
         }
 
-        if (leftSpace < cont.measureText(vMin + vRange).width) leftSpace = cont.measureText(vMin + vRange).width + 2;
-        var hScale = (canvas.width - leftSpace - rightSpace) / (this.range() + (this.options.type == "bar" ? 1 : 0));
-        var hMin = this.min();
+        // Adjust spacing from the left/right based on the labels abd values
+        var tw = ctx.measureText((vMin + vRange).toFixed(2)).width;
+        if (leftSpace <= tw) leftSpace = tw + 4;
+
+        if (this.series[0].points.length) {
+            var label = this.series[0].points[0].label;
+            tw = ctx.measureText(label).width;
+            if (leftSpace <= tw/2) leftSpace = tw/2 + 4;
+            label = this.series[0].points[this.series[0].points.length - 1].label;
+            tw = ctx.measureText(label).width;
+            if (rightSpace <= tw/2) rightSpace = tw/2 + 4;
+        }
+
+        var width = canvas.width - leftSpace - rightSpace;
+        var height = canvas.height - topSpace - bottomSpace;
+        var vScale = height / this.vrange();
+        var hScale = width / (this.range() + (this.options.type == "bar" ? 1 : 0));
 
         // Draw title & Labels
-        cont.textAlign = "center";
-        cont.fillStyle = jsgraph_textcol;
-        cont.fillText(this.options.title, (canvas.width - rightSpace - leftSpace) / 2, 1);
-        cont.textBaseline = "bottom";
-        cont.fillText(this.options.xlabel, (canvas.width - rightSpace - leftSpace) / 2, canvas.height - 2);
-        cont.textAlign = "left";
+        ctx.textAlign = "center";
+        ctx.fillStyle = jsgraph_textcol;
+        ctx.fillText(this.options.title, canvas.width / 2, 2, canvas.width);
+        ctx.textBaseline = "bottom";
+        ctx.fillText(this.options.xlabel, canvas.width / 2, canvas.height - 2, canvas.width);
+        ctx.textAlign = "left";
 
         if (this.options.vstep != "auto" && !isNaN(this.options.vstep)) {
             spacing = this.options.vstep;
         } else {
-            while (vRange / spacing >= 10) {
-                spacing *= 10;
-            }
-            while (vRange / spacing <= 2) {
-                if (spacing > 1)
-                    spacing *= 0.1;
-                else
-                    spacing *= 0.5;
-            }
+            spacing = vRange / jsgraph_fontsize * 2;
         }
 
-        var pos = 0;
+        var pos = 0, count = 0;
         for (var i = vMin; i <= vMin + vRange; i += spacing) {
             var y = (canvas.height - bottomSpace) - (i) * vScale + (vMin * vScale);
-            if (pos > 0 && pos - y <= jsgraph_fontsize + 4) continue;
+            if (pos > 0 && pos - y < jsgraph_fontsize * 2) continue;
             pos = y;
             // Value label
-            cont.textBaseline = "bottom";
-            cont.textAlign = "right";
-            cont.fillStyle = jsgraph_textcol;
-            cont.fillText(i + '', leftSpace - 2, y);
-            cont.fillStyle = jsgraph_linecol;
+            ctx.textBaseline = "bottom";
+            ctx.textAlign = "right";
+            ctx.fillStyle = jsgraph_textcol;
+            ctx.fillText(i.toFixed(2), leftSpace - 2, y);
+            ctx.fillStyle = jsgraph_linecol;
             // Horizontal lines
             if (i == vMin || i == vMin + vRange) continue;
-            cont.strokeStyle = "rgb(220,220,220)";
-            cont.beginPath();
-            cont.moveTo(leftSpace, y);
-            cont.lineTo(canvas.width - rightSpace, y);
-            cont.stroke();
-            cont.strokeStyle = "rgb(0,0,0)";
+            ctx.strokeStyle = "rgb(220,220,220)";
+            ctx.beginPath();
+            ctx.moveTo(leftSpace, y);
+            ctx.lineTo(canvas.width - rightSpace, y);
+            ctx.stroke();
+            ctx.strokeStyle = "rgb(0,0,0)";
         }
 
         // Vertical lines with labels
@@ -293,50 +269,51 @@ function Graph(title, canvasId, type)
             if (!curr.label) continue;
             var y = canvas.height - bottomSpace;
             var x = hScale * (curr.x - hMin) + leftSpace;
-            var tw = cont.measureText(curr.label).width;
-            if (pos > 0 && x - pos <= tw + 13) continue;
+            var tw = ctx.measureText(curr.label).width;
+            if (pos > 0 && x - pos <= tw + jsgraph_fontsize + 4) continue;
             pos = x;
             // Time label
-            cont.textBaseline = "top";
-            cont.textAlign = "center";
-            cont.fillStyle = jsgraph_textcol;
-            cont.fillText(curr.label, x, y + 3);
-            cont.fillStyle = jsgraph_linecol;
+            ctx.textBaseline = "top";
+            ctx.textAlign = "center";
+            ctx.fillStyle = jsgraph_textcol;
+            ctx.fillText(curr.label, x, y + 3);
+            ctx.fillStyle = jsgraph_linecol;
             // Vertical line
-            if (x <= leftSpace || x >= canvas.width - leftSpace - rightSpace) continue;
-            cont.strokeStyle = "rgb(220,220,220)";
-            cont.beginPath();
-            cont.moveTo(x, y);
-            cont.lineTo(x, 18);
-            cont.stroke();
-            cont.strokeStyle = "rgb(0,0,0)";
+            if (x <= leftSpace || x >= width) continue;
+            ctx.strokeStyle = "rgb(220,220,220)";
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, topSpace);
+            ctx.stroke();
+            ctx.strokeStyle = "rgb(0,0,0)";
         }
 
         for (var s = 0; s < this.series.length; s++) {
             var series = this.series[s];
-            cont.beginPath();
+            ctx.beginPath();
             for (var p = 0; p < series.points.length; p++) {
                 var curr = series.points[p];
                 // Move point into graph-space
                 var height = canvas.height;
                 var y = (canvas.height - bottomSpace) - (curr.y) * vScale + (vMin * vScale);
                 var x = hScale * (curr.x - hMin) + leftSpace;
+                count++;
 
                 switch (this.options.type) {
                 case "line":
                 case "scatter":
                     if (this.options.type == "line") {
                         // Main line
-                        cont.lineTo(x, y);
+                        ctx.lineTo(x, y);
                     }
                     // Draw anchor for this point
-                    cont.fillStyle = curr.colour;
-                    cont.fillRect(x - 2, y - 2, 4, 4);
-                    cont.fillStyle = "rgb(0,0,0)";
+                    ctx.fillStyle = curr.color;
+                    ctx.fillRect(x - 2, y - 2, 4, 4);
+                    ctx.fillStyle = "rgb(0,0,0)";
                     break;
 
                 case "bar":
-                    cont.fillStyle = curr.colour;
+                    ctx.fillStyle = curr.color;
                     var barwidth = hScale;
                     if (this.options.barWidth != null && this.options.barWidth <= 1) {
                         barwidth *= this.options.barWidth;
@@ -344,16 +321,17 @@ function Graph(title, canvasId, type)
                     var baroffs = ((this.options.barWidth < 1) ? ((1 - this.options.barWidth) / 2) * hScale : 0);
                     barwidth /= (this.options.barOverlap ? 1 : this.series.length);
                     var seriesWidth = (!this.options.barOverlap ? barwidth : 0);
-                    cont.fillRect((x + baroffs) + seriesWidth * s, y, barwidth, (curr.y * vScale));
-                    cont.fillStyle = "rgb(0,0,0)";
+                    ctx.fillRect((x + baroffs) + seriesWidth * s, y, barwidth, (curr.y * vScale));
+                    ctx.fillStyle = "rgb(0,0,0)";
                     break;
                 }
             }
-            cont.stroke();
+            ctx.stroke();
         }
 
         // Draw border of graph
-        cont.strokeRect(leftSpace, 18, canvas.width - leftSpace - rightSpace, canvas.height - 18 - bottomSpace);
+        if (count) {
+            ctx.strokeRect(leftSpace, topSpace, canvas.width - leftSpace - rightSpace, canvas.height - topSpace - bottomSpace);
+        }
     }
-    jsgraph_graphs[jsgraph_graphs.length] = this;
 }
