@@ -2200,6 +2200,13 @@ function Metric(name, namespace, dims)
     this.dimensions = dims || [];
     this.info = "";
 
+    this.update = function () {
+        if (this.dimensions.length == 1 && this.info == "") {
+            this.info = ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true);
+            if (this.info == this.dimensions) this.info = "";
+        }
+    }
+
     this.toString = function() {
         return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");
     }

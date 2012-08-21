@@ -5,7 +5,7 @@
 <overlay xmlns:html="http://www.w3.org/1999/xhtml" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <tabpanel id="ew.tabs.graph" flex="1">
   <groupbox orient="vertical" flex="1" >
-   <caption label="Cloud Watch Graphs" />
+   <caption id="ew.graphs.title" label="Cloud Watch Graphs" />
    <toolbar style="padding: 0px 3px; -moz-box-align: center">
     <menulist id="ew.graphs.dimensions" style="max-width:200px;" crop="end" sizetopopup="none" oncommand="ew_GraphsView.onChange()"/>
     <menulist id="ew.graphs.statistics" >

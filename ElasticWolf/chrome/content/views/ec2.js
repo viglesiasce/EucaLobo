@@ -627,6 +627,7 @@ var ew_InstancesTreeView = {
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
         $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringStatus != "";
         $("instances.context.stopMonitoring").disabled = optDisabled || instance.monitoringStatus == "";
+        $("instances.context.showMetrics").disabled = optDisabled || instance.monitoringStatus == "";
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
     },
@@ -1015,6 +1016,14 @@ var ew_InstancesTreeView = {
         return false;
     },
 
+    showMetrics: function()
+    {
+        var instance = this.getSelected();
+        if (!instance) return;
+
+        this.core.selectTab('ew.tabs.graph');
+        ew_GraphsView.setDimensions(this.core.modelValue('instanceId', instance.id), "InstanceId:" + instance.id, true);
+    },
 };
 
 var ew_VolumeTreeView = {

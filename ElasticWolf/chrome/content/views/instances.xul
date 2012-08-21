@@ -36,6 +36,7 @@
             <menupopup>
             <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
             <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
+            <menuitem id="instances.context.showMetrics" oncommand="ew_InstancesTreeView.showMetrics();" label="Show Metrics" />
             </menupopup>
           </menu>
           <menuseparator />

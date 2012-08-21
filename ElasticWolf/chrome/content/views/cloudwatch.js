@@ -29,10 +29,7 @@ var ew_MetricsTreeView = {
         var nm = $('ew.metrics.namespace').value;
         for (var i in list) {
             if (nm && list[i].namespace != nm) continue;
-            if (list[i].dimensions.length == 1 && list[i].info == "") {
-                list[i].info = this.core.modelValue(list[i].dimensions[0].name, list[i].dimensions[0].value, true);
-                if (list[i].info == list[i].dimensions) list[i].info = "";
-            }
+            list[i].update();
             nlist.push(list[i])
         }
         return TreeView.filter.call(this, nlist);
@@ -54,6 +51,7 @@ var ew_MetricsTreeView = {
         dm.selectedIndex = 0;
         var list = this.core.getModel('metrics');
         for (var i in list) {
+            list[i].update();
             if (list[i].info && !map[list[i].info]) {
                 dm.appendItem(list[i].info, list[i].dimensions);
                 map[list[i].info] = true;
@@ -254,7 +252,7 @@ var ew_GraphsView = {
         if (this.core.getModel('metrics') == null) {
             ew_MetricsTreeView.refresh();
         }
-        if ($('ew.graphs.dimensions').itemCount == 0) {
+        if ($('ew.graphs.dimensions').itemCount <= 1) {
             ew_MetricsTreeView.fillMetrics();
         }
     },
@@ -273,18 +271,20 @@ var ew_GraphsView = {
 
     onChange: function()
     {
-        this.setDimensions($('ew.graphs.dimensions').value);
+        this.setDimensions($('ew.graphs.dimensions').label, $('ew.graphs.dimensions').value);
     },
 
-    setDimensions: function(value)
+    setDimensions: function(title, value, view)
     {
         var me = this;
         var page = $('ew.graphs.page');
         while (page.firstChild) {
             page.removeChild(page.firstChild);
         }
+
         this.metrics = [];
         this.dimensions = this.core.parseTags(value);
+        $("ew.graphs.title").label = "Cloud Watch Graphs" + (this.dimensions.length ? ": " + title : "");
         if (!this.dimensions.length) return;
 
         var page = $('ew.graphs.page');
@@ -306,6 +306,7 @@ var ew_GraphsView = {
                 spacer.setAttribute('width', '25px');
                 hbox.appendChild(spacer);
             }
+            if (view) me.show();
         });
     },
 
