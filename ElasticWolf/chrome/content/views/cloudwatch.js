@@ -40,7 +40,7 @@ var ew_MetricsTreeView = {
 
     modelChanged : function(name)
     {
-        TreeView.modelChanged.call(this);
+        TreeView.modelChanged.call(this, name);
         this.fillMetrics();
     },
 

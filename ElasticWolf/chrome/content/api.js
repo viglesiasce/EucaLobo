@@ -511,7 +511,7 @@ var ew_api = {
 
     sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
     {
-        //debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
+        debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
         var me = this;
 
         var xhr = xmlhttp;

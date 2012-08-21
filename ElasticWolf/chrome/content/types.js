@@ -272,7 +272,7 @@ var TreeView = {
     },
     refresh : function(force)
     {
-        var name = this.getModelName(this.model)
+        var name = this.getModelName()
         if (name) {
             this.core.refreshModel(name);
             this.refreshAll(force);
