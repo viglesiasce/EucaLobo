@@ -23,8 +23,9 @@
           <menuitem oncommand="ew_InstancesTreeView.launchMore();" label="Launch More of these" />
           <menuitem oncommand="ew_InstancesTreeView.associateWithEIP();" label="Associate with Elastic IP" />
           <menuitem oncommand="ew_InstancesTreeView.attachEBSVolume();" label="Attach an EBS Volume" />
-          <menuitem id="instances.context.bundle" oncommand="ew_InstancesTreeView.showBundleDialog();" label="Bundle into an S3 AMI" />
           <menuitem id="instances.context.createimage" oncommand="ew_InstancesTreeView.showCreateImageDialog();" label="Create Image (EBS AMI)" />
+          <menuitem id="instances.context.export" oncommand="ew_InstancesTreeView.exportToS3();" label="Export to S3 Bucket" />
+          <menuitem id="instances.context.bundle" oncommand="ew_InstancesTreeView.showBundleDialog();" label="Bundle into an S3 AMI" />
           <menuitem id="instances.context.changeUserData" oncommand="ew_InstancesTreeView.changeUserData();" label="View/Change User Data" />
           <menuitem id="instances.context.changeInstanceType" oncommand="ew_InstancesTreeView.changeInstanceType();" label="Change Instance Type" />
           <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
@@ -83,6 +84,7 @@
           <toolbarseparator />
           <checkbox id="ew.instances.noterminated" label="Hide Terminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
           <checkbox id="ew.instances.nostopped" label="Hide Stopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <checkbox id="ew.instances.onlyspot" label="Spot Only" oncommand="ew_InstancesTreeView.filterChanged();"/>
         </hbox>
       </toolbar>
 
@@ -119,6 +121,8 @@
           <treecol id="instance.rootDeviceType" label="&ew.instances.rootDeviceType.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
           <treecol id="instance.platform" label="&ew.platform.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.instanceLifecycle" label="Lifecycle" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
         </treecols>
         <treechildren context="ew.instances.contextmenu" />

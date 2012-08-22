@@ -290,14 +290,36 @@ var ew_InstancesTreeView = {
         if (!list) return list;
         var noTerm = $("ew.instances.noterminated").checked;
         var noStop = $("ew.instances.nostopped").checked;
+        var onlySpot = $("ew.instances.onlyspot").checked;
 
         var nlist = new Array();
         for(var i in list) {
             list[i].validate();
             if ((noTerm && list[i].state == "terminated") || (noStop && list[i].state == "stopped")) continue;
+            if ((onlySpot && list[i].instanceLifecycle != "spot")) continue;
             nlist.push(list[i])
         }
         return TreeView.filter.call(this, nlist);
+    },
+
+    exportToS3: function()
+    {
+        var me = this;
+        var instance = this.getSelected();
+        if (instance == null) return;
+
+        var values = this.core.promptInput('Export Instance to S3',
+                                    [{label:"Instance",type:"label",value:instance.toString()},
+                                     {label:"Description"},
+                                     {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
+                                     {label:"S3 Bucket Name",type:"name",required:1},
+                                     {label:"S3 Prefix"},
+                                     {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                                     {label:"Container Format",type:"menulist",list:["ova"]},
+                                     ]);
+        if (!values) return;
+        this.core.api.createInstanceExportTask(instance.id, values[2], values[3], values[0], values[4], values[5], values[6], function(list) {
+        });
     },
 
     showBundleDialog : function()
@@ -606,9 +628,10 @@ var ew_InstancesTreeView = {
         if (isEbsRootDeviceType(instance.rootDeviceType)) {
             $("instances.context.bundle").disabled = true;
             $("instances.context.createimage").disabled = false;
+            $("instances.context.export").disabled = true;
         } else {
             $("instances.context.createimage").disabled = true;
-
+            $("instances.context.export").disabled = false;
             if (isWindows(instance.platform)) {
                 $("instances.context.bundle").disabled = false;
             } else {
@@ -619,9 +642,6 @@ var ew_InstancesTreeView = {
 
         // These items are only valid for instances with EBS-backed root devices.
         var optDisabled = !isEbsRootDeviceType(instance.rootDeviceType);
-        $("instances.context.start").disabled = optDisabled;
-        $("instances.context.stop").disabled = optDisabled;
-        $("instances.context.forceStop").disabled = optDisabled;
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
         $("instances.context.changeShutdownBehaviour").disabled = optDisabled;
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
@@ -630,6 +650,7 @@ var ew_InstancesTreeView = {
         $("instances.context.showMetrics").disabled = optDisabled || instance.monitoringStatus == "";
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
+        $("instances.context.forceStop").disabled = optDisabled;
     },
 
     launchMore : function() {
@@ -1605,7 +1626,6 @@ var ew_LeaseOfferingsTreeView = {
 
 var ew_BundleTasksTreeView = {
     model: 'bundleTasks',
-    searchElement: 'ew.bundleTasks.search',
 
     menuChanged  : function (event) {
         var task = this.getSelected();
@@ -1659,5 +1679,40 @@ var ew_BundleTasksTreeView = {
             return;
         }
         this.registerBundledImage(selected.s3bucket, selected.s3prefix);
+    },
+};
+
+var ew_SpotInstanceRequestsTreeView = {
+    model: ["spotInstanceRequests", "availabilityZones"],
+
+    menuChanged  : function (event) {
+    },
+
+    isRefreshable : function() {
+        for (var i in this.treeList) {
+            if (this.treeList[i].state == "complete" || this.treeList[i].state == "failed") return true;
+        }
+        return false;
+    },
+
+    history: function() {
+        var me = this;
+        function callback(idx, onstart) {
+            var input = this;
+            if (!(onstart && idx == 4 || !onstart)) return;
+            var end = this.rc.items[2].obj.value ? new Date() : null;
+            var start = this.rc.items[2].obj.value ? new Date(end.getTime() - this.rc.items[2].obj.value * 86400 * 1000) : null;
+
+            me.core.api.describeSpotPriceHistory(start ? start.toISOString() : null, end ? end.toISOString() : null, this.rc.items[0].obj.value, this.rc.items[1].obj.value, this.rc.items[3].obj.value, function(list) {
+                var items = list.map(function(x) { return new Tag(x.date.strftime('%Y-%m-%d'), x.price); });
+                me.core.sortObjects(items, 'name', true);
+                input.graph(4, items);
+            });
+        }
+        this.core.promptInput('Spot Price History', [{label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes()},
+                                                     {label:"Product",type:"menulist",list:['Linux/UNIX', 'SUSE Linux', 'Windows', 'Linux/UNIX (Amazon VPC)', 'SUSE Linux (Amazon VPC)', 'Windows (Amazon VPC)']},
+                                                     {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
+                                                     {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
+                                                     {label:"Price History",type:"graph",width:550,height:350,list:[]}], false, callback)
     },
 };

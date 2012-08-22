@@ -70,6 +70,9 @@ var ew_core = {
         hostedChanges: [],
         asgroups: null,
         asconfigs: null,
+        exportTasks: null,
+        spotPriceHistory: null,
+        spotInstanceRequests: null,
     },
 
     // Intialize core object with current menu and api implementation
@@ -1653,6 +1656,9 @@ var ew_core = {
             var me = this;
 
             switch (name) {
+            case 'spotInstanceRequests':
+                this.api.describeSpotInstanceRequests();
+                break;
             case "asgroups":
                 this.api.describeAutoScalingGroups();
                 break;
@@ -2030,13 +2036,18 @@ var ew_core = {
                 aVal = a[col] || "";
                 bVal = b[col] || "";
             }
-            var aF = parseFloat(aVal);
-            if (!isNaN(aF) && aF.toString() == aVal) {
-                aVal = aF;
-                bVal = parseFloat(bVal);
-            } else {
+
+            switch (typeName(aVal)) {
+            case "string":
+            case "object":
                 aVal = aVal.toString().toLowerCase();
                 bVal = bVal.toString().toLowerCase();
+                break;
+
+            case "date":
+                aVal = aVal.getTime();
+                bVal = bVal.getTime();
+                break;
             }
             if (aVal < bVal) return ascending ? -1 : 1;
             if (aVal > bVal) return ascending ? 1 : -1;

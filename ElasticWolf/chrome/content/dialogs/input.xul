@@ -11,6 +11,7 @@
   onload="init();">
 
   <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/types.js" />
   <script>
   <![CDATA[
 
@@ -43,6 +44,14 @@
              button.setAttribute('label', "Browse");
              button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
              box.appendChild(button);
+             break;
+
+          case 'graph':
+             var item = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+             item.setAttribute('class', 'graph');
+             item.setAttribute('width', rc.items[i].width || '280');
+             item.setAttribute('height', rc.items[i].height || '240');
+             box.appendChild(item);
              break;
 
           case 'image':
@@ -203,7 +212,28 @@
     }
 
     function handler(idx, onstart) {
-        if (rc.callback) rc.callback.call(this, idx, onstart);
+        if (rc.callback) {
+            rc.callback.call(this, idx, onstart);
+        }
+        switch (rc.items[idx].type) {
+        case 'graph':
+            graph(idx);
+            break;
+        }
+    }
+
+    function graph(idx, list) {
+        var obj = rc.items[idx];
+        if (!obj.graph) {
+            obj.graph = new Graph(obj.label, 'item' + idx, "line");
+        }
+        obj.graph.reset();
+        obj.graph.options.xlabel = obj.xlabel || '';
+        if (list) obj.list = list;
+        for (var j = 0; j < obj.list.length; j++) {
+            obj.graph.addPoint(j, obj.list[j].value, obj.list[j].name);
+        }
+        obj.graph.draw();
     }
 
     function browse(id, forDir) {

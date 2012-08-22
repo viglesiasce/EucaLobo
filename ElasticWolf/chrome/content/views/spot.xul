@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.spot" flex="1">
+    <groupbox flex="1" orient="vertical">
+      <caption label="Spot Instance Requests" />
+      <popupset>
+        <menupopup id="ew.spot.requests.contextmenu">
+        </menupopup>
+      </popupset>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <hbox flex="10">
+          <textbox id="ew.spot.requests.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" />
+          <toolbarbutton image="images/refresh.png" oncommand="ew_SpotInstanceRequestsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+          <toolbarseparator />
+          <toolbarbutton image="images/chart.png" oncommand="ew_SpotInstanceRequestsTreeView.history();" tooltiptext="Show price history" />
+          <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.newRequest();" tooltiptext="Create Request" />
+          <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.cancelRequest();" tooltiptext="Cancel Request" />
+        </hbox>
+      </toolbar>
+
+      <tree id="ew.spot.requests.view" enableColumnDrag="true" flex="1">
+        <treecols>
+          <treecol id="instance.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.type" label="Type" flex="9" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.state" label="State" flex="3" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.instanceType" label="Instance Type" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.availabilityZone" label="&ew.availabilityZone.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.productDescription" label="Product" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.price" label="Price" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+        </treecols>
+        <treechildren context="ew.spot.requests.contextmenu" />
+      </tree>
+    </groupbox>
+  </tabpanel>
+</overlay>

@@ -1516,6 +1516,52 @@ var ew_api = {
         response.result = list;
     },
 
+    createInstanceExportTask: function(id, targetEnv, bucket, descr, prefix, diskFormat, containerFormat, callback)
+    {
+        var params = [];
+        params.push(["InstanceId", id])
+        params.push(["TargetEnvironment", targetEnv]);
+        params.push(["ExportToS3.S3Bucket", bucket]);
+        if (descr) params.push(["Description, descr"]);
+        if (diskFormat) params.push(["ExportToS3.DiskImageFormat", diskFormat]);
+        if (containerFormat) params.push(["ExportToS3.ContainerFormat", containerFormat]);
+        if (prefix) params.push(["ExportToS3.S3prefix", prefix]);
+        this.queryEC2("CreateInstanceExportTask", params, this, false, "onComplete:exportTaskId", callback);
+    },
+
+    cancelExportTask: function(id)
+    {
+        this.queryEC2("CancelExportTask", [["ExportTaskId", id]], this, false, "onComplete", callback);
+    },
+
+    describeExportTasks: function(id)
+    {
+        this.queryEC2("DescribeExportTasks", [], this, false, "onCompleteDescribeExportTasks", callback);
+    },
+
+    onCompleteDescribeExportTasks : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "exportTaskSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "exportTaskId");
+            var state = getNodeValue(item, "state");
+            var status = getNodeValue(item, "statusMessage");
+            var descr = getNodeValue(item, "description");
+            var instance = getNodeValue(item, "instanceExport", "instanceId");
+            var env = getNodeValue(item, "instanceExport", "targetEnvironment");
+            var dfmt = getNodeValue(item, "exportToS3", "diskImageFormat");
+            var cfmt = getNodeValue(item, "exportToS3", "containerFormat");
+            var bucket = getNodeValue(item, "exportToS3", "s3Bucket");
+            var prefix = getNodeValue(item, "exportToS3", "s3Key");
+            list.push(new ExportTask(id, state, status, descr, instance, env, dfmt, cfmt, bucket, prefix))
+        }
+        response.result = list;
+    },
+
     describeReservedInstances : function(callback)
     {
         this.queryEC2("DescribeReservedInstances", [], this, false, "onCompleteDescribeReservedInstances", callback);
@@ -1613,6 +1659,64 @@ var ew_api = {
         this.queryEC2("ResetImageAttribute", params, this, false, "onComplete", callback);
     },
 
+    describeSpotPriceHistory : function(start, end, instanceType, product, availaZone, callback)
+    {
+        var params = [];
+        if (start) params.push(["StartTime", start])
+        if (end) params.push(["EndTime", end])
+        if (instanceType) params.push(["InstanceType", instanceType])
+        if (product) params.push(["ProductDescription", product])
+        if (availaZone) params.push(["AvailabilityZone", availaZone])
+        this.queryEC2("DescribeSpotPriceHistory", params, this, false, "onCompleteDescribeSpotPriceHistory", callback);
+    },
+
+    onCompleteDescribeSpotPriceHistory : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "spotPriceHistorySet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var type = getNodeValue(item, "instanceType");
+            var az = getNodeValue(item, "availabilityZone");
+            var date = new Date(getNodeValue(item, "timestamp"));
+            var descr = getNodeValue(item, "productDescription");
+            var price = getNodeValue(item, "spotPrice");
+            list.push(new SpotPrice(type, az, date, descr, price));
+        }
+        this.getNext(response, this.queryEC2, list, "spotPriceHistory");
+    },
+
+    describeSpotInstanceRequests : function(callback)
+    {
+        this.queryEC2("DescribeSpotInstanceRequests", [], this, false, "onCompleteDescribeSpotInstanceRequests", callback);
+    },
+
+    onCompleteDescribeSpotInstanceRequests : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "spotInstanceRequestSet", "item");
+        for ( var k = 0; k < items.length; k++) {
+            var item = items[k];
+            var id = getNodeValue(item, "spotInstanceRequestId");
+            var price = getNodeValue(item, "spotPrice");
+            var type = getNodeValue(item, "type");
+            var state = getNodeValue(item, "state");
+            var instanceId = getNodeValue(item, "instanceId");
+            var date = new Date(getNodeValue(item, "createTime"));
+            var product = getNodeValue(item, "productDescription");
+            var az = getNodeValue(item, "launchedAvailabilityZone");
+            var image = getNodeValue(item, "launchSpecification", "imageId");
+            var instanceType = getNodeValue(item, "launchSpecification", "instanceType");
+            list.push(new SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az));
+        }
+
+        this.core.setModel('spotInstanceRequests', list);
+        response.result = list;
+    },
+
     describeInstances : function(callback)
     {
         this.queryEC2("DescribeInstances", [], this, false, "onCompleteDescribeInstances", callback);
@@ -1621,7 +1725,6 @@ var ew_api = {
     onCompleteDescribeInstances : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = this.getItems(xmlDoc, "reservationSet", "item");
         for ( var k = 0; k < items.length; k++) {

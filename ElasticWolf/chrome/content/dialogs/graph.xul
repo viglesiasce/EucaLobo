@@ -7,7 +7,7 @@
         onload="init()">
 
 <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
-<script type="application/x-javascript" src="chrome://ew/content/jsgraph.js" />
+<script type="application/x-javascript" src="chrome://ew/content/types.js" />
 
 <script type="application/x-javascript">
 <![CDATA[
