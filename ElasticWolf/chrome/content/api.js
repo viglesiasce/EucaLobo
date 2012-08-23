@@ -1687,6 +1687,35 @@ var ew_api = {
         this.getNext(response, this.queryEC2, list, "spotPriceHistory");
     },
 
+    createSpotDatafeedSubscription : function(bucket, prefix, callback)
+    {
+        var params = [ [ "Bucket", bucket]]
+        if (prefix) params.push(["Prefix", prefix]);
+        this.queryEC2("CreateSpotDatafeedSubscription", params, this, false, "onCompleteDescribeSpotDatafeedSubscription", callback);
+    },
+
+    deleteSpotDatafeedSubscription : function(callback)
+    {
+        this.queryEC2("DeleteSpotDatafeedSubscription", [], this, false, "onComplete", callback);
+    },
+
+    describeSpotDatafeedSubscription : function(callback)
+    {
+        this.queryEC2("DescribeSpotDatafeedSubscription", [], this, false, "onCompleteDescribeSpotDatafeedSubscription", callback);
+    },
+
+    onCompleteDescribeSpotDatafeedSubscription : function(response)
+    {
+        response.hasErrors = false;
+        var xmlDoc = response.responseXML;
+        var obj = {};
+        obj.owner = getNodeValue(xmlDoc, "spotDatafeedSubscription", "ownerId");
+        obj.bucket = getNodeValue(xmlDoc, "spotDatafeedSubscription", "bucket");
+        obj.prefix = getNodeValue(xmlDoc, "spotDatafeedSubscription", "prefix");
+        obj.state = getNodeValue(xmlDoc, "spotDatafeedSubscription", "state");
+        response.result = obj;
+    },
+
     describeSpotInstanceRequests : function(callback)
     {
         this.queryEC2("DescribeSpotInstanceRequests", [], this, false, "onCompleteDescribeSpotInstanceRequests", callback);

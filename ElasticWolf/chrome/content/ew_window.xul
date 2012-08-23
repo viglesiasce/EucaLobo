@@ -107,7 +107,7 @@
             { name: "ew.tabs.instance.vpc",  views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: false }] } ],
               owner: "ew.tabs.instance"      },
 
-            { name: "ew.tabs.spot",          views: [ { id: "ew.spot.requests.view", view: ew_SpotInstanceRequestsTreeView } ], },
+            { name: "ew.tabs.spot",          views: [ { id: "ew.spotInstanceRequests.view", view: ew_SpotInstanceRequestsTreeView } ], },
 
             { name: "ew.tabs.image",         views: [ { id: "ew.images.view", view: ew_AMIsTreeView } ], },
 

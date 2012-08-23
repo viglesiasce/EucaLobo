@@ -1030,16 +1030,16 @@ var ew_VolumeTreeView = {
     menuChanged : function()
     {
         var image = this.getSelected();
-        document.getElementById("ew.volumes.contextmenu").disabled = (image == null);
+        $("ew.volumes.contextmenu").disabled = (image == null);
         if (image == null) return;
 
         var fAssociated = image.status == "available" ? false : true;
 
         // If this is not a Windows Instance, Disable the following context menu items.
-        document.getElementById("volumes.context.attach").disabled = fAssociated;
-        document.getElementById("volumes.context.detach").disabled = !fAssociated;
-        document.getElementById("volumes.context.forcedetach").disabled = !fAssociated;
-        document.getElementById("volumes.context.deleteOnTermination").disabled = !fAssociated;
+        $("volumes.context.attach").disabled = fAssociated;
+        $("volumes.context.detach").disabled = !fAssociated;
+        $("volumes.context.forcedetach").disabled = !fAssociated;
+        $("volumes.context.deleteOnTermination").disabled = !fAssociated;
     },
 
     createSnapshot : function ()
@@ -1315,10 +1315,10 @@ var ew_ElasticIPTreeView = {
 
     menuChanged : function() {
         var eip = this.getSelected();
-        document.getElementById("ew.addresses.contextmenu").disabled = (eip == null);
+        $("ew.addresses.contextmenu").disabled = (eip == null);
         if (eip == null) return;
-        document.getElementById("addresses.context.disassociate").disabled = !eip.instanceId;
-        document.getElementById("addresses.context.dns").disabled = !eip.instanceId;
+        $("addresses.context.disassociate").disabled = !eip.instanceId;
+        $("addresses.context.dns").disabled = !eip.instanceId;
     },
 
     allocateAddress : function() {
@@ -1588,29 +1588,27 @@ var ew_LeaseOfferingsTreeView = {
 var ew_BundleTasksTreeView = {
     model: 'bundleTasks',
 
-    menuChanged  : function (event) {
+    menuChanged  : function (event)
+    {
         var task = this.getSelected();
-        if (task == null) return;
 
-        var fDisabled = (task.state == "complete" || task.state == "failed");
-
-        // If the task has been completed or has failed, disable the
-        // following context menu items.
-        document.getElementById("bundleTasks.context.cancel").disabled = fDisabled;
+        // If the task has been completed or has failed, disable the following context menu items.
+        $("bundleTasks.context.cancel").disabled = !task || (task.state == "complete" || task.state == "failed");
 
         // If the task hasn't completed, you can't register a new AMI
-        fDisabled = (task.state != "complete");
-        document.getElementById("bundleTasks.context.register").disabled = fDisabled;
+        $("bundleTasks.context.register").disabled = !task || (task.state != "complete");
     },
 
-    isRefreshable : function() {
+    isRefreshable : function()
+    {
         for (var i in this.treeList) {
             if (this.treeList[i].state == "complete" || this.treeList[i].state == "failed") return true;
         }
         return false;
     },
 
-    cancelBundleTask: function () {
+    cancelBundleTask: function ()
+    {
         var selected = this.getSelectedBundle();
         if (selected == null) return;
 
@@ -1646,17 +1644,29 @@ var ew_BundleTasksTreeView = {
 var ew_SpotInstanceRequestsTreeView = {
     model: ["spotInstanceRequests", "availabilityZones", "images", "keypairs", "vpcs", "subnets", "networkInterfaces", "instanceProfiles", "snapshots"],
 
-    menuChanged  : function (event) {
+    activate: function()
+    {
+        var me = this;
+        this.core.api.describeSpotDatafeedSubscription(function(obj) { me.datafeedChanged(obj) });
+        return TreeView.activate.call(this);
     },
 
-    isRefreshable : function() {
+    menuChanged  : function (event)
+    {
+        var item = this.getSelected();
+        $("ew.spotInstanceRequests.contextmenu.delete").disabled = !item || item.state == 'cancelled';
+    },
+
+    isRefreshable : function()
+    {
         for (var i in this.treeList) {
             if (this.treeList[i].state == "open" || this.treeList[i].state == "active") return true;
         }
         return false;
     },
 
-    createRequest : function(image) {
+    createRequest : function(image)
+    {
         var me = this;
         var retVal = { ok: null, max: ew_InstancesTreeView.max, spotRequest: true, image: image, core: this.core };
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
@@ -1671,7 +1681,8 @@ var ew_SpotInstanceRequestsTreeView = {
         }
     },
 
-    cancelRequest : function () {
+    cancelRequest : function ()
+    {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
@@ -1679,7 +1690,8 @@ var ew_SpotInstanceRequestsTreeView = {
         this.core.api.cancelSpotInstanceRequests(item.id, function() { me.refresh(); });
     },
 
-    history: function() {
+    showHistory: function()
+    {
         var me = this;
         function callback(idx, onstart) {
             var input = this;
@@ -1698,5 +1710,26 @@ var ew_SpotInstanceRequestsTreeView = {
                                                      {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
                                                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
                                                      {label:"Price History",type:"graph",width:550,height:350,list:[]}], false, callback)
+    },
+
+    datafeedChanged: function(obj)
+    {
+        $("ew.spotInstanceRequests.contextmenu.addFeed").disabled = obj.bucket;
+        $("ew.spotInstanceRequests.contextmenu.deleteFeed").disabled = !obj.bucket;
+    },
+
+    createDatafeed: function()
+    {
+        var values = this.core.promptInput('Spot Instances Data Feed',
+                                    [{label:"S3 Bucket",type:"name",required:1},
+                                     {label:"Prefix",}]);
+        if (!values) return;
+        this.core.api.createSpotDatafeedSubscription(values[0], values[1], function(obj) { me.datafeedChanged(obj); });
+    },
+
+    deleteDatafeed: function()
+    {
+        if (!confirm('Delete Spot Instances Data Feed subscription?')) retrn;
+        this.core.api.deleteSpotDatafeedSubscription(function() { me.datafeedChanged({}); });
     },
 };
