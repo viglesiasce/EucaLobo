@@ -19,7 +19,8 @@
                             <menuitem id="amis.context.delete" oncommand="ew_AMIsTreeView.deleteImage();" label="Delete Parts and Deregister" />
                             <menuitem id="amis.context.deleteSnapshotAndDeregister" oncommand="ew_AMIsTreeView.deleteSnapshotAndDeregister();" label="Delete Snapshot and Deregister" />
                             <menuseparator />
-                            <menuitem id="amis.context.launch" oncommand="ew_AMIsTreeView.launchNewInstances();" label="Launch instances" />
+                            <menuitem id="amis.context.launch" oncommand="ew_AMIsTreeView.launchNewInstances();" label="Launch Instances" />
+                            <menuitem id="amis.context.spot" oncommand="ew_AMIsTreeView.requestSpotInstances();" label="Request Spot Instances" />
                             <menuseparator />
                             <menuitem oncommand="ew_AMIsTreeView.copyToClipboard('id');" label="&ew.contextmenu.copyid.label;" />
                             <menuitem oncommand="ew_AMIsTreeView.copyToClipboard('name');" label="&ew.contextmenu.copyname.label;" />

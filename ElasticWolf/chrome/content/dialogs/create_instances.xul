@@ -18,7 +18,7 @@
     function launch()
     {
         ew_ListBox.done();
-        this.retVal.imageId = this.image.id;
+        this.retVal.imageId = $('ew.ami.id').value;
         this.retVal.kernelId = $("ew.aki").value;
         this.retVal.ramdiskId = $("ew.ari").value;
         this.retVal.instanceType = $("ew.instancetypelist").selectedItem.value;
@@ -40,6 +40,37 @@
         this.retVal.securityGroups = ew_ListBox.selectedItems;
         this.retVal.instanceProfile = $("ew.roles").value;
         this.retVal.ebsOptimized = $("ew.ebsOptimized").checked;
+
+        if (this.retVal.spotRequest) {
+            this.retVal.spotPrice = parseFloat($('ew.spotPrice').value);
+            this.retVal.spotType = $('ew.spotType').checked ? "persistent" : "";
+            this.retVal.validFrom = new Date($('ew.validFrom').value);
+            this.retVal.validUntil = new Date($('ew.validUntil').value);
+            this.retVal.launchGroup = $('ew.launchGroup').value;
+            this.retVal.availZoneGroup = $('ew.availZoneGroup').value;
+
+            if (!this.retVal.imageId) {
+                alert('Cannot proceed without AMI selected');
+                $("ew.tabs").selectedIndex = 6;
+                return false;
+            }
+            if (this.retVal.spotPrice <= 0) {
+                alert('Max hourly price must be spcified for the Spot Request');
+                $("ew.tabs").selectedIndex = 6;
+                return false;
+            }
+            var now = (new Date()).getTime() - 86400000;
+            if (this.retVal.validFrom.getTime() < now) this.retVal.validFrom = null;
+            if (this.retVal.validUntil.getTime() < now) this.retVal.validUntil = null;
+            if (this.retVal.validFrom && this.retVal.validUntil && this.retVal.validUntil.getTime() < this.retVal.validFrom.getTime()) {
+                alert('Invalid date range specified for the Spot Request');
+                $("ew.tabs").selectedIndex = 6;
+                return false;
+            }
+            this.retVal.tenancy = '';
+            this.retVal.clientToken = '';
+            this.retVal.additionalInfo = '';
+        }
 
         var device = {};
         device.type = $("ew.deviceType").value;
@@ -171,8 +202,10 @@
                 return false;
             }
         }
+        if (this.retVal.name) {
+            this.retVal.tag += (this.retVal.tag ? "," : "") + "Name:" + this.retVal.name;
+        }
         this.retVal.ok = true;
-
         return true;
     }
 
@@ -189,6 +222,45 @@
         case "virtual":
              $("ew.virtualName").disabled = false;
              break;
+        }
+    }
+
+    function imageSelected()
+    {
+        if (!$('ew.imageId').value) return;
+        this.image = this.core.findObject(this.images, $('ew.imageId').value);
+        if (!this.image) return;
+        $("ew.ami.id").value = this.image.id;
+        $("ew.ami.name").value = this.image.name || "";
+        akiSelected();
+    }
+
+    function akiSelected()
+    {
+        var akiList = $("ew.aki");
+        var ariList = $("ew.ari");
+        var akiRegex = regExs["aki"];
+        var ariRegex = regExs["ari"];
+        akiList.removeAllItems();
+        akiList.appendItem("");
+        ariList.removeAllItems();
+        ariList.appendItem("");
+
+        if (this.image && !isWindows(this.image.platform)) {
+            i = 0;
+            var imgId = null;
+            for (i in images) {
+                imgId = images[i].id;
+                if (imgId.match(akiRegex)) {
+                    akiList.appendItem(images[i].toString(), imgId);
+                    continue;
+                }
+                if (imgId.match(ariRegex)) {
+                    ariList.appendItem(images[i].toString(), imgId);
+                }
+            }
+            akiList.value = this.image.aki;
+            ariList.value = this.image.ari;
         }
     }
 
@@ -280,17 +352,17 @@
 
     function init()
     {
-        this.image = window.arguments[0];
-        this.core = window.arguments[1];
-        this.retVal = window.arguments[2];
+        this.retVal = window.arguments[0];
+        this.core = this.retVal.core;
+        this.image = this.retVal.image;
         this.azMenu = $("ew.azId");
         this.tnMenu = $("ew.tenancy");
         this.vpcMenu = $("ew.vpcId");
         this.subnetMenu = $("ew.subnetId");
 
-        var images = this.core.queryModel('images');
+        this.images = this.core.queryModel('images');
         var keypairs = this.core.queryModel('keypairs');
-        var types = this.core.getInstanceTypes(this.image.arch);
+        var types = this.core.getInstanceTypes(this.image ? this.image.arch : "");
         var availZones = this.core.queryModel('availabilityZones');
         var vpcs = this.core.queryModel('vpcs');
         var snapshots = this.core.queryModel('snapshots', "status", "completed");
@@ -351,37 +423,40 @@
         eniMenu.selectedIndex = 0;
 
         // Populate the AKI and ARI lists
-        var akiList = $("ew.aki");
-        var ariList = $("ew.ari");
-        var akiRegex = regExs["aki"];
-        var ariRegex = regExs["ari"];
-        akiList.appendItem("");
-        ariList.appendItem("");
-
-        if (!isWindows(this.image.platform)) {
-            i = 0;
-            var imgId = null;
-            for (i in images) {
-                imgId = images[i].id;
-                if (imgId.match(akiRegex)) {
-                    akiList.appendItem(images[i].toString(), imgId);
-                    continue;
-                }
-
-                if (imgId.match(ariRegex)) {
-                    ariList.appendItem(images[i].toString(), imgId);
-                }
-            }
-            akiList.value = this.image.aki;
-            ariList.value = this.image.ari;
-        }
+        akiSelected();
 
         $("ew.min").setAttribute('max', this.retVal.max);
         $("ew.max").setAttribute('max', this.retVal.max);
-        $("ew.ami").value = this.image.id;
-        $("ew.ami.tag").value = this.image.tag || "";
-        $("ew.ami.location").value = this.image.location.split('/').pop();
+        $("ew.ami.id").value = this.image ? this.image.id : "";
+        $("ew.ami.name").value = this.image ? this.image.name : "";
         $("ew.min").focus();
+
+        if (this.retVal.spotRequest) {
+            var tab = document.createElement('tab');
+            tab.setAttribute('label', 'Spot Request');
+            $('ew.tabs').appendChild(tab);
+            $('ew.tabs').selectedIndex = 6;
+
+            if (!this.image) {
+                filterChanged();
+            } else {
+                var imageMenu = $("ew.imageId");
+                imageMenu.appendItem(this.image.toString(), this.image.id)
+                imageMenu.selectedIndex = 0;
+            }
+        }
+    }
+
+    function filterChanged()
+    {
+        var list = this.core.getImagesByType(this.images, $('ew.imageType').value);
+        var imageMenu = $("ew.imageId");
+        imageMenu.removeAllItems();
+        for (var i in list) {
+            imageMenu.appendItem(list[i].toString(), list[i].id)
+        }
+        imageMenu.selectedIndex = 0;
+        imageSelected();
     }
 
     ]]>
@@ -406,20 +481,16 @@
             </columns>
             <rows flex="1">
                 <row>
-                    <label control="ew.ami" value="AMI ID:" />
-                    <label id="ew.ami" readonly="true" />
+                    <label control="ew.ami.id" value="AMI ID:" />
+                    <label id="ew.ami.id" />
                 </row>
                 <row>
-                    <label control="ew.ami.tag" value="AMI Tag:" />
-                    <label id="ew.ami.tag" readonly="true" />
-                </row>
-                <row>
-                    <label control="ew.ami.location" value="AMI Manifest:" />
-                    <textbox id="ew.ami.location" size="30" readonly="true" />
+                    <label control="ew.ami.name" value="AMI Name:" />
+                    <label id="ew.ami.name" />
                 </row>
                 <row>
                     <label control="ew.tag" value="Instance Name:" />
-                    <textbox id="ew.name" size="30" value="" />
+                    <textbox id="ew.name" size="30" value="" tooltiptext="Name to distinguish it from other running instances" />
                 </row>
                 <row>
                     <label control="ew.instancetypelist" value="Instance Type:" />
@@ -666,6 +737,60 @@
                 <row>
                     <label control="ew.ebsOptimized" value="EBS Optimized:" />
                     <checkbox id="ew.ebsOptimized" tooltiptext="Whether the instance is optimized for EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal EBS I/O performance. This optimization is not available with all instance types. Additional usage charges apply when using an EBS Optimized instance."/>
+                </row>
+            </rows>
+         </grid>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+         <grid flex="1">
+            <columns flex="1">
+                <column />
+                <column />
+            </columns>
+            <rows flex="1">
+                <row>
+                    <label control="ew.spotPrice" value="Max Price:" />
+                    <textbox id="ew.spotPrice" value="" type="number" decimalplaces="2" tooltiptext="The maximum hourly price for any Spot Instance launched to fulfill the request." />
+                </row>
+                <row>
+                    <label control="ew.spotType" value="Persistent:" />
+                    <checkbox id="ew.spotType" value="persistent" tooltiptext="Persistent Spot Instance requests remain active until they expire or you cancel them, even if the request was previously satisfied. For example, if you create a persistent Spot Instance request for one instance at $.30, Amazon EC2 launches or keeps your instance running if your maximum bid price is above $.30 and terminates your instance if your maximum bid price is below $.30." />
+                </row>
+                <row>
+                    <label control="ew.validFrom" value="Valid From:" />
+                    <datepicker id="ew.validFrom" type="popup" value="2000-01-01" tooltiptext="The start date of the request. If this is a one-time request, the request becomes active at this date and time and remains active until all instances launch, the request expires, or the request is canceled. If the request is persistent, the request becomes active at this date and time and remains active until it expires or is canceled. Dates from the past are ignored" />
+                </row>
+                <row>
+                    <label control="ew.validUntil" value="Valid Until:" />
+                    <datepicker id="ew.validUntil" type="popup" value="2000-01-01" tooltiptext="The end date of the request. If this is a one-time request, the request remains active until all instances launch, the request is canceled, or this date is reached. If the request is persistent, it remains active until it is canceled or this date and time is reached. Dates from the past are ignored" />
+                </row>
+                <row>
+                    <label control="ew.launchGroup" value="Launch Group:" />
+                    <textbox id="ew.launchGroup" size="30" value="" tooltiptext="The instance launch group. Launch groups are Spot Instances that launch together and terminate together."/>
+                </row>
+                <row>
+                    <label control="ew.availZoneGroup" value="Availibility Zone Group:" />
+                    <textbox id="ew.availZoneGroup" size="30" value="" tooltiptext="The user-specified name for a logical grouping of bids. When you specify AvailabilityZoneGroup in a Spot Instance request, all Spot Instances in the request are launched in the same Availability Zone. Instance proximity is maintained with this parameter, but choice of Availability Zone is not. AvailabilityZoneGroup applies only to bids for Spot Instances of the same instance type. Any additional Spot Instance requests that are specified with the same AvailabilityZoneGroup name will be launched in that same Availability Zone, as long as at least one instance from the group is still active. If there is no active instance running in the Availability Zone group that you specify for a new Spot Instance request (i.e., all instances are terminated, the bid is expired, or the bid falls below current market), then Amazon EC2 will launch the instance in any Availability Zone where the constraint can be met. Consequently, the subsequent set of Spot Instances could be placed in a different zone from the original request, even if the same AvailabilityZoneGroup name was specified."/>
+                </row>
+                <row>
+                    <label control="ew.imageType" value="Image Filter:" />
+                    <menulist id="ew.imageType" oncommand="filterChanged();">
+                       <menupopup>
+                          <menuitem label="My AMIs" value="my_ami" selected="true" />
+                          <menuitem label="All AMIs" value="ami" />
+                          <menuitem label="All AMIs with EBS Root Device" value="rdt_ebs" />
+                          <menuitem label="All AMIs with Instance Store Root Device" value="rdt_is" />
+                          <menuitem label="My AMIs with EBS Root Device" value="my_ami_rdt_ebs" />
+                          <menuitem label="Amazon AMIs" value="amzn" />
+                          <menuitem label="Amazon AMIs with EBS Root Device" value="amzn_rdt_ebs" />
+                          <menuitem label="Favorites" value="fav" />
+                      </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <label control="ew.imageId" value="Image:" />
+                    <menulist id="ew.imageId" crop="end" sizetopopup="none" style="max-width: 450px;" oncommand="imageSelected();"/>
                 </row>
             </rows>
          </grid>

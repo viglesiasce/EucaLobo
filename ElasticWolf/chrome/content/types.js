@@ -2606,7 +2606,7 @@ function SpotPrice(type, az, date, descr, price)
     }
 }
 
-function SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az)
+function SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az, msg, tags)
 {
     this.id = id
     this.type = type
@@ -2618,6 +2618,9 @@ function SpotInstanceRequest(id, type, state, price, product, image, instanceTyp
     this.instanceId = instanceId
     this.date = date
     this.availabilityZone = az
+    this.faultMessage = msg
+    this.tags = tags
+    ew_core.processTags(this)
 
     this.toString = function() {
         return this.instanceType + fieldSeparator + this.product + fieldSeparator + this.price + fieldSeparator + this.type;

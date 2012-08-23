@@ -58,7 +58,6 @@ var ew_EC2TreeView = {
 
 var ew_AMIsTreeView = {
     model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles' ],
-    favorites: "ew.images.favorites",
     properties: ['ownerAlias', 'status', 'state'],
 
     menuChanged : function(event)
@@ -90,7 +89,7 @@ var ew_AMIsTreeView = {
     manageFavorites: function(remove) {
         var image = this.getSelected();
         if (image == null) return;
-        var favs = this.coregetStrPrefs(this.favorites, "").split("^");
+        var favs = this.core.getStrPrefs("ew.images.favorites", "").split("^");
         debug(remove + ":" + favs)
         if (remove) {
             var i = favs.indexOf(image.id)
@@ -102,7 +101,7 @@ var ew_AMIsTreeView = {
                 favs.push(image.id)
             }
         }
-        this.coresetStrPrefs(this.favorites, favs.join("^"));
+        this.core.setStrPrefs("ew.images.favorites", favs.join("^"));
         if (remove) {
             this.invalidate();
         }
@@ -111,65 +110,20 @@ var ew_AMIsTreeView = {
     filter: function(list)
     {
         if (!list) return list;
-        var type = $("ew.images.type");
-        if (type.value == "fav") {
-            var favs = this.coregetStrPrefs(this.favorites, "").split("^");
-            var images = [];
-            for (var i in list) {
-                if (favs.indexOf(list[i].id) >= 0) {
-                    images.push(list[i])
-                }
-            }
-            return TreeView.filter.call(this, images);
-        }
-
-        // Initialize the owner display filter to the empty string
-        var alias = null, owner = null, root = null, rx = null;
-        if (type.value == "my_ami" || type.value == "my_ami_rdt_ebs") {
-            var groups = this.core.queryModel('securityGroups');
-            if (groups && groups.length) {
-                owner = groups[0].ownerId;
-                rx = regExs["ami"];
-                root = type.value == "my_ami" ? null : "ebs";
-            }
-        } else
-        if (type.value == "amzn" || type.value == "amzn_rdt_ebs") {
-            alias = "amazon";
-            root = type.value == "amzn" ? null : "ebs";
-        } else
-        if (type.value == "rdt_ebs") {
-            root = "ebs";
-        } else
-        if (type.value == "rdt_is") {
-            root = "instance-store";
-        } else {
-            rx = regExs[type.value || "all"];
-        }
-        var nlist = new Array();
-        for (var i in list) {
-            if (rx && !list[i].id.match(rx)) continue;
-            if (root && root != list[i].rootDeviceType) continue;
-            if (alias && alias != list[i].ownerAlias) continue;
-            if (owner && owner != list[i].owner) continue;
-            nlist.push(list[i])
-        }
-        return TreeView.filter.call(this, nlist);
+        return TreeView.filter.call(this, this.core.getImagesByType(list, $("ew.images.type").value));
     },
 
     launchNewInstances : function()
     {
         var me = this;
         var image = this.getSelected();
-        if (image == null) return;
-        var retVal = { ok : null, tag: "", max: ew_InstancesTreeView.max };
+        if (!image) return;
 
-        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", image, this.core, retVal);
+        var retVal = { ok: null, max: ew_InstancesTreeView.max, image: image, core: this.core };
+        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
         if (retVal.ok) {
-            if (retVal.name) {
-                retVal.tag += (retVal.tag ? "," : "") + "Name:" + retVal.name;
-            }
             this.core.api.runInstances(retVal.imageId, retVal.instanceType, retVal.minCount, retVal.maxCount, retVal, function(list) {
-                if (retVal.tag != "") {
+                if (retVal.tag) {
                     me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
                 } else {
                     ew_InstancesTreeView.refresh();
@@ -177,6 +131,13 @@ var ew_AMIsTreeView = {
                 me.core.selectTab('ew.tabs.instance' + (me.core.isVpcMode() ? ".vpc" : ""));
             });
         }
+    },
+
+    requestSpotInstances: function()
+    {
+        var image = this.getSelected();
+        if (!image) return;
+        ew_SpotInstanceRequestsTreeView.createRequest(image);
     },
 
     callRegisterImageInRegion : function(manifest, region)
@@ -1683,16 +1644,39 @@ var ew_BundleTasksTreeView = {
 };
 
 var ew_SpotInstanceRequestsTreeView = {
-    model: ["spotInstanceRequests", "availabilityZones"],
+    model: ["spotInstanceRequests", "availabilityZones", "images", "keypairs", "vpcs", "subnets", "networkInterfaces", "instanceProfiles", "snapshots"],
 
     menuChanged  : function (event) {
     },
 
     isRefreshable : function() {
         for (var i in this.treeList) {
-            if (this.treeList[i].state == "complete" || this.treeList[i].state == "failed") return true;
+            if (this.treeList[i].state == "open" || this.treeList[i].state == "active") return true;
         }
         return false;
+    },
+
+    createRequest : function(image) {
+        var me = this;
+        var retVal = { ok: null, max: ew_InstancesTreeView.max, spotRequest: true, image: image, core: this.core };
+        window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
+        if (retVal.ok) {
+            this.core.api.requestSpotInstances(retVal.spotPrice, retVal.minCount, retVal.spotType, retVal.validFrom, retVal.validUntil, retVal.launchGroup, retVal.availZoneGroup, retVal.imageId, retVal.instanceType, retVal, function(list) {
+                if (retVal.tag) {
+                    me.core.setTags(list, retVal.tag, function() { me.refresh() });
+                } else {
+                    me.refresh();
+                }
+            });
+        }
+    },
+
+    cancelRequest : function () {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        if (!confirm('Cancel Spot request ' + item.id + '?')) return;
+        this.core.api.cancelSpotInstanceRequests(item.id, function() { me.refresh(); });
     },
 
     history: function() {
@@ -1709,7 +1693,7 @@ var ew_SpotInstanceRequestsTreeView = {
                 input.graph(4, items);
             });
         }
-        this.core.promptInput('Spot Price History', [{label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes()},
+        this.core.promptInput('Spot Price History', [{label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",sizetopopup:"none"},
                                                      {label:"Product",type:"menulist",list:['Linux/UNIX', 'SUSE Linux', 'Windows', 'Linux/UNIX (Amazon VPC)', 'SUSE Linux (Amazon VPC)', 'Windows (Amazon VPC)']},
                                                      {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
                                                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},

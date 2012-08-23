@@ -66,7 +66,7 @@ var ew_MetricsTreeView = {
         var statistics = $('ew.metrics.statistics').value;
         var period = $('ew.metrics.period').value;
         var interval = parseInt($('ew.metrics.time').value);
-        openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.name, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
+        openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.name, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
 };
@@ -82,7 +82,7 @@ var ew_MetricAlarmsTreeView = {
         var statistics = $('ew.alarms.statistics').value;
         var period = $('ew.alarms.period').value;
         var interval = parseInt($('ew.alarms.time').value);
-        openDialog('chrome://ew/content/dialogs/graph.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.metricName, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
+        openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.metricName, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
     menuChanged : function(event)

@@ -1710,11 +1710,51 @@ var ew_api = {
             var az = getNodeValue(item, "launchedAvailabilityZone");
             var image = getNodeValue(item, "launchSpecification", "imageId");
             var instanceType = getNodeValue(item, "launchSpecification", "instanceType");
-            list.push(new SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az));
+            var msg = getNodeValue(item, "fault", "message");
+            var tags = this.getTags(item);
+            list.push(new SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az, msg, tags));
         }
 
         this.core.setModel('spotInstanceRequests', list);
         response.result = list;
+    },
+
+    requestSpotInstances: function(price, count, type, validFrom, validUntil, launchGroup, availZoneGroup, imageId, instanceType, options, callback)
+    {
+        var params = this.createLaunchParams(options, "LaunchSpecification.");
+
+        params.push([ "LaunchSpecification.ImageId", imageId ]);
+        params.push([ "LaunchSpecification.InstanceType", instanceType ]);
+        params.push(["SpotPrice", price]);
+
+        if (count) params.push(["InstanceCount", count]);
+        if (type) params.push(["Type", type]);
+        if (validFrom) params.push(["ValidFrom", validFrom]);
+        if (validUntil) params.push(["ValidUntil", validUntil]);
+        if (launchGroup) params.push(["LaunchGroup", launchGroup]);
+        if (availZoneGroup) params.push(["AvailabilityZoneGroup", availZoneGroup]);
+
+        this.queryEC2("RequestSpotInstances", params, this, false, "onCompleteRequestSpotInstances", callback);
+    },
+
+    onCompleteRequestSpotInstances : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = this.getItems(xmlDoc, "spotInstanceRequestSet", "item", "spotInstanceRequestId");
+        response.result = list;
+    },
+
+    cancelSpotInstanceRequests: function(id, callback)
+    {
+        var params = [];
+        if (id instanceof Array) {
+            for (var i = 0;i < id.length; i++) {
+                params.push(["SpotInstanceRequestId." + (i + 1), id[i]])
+            }
+        } else {
+            params.push(["SpotInstanceRequestId.1", id])
+        }
+        this.queryEC2("CancelSpotInstanceRequests", params, this, false, "onComplete", callback);
     },
 
     describeInstances : function(callback)
@@ -1841,30 +1881,25 @@ var ew_api = {
         });
     },
 
-    runInstances : function(imageId, instanceType, minCount, maxCount, options, callback)
+    createLaunchParams: function(options, prefix)
     {
-        var params = []
-        params.push([ "ImageId", imageId ]);
-        params.push([ "InstanceType", instanceType ]);
-        params.push([ "MinCount", minCount ]);
-        params.push([ "MaxCount", maxCount ]);
-
+        var params = [];
         if (options.kernelId) {
-            params.push([ "KernelId", options.kernelId ]);
+            params.push([ prefix + "KernelId", options.kernelId ]);
         }
         if (options.ramdiskId) {
-            params.push([ "RamdiskId", options.ramdiskId ]);
+            params.push([ prefix + "RamdiskId", options.ramdiskId ]);
         }
         if (options.keyName) {
-            params.push([ "KeyName", options.keyName ]);
+            params.push([ prefix + "KeyName", options.keyName ]);
         }
         if (options.instanceProfile) {
-            params.push(["IamInstanceProfile.Name", options.instanceProfile])
+            params.push([prefix + "IamInstanceProfile.Name", options.instanceProfile])
         }
         for (var i in options.securityGroups) {
-            params.push([ "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
+            params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
         }
-        if (options.userData != null) {
+        if (options.userData) {
             var b64str = "Base64:";
             if (options.userData.indexOf(b64str) != 0) {
                 // This data needs to be encoded
@@ -1872,75 +1907,87 @@ var ew_api = {
             } else {
                 options.userData = options.userData.substring(b64str.length);
             }
-            params.push([ "UserData", options.userData ]);
+            params.push([ prefix + "UserData", options.userData ]);
         }
         if (options.additionalInfo) {
-            params.push([ "AdditionalInfo", options.additionalInfo ]);
+            params.push([ prefix + "AdditionalInfo", options.additionalInfo ]);
         }
         if (options.clientToken) {
-            params.push([ "ClientToken", options.clientToken])
+            params.push([ prefix + "ClientToken", options.clientToken])
         }
         if (options.ebsOptimized) {
-            params.push(["EbsOptimized", "true"]);
+            params.push([prefix + "EbsOptimized", "true"]);
         }
         if (options.monitoringEnabled) {
-            params.push([ "Monitoring.Enabled", "true"]);
+            params.push([ prefix + "Monitoring.Enabled", "true"]);
         }
         if (options.disableApiTermination) {
-            params.push([ "DisableApiTermination", "true"]);
+            params.push([ prefix + "DisableApiTermination", "true"]);
         }
         if (options.instanceInitiatedShutdownBehaviour) {
-            params.push([ "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehaviour]);
+            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehaviour]);
         }
         if (options.availabilityZone) {
-            params.push([ "Placement.AvailabilityZone", options.availabilityZone ]);
+            params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);
+        }
+        if (options.clusterGroup) {
+            params.push([ prefix + "Placement.GroupName", options.clusterGroup ]);
         }
         if (options.tenancy) {
-            params.push([ "Placement.Tenancy", options.tenancy ]);
+            params.push([ prefix + "Placement.Tenancy", options.tenancy ]);
         }
         if (options.subnetId) {
-            params.push([ "SubnetId", options.subnetId ]);
+            params.push([ prefix + "SubnetId", options.subnetId ]);
             if (options.privateIpAddress) {
-                params.push([ "PrivateIpAddress", options.privateIpAddress ]);
+                params.push([ prefix + "PrivateIpAddress", options.privateIpAddress ]);
             }
         }
         if (options.blockDeviceMapping) {
-            params.push([ 'BlockDeviceMapping.1.DeviceName', options.blockDeviceMapping.deviceName ]);
+            params.push([ prefix + 'BlockDeviceMapping.1.DeviceName', options.blockDeviceMapping.deviceName ]);
             if (options.blockDeviceMapping.virtualName) {
-                params.push([ 'BlockDeviceMapping.1.VirtualName', options.blockDeviceMapping.virtualName ]);
+                params.push([ prefix + 'BlockDeviceMapping.1.VirtualName', options.blockDeviceMapping.virtualName ]);
             } else
             if (options.blockDeviceMapping.snapshotId) {
-                params.push([ 'BlockDeviceMapping.1.Ebs.SnapshotId', options.blockDeviceMapping.snapshotId ]);
-                params.push([ 'BlockDeviceMapping.1.Ebs.DeleteOnTermination', options.blockDeviceMapping.deleteOnTermination ? true : false ]);
+                params.push([ prefix + 'BlockDeviceMapping.1.Ebs.SnapshotId', options.blockDeviceMapping.snapshotId ]);
+                params.push([ prefix + 'BlockDeviceMapping.1.Ebs.DeleteOnTermination', options.blockDeviceMapping.deleteOnTermination ? true : false ]);
             } else
             if (options.blockDeviceMapping.volumeSize) {
-                params.push([ 'BlockDeviceMapping.1.Ebs.VolumeSize', options.blockDeviceMapping.volumeSize ]);
+                params.push([ prefix + 'BlockDeviceMapping.1.Ebs.VolumeSize', options.blockDeviceMapping.volumeSize ]);
             }
         }
         if (options.networkInterface) {
-            params.push([ "NetworkInterface.0.DeviceIndex", options.networkInterface.deviceIndex])
+            params.push([ prefix + "NetworkInterface.0.DeviceIndex", options.networkInterface.deviceIndex])
             if (options.networkInterface.eniId) {
-                params.push([ "NetworkInterface.0.NetworkInterfaceId", options.networkInterface.eniId])
+                params.push([ prefix + "NetworkInterface.0.NetworkInterfaceId", options.networkInterface.eniId])
             }
             if (options.networkInterface.subnetId) {
-                params.push([ "NetworkInterface.0.SubnetId", options.networkInterface.subnetId])
+                params.push([ prefix + "NetworkInterface.0.SubnetId", options.networkInterface.subnetId])
             }
             if (options.networkInterface.description) {
-                params.push([ "NetworkInterface.0.Description", options.networkInterface.description])
+                params.push([ prefix + "NetworkInterface.0.Description", options.networkInterface.description])
             }
             if (options.networkInterface.privateIpAddress) {
-                params.push([ "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"])
-                params.push([ "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress])
             }
             for (var i in options.networkInterface.secondaryIpAddresses) {
-                params.push([ "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"])
-                params.push([ "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".PrivateIpAddress", options.networkInterface.secondaryIpAddresses[i]])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".PrivateIpAddress", options.networkInterface.secondaryIpAddresses[i]])
             }
             for (var i in options.networkInterface.securityGroups) {
-                params.push([ "NetworkInterface.0.SecurityGroupId." + parseInt(i), options.networkInterface.securityGroups[i]])
+                params.push([ prefix + "NetworkInterface.0.SecurityGroupId." + parseInt(i), options.networkInterface.securityGroups[i]])
             }
         }
+        return params;
+    },
 
+    runInstances : function(imageId, instanceType, minCount, maxCount, options, callback)
+    {
+        var params = this.createLaunchParams(options);
+        params.push([ "MinCount", minCount ]);
+        params.push([ "MaxCount", maxCount ]);
+        params.push([ "ImageId", imageId ]);
+        params.push([ "InstanceType", instanceType ]);
         this.queryEC2("RunInstances", params, this, false, "onCompleteRunInstances", callback);
     },
 

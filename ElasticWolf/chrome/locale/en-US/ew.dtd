@@ -20,7 +20,7 @@
 <!ENTITY ew.tabs.volume.label "Volumes">
 <!ENTITY ew.tabs.bundletask.label "Bundle Tasks">
 <!ENTITY ew.tabs.lease.label "Reserved Instances">
-<!ENTITY ew.tabs.spot.label "Spot Instances">
+<!ENTITY ew.tabs.spot.label "Spot Requests">
 <!ENTITY ew.tabs.loadbalancer.label "Load Balancer">
 <!ENTITY ew.tabs.vpc.label "VPCs">
 <!ENTITY ew.tabs.dhcp.label "DHCP Options">

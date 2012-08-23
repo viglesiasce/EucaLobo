@@ -2102,6 +2102,48 @@ var ew_core = {
         return null;
     },
 
+    getImagesByType: function(list, type)
+    {
+        var nlist = new Array();
+        if (type == "fav") {
+            var favs = this.getStrPrefs("ew.images.favorites", "").split("^");
+            for (var i in list) {
+                if (favs.indexOf(list[i].id) >= 0) {
+                    nlist.push(list[i])
+                }
+            }
+            return nlist;
+        }
+
+        // Initialize the owner display filter to the empty string
+        var alias = null, owner = null, root = null, rx = null;
+        if (type == "my_ami" || type == "my_ami_rdt_ebs") {
+            owner = this.user.accountId;
+            rx = regExs["ami"];
+            root = type == "my_ami" ? null : "ebs";
+        } else
+        if (type == "amzn" || type == "amzn_rdt_ebs") {
+            alias = "amazon";
+            root = type == "amzn" ? null : "ebs";
+        } else
+        if (type == "rdt_ebs") {
+            root = "ebs";
+        } else
+        if (type == "rdt_is") {
+            root = "instance-store";
+        } else {
+            rx = regExs[type.value || "all"];
+        }
+        for (var i in list) {
+            if (rx && !list[i].id.match(rx)) continue;
+            if (root && root != list[i].rootDeviceType) continue;
+            if (alias && alias != list[i].ownerAlias) continue;
+            if (owner && owner != list[i].owner) continue;
+            nlist.push(list[i])
+        }
+        return nlist;
+    },
+
     getVpcById: function(id)
     {
         return this.findObject(this.model.vpcs, id)

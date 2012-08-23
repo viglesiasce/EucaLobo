@@ -15,7 +15,7 @@
           <toolbarbutton image="images/refresh.png" oncommand="ew_SpotInstanceRequestsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarseparator />
           <toolbarbutton image="images/chart.png" oncommand="ew_SpotInstanceRequestsTreeView.history();" tooltiptext="Show price history" />
-          <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.newRequest();" tooltiptext="Create Request" />
+          <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.createRequest();" tooltiptext="Create Request" />
           <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.cancelRequest();" tooltiptext="Cancel Request" />
         </hbox>
       </toolbar>
