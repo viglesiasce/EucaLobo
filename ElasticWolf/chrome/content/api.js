@@ -1529,12 +1529,12 @@ var ew_api = {
         this.queryEC2("CreateInstanceExportTask", params, this, false, "onComplete:exportTaskId", callback);
     },
 
-    cancelExportTask: function(id)
+    cancelExportTask: function(id, callback)
     {
         this.queryEC2("CancelExportTask", [["ExportTaskId", id]], this, false, "onComplete", callback);
     },
 
-    describeExportTasks: function(id)
+    describeExportTasks: function(callback)
     {
         this.queryEC2("DescribeExportTasks", [], this, false, "onCompleteDescribeExportTasks", callback);
     },
@@ -1549,7 +1549,7 @@ var ew_api = {
             var item = items[i];
             var id = getNodeValue(item, "exportTaskId");
             var state = getNodeValue(item, "state");
-            var status = getNodeValue(item, "statusMessage");
+            var statusMsg = getNodeValue(item, "statusMessage");
             var descr = getNodeValue(item, "description");
             var instance = getNodeValue(item, "instanceExport", "instanceId");
             var env = getNodeValue(item, "instanceExport", "targetEnvironment");
@@ -1557,8 +1557,74 @@ var ew_api = {
             var cfmt = getNodeValue(item, "exportToS3", "containerFormat");
             var bucket = getNodeValue(item, "exportToS3", "s3Bucket");
             var prefix = getNodeValue(item, "exportToS3", "s3Key");
-            list.push(new ExportTask(id, state, status, descr, instance, env, dfmt, cfmt, bucket, prefix))
+            list.push(new ExportTask(id, state, statusMsg, descr, instance, env, dfmt, cfmt, bucket, prefix))
         }
+        this.core.setModel('exportTasks', list);
+        response.result = list;
+    },
+
+    cancelConversionTask: function(id, callback)
+    {
+        this.queryEC2("CancelConversionTask", [["ConversionTaskId", id]], this, false, "onComplete", callback);
+    },
+
+    describeConversionTasks: function(callback)
+    {
+        this.queryEC2("DescribeConversionTasks", [], this, false, "onCompleteDescribeConversionTasks", callback);
+    },
+
+    onCompleteDescribeConversionTasks : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "conversionTasks", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "conversionTaskId");
+            var state = getNodeValue(item, "state");
+            var statusMsg = getNodeValue(item, "statusMessage");
+            var expire = new Date(getNodeValue(item, "expirationTime"));
+
+            var vol = item.getElementsByTagName("importVolume")[0];
+            if (vol) {
+                var bytes = getNodeValue(vol, "bytesConverted");
+                var azone = getNodeValue(vol, "avilabilityZone");
+                var descr = getNodeValue(vol, "description");
+                var fmt = getNodeValue(vol, "image", "format");
+                var isize = getNodeValue(vol, "image", "size");
+                var url = getNodeValue(vol, "image", "importManifestUrl");
+                var cksum = getNodeValue(vol, "image", "checksum");
+                var vsize = getNodeValue(vol, "volume", "size");
+                var vid = getNodeValue(vol, "volume", "id");
+
+                list.push(new ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, desr, azone, bytes))
+            }
+            var instance = item.getElementsByTagName("importInstance")[0];
+            if (instance) {
+                var instanceId = getNodeValue(instance, "instanceId");
+                var platform = getNodeValue(instance, "platform");
+                var descr = getNodeValue(instance, "description");
+                var volumes = [];
+                var vols = this.getItems(instance, "volumes", "item");
+                for (var j = 0; j < vols.length; j++) {
+                    var vstatus = getNodeValue(vols[j], "status");
+                    var vstatusMsg = getNodeValue(vols[j], "statusMessage");
+                    var bytes = getNodeValue(vols[j], "bytesConverted");
+                    var azone = getNodeValue(vols[j], "avilabilityZone");
+                    var vdescr = getNodeValue(vols[j], "description");
+                    var fmt = getNodeValue(vols[j], "image", "format");
+                    var isize = getNodeValue(vols[j], "image", "size");
+                    var url = getNodeValue(vols[j], "image", "importManifestUrl");
+                    var cksum = getNodeValue(vols[j], "image", "checksum");
+                    var vsize = getNodeValue(vols[j], "volume", "size");
+                    var vid = getNodeValue(vols[j], "volume", "id");
+                    volumes.push(new ConversionTaskVolume(id, expire, vstatus, vstatusMsg, vid, vsize, fmt, isize, url, cksum, vdesr, azone, bytes))
+                }
+                list.push(new ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platform, descr, volumes))
+            }
+        }
+        this.core.setModel('conversionTasks', list);
         response.result = list;
     },
 

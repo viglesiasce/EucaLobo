@@ -1733,3 +1733,34 @@ var ew_SpotInstanceRequestsTreeView = {
         this.core.api.deleteSpotDatafeedSubscription(function() { me.datafeedChanged({}); });
     },
 };
+
+var ew_ExportTasksTreeView = {
+   model: ["exportTasks"],
+
+   deleteSelected : function ()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+       if (!confirm('Cancel Task ' + item.id + '?')) return;
+       this.core.api.cancelExportTask(item.id, function() { me.refresh(); });
+   },
+};
+
+var ew_ConversionTasksTreeView = {
+   model: ["conversionTasks"],
+
+   createTask: function()
+   {
+
+   },
+
+   deleteSelected : function ()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+       if (!confirm('Cancel Task ' + item.id + '?')) return;
+       this.core.api.cancelConversionTask(item.id, function() { me.refresh(); });
+   },
+};

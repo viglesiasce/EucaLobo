@@ -2627,20 +2627,61 @@ function SpotInstanceRequest(id, type, state, price, product, image, instanceTyp
     }
 }
 
-function ExportTask(id, state, status, descr, instance, env, dfmt, cfmt, bucket, prefix)
+function ExportTask(id, state, statusMsg, descr, instance, env, dfmt, cfmt, bucket, prefix)
 {
     this.id = id;
     this.state = state
-    this.status = status
+    this.statusMessage = statusMsg
     this.instanceId = instance
-    this.targetenvironment = env
+    this.targetEnvironment = env
     this.diskImageFormat = dfmt
     this.containerFormat = cfmt
     this.bucket = bucket
     this.prefix = prefix
 
     this.toString = function() {
-        return this.id + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('instanceId',this.instanceId) + fieldSeparator + this.descr;
+        return this.id + fieldSeparator + this.state + fieldSeparator + this.descr + fieldSeparator + ew_core.modelValue('instanceId',this.instanceId) +
+                         fieldSeparator + this.statusMessage + fieldSeparator + this.bucket + this.prefix;
+    }
+}
+
+
+function ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, desr, azone, bytes)
+{
+    this.id = id
+    this.state = state
+    this.statusMessage = statusMsg
+    this.expire = expire
+    this.volumeId = id
+    this.volumeSize = vsize;
+    this.imageSize = isize
+    this.imageFormat = fmt
+    this.imageUrl = url
+    this.imageChecksum = cksum
+    this.descr = descr
+    this.availabilityZone = azone
+    this.bytesConverted = bytes;
+
+    this.toString = function() {
+        return this.volumeId + fieldSeparator + this.bytesConverted + "/" + this.volumeSize + fieldSeparator + this.imageFormat + fieldSeparator + this.state;
+    }
+}
+
+function ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platform, descr, volumes)
+{
+    this.id = id
+    this.state = state
+    this.statusMessage = statusMsg
+    this.expire = expire
+    this.instanceId = instanceId
+    this.platform = platform
+    this.descr = descr
+    this.volumes = volumes;
+    this.volumeSize = this.volumes.length ? this.volumes[0].volumeSize : 0;
+    this.bytesConverted = this.volumes.length ? this.volumes[0].bytesConverted : 0;
+
+    this.toString = function() {
+        return this.instanceId + fieldSeparator + this.state + fieldSeparator + this.platform + fieldSeparator + this.volumes;
     }
 }
 

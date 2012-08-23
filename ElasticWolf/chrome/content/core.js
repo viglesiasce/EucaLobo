@@ -71,6 +71,7 @@ var ew_core = {
         asgroups: null,
         asconfigs: null,
         exportTasks: null,
+        conversionTaskss: null,
         spotPriceHistory: null,
         spotInstanceRequests: null,
     },
@@ -1656,6 +1657,12 @@ var ew_core = {
             var me = this;
 
             switch (name) {
+            case 'exportTasks':
+                this.api.describeExportTasks();
+                break;
+            case 'conversionTasks':
+                this.api.describeConversionTasks();
+                break;
             case 'spotInstanceRequests':
                 this.api.describeSpotInstanceRequests();
                 break;

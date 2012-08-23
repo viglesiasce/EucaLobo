@@ -21,6 +21,7 @@
 <!ENTITY ew.tabs.bundletask.label "Bundle Tasks">
 <!ENTITY ew.tabs.lease.label "Reserved Instances">
 <!ENTITY ew.tabs.spot.label "Spot Requests">
+<!ENTITY ew.tabs.export.label "Import/Export Tasks">
 <!ENTITY ew.tabs.loadbalancer.label "Load Balancer">
 <!ENTITY ew.tabs.vpc.label "VPCs">
 <!ENTITY ew.tabs.dhcp.label "DHCP Options">
