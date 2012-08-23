@@ -60,6 +60,19 @@ var ew_AMIsTreeView = {
     model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles' ],
     properties: ['ownerAlias', 'status', 'state'],
 
+    activate: function()
+    {
+        var menu = $("ew.images.type");
+        if (menu.itemCount == 0) {
+            menu.appendItem("No Filter", "")
+            var filters = this.core.getImageFilters();
+            for (var i in filters) {
+                menu.appendItem(filters[i].name, filters[i].value)
+            }
+        }
+        return TreeView.activate.call(this);
+    },
+
     menuChanged : function(event)
     {
         var image = this.getSelected();

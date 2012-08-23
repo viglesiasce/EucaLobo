@@ -8,8 +8,7 @@
             <caption label="AutoScaling Groups" />
             <popupset>
                 <menupopup id="ew.asgroups.contextmenu">
-                  <menuitem id="addGroup" oncommand="ew_ASGroupsTreeView.putGroup();" label="Add Group" />
-                  <menuitem id="editGroup" oncommand="ew_ASGroupsTreeView.putGroup(true);" label="Edit Group" />
+                  <menuitem id="addGroup" oncommand="ew_ASGroupsTreeView.addGroup();" label="Add Group" />
                   <menuitem id="deleteGroup" oncommand="ew_ASGroupsTreeView.deleteGroup();" label="Delete Group" />
                 </menupopup>
             </popupset>
@@ -17,8 +16,7 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asgroups.search" size="15"  />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_ASGroupsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" oncommand="ew_ASGroupsTreeView.putGroup();" tooltiptext="Add Group" />
-                <toolbarbutton image="images/edit.png" oncommand="ew_ASGroupsTreeView.putGroup(true);" tooltiptext="Edit Group" />
+                <toolbarbutton image="images/add.png" oncommand="ew_ASGroupsTreeView.addGroup();" tooltiptext="Add Group" />
                 <toolbarbutton image="images/delete.png" oncommand="ew_ASGroupsTreeView.deleteGroup();" tooltiptext="Delete Group" />
             </toolbar>
 
@@ -55,15 +53,15 @@
             <caption label="AutoScaling Launch Configurations" />
             <popupset>
                 <menupopup id="ew.asconfigs.tree.contextmenu">
-                    <menuitem oncommand="ew_ASConfigsTreeView.add()" label="Add Configuration" />
-                    <menuitem oncommand="ew_ASConfigsTreeView.deleteSelected();" label="Delete Configuration" />
+                    <menuitem oncommand="ew_ASConfigsTreeView.addConfig()" label="Add Configuration" />
+                    <menuitem oncommand="ew_ASConfigsTreeView.deleteConfig();" label="Delete Configuration" />
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asconfigs.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASConfigsTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add Configuration" oncommand="ew_ASConfigsTreeView.createKeypair();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="Delete Configuration" oncommand="ew_ASConfigsTreeView.deleteSelected();" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Configuration" oncommand="ew_ASConfigsTreeView.addConfig();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Configuration" oncommand="ew_ASConfigsTreeView.deleteConfig();" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.asconfigs.view" flex="1">
                 <treecols>

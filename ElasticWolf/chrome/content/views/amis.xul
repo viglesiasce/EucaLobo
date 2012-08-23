@@ -36,21 +36,7 @@
                             <toolbarbutton image="images/add.png" tooltiptext="&ew.images.register.tip;" oncommand="ew_AMIsTreeView.registerNewImage();" />
                             <toolbarbutton image="images/delete.png" tooltiptext="&ew.images.deregister.tip;" oncommand="ew_AMIsTreeView.deregisterImage();" />
                             <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
-                            <menulist id="ew.images.type" oncommand="ew_AMIsTreeView.filterChanged();">
-                                <menupopup>
-                                    <menuitem label="No Filter" value="" />
-                                    <menuitem label="My AMIs" value="my_ami" />
-                                    <menuitem label="All AMIs" value="ami" />
-                                    <menuitem label="All AMIs with EBS Root Device" value="rdt_ebs" />
-                                    <menuitem label="All AMIs with Instance Store Root Device" value="rdt_is" />
-                                    <menuitem label="My AMIs with EBS Root Device" value="my_ami_rdt_ebs" />
-                                    <menuitem label="Amazon AMIs" value="amzn" />
-                                    <menuitem label="Amazon AMIs with EBS Root Device" value="amzn_rdt_ebs" />
-                                    <menuitem label="All AKIs" value="aki" />
-                                    <menuitem label="All ARIs" value="ari" />
-                                    <menuitem label="Favorites" value="fav" />
-                                </menupopup>
-                            </menulist>
+                            <menulist id="ew.images.type" oncommand="ew_AMIsTreeView.filterChanged();" />
                         </hbox>
                     </toolbar>
                     <tree id="ew.images.view" seltype="single" enableColumnDrag="true" flex="1">

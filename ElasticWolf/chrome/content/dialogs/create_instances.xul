@@ -247,16 +247,14 @@
         ariList.appendItem("");
 
         if (this.image && !isWindows(this.image.platform)) {
-            i = 0;
-            var imgId = null;
-            for (i in images) {
-                imgId = images[i].id;
-                if (imgId.match(akiRegex)) {
-                    akiList.appendItem(images[i].toString(), imgId);
+            for (var i in images) {
+                if (images[i].id.match(akiRegex)) {
+                    akiList.appendItem(images[i].toString(), images[i].id);
                     continue;
                 }
-                if (imgId.match(ariRegex)) {
-                    ariList.appendItem(images[i].toString(), imgId);
+                if (images[i].id.match(ariRegex)) {
+                    ariList.appendItem(images[i].toString(), images[i].id);
+                    continue;
                 }
             }
             akiList.value = this.image.aki;
@@ -436,6 +434,13 @@
             tab.setAttribute('label', 'Spot Request');
             $('ew.tabs').appendChild(tab);
             $('ew.tabs').selectedIndex = 6;
+
+            var imgMenu = $("ew.imageType");
+            var filters = this.core.getImageFilters();
+            for ( var i in filters) {
+                imgMenu.appendItem(filters[i].name, filters[i].value)
+            }
+            imgMenu.selectedIndex = 0;
 
             if (!this.image) {
                 filterChanged();
@@ -775,18 +780,7 @@
                 </row>
                 <row>
                     <label control="ew.imageType" value="Image Filter:" />
-                    <menulist id="ew.imageType" oncommand="filterChanged();">
-                       <menupopup>
-                          <menuitem label="My AMIs" value="my_ami" selected="true" />
-                          <menuitem label="All AMIs" value="ami" />
-                          <menuitem label="All AMIs with EBS Root Device" value="rdt_ebs" />
-                          <menuitem label="All AMIs with Instance Store Root Device" value="rdt_is" />
-                          <menuitem label="My AMIs with EBS Root Device" value="my_ami_rdt_ebs" />
-                          <menuitem label="Amazon AMIs" value="amzn" />
-                          <menuitem label="Amazon AMIs with EBS Root Device" value="amzn_rdt_ebs" />
-                          <menuitem label="Favorites" value="fav" />
-                      </menupopup>
-                    </menulist>
+                    <menulist id="ew.imageType" oncommand="filterChanged();" />
                 </row>
                 <row>
                     <label control="ew.imageId" value="Image:" />

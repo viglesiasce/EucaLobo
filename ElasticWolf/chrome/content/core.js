@@ -1650,9 +1650,9 @@ var ew_core = {
             var now = (new Date).getTime();
             if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
                 debug('refresh: ' + name + ' in progress')
-                return;
+                continue;
             }
-            log('refresh model ' + name)
+            debug('refresh model ' + name)
             this.progress[name] = now;
             var me = this;
 
@@ -2278,4 +2278,15 @@ var ew_core = {
                { name: "Elastic Load Balancing", type: "AWS/ELB" } ];
     },
 
+    getImageFilters: function()
+    {
+        return [ {name:"My AMIs", value:"my_ami", toString: function() { return this.name; }, },
+                 {name:"All AMIs", value:"ami", toString: function() { return this.name; },},
+                 {name:"All AMIs with EBS Root Device", value:"rdt_ebs", toString: function() { return this.name; }, },
+                 {name:"All AMIs with Instance Store Root Device", value:"rdt_is", toString: function() { return this.name; },},
+                 {name:"My AMIs with EBS Root Device", value:"my_ami_rdt_ebs", toString: function() { return this.name; }, },
+                 {name:"Amazon AMIs", value:"amzn", toString: function() { return this.name; }, },
+                 {name:"Amazon AMIs with EBS Root Device", value:"amzn_rdt_ebs", toString: function() { return this.name; }, },
+                 {name:"Favorites", value:"fav", toString: function() { return this.name; }, }];
+    },
 };

@@ -1579,7 +1579,7 @@ var ew_api = {
 
         var list = new Array();
         var items = this.getItems(xmlDoc, "conversionTasks", "item");
-        for ( var i = 0; i < items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var item = items[i];
             var id = getNodeValue(item, "conversionTaskId");
             var state = getNodeValue(item, "state");
@@ -1597,9 +1597,9 @@ var ew_api = {
                 var cksum = getNodeValue(vol, "image", "checksum");
                 var vsize = getNodeValue(vol, "volume", "size");
                 var vid = getNodeValue(vol, "volume", "id");
-
                 list.push(new ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, desr, azone, bytes))
             }
+
             var instance = item.getElementsByTagName("importInstance")[0];
             if (instance) {
                 var instanceId = getNodeValue(instance, "instanceId");
@@ -5424,6 +5424,13 @@ var ew_api = {
         this.queryAS("DescribeAutoScalingGroups", [], this, false, "onCompleteDescribeAutoScalingGroups", callback);
     },
 
+    deleteAutoScalingGroup: function(name, force, callback)
+    {
+        var params = [ ["AutoScalingGroupName", name]]
+        if (force) params.push(["ForceDelete", true])
+        this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
+    },
+
     onCompleteDescribeAutoScalingGroups: function(response)
     {
         var xmlDoc = response.responseXML;
@@ -5453,6 +5460,12 @@ var ew_api = {
         }
         this.core.setModel('asgroups', list);
         response.result = list;
+    },
+
+    deleteLaunchConfiguration: function(name, callback)
+    {
+        var params = [ ["LaunchConfigurationName", name]]
+        this.queryAS("DeleteLaunchConfiguration", params, this, false, "onComplete", callback);
     },
 
     describeLaunchConfigurations: function(callback)

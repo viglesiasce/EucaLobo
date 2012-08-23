@@ -18,6 +18,7 @@
     function init() {
       var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
       this.rc = window.arguments[0];
+      this.core = rc.core;
       document.title = rc.title;
       var parent = document.getElementById('main');
       var rows = null;
@@ -64,6 +65,19 @@
              item.setAttribute('style', 'color:blue');
              item.setAttribute('value', value);
              item.setAttribute('onclick', "rc.core.displayUrl('" + rc.items[i].url + "')");
+             break;
+
+          case 'listbox':
+             item = document.createElement(type);
+             for (var j in rc.items[i].list) {
+                 var obj = rc.items[i].list[j];
+                 var e = document.createElement('listitem');
+                 e.setAttribute('label', rc.core.toString(obj));
+                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
+                 item.appendChild(e);
+             }
+             item.setAttribute('value', value);
+             item.setAttribute('oncommand', "handler(" + i + ")");
              break;
 
           case 'menulist':

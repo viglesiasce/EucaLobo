@@ -40,7 +40,7 @@
 <?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
-<?xul-overlay href="chrome://ew/content/views/asgroups.xul"?>
+<?xul-overlay href="chrome://ew/content/views/autoscaling.xul"?>
 <?xul-overlay href="chrome://ew/content/views/graphs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/spot.xul"?>
 <?xul-overlay href="chrome://ew/content/views/export.xul"?>
