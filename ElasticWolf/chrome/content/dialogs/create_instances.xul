@@ -17,7 +17,7 @@
 
     function launch()
     {
-        ew_ListBox.done();
+        ListBox.done();
         this.retVal.imageId = $('ew.ami.id').value;
         this.retVal.kernelId = $("ew.aki").value;
         this.retVal.ramdiskId = $("ew.ari").value;
@@ -37,7 +37,7 @@
         this.retVal.keyName = $("ew.keypairlist").value;
         this.retVal.availabilityZone = this.azMenu.value;
         this.retVal.tenancy = this.tnMenu.value;
-        this.retVal.securityGroups = ew_ListBox.selectedItems;
+        this.retVal.securityGroups = ListBox.selectedItems;
         this.retVal.instanceProfile = $("ew.roles").value;
         this.retVal.ebsOptimized = $("ew.ebsOptimized").checked;
 
@@ -327,12 +327,7 @@
         groups.setAttribute('flex', '1');
         box.appendChild(groups);
 
-        ew_ListBox.core = this.core;
-        ew_ListBox.name = 'ew.groups';
-        ew_ListBox.title = "Security Groups";
-        ew_ListBox.listItems = this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value);
-        ew_ListBox.multiple = true;
-        ew_ListBox.init();
+        ListBox.init({ core:this.core, name:'ew.groups', title:'Security Groups', listItems:this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value) });
     }
 
     function loadUserDataFromFile(fBinary)

@@ -23,59 +23,6 @@ var ew_core = {
     components : {},
     progress: {},
 
-    // Model objects
-    model: {
-        accesskeys: null,
-        certs: null,
-        serverCerts: null,
-        volumes : null,
-        images : null,
-        snapshots : null,
-        instances : null,
-        keypairs : null,
-        availabilityZones : null,
-        securityGroups : null,
-        addresses : null,
-        bundleTasks : null,
-        offerings : null,
-        reservedInstances : null,
-        loadBalancers : null,
-        subnets : null,
-        vpcs : null,
-        dhcpOptions : null,
-        vpnConnections : null,
-        vpnGateways : null,
-        customerGateways : null,
-        internetGateways : null,
-        routeTables: null,
-        networkAcls: null,
-        networkInterfaces: null,
-        s3Buckets: null,
-        regions: null,
-        users: null,
-        groups: null,
-        vmfas: null,
-        mfas: null,
-        alarms: null,
-        metrics: null,
-        queues: null,
-        elbPolicyTypes: null,
-        topics: null,
-        subscriptions: null,
-        dbinstances: null,
-        roles: null,
-        instanceProfiles: null,
-        instanceStatus: null,
-        hostedZones: null,
-        hostedChanges: [],
-        asgroups: null,
-        asconfigs: null,
-        exportTasks: null,
-        conversionTaskss: null,
-        spotPriceHistory: null,
-        spotInstanceRequests: null,
-    },
-
     // Intialize core object with current menu and api implementation
     initialize : function(tabs, api)
     {
@@ -808,6 +755,8 @@ var ew_core = {
         params.listItems = items;
         params.selectedIndex = -1;
         params.selectedItems = [];
+        // By default it is single select
+        if (typeof params.multiple == "undefined") params.multiple = false;
         window.openDialog("chrome://ew/content/dialogs/select.xul", null, "chrome,centerscreen,modal,resizable", params);
         return params.multiple ? (params.checkedProperty ? params.listItems : params.selectedItems) : params.selectedIndex;
     },
@@ -859,7 +808,15 @@ var ew_core = {
     promptConfirm: function(title, msg, checkmsg, checkval)
     {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-        return promptService.confirmCheck(window, title, msg, checkmsg, checkval);
+        return promptService.confirmCheck(window, title, msg, ivalue, checkmsg, checkval);
+    },
+
+    promptData: function(title, msg, data, checkmsg, checkval)
+    {
+        var val = { value: data || "" };
+        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+        var rc = promptService.prompt(window, title, msg, val, checkmsg, checkval);
+        return rc ? val.value : null;
     },
 
     // Does not wait for response, once called it will ask for pin and quit if entered wrongly
@@ -1642,6 +1599,63 @@ var ew_core = {
         if (name) this.prefs.setBoolPref(name, value);
     },
 
+    // Model objects
+    model: {
+        accesskeys: null,
+        certs: null,
+        serverCerts: null,
+        volumes : null,
+        images : null,
+        snapshots : null,
+        instances : null,
+        keypairs : null,
+        availabilityZones : null,
+        securityGroups : null,
+        addresses : null,
+        bundleTasks : null,
+        offerings : null,
+        reservedInstances : null,
+        loadBalancers : null,
+        subnets : null,
+        vpcs : null,
+        dhcpOptions : null,
+        vpnConnections : null,
+        vpnGateways : null,
+        customerGateways : null,
+        internetGateways : null,
+        routeTables: null,
+        networkAcls: null,
+        networkInterfaces: null,
+        s3Buckets: null,
+        regions: null,
+        users: null,
+        groups: null,
+        vmfas: null,
+        mfas: null,
+        alarms: null,
+        metrics: null,
+        queues: null,
+        elbPolicyTypes: null,
+        topics: null,
+        subscriptions: null,
+        dbinstances: null,
+        roles: null,
+        instanceProfiles: null,
+        instanceStatus: null,
+        hostedZones: null,
+        hostedChanges: [],
+        asgroups: null,
+        asconfigs: null,
+        aspolicies: null,
+        asactions: null,
+        asinstances: null,
+        asnotifications: null,
+        exportTasks: null,
+        conversionTaskss: null,
+        spotPriceHistory: null,
+        spotInstanceRequests: null,
+    },
+
     // Refresh model list by name, this is primary interface to use in the lists and trees
     refreshModel: function()
     {
@@ -1666,11 +1680,23 @@ var ew_core = {
             case 'spotInstanceRequests':
                 this.api.describeSpotInstanceRequests();
                 break;
+            case "asactions":
+                this.api.describeScheduledActions();
+                break;
+            case "aspolicies":
+                this.api.describePolicies();
+                break;
             case "asgroups":
                 this.api.describeAutoScalingGroups();
                 break;
             case "asconfigs":
                 this.api.describeLaunchConfigurations();
+                break;
+            case "asnotifications":
+                this.api.describeNotificationConfigurations(function(list) { me.setModel(name, list); });
+                break;
+            case "asinstances":
+                this.api.describeAutoScalingInstances();
                 break;
             case "instanceProfiles":
                 this.api.listInstanceProfiles();

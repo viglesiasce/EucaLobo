@@ -67,6 +67,11 @@
              item.setAttribute('onclick', "rc.core.displayUrl('" + rc.items[i].url + "')");
              break;
 
+          case 'listview':
+             item = document.createElement('listbox');
+             item.setAttribute('oncommand', "handler(" + i + ")");
+             break;
+
           case 'listbox':
              item = document.createElement(type);
              for (var j in rc.items[i].list) {
@@ -229,9 +234,18 @@
         if (rc.callback) {
             rc.callback.call(this, idx, onstart);
         }
-        switch (rc.items[idx].type) {
+        var obj = rc.items[idx];
+        switch (obj.type) {
         case 'graph':
             graph(idx);
+            break;
+        case 'listview':
+            if (onstart) {
+                obj.core = this.core;
+                obj.name = 'item' + idx;
+                if (!obj.listItems) obj.listItems = obj.list || [];
+                obj.view = new ListView(obj);
+            }
             break;
         }
     }
@@ -320,13 +334,21 @@
         text.textContent = descr;
         return text;
     }
-    function accept() {
+
+    function accept()
+    {
       rc.values = [];
       for (var i = 0; i < rc.items.length; i++) {
           var obj = document.getElementById('item' + i);
           if (!obj) continue;
           var type = rc.items[i].type || 'textbox';
           switch(type) {
+          case 'listview':
+             rc.items[i].view.done();
+             rc.values[i] = rc.items[i].view.selectedItems;
+             if (!rc.values[i].length) rc.values[i] = null;
+             break;
+
           case 'checkbox':
              rc.values[i] = obj.checked;
              break;

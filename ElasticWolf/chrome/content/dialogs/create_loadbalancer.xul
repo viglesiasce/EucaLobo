@@ -19,11 +19,7 @@
     this.core = window.arguments[0];
     this.rc = window.arguments[1];
 
-    ew_ListBox.core = this.core;
-    ew_ListBox.name = 'ew.instances';
-    ew_ListBox.multiple = true;
-    ew_ListBox.listItems = this.core.queryModel('instances','state', 'running');
-    ew_ListBox.init();
+    ListBox.init({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', listItems:this.core.queryModel('instances','state', 'running') });
 
     var availZones = this.core.queryModel('availabilityZones');
     var availZoneMenu = document.getElementById("ew.azones");
@@ -81,11 +77,11 @@
         var subnet = this.core.findModel('subnets', this.rc.subnetId);
         this.rc.Zone = subnet.availabilityZone;
     }
-    ew_ListBox.done();
+    ListBox.done();
 
     this.rc.instances = [];
-    for (var i in ew_ListBox.selectedItems) {
-        this.rc.instances.push(ew_ListBox.selectedItems[i].id);
+    for (var i in ListBox.selectedItems) {
+        this.rc.instances.push(ListBox.selectedItems[i].id);
     }
 
     this.rc.ok = true;
@@ -313,15 +309,6 @@
   </wizardpage>
 
   <wizardpage description="&ew.dialog.description.step3;">
-    <listbox id="ew.instances" rows="10" width="550" onclick="ew_ListBox.selectionChanged(event)">
-      <listhead>
-        <listheader label="Select" width="100"/>
-        <listheader label="Instance" width="150"/>
-      </listhead>
-      <listcols>
-        <listcol/>
-        <listcol flex="1"/>
-      </listcols>
-    </listbox>
+    <listbox id="ew.instances" />
   </wizardpage>
 </wizard>

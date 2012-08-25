@@ -16,24 +16,26 @@
     <script>
     <![CDATA[
         function done() {
-            ew_ListBox.done();
-            params.selectedIndex = ew_ListBox.selectedIndex;
-            params.selectedItems = ew_ListBox.selectedItems;
-            params.selectedIndexes = ew_ListBox.selectedIndexes;
+            ListBox.done();
+            params.selectedIndex = ListBox.selectedIndex;
+            params.selectedItems = ListBox.selectedItems;
+            params.selectedIndexes = ListBox.selectedIndexes;
             return true;
         }
         function init() {
             params = window.arguments[0];
             document.title = params.title;
-            document.getElementById("msg").value = params.msg;
-            ew_ListBox.init(params);
+            $("title").label = params.title;
+            $("msg").value = params.msg;
+            ListBox.init(params);
         }
     ]]>
     </script>
 
-    <vbox flex="1">
+    <groupbox flex="1">
+      <caption id="title" />
       <label id="msg" value="" flex="1" />
       <listbox id="list" flex="1" />
-    </vbox>
+    </groupbox>
 </dialog>
 

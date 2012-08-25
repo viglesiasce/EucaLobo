@@ -89,7 +89,7 @@ var ew_api = {
 
     startTimer : function(key, expr)
     {
-        var timeout = this.core.getIntPrefs("ew.http.timeout", 15000, 5000, 3600000);
+        var timeout = this.core.getIntPrefs("ew.http.timeout", 30000, 5000, 3600000);
         var timer = window.setTimeout(expr, timeout);
         this.timers[key] = timer;
     },
@@ -517,7 +517,10 @@ var ew_api = {
         var xhr = xmlhttp;
         // Generate random timer
         var timerKey = this.getTimerKey();
-        this.startTimer(timerKey, function() { xhr.abort() });
+        this.startTimer(timerKey, function() {
+            debug('TIMEOUT: ' + url + ', action=' + action + '/' + handlerMethod + ', params=' + params);
+            xhr.abort();
+        });
         this.showBusy(true);
 
         if (isSync) {
@@ -564,7 +567,7 @@ var ew_api = {
         if (handlerObj) {
             handlerObj.onResponseComplete(rc);
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString);
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length);
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
@@ -652,7 +655,7 @@ var ew_api = {
     // then response will put value of the node 'id' in the result
     onResponseComplete : function(response)
     {
-        var id = null;
+        var id = null, item = null;
         var method = response.method;
         if (!method) return;
 
@@ -661,19 +664,26 @@ var ew_api = {
             var m = method.split(":");
             method = m[0];
             id = m[1];
+            item = m[2];
         }
 
         if (this[method]) {
-            this[method](response, id);
+            this[method](response, id, item);
         } else {
            alert('Error calling handler ' + response.method + ' for ' + response.action);
         }
     },
 
     // Common response callback when there is no need to parse result but only to call user callback
-    onComplete : function(response, id)
+    onComplete : function(response, id, item)
     {
-        if (id) response.result = getNodeValue(response.responseXML, id);
+        if (id && item) {
+            response.result = this.getItems(response.responseXML, id, item, "");
+        } else
+
+        if (id) {
+            response.result = getNodeValue(response.responseXML, id);
+        }
     },
 
     onCompleteResponseText : function(response, id)
@@ -706,7 +716,7 @@ var ew_api = {
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
     // fields needs to be extracted and put into Javascript object as properties. If callback specified, the final object will be passed through the
-    // callback as parameters which shoulkd return valid object or value to be included in the list
+    // callback as parameters which should return valid object or value to be included in the list
     getItems : function(item, parentNode, itemsNode, columns, callback)
     {
         var list = [];
@@ -1465,9 +1475,24 @@ var ew_api = {
         response.result = getNodeValue(xmlDoc, "imageId");
     },
 
-    describeImages : function( callback)
+    describeImages : function(owners, execBy, callback)
     {
-        this.queryEC2("DescribeImages", [], this, false, "onCompleteDescribeImages", callback);
+        var params = [];
+        if (owners) {
+            if (owners instanceof Array) {
+                owners.forEach(function (x, i) { params.push(["Owner." + (i + 1), x])})
+            } else {
+                params.push(["Owner.1", owners])
+            }
+        }
+        if (execBy) {
+            if (execBy instanceof Array) {
+                execBy.forEach(function (x, i) { params.push(["ExecutableBy." + (i + 1), x])})
+            } else {
+                params.push(["ExecutableBy.1", execBy])
+            }
+        }
+        this.queryEC2("DescribeImages", params, this, false, "onCompleteDescribeImages", callback);
     },
 
     onCompleteDescribeImages : function(response)
@@ -5431,6 +5456,67 @@ var ew_api = {
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
+    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, tags, callback)
+    {
+        var params = [ ["AutoScalingGroupName", name]]
+        zones.forEach(function(x, i) {
+            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x])
+        })
+        params.push(["LaunchConfigurationName", config])
+        params.push(["MinSize", min])
+        params.push(["MaxSize", max])
+        if (capacity) params.push(["DesiredCapacity", capacity])
+        if (cooldown) params.push(["DefaultCooldown", cooldown])
+        if (healthType) params.push(["HealthCheckType", healthType])
+        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+
+        (elbs || []).forEach(function(x,i) {
+            params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
+        });
+
+        (tags || []).forEach(function(x,i) {
+            params.push(["Tags.member." + (i+1) + ".Key", x.name]);
+            params.push(["Tags.member." + (i+1) + ".Value", x.value]);
+            params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", true]);
+            params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
+            params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
+        });
+
+        this.queryAS("CreateAutoScalingGroup", params, this, false, "onComplete", callback);
+    },
+
+    updateAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, tags, callback)
+    {
+        var params = [ ["AutoScalingGroupName", name]];
+
+        (zones || []).forEach(function(x, i) {
+            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x])
+        });
+        params.push(["LaunchConfigurationName", config])
+        params.push(["MinSize", min])
+        params.push(["MaxSize", max])
+        if (capacity) params.push(["DesiredCapacity", capacity])
+        if (cooldown) params.push(["DefaultCooldown", cooldown])
+        if (healthType) params.push(["HealthCheckType", healthType])
+        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+
+        (elbs || []).forEach(function(x,i) {
+            params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
+        });
+
+        (tags || []).forEach(function(x,i) {
+            params.push(["Tags.member." + (i+1) + ".Key", x.name]);
+            params.push(["Tags.member." + (i+1) + ".Value", x.value]);
+            params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", true]);
+            params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
+            params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
+        });
+
+        this.queryAS("UpdateAutoScalingGroup", params, this, false, "onComplete", callback);
+    },
+
     onCompleteDescribeAutoScalingGroups: function(response)
     {
         var xmlDoc = response.responseXML;
@@ -5440,6 +5526,7 @@ var ew_api = {
             var name = getNodeValue(items[i], "AutoScalingGroupName");
             var arn = getNodeValue(items[i], "AutoScalingGroupARN");
             var date = new Date(getNodeValue(items[i], "CreatedTime"));
+            var config = getNodeValue(items[i], "LaunchConfigurationName");
             var capacity = getNodeValue(items[i], "DesiredCapacity");
             var min = getNodeValue(items[i], "MinSize");
             var max = getNodeValue(items[i], "MaxSize");
@@ -5451,12 +5538,12 @@ var ew_api = {
             var placement = getNodeValue(items[i], "PlacementGroup");
             var elbs = this.getItems(items[i], "LoadBalancerNames", "member", "");
             var azones = this.getItems(items[i], "AvailabilityZones", "member", "");
-            var metric = getNodeValue(items[i], "EnabledMetric", "Metric");
+            var metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(obj) { return new Item(obj.Metric, obj.Granularity); });
             var granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
-            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new ASInstance(obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
-            var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Tag(obj.ProcessName,obj.SuspensionReason)})
-            var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new ASTag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,obj.PropagateAtLaunch)})
-            list.push(new AutoScalingGroup(name, arn, date, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metric, granularity, instances, suspended, tags));
+            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new ASInstance(name,obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
+            var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Item(obj.ProcessName,obj.SuspensionReason)})
+            var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new Tag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,toBool(obj.PropagateAtLaunch))})
+            list.push(new AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags));
         }
         this.core.setModel('asgroups', list);
         response.result = list;
@@ -5466,6 +5553,26 @@ var ew_api = {
     {
         var params = [ ["LaunchConfigurationName", name]]
         this.queryAS("DeleteLaunchConfiguration", params, this, false, "onComplete", callback);
+    },
+
+    createLaunchConfiguration: function(name, instanceType, imageId, kernelId, ramdiskId, iamProfile, keypair, price, userData, monitoring, groups, callback)
+    {
+        var params = [ ["LaunchConfigurationName", name]]
+        params.push(["InstanceType", instanceType])
+        params.push(["ImageId", imageId])
+        params.push(["InstanceMonitoring.Enabled", monitoring ? true : false])
+        if (kernelId) params.push(["KernelId", kernelId])
+        if (ramdiskId) params.push(["RamdiskId", ramdiskId])
+        if (iamProfile) params.push(["IamInstanceProfile", iamProfile])
+        if (keypair) params.push(["KeyName", keypair])
+        if (price > 0) params.push(["SpotPrice", price])
+        if (userData) params.push(["UserData", userData])
+        if (groups) {
+            groups.forEach(function(x, i) {
+                params.push(["SecurityGroups.member." + (i + 1), typeof x == "object" ? (x.vpcId ? x.id : x.name) : x])
+            })
+        }
+        this.queryAS("CreateLaunchConfiguration", params, this, false, "onComplete", callback);
     },
 
     describeLaunchConfigurations: function(callback)
@@ -5494,16 +5601,194 @@ var ew_api = {
             var groups = this.getItems(items[i], "SecurityGroups", "member", "");
             var devices = [];
             var objs = this.getItems(items[i], "BlockDeviceMappings", "member");
-            for (var i = 0; i < objs.length; i++) {
-                var vdevice = getNodeValue(objs[i], "DeviceName");
-                var vname = getNodeValue(objs[i], "VirtualName");
-                var vid = getNodeValue(objs[i], "ebs", "SnapshotId");
-                var vsize = getNodeValue(objs[i], "ebs", "VolumeSize");
+            for (var j = 0; j < objs.length; j++) {
+                var vdevice = getNodeValue(objs[j], "DeviceName");
+                var vname = getNodeValue(objs[j], "VirtualName");
+                var vid = getNodeValue(objs[j], "ebs", "SnapshotId");
+                var vsize = getNodeValue(objs[j], "ebs", "VolumeSize");
                 devices.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, 0, 0));
             }
             list.push(new LaunchConfiguration(name, arn, date, type, key, profile, image, kernel, ramdisk, userdata, spotprice, monitoring, groups, devices));
         }
         this.core.setModel('asconfigs', list);
+        response.result = list;
+    },
+
+    disableMetricsCollection: function(name, callback)
+    {
+        this.queryAS("DisableMetricsCollection", [["AutoScalingGroupName", name]], this, false, "onComplete", callback);
+    },
+
+    enableMetricsCollection: function(name, callback)
+    {
+        this.queryAS("EnableMetricsCollection", [["AutoScalingGroupName", name], ["Granularity", "1Minute"]], this, false, "onComplete", callback);
+    },
+
+    executePolicy: function(name, policy, honorCooldown, callback)
+    {
+        var params = [["AutoScalingGroupName", name]];
+        params.push(["PolicyName", policy]);
+        if (honorCooldown) params.push(["HonorCooldown",honorCooldown])
+        this.queryAS("ExecutePolicy", params, this, false, "onComplete", callback);
+    },
+
+    deletePolicy: function(name, policy, callback)
+    {
+        this.queryAS("DeletePolicy", [["AutoScalingGroupName", name], ["PolicyName", policy] ], this, false, "onComplete", callback);
+    },
+
+    deleteNotificationConfiguration: function(name, topic, callback)
+    {
+        this.queryAS("DeleteNotificationConfiguration", [["AutoScalingGroupName", name], ["TopicARN", topic]], this, false, "onComplete", callback);
+    },
+
+    putNotificationConfiguration: function(name, topic, events, callback)
+    {
+        var params = ["AutoScalingGroupName", name];
+        params.push(["TopicARN", topic]);
+        (events || []).forEach(function(x,i) { params.push(["NotificationTypes.member." + (i + 1), x])})
+
+        this.queryAS("DeleteNotificationConfiguration", params, this, false, "onComplete", callback);
+    },
+
+    suspendProcesses: function(name, processes, callback)
+    {
+        var params = ["AutoScalingGroupName", name];
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x])})
+
+        this.queryAS("SuspendProcesses", params, this, false, "onComplete", callback);
+    },
+
+    resumeProcesses: function(name, processes, callback)
+    {
+        var params = ["AutoScalingGroupName", name];
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x])})
+
+        this.queryAS("ResumeProcesses", params, this, false, "onComplete", callback);
+    },
+
+    describeAutoScalingNotificationTypes: function(callback)
+    {
+        this.queryAS("DescribeAutoScalingNotificationTypes", [], this, false, "onComplete:AutoScalingNotificationTypes:member", callback);
+    },
+
+    describeNotificationConfigurations: function(callback)
+    {
+        this.queryAS("DescribeNotificationConfigurations", [], this, false, "onCompleteDescribeNotificationConfigurations", callback);
+    },
+
+    onCompleteDescribeNotificationConfigurations: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "NotificationConfigurations", "member");
+        for (var i = 0; i < items.length; i++) {
+            var group = getNodeValue(items[i], "AutoScalingGroupName");
+            var type = getNodeValue(items[i], "NotificationType");
+            var topic = getNodeValue(items[i], "TopicARN");
+            list.push(new ScalingNotification(group, type, topic));
+        }
+        this.getNext(response, this.queryAS, list, 'asnotifications');
+    },
+
+    deleteScheduledAction: function(name, action, callback)
+    {
+        this.queryAS("DeleteScheduledAction", [["AutoScalingGroupName", name], ["ScheduledActionName", action] ], this, false, "onComplete", callback);
+    },
+
+    terminateInstanceInAutoScalingGroup: function(id, decr, callback)
+    {
+        this.queryAS("TerminateInstanceInAutoScalingGroup", [["ShouldDecrementDesiredCapacity", decr], ["InstanceId", id] ], this, false, "onComplete", callback);
+    },
+
+    setInstanceHealth: function(id, status, graceperiod, callback)
+    {
+        var params = [["HealthStatus", status]];
+        params.push(["InstanceId", id]);
+        if (graceperiod) params.push(["ShouldRespectGracePeriod", true])
+        this.queryAS("SetInstanceHealth", params, this, false, "onComplete", callback);
+    },
+
+    setDesiredCapacity: function(name, capacity, honorCooldown, callback)
+    {
+        var params = [["AutoScalingGroupName", name]];
+        params.push(["DesiredCapacity", capacity]);
+        if (honorCooldown) params.push(["HonorCooldown", true])
+        this.queryAS("SetDesiredCapacity", params, this, false, "onComplete", callback);
+    },
+
+    describePolicies: function(callback)
+    {
+        this.queryAS("DescribePolicies", [], this, false, "onCompleteDescribePolicies", callback);
+    },
+
+    onCompleteDescribePolicies: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "ScalingPolicies", "member");
+        for (var i = 0; i < items.length; i++) {
+            var group = getNodeValue(items[i], "AutoScalingGroupName");
+            var atype = getNodeValue(items[i], "AdjustmentType");
+            var cooldown = getNodeValue(items[i], "Cooldown");
+            var minadjust = getNodeValue(items[i], "MinAdjustmentStep");
+            var arn = getNodeValue(items[i], "PolicyARN");
+            var name = getNodeValue(items[i], "PolicyName");
+            var adjust = getNodeValue(items[i], "ScalingAdjustment");
+            var alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(obj) { return new Item(obj.AlarmName, obj.AlarmARN);});
+            list.push(new ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, alarms));
+        }
+        this.core.setModel('aspolicies', list);
+        response.result = list;
+    },
+
+    describeScheduledActions: function(callback)
+    {
+        this.queryAS("DescribeScheduledActions", [], this, false, "onCompleteDescribeScheduledActions", callback);
+    },
+
+    onCompleteDescribeScheduledActions: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "ScheduledUpdateGroupActions", "member");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "ScheduledActionName");
+            var arn = getNodeValue(items[i], "ScheduledActionARN");
+            var group = getNodeValue(items[i], "AutoScalingGroupName");
+            var capacity = getNodeValue(items[i], "DesiredCapacity");
+            var start = new Date(getNodeValue(items[i], "StartTime"));
+            var end = new Date(getNodeValue(items[i], "EndTime"));
+            var recur = getNodeValue(items[i], "Recurrence");
+            var min = getNodeValue(items[i], "MinSize");
+            var max = getNodeValue(items[i], "MaxSize");
+
+            list.push(new ScalingAction(name, arn, group, capacity, recur, start, end, min, max));
+        }
+        this.core.setModel('asactions', list);
+        response.result = list;
+    },
+
+    describeAutoScalingInstances: function(callback)
+    {
+        this.queryAS("DescribeAutoScalingInstances", [], this, false, "onCompleteDescribeAutoScalingInstances", callback);
+    },
+
+    onCompleteDescribeAutoScalingInstances: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "AutoScalingInstances", "member");
+        for (var i = 0; i < items.length; i++) {
+            var group = getNodeValue(items[i], "AutoScalingGroupName");
+            var azone = getNodeValue(items[i], "AvailabilityZone");
+            var status = getNodeValue(items[i], "HealthStatus");
+            var id = getNodeValue(items[i], "InstanceId");
+            var cfg = getNodeValue(items[i], "LaunchConfigurationName");
+            var life = getNodeValue(items[i], "LifecycleState");
+            list.push(new ASInstance(group, status, azone, id, cfg, life));
+        }
+        this.core.setModel('asinstances', list);
         response.result = list;
     },
 

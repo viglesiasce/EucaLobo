@@ -566,12 +566,12 @@ var TreeView = {
 };
 
 // Dynamic multicolumn listbox
-var ew_ListBox = {
+var ListBox = {
     headers: [],
     name: 'list',
     title: null,
     columns: null,
-    multiple: false,
+    multiple: true,
     width: 400,
     rows: 10,
     listItems: [],
@@ -617,31 +617,33 @@ var ew_ListBox = {
         cols.setAttribute('flex', '1');
         list.appendChild(cols);
 
-        if (this.multiple) {
-            var hdr = document.createElement('listheader');
-            hdr.setAttribute('flex', '1');
-            hdr.setAttribute('id', this.name + '.header0');
-            hdr.setAttribute('label', this.headers && this.headers[0] ? this.headers[0] : "");
-            head.appendChild(hdr);
-            hdr = document.createElement('listheader');
-            hdr.setAttribute('id', this.name + '.header1');
-            hdr.setAttribute('flex', '2');
-            hdr.setAttribute('label', this.headers && this.headers[1] ? this.headers[1] : this.title);
-            head.appendChild(hdr);
-            var col = document.createElement('listcol');
-            cols.appendChild(col);
-            col = document.createElement('listcol');
-            col.setAttribute('flex', '1');
-            cols.appendChild(col);
-        } else {
-            var hdr = document.createElement('listheader');
-            hdr.setAttribute('id', this.name + '.header1');
-            hdr.setAttribute('flex', '2');
-            hdr.setAttribute('label', this.headers && this.headers[0] ? this.headers[0] : this.title);
-            head.appendChild(hdr);
-            var col = document.createElement('listcol');
-            col.setAttribute('flex', '2');
-            cols.appendChild(col);
+        if (this.headers && this.headers.length) {
+            if (this.multiple) {
+                var hdr = document.createElement('listheader');
+                hdr.setAttribute('flex', '1');
+                hdr.setAttribute('id', this.name + '.header0');
+                hdr.setAttribute('label', this.headers[0]);
+                head.appendChild(hdr);
+                hdr = document.createElement('listheader');
+                hdr.setAttribute('id', this.name + '.header1');
+                hdr.setAttribute('flex', '2');
+                hdr.setAttribute('label', this.headers.length>1 ? this.headers[1] : this.title);
+                head.appendChild(hdr);
+                var col = document.createElement('listcol');
+                cols.appendChild(col);
+                col = document.createElement('listcol');
+                col.setAttribute('flex', '1');
+                cols.appendChild(col);
+            } else {
+                var hdr = document.createElement('listheader');
+                hdr.setAttribute('id', this.name + '.header1');
+                hdr.setAttribute('flex', '2');
+                hdr.setAttribute('label', this.headers[0]);
+                head.appendChild(hdr);
+                var col = document.createElement('listcol');
+                col.setAttribute('flex', '2');
+                cols.appendChild(col);
+            }
         }
 
         for (var i in this.listItems) {
@@ -1219,6 +1221,13 @@ var Base64 = {
     },
 }
 
+// Create new instance of the list box
+function ListView(params)
+{
+    this.init(params);
+}
+ListView.prototype = ListBox;
+
 // Heavily modified jsgraph library for charts using HTML5 Canvas, original author's message is below:
 //
 //   Copyright (c) 2010 Daniel 'Haribo' Evans
@@ -1761,11 +1770,25 @@ function Queue(url)
     }
 }
 
-function Tag(name, value, id)
+function Item(name, value)
+{
+    this.name = name
+    this.value = value
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.value;
+    }
+}
+
+
+function Tag(name, value, id, type, propagate)
 {
     this.name = name || "";
     this.value = value || "";
     this.resourceId = id || "";
+    this.resourceType = type || "";
+    this.propagateAtLaunch = propagate || false;
+
     this.toString = function() {
         return this.name + ":" + (this.value.match(/[,:]+/) ? '"' + this.value + '"' : this.value);
     }
@@ -2887,37 +2910,26 @@ function HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region)
     }
 }
 
-function ASTag(name, value, id, type, propagate)
+function ASInstance(group, healthStatus, availabilityZone, instanceId, launchConfigurationName, lifecycleState)
 {
-    this.name = name;
-    this.value = value;
-    this.resourceId = id;
-    this.resourceType = type;
-    this.propagateAtLaunch = propagate;
-
-    this.toString = function() {
-        return this.name + ":" + this.value;
-    }
-}
-
-function ASInstance(HealthStatus, AvailabilityZone, InstanceId, LaunchConfigurationName, LifecycleState)
-{
-    this.healthStatus = HealthStatus
-    this.availabilityZone = AvailabilityZone
-    this.instanceId = InstanceId
-    this.launchConfigurationName = LaunchConfigurationName
-    this.state = LifecycleState
+    this.group = group
+    this.healthStatus = healthStatus
+    this.availabilityZone = availabilityZone
+    this.instanceId = instanceId
+    this.launchConfigurationName = launchConfigurationName
+    this.state = lifecycleState
 
     this.toString = function() {
         return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
     }
 }
 
-function AutoScalingGroup(name, arn, date, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metric, granularity, instances, suspended, tags)
+function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags)
 {
     this.name = name;
     this.arn = arn;
     this.date = date;
+    this.launchConfiguration = config;
     this.capacity = capacity;
     this.minSize = min;
     this.maxSize = max;
@@ -2929,8 +2941,7 @@ function AutoScalingGroup(name, arn, date, capacity, min, max, cooldown, status,
     this.placementGroup = placement;
     this.loadBalancers = elbs;
     this.availabilityZones = azones;
-    this.metricName = metric;
-    this.metricGranularity = granularity;
+    this.metrics = metrics;
     this.instances = instances;
     this.suspendedProcesses = suspended;
     this.tags = tags;
@@ -2959,6 +2970,51 @@ function LaunchConfiguration(name, arn, date, type, key, profile, image, kernel,
 
     this.toString = function() {
         return this.name + fieldSeparator + this.instanceType + fieldSeparator + ew_core.modelValue('imageId', this.imageId);
+    }
+}
+
+function ScalingNotification(group, type, topic)
+{
+    this.group = group
+    this.type = type
+    this.topic = topic
+
+    this.toString = function() {
+        return this.type + fieldSeparator + this.group + fieldSeparator + this.topic;
+    }
+}
+
+
+function ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, alarms)
+{
+    this.name = name
+    this.arn = arn
+    this.group = group
+    this.adjustmentType = atype
+    this.scalingAdjustment = adjust
+    this.minAdjustmentStep = minadjust
+    this.cooldown = cooldown
+    this.alarms = alarms
+
+    this.toString = function () {
+        return this.name + fieldSeparator + this.group + fieldSeparator + this.adjustmentType;
+    }
+}
+
+function ScalingAction(name, arn, group, capacity, recur, start, end, min, max)
+{
+    this.name = name
+    this.arn = arn
+    this.group = group
+    this.capacity  = capacity
+    this.recurrence = recur
+    this.start = start
+    this.end = end
+    this.minSize = min
+    this.maxSize = max
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.group + fieldSeparator + this.recurrence
     }
 }
 
