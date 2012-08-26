@@ -14,7 +14,7 @@
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asinstances.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_asinstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_ASInstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/stop.png" tooltiptext="Terminate" oncommand="ew_ASConfigsTreeView.terminate();" />
             </toolbar>
 
