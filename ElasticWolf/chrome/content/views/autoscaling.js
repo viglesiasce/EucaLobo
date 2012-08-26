@@ -58,7 +58,7 @@ var ew_ASGroupsTreeView = {
 
         var inputs = [{label:"Name",required:1},
                       {label:"Availability Zones",type:"listview",rows:3,list:this.core.queryModel('availabilityZones'),required:1},
-                      {label:"Launch Configuration",type:"menulist",list:this.core.queryModel('asconfigs'),required:1},
+                      {label:"Launch Configuration",type:"menulist",list:this.core.queryModel('asconfigs'),key:"name",required:1},
                       {label:"Min Size",type:"number",required:1},
                       {label:"Max Size",type:"number",required:1},
                       {label:"Desired Capacity",type:"number",tooltiptext:"The number of Amazon EC2 instances that should be running in the group."},
@@ -91,6 +91,7 @@ var ew_ASGroupsTreeView = {
 
         var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AustoScaling Group', inputs);
         if (!values) return;
+
         var tags = this.core.parseTags(values[11]);
         if (edit) {
             // Disable monitoring when updating live group

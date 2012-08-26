@@ -11,7 +11,7 @@
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asactivities.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_asactivitiesTreeView.refresh()" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASActivitiesTreeView.refresh()" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.asactivities.view" flex="1">
                 <treecols>

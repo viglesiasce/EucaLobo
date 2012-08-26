@@ -585,6 +585,7 @@ var ListBox = {
     {
         var list = $(this.name);
         this.selectedIndex = list.selectedIndex;
+        this.selectedItems = [];
         if (this.multiple) {
             for (var i in this.listItems) {
                 var cell = $(this.name + '.check' + i);
