@@ -35,38 +35,6 @@
                 </treecols>
                 <treechildren id="ew.asinstances.children" context="ew.asinstances.contextmenu" />
             </tree>
-
-                    <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
-        <grippy />
-         </splitter>
-
-        <groupbox flex="1" orient="vertical">
-            <caption label="AutoScaling Activities" />
-            <popupset>
-                <menupopup id="ew.asactivities.tree.contextmenu">
-                </menupopup>
-            </popupset>
-            <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <textbox id="ew.asactivities.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_asactivitiesTreeView.refresh()" />
-            </toolbar>
-            <tree enableColumnDrag="true" id="ew.asactivities.view" flex="1">
-                <treecols>
-                    <treecol id="cfg.group" label="Group" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.status" label="Status" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.progress" label="Progress" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.descr" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.start" label="Start" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                </treecols>
-                <treechildren id="ew.asconfig.tree.children" context="ew.asactivities.tree.contextmenu" />
-            </tree>
-        </groupbox>
-
         </groupbox>
     </tabpanel>
 </overlay>

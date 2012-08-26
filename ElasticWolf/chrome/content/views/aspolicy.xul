@@ -42,50 +42,6 @@
                 <treechildren id="ew.aspolicies.children" context="ew.aspolicies.contextmenu" />
             </tree>
         </groupbox>
-
-        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
-        <grippy />
-         </splitter>
-
-        <groupbox flex="1" orient="vertical">
-            <caption label="AutoScaling Scheduled Actions" />
-            <popupset>
-                <menupopup id="ew.asactions.tree.contextmenu">
-                    <menuitem oncommand="ew_ASActionsTreeView.putAction()" label="Add Action" />
-                    <menuitem oncommand="ew_ASActionsTreeView.putAction(true)" label="Edit Action" />
-                    <menuitem oncommand="ew_ASActionsTreeView.deleteSelected();" label="Delete Action" />
-                </menupopup>
-            </popupset>
-            <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <textbox id="ew.asactions.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASActionsTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add Action" oncommand="ew_ASActionsTreeView.putAction();" />
-                <toolbarbutton image="images/edit.png" tooltiptext="Edit Action" oncommand="ew_ASActionsTreeView.putAction(true);" />
-                <toolbarbutton image="images/delete.png" tooltiptext="Delete Action" oncommand="ew_ASActionsTreeView.deleteSelected();" />
-            </toolbar>
-            <tree enableColumnDrag="true" id="ew.asactions.view" flex="1">
-                <treecols>
-                    <treecol id="cfg.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.group" label="Group" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.capacity" label="Capacity" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.recurrence" label="Recurrence" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.minSize" label="Min" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.maxSize" label="Max" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.start" label="Start" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="cfg.end" label="End" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                </treecols>
-                <treechildren id="ew.asconfig.tree.children" context="ew.asactions.tree.contextmenu" />
-            </tree>
-        </groupbox>
-
     </vbox>
     </tabpanel>
 </overlay>

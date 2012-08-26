@@ -45,7 +45,9 @@
 <?xul-overlay href="chrome://ew/content/views/spot.xul"?>
 <?xul-overlay href="chrome://ew/content/views/export.xul"?>
 <?xul-overlay href="chrome://ew/content/views/aspolicy.xul"?>
+<?xul-overlay href="chrome://ew/content/views/asactions.xul"?>
 <?xul-overlay href="chrome://ew/content/views/asinstances.xul"?>
+<?xul-overlay href="chrome://ew/content/views/asactivity.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
@@ -127,12 +129,6 @@
 
             { name: "ew.tabs.groups",        views: [ { id: "ew.groups.view", view: ew_GroupsTreeView, },
                                                       { id: "ew.groupUsers.view", view: ew_GroupUsersTreeView, }, ] },
-
-            { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
-                                                      { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
-
-            { name: "ew.tabs.as.policy",      views: [ { id: "ew.aspolicies.view", view: ew_ASPoliciesTreeView, },
-                                                      { id: "ew.asactions.view", view: ew_ASActionsTreeView, }, ] },
 
             { name: "ew.tabs.roles",        views: [ { id: "ew.roles.view", view: ew_RolesTreeView, }, ] },
 
@@ -217,8 +213,16 @@
 
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
 
-            { name: "ew.tabs.as.instance",  views: [ { id: "ew.asinstances.view", view: ew_ASInstancesTreeView },
-                                                     { id: "ew.asactivities.view", view: ew_ASActivitiesTreeView }] },
+            { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
+                                                      { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
+
+            { name: "ew.tabs.as.policy",    views: [ { id: "ew.aspolicies.view", view: ew_ASPoliciesTreeView }] },
+
+            { name: "ew.tabs.as.action",    views: [{ id: "ew.asactions.view", view: ew_ASActionsTreeView }] },
+
+            { name: "ew.tabs.as.instance",  views: [ { id: "ew.asinstances.view", view: ew_ASInstancesTreeView }] },
+
+            { name: "ew.tabs.as.activity",  views: [ { id: "ew.asactivities.view", view: ew_ASActivitiesTreeView }] },
     ]
 
   ]]>
@@ -396,9 +400,11 @@
          <treecell label="Auto Scaling" src="images/autoscaling.png" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="Groups/Configs" value="ew.tabs.as.group" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Policies/Actions" value="ew.tabs.as.policy" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Groups and configs" value="ew.tabs.as.group" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Policies" value="ew.tabs.as.policy" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Scheduled Actions" value="ew.tabs.as.action" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Instances" value="ew.tabs.as.instance" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Activity" value="ew.tabs.as.activity" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -451,7 +457,9 @@
       <tabpanel id="ew.tabs.db.instance"/>
       <tabpanel id="ew.tabs.as.group"/>
       <tabpanel id="ew.tabs.as.policy"/>
+      <tabpanel id="ew.tabs.as.action"/>
       <tabpanel id="ew.tabs.as.instance"/>
+      <tabpanel id="ew.tabs.as.activity"/>
       <tabpanel id="ew.tabs.graph"/>
       <tabpanel id="ew.tabs.spot"/>
       <tabpanel id="ew.tabs.export"/>
