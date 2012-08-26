@@ -1648,6 +1648,7 @@ var ew_core = {
         asconfigs: null,
         aspolicies: null,
         asactions: null,
+        asactivities: null,
         asinstances: null,
         asnotifications: null,
         exportTasks: null,
@@ -1691,6 +1692,9 @@ var ew_core = {
                 break;
             case "asconfigs":
                 this.api.describeLaunchConfigurations();
+                break;
+            case "asactivities":
+                this.api.describeScalingActivities(function(list) { me.setModel(name, list); });
                 break;
             case "asnotifications":
                 this.api.describeNotificationConfigurations(function(list) { me.setModel(name, list); });

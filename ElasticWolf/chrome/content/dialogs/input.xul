@@ -385,6 +385,10 @@
              }
              break;
 
+          case 'number':
+             rc.values[i] = obj.decimalPlaces ? parseFloat(obj.value) : parseInt(obj.value);
+             break;
+
           default:
              rc.values[i] = obj.value;
           }

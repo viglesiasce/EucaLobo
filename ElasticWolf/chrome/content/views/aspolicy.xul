@@ -19,7 +19,7 @@
                 <textbox id="ew.aspolicies.search" size="15"  />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_ASPoliciesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" oncommand="ew_ASPoliciesTreeView.putPolicy();" tooltiptext="Add Policy" />
-                <toolbarbutton image="images/add.png" oncommand="ew_ASPoliciesTreeView.putPolicy(true);" tooltiptext="Edit Policy" />
+                <toolbarbutton image="images/edit.png" oncommand="ew_ASPoliciesTreeView.putPolicy(true);" tooltiptext="Edit Policy" />
                 <toolbarbutton image="images/delete.png" oncommand="ew_ASPoliciesTreeView.deleteSelected();" tooltiptext="Delete Policy" />
                 <toolbarbutton image="images/start.png" oncommand="ew_ASPoliciesTreeView.execPolicy();" tooltiptext="Execute Policy" />
             </toolbar>
@@ -51,29 +51,35 @@
             <caption label="AutoScaling Scheduled Actions" />
             <popupset>
                 <menupopup id="ew.asactions.tree.contextmenu">
-                    <menuitem oncommand="ew_ASActionsTreeView.addAction()" label="Add Action" />
+                    <menuitem oncommand="ew_ASActionsTreeView.putAction()" label="Add Action" />
+                    <menuitem oncommand="ew_ASActionsTreeView.putAction(true)" label="Edit Action" />
                     <menuitem oncommand="ew_ASActionsTreeView.deleteSelected();" label="Delete Action" />
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asactions.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASActionsTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add Action" oncommand="ew_ASActionsTreeView.addAction();" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Action" oncommand="ew_ASActionsTreeView.putAction();" />
+                <toolbarbutton image="images/edit.png" tooltiptext="Edit Action" oncommand="ew_ASActionsTreeView.putAction(true);" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete Action" oncommand="ew_ASActionsTreeView.deleteSelected();" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.asactions.view" flex="1">
                 <treecols>
                     <treecol id="cfg.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="cfg.instanceType" label="Type" flex="4" persist="width ordinal hidden sortDirection" />
+                    <treecol id="cfg.group" label="Group" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="cfg.imageId" label="Image" flex="4" persist="width ordinal hidden sortDirection" />
+                    <treecol id="cfg.capacity" label="Capacity" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="cfg.keyName" label="KeyName" flex="4" persist="width ordinal hidden sortDirection" />
+                    <treecol id="cfg.recurrence" label="Recurrence" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="cfg.profile" label="Profile" flex="4" persist="width ordinal hidden sortDirection" />
+                    <treecol id="cfg.minSize" label="Min" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="cfg.spotPrice" label="Price" flex="4" persist="width ordinal hidden sortDirection" />
+                    <treecol id="cfg.maxSize" label="Max" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.start" label="Start" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.end" label="End" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.asconfig.tree.children" context="ew.asactions.tree.contextmenu" />

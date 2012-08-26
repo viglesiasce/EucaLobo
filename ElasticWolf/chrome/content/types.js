@@ -2729,7 +2729,7 @@ function Topic(arn)
     this.subscriptions = [];
 
     this.toString = function() {
-        return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions : "");
+        return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions[0] : "");
     }
 }
 
@@ -2910,7 +2910,7 @@ function HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region)
     }
 }
 
-function ASInstance(group, healthStatus, availabilityZone, instanceId, launchConfigurationName, lifecycleState)
+function AutoScalingInstance(group, healthStatus, availabilityZone, instanceId, launchConfigurationName, lifecycleState)
 {
     this.group = group
     this.healthStatus = healthStatus
@@ -2926,8 +2926,8 @@ function ASInstance(group, healthStatus, availabilityZone, instanceId, launchCon
 
 function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags)
 {
+    this.id = arn;
     this.name = name;
-    this.arn = arn;
     this.date = date;
     this.launchConfiguration = config;
     this.capacity = capacity;
@@ -2953,8 +2953,8 @@ function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown,
 
 function LaunchConfiguration(name, arn, date, type, key, profile, image, kernel, ramdisk, userdata, spotprice, monitoring, groups, devices)
 {
+    this.id = arn;
     this.name = name;
-    this.arn = arn;
     this.date = date;
     this.instanceType = type;
     this.keyName = key;
@@ -2987,8 +2987,8 @@ function ScalingNotification(group, type, topic)
 
 function ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, alarms)
 {
+    this.id = arn
     this.name = name
-    this.arn = arn
     this.group = group
     this.adjustmentType = atype
     this.scalingAdjustment = adjust
@@ -3001,13 +3001,13 @@ function ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, ala
     }
 }
 
-function ScalingAction(name, arn, group, capacity, recur, start, end, min, max)
+function ScalingAction(name, arn, group, capacity, recurrence, start, end, min, max)
 {
+    this.id = arn
     this.name = name
-    this.arn = arn
     this.group = group
     this.capacity  = capacity
-    this.recurrence = recur
+    this.recurrence = recurrence
     this.start = start
     this.end = end
     this.minSize = min
@@ -3018,3 +3018,20 @@ function ScalingAction(name, arn, group, capacity, recur, start, end, min, max)
     }
 }
 
+function AutoScalingActivity(id, group, descr, cause, details, status, statusMsg, progress, start, end)
+{
+    this.id = id
+    this.group = group
+    this.descr = descr
+    this.cause = cause
+    this.details = details
+    this.status = status
+    this.statusMsg = statusMsg
+    this.progress = progress
+    this.start = start
+    this.end = end
+
+    this.toString = function() {
+        return this.group + fieldSeparator + this.status
+    }
+}

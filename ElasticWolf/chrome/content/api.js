@@ -623,7 +623,7 @@ var ew_api = {
 
             // Route53 error messages
             if (!rc.errString) {
-                rc.errString = this.getItms(xmlhttp.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
+                rc.errString = this.getItems(xmlhttp.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
                 if (rc.errString) rc.errCode = "InvalidChangeBatch";
             }
             debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url);
@@ -5540,7 +5540,7 @@ var ew_api = {
             var azones = this.getItems(items[i], "AvailabilityZones", "member", "");
             var metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(obj) { return new Item(obj.Metric, obj.Granularity); });
             var granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
-            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new ASInstance(name,obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
+            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new AutoScalingInstance(name,obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
             var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Item(obj.ProcessName,obj.SuspensionReason)})
             var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new Tag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,toBool(obj.PropagateAtLaunch))})
             list.push(new AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags));
@@ -5717,6 +5717,32 @@ var ew_api = {
         this.queryAS("SetDesiredCapacity", params, this, false, "onComplete", callback);
     },
 
+    putScalingPolicy: function(name, group, adjustmentType, adjustment, minStep, cooldown, callback)
+    {
+        var params = [];
+        params.push(["PolicyName", name]);
+        params.push(["AutoScalingGroupName", group]);
+        params.push(["AdjustmentType", adjustmentType])
+        params.push(["ScalingAdjustment", adjustment])
+        if (minStep) params.push(["MinAdjustmentStep", minStep])
+        if (cooldown) params.push(["Cooldown", cooldown])
+        this.queryAS("PutScalingPolicy", params, this, false, "onComplete", callback);
+    },
+
+    putScheduledUpdateGroupAction: function(name, group, capacity, recurrence, start, end, min, max)
+    {
+        var params = [];
+        params.push(["ScheduledActionName", name]);
+        params.push(["AutoScalingGroupName", group]);
+        if (capacity) params.push(["DesiredCapacity", capacity])
+        if (recurrence) params.push(["Recurrence", recurrence])
+        if (start) params.push(["StartTime", start])
+        if (end) params.push(["EndTime", end])
+        if (min) params.push(["MinSize", min])
+        if (max) params.push(["MaxSize", max])
+        this.queryAS("PutScheduledUpdateGroupAction", params, this, false, "onComplete", callback);
+    },
+
     describePolicies: function(callback)
     {
         this.queryAS("DescribePolicies", [], this, false, "onCompleteDescribePolicies", callback);
@@ -5786,10 +5812,37 @@ var ew_api = {
             var id = getNodeValue(items[i], "InstanceId");
             var cfg = getNodeValue(items[i], "LaunchConfigurationName");
             var life = getNodeValue(items[i], "LifecycleState");
-            list.push(new ASInstance(group, status, azone, id, cfg, life));
+            list.push(new AutoScalingInstance(group, status, azone, id, cfg, life));
         }
         this.core.setModel('asinstances', list);
         response.result = list;
+    },
+
+    describeScalingActivities: function(callback)
+    {
+        this.queryAS("DescribeScalingActivities", [], this, false, "onCompleteDescribeScalingActivities", callback);
+    },
+
+    onCompleteDescribeScalingActivities: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "Activities", "member");
+        for (var i = 0; i < items.length; i++) {
+            var group = getNodeValue(items[i], "AutoScalingGroupName");
+            var id = getNodeValue(items[i], "ActivityId");
+            var descr = getNodeValue(items[i], "Description");
+            var cause = getNodeValue(items[i], "Cause");
+            var details = getNodeValue(items[i], "Details");
+            var progress = getNodeValue(items[i], "Progress");
+            var start = new Date(getNodeValue(items[i], "StartTime"));
+            var end = new Date(getNodeValue(items[i], "EndTime"));
+            var status = getNodeValue(items[i], "StatusCode");
+            var statusMsg = getNodeValue(items[i], "StatusMessage");
+            list.push(new AutoScalingActivity(id, group, descr, cause, details, status, statusMsg, progress, start, end));
+        }
+        this.getNext(response, this.queryAS, list, "asactivities");
+
     },
 
 };

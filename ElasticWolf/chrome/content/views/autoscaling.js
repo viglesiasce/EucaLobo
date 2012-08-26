@@ -209,14 +209,36 @@ var ew_ASPoliciesTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        var inputs = [
+        function callback(idx) {
+            var item = this.rc.items[idx];
+            switch (idx) {
+            case 2:
+                this.rc.items[4].obj.disabled = item.obj.value != 'PercentChangeInCapacity';
+                if (this.rc.items[4].obj.disabled) this.rc.items[idx+1].obj.value = 0;
+                break;
+            }
+        };
+        var inputs = [{label:"Name",required:1},
+                      {label:"AutoScaling Group",type:"menulist",list:this.core.queryModel('asgroups'),key:'name',required:1},
+                      {label:"Adjustment Type",type:"menulist",list:["ChangeInCapacity","ExactCapacity","PercentChangeInCapacity"],required:1,tooltiptext:"Specifies whether the ScalingAdjustment is an absolute number or a percentage of the current capacity."},
+                      {label:"Scaling Adjustment",type:"number",required:1,min:-99999,tooltiptext:"The number of instances by which to scale. AdjustmentType determines the interpretation of this number (e.g., as an absolute number or as a percentage of the existing Auto Scaling group size). A positive increment adds to the current capacity and a negative value removes from the current capacity."},
+                      {label:"Min Adjustment Step",type:"number",tooltiptext:"Used with AdjustmentType with the value PercentChangeInCapacity, the scaling policy changes the DesiredCapacity of the Auto Scaling group by at least the number of instances specified in the value.You will get a ValidationError if you use MinAdjustmentStep on a policy with an AdjustmentType other than PercentChangeInCapacity."},
+                      {label:"Cooldown",type:"number",tooltiptext:"The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start."},
                       ];
 
         if (edit) {
             if (!item) return;
+            inputs[0].value = item.name;
+            inputs[0].readonly = true;
+            inputs[1].value = item.group;
+            inputs[2].value = item.adjustmentType;
+            inputs[3].value = item.scalingAdjustment;
+            inputs[4].value = item.minAdjustmentStep;
+            inputs[5].value = item.cooldown;
         }
-        var values = this.core.promptInput((edit ? "Edit" : "Create") + ' Policy', inputs);
+        var values = this.core.promptInput((edit ? "Edit" : "Create") + ' AutoScaling Policy', inputs, false, callback);
         if (!values) return;
+        this.core.api.putScalingPolicy(values[0],values[1],values[2],values[3],values[4],values[5], function() { me.refresh() });
     },
 
     deleteSelected : function ()
@@ -244,9 +266,36 @@ var ew_ASPoliciesTreeView = {
 var ew_ASActionsTreeView = {
     model: ["asactions", "asgroups"],
 
-    addAction: function()
+    putAction: function(edit)
     {
+        var me = this;
+        var item = this.getSelected();
 
+        var inputs = [ {label:"Action Name",required:1},
+                       {label:"AutoScaling Group",type:"menulist",list:this.core.queryModel('asgroups'),key:'name',required:1},
+                       {label:"Desired Capacity",type:"number",tooltiptext:"The number of Amazon EC2 instances that should be running in the group."},
+                       {label:"Recurrence",tooltiptext:"Cron format, * * * * * where 1st is day of week (0 - 6) (0 is Sunday, or use names), 2nd is month (1 - 12), 3rd is day of month (1 - 31), 4th is hour (0 - 23), 5th is minute (0 - 59)"},
+                       {label:"Start Time",tooltiptext:"The time for this action to start as in 2010-06-01T00:00:00Z. When StartTime and EndTime are specified with Recurrence, they form the boundaries of when the recurring action will start and stop."},
+                       {label:"End Time",tooltiptext:"The time for this action to end as in 2010-06-01T00:00:00Z. When StartTime and EndTime are specified with Recurrence, they form the boundaries of when the recurring action will start and stop."},
+                       {label:"Min Size",type:"number"},
+                       {label:"Max Size",type:"number"}];
+
+        if (edit) {
+            if (!item) return;
+            inputs[0].value = item.name;
+            inputs[0].readonly = true;
+            inputs[1].value = item.group;
+            inputs[2].value = item.capacity;
+            inputs[3].value = item.recurrence;
+            inputs[4].value = item.start.toISOString();
+            inputs[5].value = item.end.toISOString();
+            inputs[6].value = item.minSize;
+            inputs[7].value = item.maxSize;
+        }
+
+        var values = this.core.promptInput((edit ? " Edit" : "Create") + " Scheduled Action", inputs);
+        if (!values) return
+        this.core.putScheduledUpdateGroupAction(values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], function() { me.refresh() });
     },
 
     deleteSelected : function ()
@@ -284,4 +333,8 @@ var ew_ASInstancesTreeView = {
        this.core.api.terminateInstanceInAutoScalingGroup(item.instanceId, check.value, function() { me.refresh(); });
    },
 
+};
+
+var ew_ASActivitiesTreeView = {
+   model: ["asactivities"],
 };

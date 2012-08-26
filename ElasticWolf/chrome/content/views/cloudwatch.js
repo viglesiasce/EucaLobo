@@ -72,7 +72,7 @@ var ew_MetricsTreeView = {
 };
 
 var ew_MetricAlarmsTreeView = {
-    model: ["alarms","topics","volumes","instances","metrics"],
+    model: ["alarms","topics","subscriptions","aspolicies","volumes","instances","metrics"],
     properties: ["stateValue"],
 
     chart: function() {
@@ -130,6 +130,7 @@ var ew_MetricAlarmsTreeView = {
                 break;
             }
         }
+        var topics = this.core.queryModel('topics').concat(this.core.queryModel('aspolicies'));
         var inputs = [{label:"AlarmName",required:1},
                       {label:"AlarmDescription"},
                       {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
@@ -142,11 +143,11 @@ var ew_MetricAlarmsTreeView = {
                       {label:"Statistic",type:"menulist",list:["Average","SampleCount","Sum","Minimum","Maximum"],required:1},
                       {label:"Unit",type:"menulist",list:['Seconds','Microseconds','Milliseconds','Bytes','Kilobytes','Megabytes','Gigabytes','Terabytes','Bits','Kilobits','Megabits','Gigabits','Terabits','Percent','Count','Bytes/Second','Kilobytes/Second','Megabytes/Second','Gigabytes/Second','Terabytes/Second','Bits/Second','Kilobits/Second','Megabits/Second','Gigabits/Second','Terabits/Second','Count/Second']},
                       {label:"AlarmActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
-                      {label:"AlarmActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      {label:"AlarmActions Topics",type:"menulist",list:topics},
                       {label:"InsufficientDataActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
-                      {label:"InsufficientDataActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      {label:"InsufficientDataActions Topics",type:"menulist",list:topics},
                       {label:"OKActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
-                      {label:"OKActions Topics",type:"menulist",list:this.core.getModel('topics')},
+                      {label:"OKActions Topics",type:"menulist",list:topics},
                       ];
 
         // Modify existing alarm

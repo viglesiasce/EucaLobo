@@ -217,7 +217,8 @@
 
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
 
-            { name: "ew.tabs.as.instance",  views: [ { id: "ew.asinstances.view", view: ew_ASInstancesTreeView }, ] },
+            { name: "ew.tabs.as.instance",  views: [ { id: "ew.asinstances.view", view: ew_ASInstancesTreeView },
+                                                     { id: "ew.asactivities.view", view: ew_ASActivitiesTreeView }] },
     ]
 
   ]]>
