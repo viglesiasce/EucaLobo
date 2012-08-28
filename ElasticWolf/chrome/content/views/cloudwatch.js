@@ -291,6 +291,7 @@ var ew_GraphsView = {
         var page = $('ew.graphs.page');
         this.core.api.listMetrics(null, null, this.dimensions, function(list) {
             me.metrics = list;
+            debug(list)
             for (var i = 0; i < list.length; i++) {
                 if (i % 3 == 0) {
                     hbox = document.createElement('hbox');
@@ -322,6 +323,7 @@ var ew_GraphsView = {
     render: function(name, namespace)
     {
         var id = 'ew.graphs.' + name;
+        if (!$(id)) return;
         var statistics = $('ew.graphs.statistics').value;
         var period = $('ew.graphs.period').value;
         var interval = parseInt($('ew.graphs.interval').value);

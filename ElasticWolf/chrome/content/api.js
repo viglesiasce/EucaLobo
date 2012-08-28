@@ -692,12 +692,13 @@ var ew_api = {
     },
 
     // Iterate through all pages while NextToken is present, collect all items in the model
-    getNext: function(response, method, list, model)
+    getNext: function(response, method, list)
     {
         var me = this;
         var xmlDoc = response.responseXML;
 
         // Collect all items into temporary cache list
+        var model = response.action + ":" + response.params;
         if (!this.cache[model]) this.cache[model] = [];
         this.cache[model] = this.cache[model].concat(list);
 
@@ -1775,7 +1776,7 @@ var ew_api = {
             var price = getNodeValue(item, "spotPrice");
             list.push(new SpotPrice(type, az, date, descr, price));
         }
-        this.getNext(response, this.queryEC2, list, "spotPriceHistory");
+        this.getNext(response, this.queryEC2, list);
     },
 
     createSpotDatafeedSubscription : function(bucket, prefix, callback)
@@ -4454,7 +4455,7 @@ var ew_api = {
             var dims = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
             list.push(new Metric(name, nm, dims));
         }
-        this.getNext(response, this.queryCloudWatch, list, "metrics");
+        this.getNext(response, this.queryCloudWatch, list);
     },
 
     getMetricStatistics : function(name, namespace, start, end, period, statistics, unit, dimensions, callback)
@@ -5688,7 +5689,7 @@ var ew_api = {
             var topic = getNodeValue(items[i], "TopicARN");
             list.push(new ScalingNotification(group, type, topic));
         }
-        this.getNext(response, this.queryAS, list, 'asnotifications');
+        this.getNext(response, this.queryAS, list);
     },
 
     deleteScheduledAction: function(name, action, callback)
@@ -5841,7 +5842,7 @@ var ew_api = {
             var statusMsg = getNodeValue(items[i], "StatusMessage");
             list.push(new AutoScalingActivity(id, group, descr, cause, details, status, statusMsg, progress, start, end));
         }
-        this.getNext(response, this.queryAS, list, "asactivities");
+        this.getNext(response, this.queryAS, list);
 
     },
 

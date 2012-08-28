@@ -81,6 +81,7 @@
           <toolbarbutton image="images/key.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectTo(3);" tooltiptext="&ew.instances.connect.tip;" />
           <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
           <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+          <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showMetrics();" tooltiptext="Show Metrics" />
           <toolbarseparator />
           <checkbox id="ew.instances.noterminated" label="Hide Terminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
           <checkbox id="ew.instances.nostopped" label="Hide Stopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
