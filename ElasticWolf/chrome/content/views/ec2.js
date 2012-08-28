@@ -1057,10 +1057,11 @@ var ew_VolumeTreeView = {
 
     createSnapshot : function ()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
-        var me = this;
-        this.core.api.createSnapshot(image.id, function(snapId) { ew_SnapshotTreeView.refresh(); });
+        var descr = propmt('Snapshot description (optional):');
+        this.core.api.createSnapshot(image.id, desc, function() { me.core.refreshModel('snapshots'); });
     },
 
     createVolume : function (snap)
@@ -1171,6 +1172,15 @@ var ew_VolumeTreeView = {
         this.core.api.describeVolumeStatus(image.id, function(list) {
             me.core.promptInput('Volume Status', [{notitle:1,multiline:true,cols:120,rows:10,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:list.join("\n")}])
         });
+    },
+
+    showMetrics: function()
+    {
+        var image = this.getSelected();
+        if (!image) return;
+
+        this.core.selectTab('ew.tabs.graph');
+        ew_GraphsView.setDimensions(this.core.modelValue('volumeId', image.id), "VolumeId:" + image.id, true);
     },
 
     detachVolume : function ()

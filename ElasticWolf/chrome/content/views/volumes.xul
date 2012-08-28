@@ -21,6 +21,7 @@
                         <menuseparator />
                         <menuitem id="volumes.context.status" oncommand="ew_VolumeTreeView.showStatus();" label="Show Volume Status" />
                         <menuitem id="volumes.context.enableIO" oncommand="ew_VolumeTreeView.enableIO();" label="Enable Volume IO" />
+                        <menuitem id="volumes.context.showMetrics" oncommand="ew_VolumeTreeView.showMetrics();" label="Show Metrics" />
                         <menuseparator />
                         <menuitem oncommand="ew_VolumeTreeView.copyToClipboard('id');" label="&ew.volume.contextmenu.copyvolid.label;" />
                     </menupopup>
@@ -36,6 +37,7 @@
                         <toolbarbutton image="images/stop.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.detachVolume()" tooltiptext="&ew.detachvol.tip;" />
                         <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                         <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
+                        <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.showMetrics();" tooltiptext="Show Metrics" />
                         <toolbarseparator />
                         <checkbox id="ew.volumes.norootdev" label="Hide /dev/sda1" checked="false" oncommand="ew_VolumeTreeView.invalidate();" />
                     </hbox>

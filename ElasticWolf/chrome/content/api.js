@@ -799,9 +799,11 @@ var ew_api = {
         this.queryEC2("DeregisterImage", [ [ "ImageId", imageId ] ], this, false, "onComplete", callback);
     },
 
-    createSnapshot : function(volumeId, callback)
+    createSnapshot : function(volumeId, descr, callback)
     {
-        this.queryEC2("CreateSnapshot", [ [ "VolumeId", volumeId ] ], this, false, "onComplete:snapshotId", callback);
+        var params = [ [ "VolumeId", volumeId ] ];
+        if (descr) params.push(["Description", descr]);
+        this.queryEC2("CreateSnapshot", params, this, false, "onComplete:snapshotId", callback);
     },
 
     attachVolume : function(volumeId, instanceId, device, callback)
