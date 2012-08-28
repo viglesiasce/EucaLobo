@@ -40,6 +40,7 @@
         this.retVal.securityGroups = ListBox.selectedItems;
         this.retVal.instanceProfile = $("ew.roles").value;
         this.retVal.ebsOptimized = $("ew.ebsOptimized").checked;
+        this.retVal.placementGroup = $("ew.placementGroup").value;
 
         if (this.retVal.spotRequest) {
             this.retVal.spotPrice = parseFloat($('ew.spotPrice').value);
@@ -362,6 +363,7 @@
         var subnets = this.core.queryModel('subnets');
         var enis = this.core.queryModel('networkInterfaces');
         var roles = this.core.queryModel('instanceProfiles');
+        var pgroups = this.core.queryModel('placementGroups');
 
         var rolesMenu = $("ew.roles");
         rolesMenu.appendItem("<none>", "");
@@ -414,6 +416,13 @@
             eniMenu.appendItem(enis[i].toString(), enis[i].id)
         }
         eniMenu.selectedIndex = 0;
+
+        var pgMenu = $("ew.placementGroup");
+        pgMenu.appendItem("<none>", "")
+        for ( var i in pgroups) {
+            pgMenu.appendItem(pgroups[i].toString(), pgroups[i].name)
+        }
+        pgMenu.selectedIndex = 0;
 
         // Populate the AKI and ARI lists
         akiSelected();
@@ -508,6 +517,10 @@
                 <row>
                     <label control="ew.azId" value="Availability Zone:" />
                     <menulist id="ew.azId" oncommand="vpcSelected();" />
+                </row>
+                <row>
+                    <label control="ew.placementGroup" value="Placement Group:" />
+                    <menulist id="ew.placementGroup" />
                 </row>
                 <row>
                     <label control="ew.keypairlist" value="KeyPair:" />

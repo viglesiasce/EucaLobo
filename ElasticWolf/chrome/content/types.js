@@ -3036,3 +3036,15 @@ function AutoScalingActivity(id, group, descr, cause, details, status, statusMsg
         return this.group + fieldSeparator + this.status
     }
 }
+
+function PlacementGroup(name, strategy, state)
+{
+    this.name = name
+    this.strategy = strategy
+    this.state = state
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.strategy + fieldSeparator + this.state;
+    }
+}
+

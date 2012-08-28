@@ -4,7 +4,7 @@
 //
 
 var ew_ASGroupsTreeView = {
-    model: [ "asgroups", "asconfigs", "asnotifications", "subnets", "availabilityZones", "loadBalancers", "topics"],
+    model: [ "asgroups", "asconfigs", "asnotifications", "subnets", "availabilityZones", "loadBalancers", "topics", 'placementGroups'],
 
     suspendProcesses: function(resume)
     {
@@ -67,6 +67,7 @@ var ew_ASGroupsTreeView = {
                       {label:"Health Check Grace Period",type:"number",tooltiptext:"Length of time in seconds after a new Amazon EC2 instance comes into service that Auto Scaling starts checking its health."},
                       {label:"VPC Subnets",type:"listview",rows:5,list:this.core.queryModel('subnets')},
                       {label:"Load Balancers",type:"listview",rows:3,list:this.core.queryModel('loadBalancers')},
+                      {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2. For more information about cluster placement group, see Using Cluster Instances"},
                       {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"}
                       ];
 
@@ -86,18 +87,19 @@ var ew_ASGroupsTreeView = {
             inputs[9].checkedItems = [];
             item.vpcZone.split(",").forEach(function(x) { inputs[9].checkedItems.push(me.core.findModel('subnets',x)); });
             inputs[10].checkedItems = item.loadBalancers;
-            inputs[11].value = item.tags.join("\n");
+            inputs[11].value = item.placementGroup;
+            inputs[12].value = item.tags.join("\n");
         }
 
         var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AustoScaling Group', inputs);
         if (!values) return;
 
-        var tags = this.core.parseTags(values[11]);
+        var tags = this.core.parseTags(values[12]);
         if (edit) {
             // Disable monitoring when updating live group
             var cfg = this.core.findModel('asconfigs', item.launchConfiguration, 'name');
             function doEdit() {
-                this.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], tags, function() {
+                this.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], tags, function() {
                     if (cfg.monitoring) {
                         this.core.api.enableMetricsCollection(item.name, function() { me.refresh(); });
                     } else {
@@ -111,7 +113,7 @@ var ew_ASGroupsTreeView = {
                 doEdit();
             }
         } else {
-            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], tags, function() { me.refresh(); });
+            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], tags, function() { me.refresh(); });
         }
     },
 

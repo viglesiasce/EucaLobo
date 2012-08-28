@@ -48,6 +48,7 @@
 <?xul-overlay href="chrome://ew/content/views/asactions.xul"?>
 <?xul-overlay href="chrome://ew/content/views/asinstances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/asactivity.xul"?>
+<?xul-overlay href="chrome://ew/content/views/placementgroups.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
@@ -216,6 +217,8 @@
             { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
                                                       { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
 
+            { name: "ew.tabs.placementgroup", views: [ { id: "ew.placementGroups.view", view: ew_PlacementGroupsTreeView }] },
+
             { name: "ew.tabs.as.policy",    views: [ { id: "ew.aspolicies.view", view: ew_ASPoliciesTreeView }] },
 
             { name: "ew.tabs.as.action",    views: [{ id: "ew.asactions.view", view: ew_ASActionsTreeView }] },
@@ -322,6 +325,7 @@
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.placementgroup.label;" value="ew.tabs.placementgroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.spot.label;" value="ew.tabs.spot" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.export.label;" value="ew.tabs.export" /></treerow></treeitem>
@@ -463,6 +467,7 @@
       <tabpanel id="ew.tabs.graph"/>
       <tabpanel id="ew.tabs.spot"/>
       <tabpanel id="ew.tabs.export"/>
+      <tabpanel id="ew.tabs.placementgroup"/>
 
       <tabpanel id="ew.tabs.ec2">
        <vbox flex="1">

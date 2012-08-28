@@ -1626,6 +1626,7 @@ var ew_core = {
         routeTables: null,
         networkAcls: null,
         networkInterfaces: null,
+        placementGroups: null,
         s3Buckets: null,
         regions: null,
         users: null,
@@ -1672,6 +1673,9 @@ var ew_core = {
             var me = this;
 
             switch (name) {
+            case 'placementGroups':
+                this.api.describePlacementGroups();
+                break;
             case 'exportTasks':
                 this.api.describeExportTasks();
                 break;

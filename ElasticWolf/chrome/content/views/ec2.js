@@ -57,7 +57,7 @@ var ew_EC2TreeView = {
 };
 
 var ew_AMIsTreeView = {
-    model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles' ],
+    model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles', 'placementGroups' ],
     properties: ['ownerAlias', 'status', 'state'],
 
     activate: function()
@@ -1787,3 +1787,29 @@ var ew_ConversionTasksTreeView = {
        this.core.api.cancelConversionTask(item.id, function() { me.refresh(); });
    },
 };
+
+var ew_PlacementGroupsTreeView = {
+   model: "placementGroups",
+
+   create: function()
+   {
+       var me = this;
+       var values = this.core.promptInput('Placement Group',
+                               [{label:"Name",required:1},
+                                {label:"Strategy",required:1}]);
+
+       if (!values) return;
+       this.core.api.createPlacementGroup(values[0], values[1], function(obj) { me.refresh(); });
+   },
+
+   destroy: function()
+   {
+       var me = this;
+       var item = this.getSelected();
+       if (!item) return;
+       if (!confirm('Delete Group ' + item.name + '?')) return;
+       this.core.api.deletePlacementGroup(item.name, function() { me.refresh(); });
+   },
+
+};
+

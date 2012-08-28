@@ -2053,8 +2053,8 @@ var ew_api = {
         if (options.availabilityZone) {
             params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);
         }
-        if (options.clusterGroup) {
-            params.push([ prefix + "Placement.GroupName", options.clusterGroup ]);
+        if (options.placementGroup) {
+            params.push([ prefix + "Placement.GroupName", options.placementGroup ]);
         }
         if (options.tenancy) {
             params.push([ prefix + "Placement.Tenancy", options.tenancy ]);
@@ -2776,6 +2776,40 @@ var ew_api = {
     disassociateRouteTable : function(assocId, callback)
     {
         this.queryEC2("DisassociateRouteTable", [["AssociationId", assocId]], this, false, "onComplete", callback);
+    },
+
+    createPlacementGroup : function(name, strategy, callback)
+    {
+        var params = [["GroupName", name]];
+        params.push( ["Strategy", strategy ])
+        this.queryEC2("CreatePlacementGroup", params, this, false, "onComplete", callback);
+    },
+
+    deletePlacementGroup : function(name, callback)
+    {
+        var params = [["GroupName", name]];
+        this.queryEC2("DeletePlacementGroup", params, this, false, "onComplete", callback);
+    },
+
+    describePlacementGroups : function(callback)
+    {
+        this.queryEC2("DescribePlacementGroups", [], this, false, "onCompleteDescribePlacementGroups", callback);
+    },
+
+    onCompleteDescribePlacementGroups : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "placementGroupSet", "item");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var name = getNodeValue(item, "groupName");
+            var strategy = getNodeValue(item, "strategy");
+            var state = getNodeValue(item, "state");
+            list.push(new PlacementGroup(name, strategy, state))
+        }
+        this.core.setModel('placementGroups', list);
+        response.result = list;
     },
 
     createNetworkInterface : function(subnetId, ip, descr, groups, callback)
@@ -5459,7 +5493,7 @@ var ew_api = {
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, tags, callback)
+    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup, tags, callback)
     {
         var params = [ ["AutoScalingGroupName", name]]
         zones.forEach(function(x, i) {
@@ -5468,6 +5502,7 @@ var ew_api = {
         params.push(["LaunchConfigurationName", config])
         params.push(["MinSize", min])
         params.push(["MaxSize", max])
+        if (pgroup) params.push(["PlacementGroup", pgroup])
         if (capacity) params.push(["DesiredCapacity", capacity])
         if (cooldown) params.push(["DefaultCooldown", cooldown])
         if (healthType) params.push(["HealthCheckType", healthType])
@@ -5489,7 +5524,7 @@ var ew_api = {
         this.queryAS("CreateAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    updateAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, tags, callback)
+    updateAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup, tags, callback)
     {
         var params = [ ["AutoScalingGroupName", name]];
 
@@ -5499,6 +5534,7 @@ var ew_api = {
         params.push(["LaunchConfigurationName", config])
         params.push(["MinSize", min])
         params.push(["MaxSize", max])
+        if (pgroup) params.push(["PlacementGroup", pgroup])
         if (capacity) params.push(["DesiredCapacity", capacity])
         if (cooldown) params.push(["DefaultCooldown", cooldown])
         if (healthType) params.push(["HealthCheckType", healthType])
