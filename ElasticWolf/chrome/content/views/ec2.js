@@ -1786,11 +1786,11 @@ var ew_ConversionTasksTreeView = {
                                    [{label:"Instance Description"},
                                     {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
-                                    {label:"Platform",type:"menulist",list:['windows','linux'],required:1},
                                     {label:"Disk Description"},
                                     {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
                                     {label:"Disk Image Size (bytes)",type:"number",required:1},
-                                    {label:"Disk Image S3 Path",required:1,tooltiptext:"S3 path to the manifest for the disk image, stored in Amazon S3, must be in the form: /bucket/optional_prefix/manifest_name, it will be converted into S3 HTTP URL and signed with current credentials"},
+                                    {label:"Disk Image S3 Bucket",required:1,tooltiptext:"S3 bucket to the manifest for the disk image, stored in Amazon S3"},
+                                    {label:"Disk Image S3 Path",required:1,tooltiptext:"S3 path to the manifest for the disk image, stored in Amazon S3, it will be converted into S3 HTTP URL and signed with current credentials"},
                                     {label:"EBS Volume Size (GB)",type:"number",required:1},
                                     {label:"Options:",type:"section"},
                                     {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5},
@@ -1803,16 +1803,17 @@ var ew_ConversionTasksTreeView = {
                                     ]);
        if (!values) return;
        var options = {};
-       options.description = values[4];
-       options.securityGroupNames = values[9];
-       options.availabilityZone = values[10];
-       options.subnetId = values[11];
-       options.privateIpAddress = values[12];
-       options.monitoringEnabled = values[13];
-       options.instanceInitiatedShutdownBehaviour = values[14];
-       options.userData = values[15];
-       var url = 'http://s2.amazonaws.com' + values[7];
-       this.core.importInstance(values[1], values[2], values[3], values[5], values[6], url, values[8], options, function() { me.refresh(); });
+       options.description = values[0];
+       options.diskDescription = values[3];
+       options.securityGroupNames = values[10];
+       options.availabilityZone = values[11];
+       options.subnetId = values[12];
+       options.privateIpAddress = values[13];
+       options.monitoringEnabled = values[14];
+       options.instanceInitiatedShutdownBehaviour = values[15];
+       options.userData = values[16];
+       var s3 = this.core.api.queryS3Prepare('GET', values[6], values[7], "", {}, "", Math.round((new Date()).getTime()/1000) + 60);
+       this.core.api.importInstance(values[1], values[2], values[4], values[5], s3.authUrl, values[8], options, function() { me.refresh(); });
    },
 
    deleteSelected : function ()

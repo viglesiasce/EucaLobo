@@ -187,7 +187,7 @@ var ew_api = {
         var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
         var uri = io.newURI(url, null, null);
 
-        var strSig = "";
+        var strSign = "";
         var queryParams = "";
 
         function encode(str) {
@@ -197,15 +197,15 @@ var ew_api = {
         }
 
         sigValues.sort();
-        strSig = "POST\n" + uri.host + "\n" + uri.path + "\n";
+        strSign = "POST\n" + uri.host + "\n" + uri.path + "\n";
         for (var i = 0; i < sigValues.length; i++) {
             var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-            strSig += item;
+            strSign += item;
             queryParams += item;
         }
-        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSig));
+        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSign));
 
-        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSig);
+        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
@@ -235,13 +235,13 @@ var ew_api = {
         params["Content-Length"] = content ? content.length : 0;
 
         // Construct the string to sign and query string
-        var strSig = curTime;
+        var strSign = curTime;
 
-        params["X-Amzn-Authorization"] = "AWS3-HTTPS AWSAccessKeyId=" + this.accessKey + ",Algorithm=HmacSHA1,Signature=" + b64_hmac_sha1(this.secretKey, strSig);
+        params["X-Amzn-Authorization"] = "AWS3-HTTPS AWSAccessKeyId=" + this.accessKey + ",Algorithm=HmacSHA1,Signature=" + b64_hmac_sha1(this.secretKey, strSign);
         params["User-Agent"] = this.core.getUserAgent();
         params["Connection"] = "close";
 
-        log("R53 [" + method + ":" + url + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+        log("R53 [" + method + ":" + url + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
@@ -257,12 +257,13 @@ var ew_api = {
         return this.sendRequest(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback);
     },
 
-    queryS3Prepare : function(method, bucket, key, path, params, content)
+    queryS3Prepare : function(method, bucket, key, path, params, content, expires)
     {
         var curTime = new Date().toUTCString();
         var url = this.core.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + this.core.getS3Region(this.region || "").url;
 
         if (!params) params = {}
+        if (!expires) expires = "";
 
         // Required headers
         if (!params["x-amz-date"]) params["x-amz-date"] = curTime;
@@ -276,7 +277,7 @@ var ew_api = {
         }
 
         // Construct the string to sign and query string
-        var strSig = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + "\n";
+        var strSign = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + expires + "\n";
 
         // Amazon canonical headers
         var headers = []
@@ -290,7 +291,7 @@ var ew_api = {
             }
         }
         if (headers.length) {
-            strSig += headers.sort().join('\n') + "\n"
+            strSign += headers.sort().join('\n') + "\n"
         }
 
         // Split query string for subresources, supported are:
@@ -307,15 +308,22 @@ var ew_api = {
                 rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
             }
         }
-        strSig += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+        strSign += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+        var signature = b64_hmac_sha1(this.secretKey, strSign);
 
-        params["Authorization"] = "AWS " + this.accessKey + ":" + b64_hmac_sha1(this.secretKey, strSig);
+        params["Authorization"] = "AWS " + this.accessKey + ":" + signature;
         params["User-Agent"] = this.core.getUserAgent();
         params["Connection"] = "close";
 
-        log("S3 [" + method + ":" + url + "/" + key + path + ":" + strSig.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+        log("S3 [" + method + ":" + url + "/" + key + path + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
 
-        return { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, sig: strSig, time: curTime }
+        var rc = { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, signature: signature, str: strSign, time: curTime, expires: expires };
+
+        // Build REST auth url if expies is given
+        if (expires) {
+            rc.authUrl = rc.url + (rc.url.indexOf("?") == -1 ? "?" : "") + '&AWSAccessKeyId=' + this.accessKey + "&Expires=" + expires + "&Signature=" + encodeURIComponent(signature);
+        }
+        return rc;
     },
 
     downloadS3 : function (method, bucket, key, path, params, file, callback, progresscb)
@@ -2004,12 +2012,11 @@ var ew_api = {
         });
     },
 
-    importInstance: function(instanceType, arch, platform, diskFmt, diskBytes, diskUrl, diskSize, options, callback)
+    importInstance: function(instanceType, arch, diskFmt, diskBytes, diskUrl, diskSize, options, callback)
     {
         var params = this.createLaunchParams(options);
         params.push(["InstanceType", instanceType])
         params.push(["Architecture", arch])
-        params.push(["Platform", platform])
         params.push(["DiskImage.1.Image.Format", diskFmt]);
         params.push(["DiskImage.1.Image.Bytes", diskBytes]);
         params.push(["DiskImage.1.Image.ImportManifestUrl", diskUrl]);
