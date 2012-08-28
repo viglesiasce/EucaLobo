@@ -1771,11 +1771,48 @@ var ew_ExportTasksTreeView = {
 };
 
 var ew_ConversionTasksTreeView = {
-   model: ["conversionTasks"],
+   model: ["conversionTasks","subnets","securityGroups","availabilityZones"],
 
-   createTask: function()
+   createVolumeTask: function()
    {
 
+   },
+
+   createInstanceTask: function()
+   {
+       var me = this;
+
+       var values = this.core.promptInput('Import Instance',
+                                   [{label:"Instance Description"},
+                                    {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
+                                    {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
+                                    {label:"Platform",type:"menulist",list:['windows','linux'],required:1},
+                                    {label:"Disk Description"},
+                                    {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
+                                    {label:"Disk Image Size (bytes)",type:"number",required:1},
+                                    {label:"Disk Image S3 Path",required:1,tooltiptext:"S3 path to the manifest for the disk image, stored in Amazon S3, must be in the form: /bucket/optional_prefix/manifest_name, it will be converted into S3 HTTP URL and signed with current credentials"},
+                                    {label:"EBS Volume Size (GB)",type:"number",required:1},
+                                    {label:"Options:",type:"section"},
+                                    {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5},
+                                    {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones'),tooltiptext:"The Availability Zone to launch the instance into. Default: EC2 chooses a zone for you"},
+                                    {label:"VPC Subnet",type:"menulist",list:this.core.queryModel('subnets'),tooltiptext:"If you are using Amazon Virtual Private Cloud, this specifies the ID of the subnet you want to launch the instance into."},
+                                    {label:"Private IP Address",type:"ip",tooltiptext:"If you are using Amazon Virtual Private Cloud, you can optionally use this parameter to assign the instance a specific available IP address from the subnet (e.g., 10.0.0.25)."},
+                                    {label:"Detailed Monitoring",type:"checkbox",tooltiptext:"Specifies whether to enable detailed monitoring for the instance."},
+                                    {label:"Instance Initiated Shutdown Behavior",type:"menulist",list:['stop','terminate'],tooltiptext:"Specifies whether the instance stops or terminates on instance-initiated shutdown."},
+                                    {label:"User Data",multiline:true,cols:40,rows:3,tooltiptext:"User data to be made available to the instance."},
+                                    ]);
+       if (!values) return;
+       var options = {};
+       options.description = values[4];
+       options.securityGroupNames = values[9];
+       options.availabilityZone = values[10];
+       options.subnetId = values[11];
+       options.privateIpAddress = values[12];
+       options.monitoringEnabled = values[13];
+       options.instanceInitiatedShutdownBehaviour = values[14];
+       options.userData = values[15];
+       var url = 'http://s2.amazonaws.com' + values[7];
+       this.core.importInstance(values[1], values[2], values[3], values[5], values[6], url, values[8], options, function() { me.refresh(); });
    },
 
    deleteSelected : function ()

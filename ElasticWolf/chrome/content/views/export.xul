@@ -50,7 +50,8 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.conversionTasks.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ConversionTasksTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="Create Import Task" oncommand="ew_ConversionTasksTreeView.createTask();" />
+                <toolbarbutton image="images/add.png" tooltiptext="Create Instance Import Task" oncommand="ew_ConversionTasksTreeView.createInstanceTask();" />
+                <toolbarbutton image="images/tools.png" tooltiptext="Create Volume Import Task" oncommand="ew_ConversionTasksTreeView.createVolumeTask();" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Cancel Task" oncommand="ew_ConversionTasksTreeView.deleteSelected();" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.conversionTasks.view" flex="1">

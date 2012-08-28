@@ -574,7 +574,7 @@ var ListBox = {
     multiple: true,
     width: 400,
     rows: 10,
-    listItems: [],
+    items: [],
     checkedItems: [],
     checkedProperty: null,
     selectedIndex: -1,
@@ -587,11 +587,11 @@ var ListBox = {
         this.selectedIndex = list.selectedIndex;
         this.selectedItems = [];
         if (this.multiple) {
-            for (var i in this.listItems) {
+            for (var i = 0; i < this.items.length; i++) {
                 var cell = $(this.name + '.check' + i);
                 var checked = cell && cell.hasAttribute('checked', 'true') ? true : false;
                 if (checked) {
-                    this.selectedItems.push(this.listItems[i]);
+                    this.selectedItems.push(this.items[i]);
                 }
             }
         }
@@ -607,8 +607,13 @@ var ListBox = {
         this.selectedIndex = -1;
         this.selectedItems = [];
         var list = $(this.name);
+        if (!list) return;
+        while (list.firstChild) {
+            list.removeChild(list.firstChild);
+        }
         list.width = this.width;
         list.setAttribute('rows', this.rows || 10);
+        list.onclick = null;
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
 
         var head = document.createElement('listhead');
@@ -647,9 +652,9 @@ var ListBox = {
             }
         }
 
-        for (var i in this.listItems) {
-            if (this.listItems[i] == null) continue;
-            var val = this.toItem(this.listItems[i]);
+        for (var i = 0; i < this.items.length; i++) {
+            if (this.items[i] == null) continue;
+            var val = this.toItem(this.items[i]);
             if (this.multiple) {
                 var row = document.createElement('listitem');
                 var cell = document.createElement('listcell');
@@ -658,7 +663,7 @@ var ListBox = {
                 cell.setAttribute('id', this.name + '.check' + i);
                 // Check if this item is already selected
                 for (var j in this.checkedItems) {
-                    if (this.listItems[i] == this.checkedItems[j]) {
+                    if (this.items[i] == this.checkedItems[j]) {
                         cell.setAttribute('checked', 'true');
                         break;
                     }
@@ -676,7 +681,7 @@ var ListBox = {
                 cell.setAttribute('label', val);
                 row.setAttribute('tooltiptext', val);
                 for (var j in this.checkedItems) {
-                    if (this.listItems[i] == this.checkedItems[j]) {
+                    if (this.items[i] == this.checkedItems[j]) {
                         list.selectedIndex = i;
                     }
                 }
@@ -696,7 +701,7 @@ var ListBox = {
             var checked = !toBool(cell.getAttribute('checked'));
             cell.setAttribute('checked', checked);
             if (this.checkedProperty) {
-                this.listItems[list.currentIndex][this.checkedProperty] = checked;
+                this.items[list.currentIndex][this.checkedProperty] = checked;
             }
         }
     },

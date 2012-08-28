@@ -752,13 +752,13 @@ var ew_core = {
         params.core = this;
         params.title = title;
         params.msg = msg;
-        params.listItems = items;
+        params.items = items;
         params.selectedIndex = -1;
         params.selectedItems = [];
         // By default it is single select
         if (typeof params.multiple == "undefined") params.multiple = false;
         window.openDialog("chrome://ew/content/dialogs/select.xul", null, "chrome,centerscreen,modal,resizable", params);
-        return params.multiple ? (params.checkedProperty ? params.listItems : params.selectedItems) : params.selectedIndex;
+        return params.multiple ? (params.checkedProperty ? params.items : params.selectedItems) : params.selectedIndex;
     },
 
     // MultiInput dialog:

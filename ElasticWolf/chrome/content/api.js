@@ -2004,8 +2004,32 @@ var ew_api = {
         });
     },
 
+    importInstance: function(instanceType, arch, platform, diskFmt, diskBytes, diskUrl, diskSize, options, callback)
+    {
+        var params = this.createLaunchParams(options);
+        params.push(["InstanceType", instanceType])
+        params.push(["Architecture", arch])
+        params.push(["Platform", platform])
+        params.push(["DiskImage.1.Image.Format", diskFmt]);
+        params.push(["DiskImage.1.Image.Bytes", diskBytes]);
+        params.push(["DiskImage.1.Image.ImportManifestUrl", diskUrl]);
+        params.push(["DiskImage.1.Volume.Size", diskSize]);
+        if (options.description) params.push(["Description", options.description]);
+        if (options.diskDescription) params.push(["DiskImage.1.Image.Description", options.diskDescription]);
+
+        this.queryEC2("ImportInstance", params, this, false, "onComplete", callback);
+    },
+
+    importVolume: function()
+    {
+        var params = [];
+        this.queryEC2("ImportVolume", params, this, false, "onComplete", callback);
+    },
+
     createLaunchParams: function(options, prefix)
     {
+        if (!prefix) prefix = '';
+
         var params = [];
         if (options.kernelId) {
             params.push([ prefix + "KernelId", options.kernelId ]);
@@ -2021,6 +2045,9 @@ var ew_api = {
         }
         for (var i in options.securityGroups) {
             params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
+        }
+        for (var i in options.securityGroupNames) {
+            params.push([ prefix + "SecurityGroup." + parseInt(i), typeof options.securityGroupNames[i] == "object" ? options.securityGroupNames[i].name : options.securityGroupNames[i] ]);
         }
         if (options.userData) {
             var b64str = "Base64:";

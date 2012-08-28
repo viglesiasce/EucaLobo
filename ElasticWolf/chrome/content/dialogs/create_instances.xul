@@ -18,6 +18,7 @@
     function launch()
     {
         ListBox.done();
+        this.eniListView.done();
         this.retVal.imageId = $('ew.ami.id').value;
         this.retVal.kernelId = $("ew.aki").value;
         this.retVal.ramdiskId = $("ew.ari").value;
@@ -140,15 +141,11 @@
              break;
 
         case "new":
-             this.retVal.privateIpAddress = $("ew.eniIpAddress").value.replace(/[ ]+/g,'');
-             this.retVal.secondaryIpAddresses = $("ew.eniIpAddress2").value.replace(/[ ]+/g,'').split(",");
-             this.retVal.description = $("ew.eniDescr").value;
-             this.retVal.subnetId = $("ew.eniSubnet").value;
-             this.retVal.securityGroups = [];
-             var groupMenu = $("ew.eniSubnet");
-             for (var i = 0; i < groupMenu.selectedCount; i++) {
-                 this.retVal.securityGroups.push(groupMenu.getSelectedItem(i).value);
-             }
+             eni.privateIpAddress = $("ew.eniIpAddress").value.replace(/[ ]+/g,'');
+             eni.secondaryIpAddresses = $("ew.eniIpAddress2").value.replace(/[ ]+/g,'').split(",");
+             eni.description = $("ew.eniDescr").value;
+             eni.subnetId = $("ew.eniSubnet").value;
+             eni.securityGroups = this.eniListView.selectedItems;
              this.retVal.networkInterface = eni;
              break;
         }
@@ -266,8 +263,9 @@
     function eniSelected()
     {
         $("ew.eniIndex").disabled = $("ew.eniDelete").disabled = true;
-        $("ew.eniId").disabled = $("ew.eniDescr").disabled = $("ew.eniGroups").disabled = true;
+        $("ew.eniId").disabled = $("ew.eniDescr").disabled = true;
         $("ew.eniIpAddress").disabled = $("ew.eniIpAddress2").disabled = $("ew.eniSubnet").disabled = true;
+        $("ew.eniSubnet").value = '';
         switch ($("ew.eniType").value) {
         case "eni":
              $("ew.eniId").disabled = $("ew.eniIndex").disabled = $("ew.eniDelete").disabled = false;
@@ -280,18 +278,21 @@
         }
     }
 
-    function subnetSelected()
+    function eniSubnetSelected()
     {
-        var groupMenu = $("ew.eniGroups");
-        clearListbox(groupMenu)
-        var subnetId = $("ew.eniSubnet").value;
-        var subnet = this.core.findModel('subnets', subnetId);
-        if (subnet) {
-            var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
-            for (var i in groups) {
-                groupMenu.appendItem(groups[i].toString(), groups[i].id);
-            }
+        // Re-create new list
+        var box = $('ew.eniGroupBox');
+        var groups = $('ew.eniGroups');
+        if (groups) {
+            box.removeChild(groups);
         }
+        var groups = document.createElement('listbox');
+        groups.setAttribute('id', 'ew.eniGroups');
+        groups.setAttribute('flex', '1');
+        box.appendChild(groups);
+
+        var subnet = this.core.findModel('subnets', $("ew.eniSubnet").value);
+        this.eniListView.init({ core:this.core, name:'ew.eniGroups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', (subnet ? subnet.vpcId : '') || 'none') });
     }
 
     function vpcSelected()
@@ -316,19 +317,18 @@
             $("ew.eniType").disabled = $("ew.eniIndex").disabled = $("ew.eniDelete").disabled = false;
         }
 
+        // Re-create new list
         var box = $('ew.groups.box');
         var groups = $('ew.groups');
         if (groups) {
             box.removeChild(groups);
         }
-
-        // Re-create new list
         var groups = document.createElement('listbox');
         groups.setAttribute('id', 'ew.groups');
         groups.setAttribute('flex', '1');
         box.appendChild(groups);
 
-        ListBox.init({ core:this.core, name:'ew.groups', title:'Security Groups', listItems:this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value) });
+        ListBox.init({ core:this.core, name:'ew.groups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value) });
     }
 
     function loadUserDataFromFile(fBinary)
@@ -353,6 +353,7 @@
         this.tnMenu = $("ew.tenancy");
         this.vpcMenu = $("ew.vpcId");
         this.subnetMenu = $("ew.subnetId");
+        this.eniListView = new ListView();
 
         this.images = this.core.queryModel('images');
         var keypairs = this.core.queryModel('keypairs');
@@ -693,11 +694,10 @@
                 </row>
                 <row>
                     <label control="ew.eniSubnet" value="ENI Subnet:" />
-                    <menulist id="ew.eniSubnet" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" onselect="subnetSelected()"/>
+                    <menulist id="ew.eniSubnet" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" onselect="eniSubnetSelected()"/>
                 </row>
-                <row>
+                <row id="ew.eniGroupBox">
                     <label control="ew.eniGroups" value="Security Groups:" />
-                    <listbox id="ew.eniGroups" rows="7" seltype="multiple" disabled="true" />
                 </row>
             </rows>
          </grid>

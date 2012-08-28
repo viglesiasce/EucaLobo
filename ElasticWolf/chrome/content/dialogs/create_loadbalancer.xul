@@ -19,7 +19,7 @@
     this.core = window.arguments[0];
     this.rc = window.arguments[1];
 
-    ListBox.init({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', listItems:this.core.queryModel('instances','state', 'running') });
+    ListBox.init({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', items:this.core.queryModel('instances','state', 'running') });
 
     var availZones = this.core.queryModel('availabilityZones');
     var availZoneMenu = document.getElementById("ew.azones");
