@@ -4263,7 +4263,8 @@ var ew_api = {
     {
         var params = []
         for (var p in obj) {
-            params.push([ p, obj[p]])
+            if (obj[p] == "") continue;
+            params.push([p, obj[p]]);
         }
         this.queryIAM("UpdateAccountPasswordPolicy", params, this, false, "onComplete", callback);
     },

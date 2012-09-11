@@ -7,6 +7,7 @@ var ew_core = {
     VERSION: "2.1.0",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
+    ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
 
@@ -213,8 +214,8 @@ var ew_core = {
             if (i == 0 && tab.views[i].view.focus) tab.views[i].view.focus();
         }
         // Non view tabs cannot be selected
-        if (tab.call) {
-            tab.call();
+        if (tab.proc) {
+            tab.proc.call(tab.context);
             return false;
         }
 
@@ -570,6 +571,11 @@ var ew_core = {
         }
     },
 
+    submitIssue: function()
+    {
+        this.displayUrl(this.ISSUES);
+    },
+
     // Create cert with private and public keys for given key name
     generateCertificate : function(keyname)
     {
@@ -629,14 +635,15 @@ var ew_core = {
     },
 
     // Start command shell with given key pair and access key, setup environment variables to be used by AWS command line tools
-    launchShell : function(keyPair, accessKey)
+    launchShell : function(keyPair, cred)
     {
         // Make sure we have directory
         if (!this.makeKeyHome()) return 0
 
-        // Save access key into file
-        var file = this.getCredentialFile(keyPair ? keyPair.name : this.getCurrentUser());
-        this.saveAccessKey(file, accessKey || { id: this.api.accessKey, secret: this.api.secretKey });
+        // Save access key into file by credentials name or account name
+        if (!cred) cred = this.getActiveCredentials();
+        var file = this.getCredentialFile(cred ? cred.name : this.getCurrentUser());
+        this.saveAccessKey(file, { id: cred ? cred.accessKey : this.api.accessKey, secret: cred ? cred.secretKey : this.api.secretKey });
         this.setEnv("AWS_CREDENTIAL_FILE", file);
 
         // Setup environment
@@ -668,7 +675,7 @@ var ew_core = {
             this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
-        debug(path)
+        debug('launchShell:' + keyPair + ":" + cred + " " + path)
         this.setEnv("PATH", path);
         this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
     },

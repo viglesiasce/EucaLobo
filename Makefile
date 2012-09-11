@@ -7,13 +7,13 @@ all:
 run: dev
 	$(OSX)/MacOS/xulrunner -jsconsole
 
-dev:	clean
+dev:	clean_osx
 	ln -sf `pwd`/$(NAME)/chrome $(OSX)/Resources/chrome 
 	ln -sf `pwd`/$(NAME)/defaults $(OSX)/Resources/defaults 
 	ln -sf `pwd`/$(NAME)/application.ini $(OSX)/Resources/application.ini
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
-build:	clean build_osx build_win
+build:	clean build_osx build_win dev
 
 prepare: clean prepare_osx
 

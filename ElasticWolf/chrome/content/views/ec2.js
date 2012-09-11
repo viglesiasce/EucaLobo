@@ -602,10 +602,10 @@ var ew_InstancesTreeView = {
         if (isEbsRootDeviceType(instance.rootDeviceType)) {
             $("instances.context.bundle").disabled = true;
             $("instances.context.createimage").disabled = false;
-            $("instances.context.export").disabled = true;
+            $("instances.context.export").disabled = false;
         } else {
             $("instances.context.createimage").disabled = true;
-            $("instances.context.export").disabled = false;
+            $("instances.context.export").disabled = true;
             if (isWindows(instance.platform)) {
                 $("instances.context.bundle").disabled = false;
             } else {
