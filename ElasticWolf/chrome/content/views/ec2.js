@@ -602,7 +602,7 @@ var ew_InstancesTreeView = {
         if (isEbsRootDeviceType(instance.rootDeviceType)) {
             $("instances.context.bundle").disabled = true;
             $("instances.context.createimage").disabled = false;
-            $("instances.context.export").disabled = false;
+            $("instances.context.export").disabled = !isWindows(instance.platform);
         } else {
             $("instances.context.createimage").disabled = true;
             $("instances.context.export").disabled = true;
@@ -973,8 +973,7 @@ var ew_InstancesTreeView = {
         }
 
         // Common substitution
-        args = this.core.getArgsProcessed(args, params, hostname);
-
+        args = this.core.getArgsProcessed(args, params, this.core.getShellFile(hostname));
         this.core.launchProcess(cmd, args);
 
     },

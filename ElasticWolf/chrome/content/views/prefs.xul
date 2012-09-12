@@ -62,6 +62,12 @@
                     </hbox>
                 </row>
                 <row>
+                    <label control="ew.sshkeygen.command" value="SSH Keygen Command:" />
+                    <hbox>
+                        <textbox id="ew.sshkeygen.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.sshkeygen.command', true)" />
+                    </hbox>
+                </row>
+                <row>
                     <label control="ew.shell.command" value="SHELL Command:" />
                     <hbox>
                         <textbox id="ew.shell.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.shell.command', true)" />

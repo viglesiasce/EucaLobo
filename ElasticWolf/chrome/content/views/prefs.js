@@ -28,6 +28,7 @@ var ew_PrefsView = {
        $("ew.rdp.command").value = this.core.getRDPCommand();
        $("ew.rdp.args").value = this.core.getRDPArgs();
        $("ew.openssl.command").value = this.core.getOpenSSLCommand();
+       $("ew.sshkeygen.command").value = this.core.getSSHKeygenCommand();
        $("ew.shell.command").value = this.core.getShellCommand();
        $("ew.shell.args").value = this.core.getShellArgs();
        this.getPrefs("ew.ssh.user");
@@ -58,6 +59,7 @@ var ew_PrefsView = {
        this.resetPrefs("ew.rdp.command");
        this.resetPrefs("ew.rdp.args");
        this.resetPrefs("ew.openssl.command");
+       this.resetPrefs("ew.sshkeygen.command");
        this.resetPrefs("ew.shell.command");
        this.resetPrefs("ew.shell.args");
        this.resetPrefs("ew.key.home");
@@ -72,6 +74,7 @@ var ew_PrefsView = {
        this.setPrefs("ew.rdp.command");
        this.setPrefs("ew.rdp.args");
        this.setPrefs("ew.openssl.command");
+       this.setPrefs("ew.sshkeygen.command");
        this.setPrefs("ew.shell.command");
        this.setPrefs("ew.shell.args");
        this.setPrefs("ew.key.home");

@@ -576,167 +576,6 @@ var ew_core = {
         this.displayUrl(this.ISSUES);
     },
 
-    // Create cert with private and public keys for given key name
-    generateCertificate : function(keyname)
-    {
-        // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
-
-        var certfile = this.getCertificateFile(keyname);
-        var keyfile = this.getPrivateKeyFile(keyname);
-        var pubfile = this.getPublicKeyFile(keyname);
-        var openssl = this.getOpenSSLCommand();
-        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf"
-
-        // Make sure we do not lose existing private keys
-        if (FileIO.exists(keyfile)) {
-            if (!confirm('Private key file ' + keyfile + ' already exists, it will be overwritten, OK continue?')) return null;
-        }
-
-        FileIO.remove(certfile);
-        FileIO.remove(keyfile);
-        FileIO.remove(pubfile);
-        FileIO.remove(conffile);
-
-        // Create openssl config file
-        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n"
-        if (!FileIO.write(FileIO.open(conffile), confdata)) {
-            return alert('Unable to create file ' + conffile + ", check permissions, aborting");
-        }
-
-        // Create private and cert files
-        this.setEnv("OPENSSL_CONF", conffile);
-        this.launchProcess(openssl, [ "genrsa", "-out", keyfile, "1024" ], true);
-        if (!waitForFile(keyfile, 5000)) {
-            debug("ERROR: no private key generated")
-            FileIO.remove(conffile);
-            return 0
-        }
-        FileIO.open(keyfile).permissions = 0600;
-
-        this.launchProcess(openssl, [ "req", "-new", "-x509", "-nodes", "-sha1", "-days", "730", "-key", keyfile, "-out", certfile, "-config", conffile ], true);
-        if (!waitForFile(certfile, 5000)) {
-            debug("ERROR: no certificate generated")
-            FileIO.remove(conffile);
-            return 0
-        }
-
-        // Create public file
-        this.launchProcess(openssl, [ "rsa", "-in", keyfile, "-pubout", "-out", pubfile ], true)
-        // Wait a little because if process is running in the background on Windows it may take some time but we return immediately
-        if (!waitForFile(pubfile, 5000)) {
-            debug("ERROR: no public file generated")
-            FileIO.remove(conffile);
-            return 0
-        }
-        FileIO.remove(conffile);
-
-        return FileIO.toString(certfile)
-    },
-
-    // Start command shell with given key pair and access key, setup environment variables to be used by AWS command line tools
-    launchShell : function(keyPair, cred)
-    {
-        // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
-
-        // Save access key into file by credentials name or account name
-        if (!cred) cred = this.getActiveCredentials();
-        var file = this.getCredentialFile(cred ? cred.name : this.getCurrentUser());
-        this.saveAccessKey(file, { id: cred ? cred.accessKey : this.api.accessKey, secret: cred ? cred.secretKey : this.api.secretKey });
-        this.setEnv("AWS_CREDENTIAL_FILE", file);
-
-        // Setup environment
-        if (keyPair) {
-            this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
-            this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
-        }
-        this.setEnv("EC2_URL", this.api.urls.EC2);
-        this.setEnv("AWS_IAM_URL", this.api.urls.IAM);
-        this.setEnv("AWS_CLOUDWATCH_URL", this.api.urls.CW);
-
-        // Current PATH
-        var path = this.getEnv("PATH");
-        var sep = isWindows(navigator.platform) ? ";" : ":";
-
-        // Update path to the command line tools
-        var paths = [{ name: "ec2", home: "EC2_HOME" },
-                     { name: "java", home: "JAVA_HOME" },
-                     { name: "iam", home:"AWS_IAM_HOME" },
-                     { name: "ami", home: "EC2_AMITOOL_HOME" },
-                     { name: "cloudwatch", home: "AWS_CLOUDWATCH_HOME" },
-                     { name: "autoscaling", home: "AWS_AUTO_SCALING_HOME" } ];
-
-        for(var i in paths) {
-            var p = this.getStrPrefs("ew.path." + paths[i].name, "");
-            if (p == "") {
-                continue;
-            }
-            this.setEnv(paths[i].home, p);
-            path += sep + p + DirIO.slash + "bin";
-        }
-        debug('launchShell:' + keyPair + ":" + cred + " " + path)
-        this.setEnv("PATH", path);
-        this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
-    },
-
-    launchProcess : function(cmd, args, block)
-    {
-        // Split string to array
-        if (typeof args == "string") {
-            var tokens = [];
-            var sep = ' ';
-            var tok = '';
-
-            for ( var i = 0; i < args.length; i++) {
-                var ch = args[i];
-                if (ch == sep) {
-                    if (sep == ' ') {
-                        if (tok.length > 0) {
-                            tokens.push(tok);
-                        }
-                        tok = '';
-                    } else {
-                        sep = ' ';
-                    }
-                } else
-                if (sep == ' ' && (ch == '"' || ch == "'")) {
-                    sep = ch;
-                } else {
-                    tok += ch;
-                }
-            }
-            if (tok.length > 0) {
-                tokens.push(tok);
-            }
-            args = tokens;
-        }
-
-        debug("launch: " + cmd + " with args: " + args.join(" "));
-
-        var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-        file.initWithPath(cmd);
-
-        var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-        try {
-            process.init(file);
-        }
-        catch (e) {
-            alert("Couldn't launch: " + cmd + "\n\n" + e.message);
-            return false;
-        }
-
-        try {
-            process.run(block, args, args.length);
-            debug("launch: " + cmd + " finished with status " + process.exitValue)
-        }
-        catch (e) {
-            alert("Couldn't launch: " + cmd + "\nWith arguments: " + args.join(" ") + "\n\n" + e.message);
-            return false
-        }
-        return true
-    },
-
     playAlertSound: function()
     {
         var sound = Components.classes["@mozilla.org/sound;1"].createInstance(Components.interfaces.nsISound);
@@ -1335,7 +1174,7 @@ var ew_core = {
         } else
 
         if (isWindows(navigator.platform)) {
-            cmd = 'c:\\\Windows\\System32\\cmd.exe'
+            cmd = 'c:\\\Windows\\System32\\cmd.exe';
         }
         return this.getStrPrefs("ew.ssh.command", cmd);
     },
@@ -1365,11 +1204,20 @@ var ew_core = {
         return this.getStrPrefs("ew.ssh.args", args);
     },
 
+    getSSHKeygenCommand : function()
+    {
+        var cmd = "/usr/bin/ssh-keygen";
+        if (isWindows(navigator.platform)) {
+            cmd = this.getAppPath() + "\\bin\\ssh-keygen.exe";
+        }
+        return this.getStrPrefs("ew.sshkeygen.command", cmd);
+    },
+
     getOpenSSLCommand : function()
     {
         var cmd = "/usr/bin/openssl";
         if (isWindows(navigator.platform)) {
-            cmd = this.getAppPath() + "\\bin\\openssl.exe"
+            cmd = this.getAppPath() + "\\bin\\openssl.exe";
         }
         return this.getStrPrefs("ew.openssl.command", cmd);
     },
@@ -1407,16 +1255,16 @@ var ew_core = {
 
     getTemplateProcessed : function(file, params)
     {
-        var keyname = null
+        var keyname = null;
         // Custom variables
         for ( var i = 0; params && i < params.length; i++) {
-            var val = params[i][1]
+            var val = params[i][1];
             if (file.indexOf("${" + params[i][0] + "}") > -1) {
                 file = file.replace(new RegExp("\\${" + params[i][0] + "}", "g"), quotepath(val));
             }
             switch (params[i][0]) {
             case "keyname":
-                keyname = val
+                keyname = val;
                 break;
             }
         }
@@ -1446,7 +1294,7 @@ var ew_core = {
         return file
     },
 
-    getArgsProcessed: function(args, params, filename)
+    getArgsProcessed: function(args, params, shellfile)
     {
         var idx = args.indexOf('#!');
         if (idx == -1) {
@@ -1454,20 +1302,198 @@ var ew_core = {
         }
 
         // Batch file
-        if (!this.makeKeyHome()) return null
+        if (!this.makeKeyHome()) return null;
 
         var batch = args.substr(idx + 2).replace(/\#\!/g, "\r\n") + "\r\n";
         batch = this.getTemplateProcessed(batch, params);
+        args = this.getTemplateProcessed(args.substr(0, idx) + " " + quotepath(shellfile), params);
 
-        var file = this.getKeyHome() + DirIO.slash + filename + (isWindows(navigator.platform) ? ".bat" : ".sh");
-        args = this.getTemplateProcessed(args.substr(0, idx) + " " + quotepath(file), params);
-
-        var fd = FileIO.open(file);
-        FileIO.write(fd, batch);
+        // Add propert line to the script, on Mac redirection uses 0x0D in the file name
+        var fd = FileIO.open(shellfile);
+        FileIO.write(fd, batch + (isWindows(navigator.platform) ? "\r\n" : "\n"));
         fd.permissions = 0700;
 
-        debug("BATCH:" + file + "\n" + batch)
+        debug("BATCH:" + shellfile + "\n" + batch)
         return args;
+    },
+
+    // Produce file name for shel script
+    getShellFile: function(name) {
+        return this.getKeyHome() + DirIO.slash + name + (isWindows(navigator.platform) ? ".bat" : ".sh");
+    },
+
+    // Create cert with private and public keys for given key name
+    generateCertificate : function(keyname)
+    {
+        // Make sure we have directory
+        if (!this.makeKeyHome()) return 0
+
+        var certfile = this.getCertificateFile(keyname);
+        var keyfile = this.getPrivateKeyFile(keyname);
+        var pubfile = this.getPublicKeyFile(keyname);
+        var openssl = this.getOpenSSLCommand();
+        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf"
+
+        // Make sure we do not lose existing private keys
+        if (FileIO.exists(keyfile)) {
+            if (!confirm('Private key file ' + keyfile + ' already exists, it will be overwritten, OK continue?')) return null;
+        }
+
+        FileIO.remove(certfile);
+        FileIO.remove(keyfile);
+        FileIO.remove(pubfile);
+        FileIO.remove(conffile);
+
+        // Create openssl config file
+        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n"
+        if (!FileIO.write(FileIO.open(conffile), confdata)) {
+            return alert('Unable to create file ' + conffile + ", check permissions, aborting");
+        }
+
+        // Create private and cert files
+        this.setEnv("OPENSSL_CONF", conffile);
+        this.launchProcess(openssl, [ "genrsa", "-out", keyfile, "1024" ], true);
+        if (!waitForFile(keyfile, 5000)) {
+            debug("ERROR: no private key generated")
+            FileIO.remove(conffile);
+            return 0
+        }
+        FileIO.open(keyfile).permissions = 0600;
+
+        this.launchProcess(openssl, [ "req", "-new", "-x509", "-nodes", "-sha1", "-days", "730", "-key", keyfile, "-out", certfile, "-config", conffile ], true);
+        if (!waitForFile(certfile, 5000)) {
+            debug("ERROR: no certificate generated")
+            FileIO.remove(conffile);
+            return 0
+        }
+
+        // Create public file
+        this.launchProcess(openssl, [ "rsa", "-in", keyfile, "-pubout", "-out", pubfile ], true);
+        // Wait a little because if process is running in the background on Windows it may take some time but we return immediately
+        if (!waitForFile(pubfile, 5000)) {
+            debug("ERROR: no public file generated")
+            FileIO.remove(conffile);
+            return 0
+        }
+        FileIO.remove(conffile);
+
+        // Create openssh compatible public key, need to use shell wrapper with ssh-keygen
+        var sshfile = DirIO.dirName(pubfile) + DirIO.slash + DirIO.baseName(pubfile) + ".pub";
+        if (isWindows(navigator.platform)) {
+            // Use patched openssl with added openssh command
+            this.launchProcess(openssl, ["openssh", "-in", pubfile, "-name", keyname, "-out", sshfile], true);
+        } else {
+            var args = "#!" + this.getSSHKeygenCommand()+ " -i -m PKCS8 -f " + pubfile + " > " + sshfile;
+            var shellfile = this.getShellFile(keyname);
+            args = this.getArgsProcessed(args, [], shellfile);
+            this.launchProcess("/bin/sh", args, true);
+            FileIO.remove(shellfile);
+        }
+
+        return FileIO.toString(certfile)
+    },
+
+    // Start command shell with given key pair and access key, setup environment variables to be used by AWS command line tools
+    launchShell : function(keyPair, cred)
+    {
+        // Make sure we have directory
+        if (!this.makeKeyHome()) return 0
+
+        // Save access key into file by credentials name or account name
+        if (!cred) cred = this.getActiveCredentials();
+        var file = this.getCredentialFile(cred ? cred.name : this.getCurrentUser());
+        this.saveAccessKey(file, { id: cred ? cred.accessKey : this.api.accessKey, secret: cred ? cred.secretKey : this.api.secretKey });
+        this.setEnv("AWS_CREDENTIAL_FILE", file);
+
+        // Setup environment
+        if (keyPair) {
+            this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
+            this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
+        }
+        this.setEnv("EC2_URL", this.api.urls.EC2);
+        this.setEnv("AWS_IAM_URL", this.api.urls.IAM);
+        this.setEnv("AWS_CLOUDWATCH_URL", this.api.urls.CW);
+
+        // Current PATH
+        var path = this.getEnv("PATH");
+        var sep = isWindows(navigator.platform) ? ";" : ":";
+
+        // Update path to the command line tools
+        var paths = [{ name: "ec2", home: "EC2_HOME" },
+                     { name: "java", home: "JAVA_HOME" },
+                     { name: "iam", home:"AWS_IAM_HOME" },
+                     { name: "ami", home: "EC2_AMITOOL_HOME" },
+                     { name: "cloudwatch", home: "AWS_CLOUDWATCH_HOME" },
+                     { name: "autoscaling", home: "AWS_AUTO_SCALING_HOME" } ];
+
+        for(var i in paths) {
+            var p = this.getStrPrefs("ew.path." + paths[i].name, "");
+            if (p == "") {
+                continue;
+            }
+            this.setEnv(paths[i].home, p);
+            path += sep + p + DirIO.slash + "bin";
+        }
+        debug('launchShell:' + keyPair + ":" + cred + " " + path)
+        this.setEnv("PATH", path);
+        this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
+    },
+
+    launchProcess : function(cmd, args, block)
+    {
+        // Split string to array
+        if (typeof args == "string") {
+            var tokens = [];
+            var sep = ' ';
+            var tok = '';
+
+            for ( var i = 0; i < args.length; i++) {
+                var ch = args[i];
+                if (ch == sep) {
+                    if (sep == ' ') {
+                        if (tok.length > 0) {
+                            tokens.push(tok);
+                        }
+                        tok = '';
+                    } else {
+                        sep = ' ';
+                    }
+                } else
+                if (sep == ' ' && (ch == '"' || ch == "'")) {
+                    sep = ch;
+                } else {
+                    tok += ch;
+                }
+            }
+            if (tok.length > 0) {
+                tokens.push(tok);
+            }
+            args = tokens;
+        }
+
+        debug("launch: " + cmd + " with args: " + args.join(" "));
+
+        var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+        file.initWithPath(cmd);
+
+        var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
+        try {
+            process.init(file);
+        }
+        catch (e) {
+            alert("Couldn't launch: " + cmd + "\n\n" + e.message);
+            return false;
+        }
+
+        try {
+            process.run(block, args, args.length);
+            debug("launch: " + cmd + " finished with status " + process.exitValue)
+        }
+        catch (e) {
+            alert("Couldn't launch: " + cmd + "\nWith arguments: " + args.join(" ") + "\n\n" + e.message);
+            return false
+        }
+        return true;
     },
 
     getHome : function()

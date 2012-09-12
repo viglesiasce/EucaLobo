@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+var s3 = require('aws2js').load('s3');
+
+if (process.argv.length < 4) {
+    console.log(process.argv[1], "bucketPath file");
+    process.exit(0);
+}
+
+var bucket = process.argv[2].split("/")[0];
+var path = process.argv[2].split("/").slice(1).join("/");
+var file = process.argv[3];
+
+s3.setCredentials(process.env.AWS_ACCESS_KEY_ID, process.env.AWS_SECRET_ACCESS_KEY);
+s3.setBucket(bucket);
+s3.putFile(path, file, 'public-read', {'content-type':'application/zip'}, function (err, res) {
+   if (err) console.log(err);
+   process.exit(0);
+});
+

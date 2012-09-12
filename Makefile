@@ -13,7 +13,8 @@ dev:	clean_osx
 	ln -sf `pwd`/$(NAME)/application.ini $(OSX)/Resources/application.ini
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
-build:	clean build_osx build_win dev
+build:	clean build_osx build_win
+	make dev
 
 prepare: clean prepare_osx
 
@@ -35,4 +36,8 @@ clean: clean_osx
 clean_osx:
 	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest
 
+put:
+	./s3upload www.awsps.com/ElasticWolf/Releases/ElasticWolf-osx-2.1.0.zip ../ElasticWolf-osx-2.1.0.zip 
+	./s3upload www.awsps.com/ElasticWolf/Releases/ElasticWolf-win-2.1.0.zip ../ElasticWolf-win-2.1.0.zip 
 
+.PHONY: clean_osx dev

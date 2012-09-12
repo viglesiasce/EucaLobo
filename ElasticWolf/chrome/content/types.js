@@ -1094,6 +1094,17 @@ var DirIO = {
         var arr = path.split(/\/|\\/);
         return arr.length ? arr[arr.length - 1] : "";
     },
+
+    dirName: function(path)
+    {
+        var arr = path.split(/\/|\\/);
+        return arr.slice(0, arr.length - 1).join(this.slash);
+    },
+
+    baseName: function(path)
+    {
+        return this.fileName(path).split(".")[0];
+    },
 }
 
 // Base64 encode / decode http://www.webtoolkit.info/javascript-base64.html

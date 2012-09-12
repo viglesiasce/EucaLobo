@@ -1558,7 +1558,7 @@ var ew_api = {
         params.push(["InstanceId", id])
         params.push(["TargetEnvironment", targetEnv]);
         params.push(["ExportToS3.S3Bucket", bucket]);
-        if (descr) params.push(["Description, descr"]);
+        if (descr) params.push(["Description", descr]);
         if (diskFormat) params.push(["ExportToS3.DiskImageFormat", diskFormat]);
         if (containerFormat) params.push(["ExportToS3.ContainerFormat", containerFormat]);
         if (prefix) params.push(["ExportToS3.S3prefix", prefix]);
