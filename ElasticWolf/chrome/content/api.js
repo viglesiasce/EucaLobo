@@ -4950,18 +4950,20 @@ var ew_api = {
         if (snapshotId) {
             params.push([ "FinalDBSnapshotIdentifier", snapshotId]);
             params.push([ "SkipFinalSnapshot", false]);
+        } else {
+            params.push([ "SkipFinalSnapshot", true]);
         }
 
         this.queryRDS("DeleteDBInstance", params, this, false, "onComplete", callback);
     },
 
-    createDBInstance : function(id, AllocatedStorage, DBInstanceClass, Engine, MasterUserName, MasterUserPassword, options, callback)
+    createDBInstance : function(id, Engine, DBInstanceClass, AllocatedStorage, MasterUserName, MasterUserPassword, options, callback)
     {
         var params = []
         params.push([ "DBInstanceIdentifier", id ]);
-        params.push([ "AllocatedStorage", storage ]);
-        params.push([ "DBInstanceClass", DBInstanceClass ]);
         params.push([ "Engine", Engine ]);
+        params.push([ "DBInstanceClass", DBInstanceClass ]);
+        params.push([ "AllocatedStorage", storage ]);
         params.push([ "MasterUserName", MasterUserName])
         params.push([ "MasterUserPassword", MasterUserPassword])
 
@@ -5237,11 +5239,12 @@ var ew_api = {
             var family = getNodeValue(items[i], "DBParameterGroupFamily");
             var descr = getNodeValue(items[i], "DBEngineDescription");
             var vdescr = getNodeValue(items[i], "DBEngineVersionDescription");
-            var engne = getNodeValue(items[i], "Engine");
-            var vengime = getNodeValue(items[i], "EngineVersion");
-            var chars = getNodeValue(items[i], "SupportedCharacterSets");
-            list.push(new DBEngine(family, engine, vengine, descr, vdescr, chars))
+            var engine = getNodeValue(items[i], "Engine");
+            var ver = getNodeValue(items[i], "EngineVersion");
+            var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
+            list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
         }
+        this.core.setModel('dbengines', list);
         response.result = list;
     },
 
@@ -5324,7 +5327,7 @@ var ew_api = {
 
     describeOrderableDBInstanceOptions: function(engine, callback)
     {
-        this.queryRDS("DescribeOrderableDBInstanceOptions", [ ["Engine", engine]], this, false, "onCompleteDescribeOrderableDBInstanceOptions", callback);
+        this.queryRDS("DescribeOrderableDBInstanceOptions", [ ["Engine", engine]], this, true, "onCompleteDescribeOrderableDBInstanceOptions", callback);
     },
 
     onCompleteDescribeOrderableDBInstanceOptions: function(response)
@@ -5337,13 +5340,13 @@ var ew_api = {
             var engine = getNodeValue(items[i], "Engine");
             var ver = getNodeValue(items[i], "EngineVersion");
             var license = getNodeValue(items[i], "LicenseModel");
-            var maz = getNodeValue(items[i], "MultiAZCapable");
-            var replica = getNodeValue(items[i], "ReadReplicaCapable");
-            var vpc = getNodeValue(items[i], "VpcCapable");
-            var vpcmaz = getNodeValue(items[i], "VpcMultiAZCapable");
-            var vpcreplica = getNodeValue(items[i], "VpcReadReplicaCapable");
-            var azones = this.getItem(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
-            list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azone));
+            var maz = toBool(getNodeValue(items[i], "MultiAZCapable"));
+            var replica = toBool(getNodeValue(items[i], "ReadReplicaCapable"));
+            var vpc = toBool(getNodeValue(items[i], "VpcCapable"));
+            var vpcmaz = toBool(getNodeValue(items[i], "VpcMultiAZCapable"));
+            var vpcreplica = toBool(getNodeValue(items[i], "VpcReadReplicaCapable"));
+            var azones = this.getItems(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
+            list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones));
         }
         response.result = list;
     },

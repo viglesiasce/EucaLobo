@@ -1673,6 +1673,7 @@ var ew_core = {
         topics: null,
         subscriptions: null,
         dbinstances: null,
+        dbengines: null,
         roles: null,
         instanceProfiles: null,
         instanceStatus: null,
@@ -1864,6 +1865,9 @@ var ew_core = {
                 break;
             case "dbinstances":
                 this.api.describeDBInstances();
+                break;
+            case "dbengines":
+                this.api.describeDBEngineVersions();
                 break;
             case "hostedZones":
                 this.api.listHostedZones();
@@ -2312,6 +2316,7 @@ var ew_core = {
 
         var list = [];
         for (var i in types) {
+            types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); }
             if (!arch || types[i][arch]) list.push(types[i]);
         }
         return list;

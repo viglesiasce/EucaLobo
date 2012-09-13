@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.engine" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="DB Engines" />
+            <popupset>
+                <menupopup id="ew.dbengines.contextmenu">
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.dbengines.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_dbenginesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.dbengines.view" flex="1">
+                <treecols>
+                    <treecol id="instance.family" label="Family" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.engine" label="Engine" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.version" label="Version" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.descr" label="Descr" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.versionDescr" label="VersionDescr" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.charsets" label="CharSets" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbengines.children" context="ew.dbengines.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

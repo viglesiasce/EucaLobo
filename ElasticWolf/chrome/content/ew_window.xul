@@ -39,6 +39,7 @@
 <?xul-overlay href="chrome://ew/content/views/sqs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbengines.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
 <?xul-overlay href="chrome://ew/content/views/autoscaling.xul"?>
 <?xul-overlay href="chrome://ew/content/views/graphs.xul"?>
@@ -212,6 +213,8 @@
                                                       { id: "ew.hostedRecords.view", view: ew_HostedRecordsTreeView }], },
 
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
+
+            { name: "ew.tabs.db.engine",    views: [ { id: "ew.dbengines.view", view: ew_DBEnginesTreeView }, ] },
 
             { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
                                                       { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
@@ -396,6 +399,7 @@
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -459,6 +463,7 @@
       <tabpanel id="ew.tabs.alarm"/>
       <tabpanel id="ew.tabs.metric"/>
       <tabpanel id="ew.tabs.db.instance"/>
+      <tabpanel id="ew.tabs.db.engine"/>
       <tabpanel id="ew.tabs.as.group"/>
       <tabpanel id="ew.tabs.as.policy"/>
       <tabpanel id="ew.tabs.as.action"/>

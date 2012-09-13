@@ -2814,17 +2814,17 @@ function DBEvent(id, type, date, msg)
     }
 }
 
-function DBEngine(family, engine, vengine, descr, vdescr, chars)
+function DBEngine(family, engine, version, descr, vdescr, chars)
 {
-    this.family = fanily
+    this.family = family;
     this.engine = engine;
-    this.engineVersion = vengine
-    this.descr = descr
-    this.engineVersionDescr = vdescr
-    this.charsets = chars
+    this.version = version;
+    this.versionDescr = vdescr || "";
+    this.descr = descr || "";
+    this.charsets = chars || "";
 
     this.toString = function() {
-        return this.engine + fieldSeparator + this.engineVersion
+        return this.engine + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
     }
 }
 
@@ -2861,15 +2861,22 @@ function DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpc
 {
     this.instanceClass = dbclass
     this.engine = engine
-    this.envineVersion = ver
+    this.version = ver
     this.licenseModel = license
     this.multiAZCapable = maz
+    this.readReplicaCapable = replica
     this.vpcCapable = vpc
     this.vpcMultiAZCapable = vpcmaz
     this.vpcReadReplicaCapable = vpcreplica
     this.availabilityZones = azones
     this.toString = function() {
-        return this.instanceClass + fieldSeparator + this.engine + fieldSeparator + this.engineVersion
+        return this.instanceClass + fieldSeparator + this.engine + "/" + this.version + fieldSeparator +
+                          (this.vpcCapable ? "VPC" : "") + " " +
+                          (this.multiAZCapable ? "MultiAZ" : "") + " " +
+                          (this.vpcMultiAZCapable ? "VPCMultiAZ" : "" ) + " " +
+                          (this.readReplicaCapable ? " Replica" : "") + " " +
+                          (this.vpcReadReplicaCapable ? " VPCReplica" : "") + fieldSeparator +
+                          this.availabilityZones;
     }
 }
 
