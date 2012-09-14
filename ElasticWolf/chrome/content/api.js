@@ -46,6 +46,19 @@ var ew_api = {
         }
     },
 
+    displayError: function(msg)
+    {
+        if (this.core.getBoolPrefs("ew.errors.show", false)) {
+            if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
+                this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+            }
+        }
+        this.core.errorMessage(msg);
+        // Add to the error list
+        this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + msg);
+        if (this.errorList.length > 500) this.errorList.splice(0, 1);
+    },
+
     setCredentials : function (accessKey, secretKey, securityToken)
     {
         this.accessKey = accessKey;
@@ -557,7 +570,7 @@ var ew_api = {
         if (isSync) {
             this.showBusy(false);
             this.stopTimer(timerKey);
-            return this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
+            return me.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
         }
         return true;
     },
@@ -575,7 +588,7 @@ var ew_api = {
         if (handlerObj) {
             handlerObj.onResponseComplete(rc);
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length);
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
@@ -589,7 +602,7 @@ var ew_api = {
             }
         } else {
             // Pass the result and the whole response object if it is null
-            if (callback  && !rc.skipCallback) {
+            if (callback && !rc.skipCallback) {
                 if (typeof callback == "function") {
                     callback(rc.result, rc);
                 } else
@@ -599,19 +612,6 @@ var ew_api = {
             }
         }
         return rc.result;
-    },
-
-    displayError: function(msg)
-    {
-        if (this.core.getBoolPrefs("ew.errors.show", false)) {
-            if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                this.core.errorDialog("Server responded with an error for " + rc.action, rc)
-            }
-        }
-        this.core.errorMessage(msg);
-        // Add to the error list
-        this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + msg);
-        if (this.errorList.length > 500) this.errorList.splice(0, 1);
     },
 
     // Extract standard AWS error code and message
@@ -706,17 +706,24 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         // Collect all items into temporary cache list
-        var model = response.action + ":" + response.params;
+        var model = response.action + ":" + response.params.filter(function(x) { return x[0] != "Marker" && x[0] != "NextToken"; });
         if (!this.cache[model]) this.cache[model] = [];
-        this.cache[model] = this.cache[model].concat(list);
+        this.cache[model] = this.cache[model].concat(list || []);
 
         // Collected result will be returned by the last call only
+        var marker = getNodeValue(xmlDoc, "Marker");
         var nextToken = getNodeValue(xmlDoc, "NextToken");
-        if (nextToken) {
+        if (nextToken || marker) {
             var params = cloneObject(response.params);
-            setParam(params, "NextToken", nextToken);
-            setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
+            if (marker) setParam(params, "Marker", marker);
+            if (nextToken) setParam(params, "NextToken", nextToken);
             response.skipCallback = true;
+
+            // In sync mode keep spinning until we collect evrything
+            if (response.isSync) return method.call(me, response.action, params, me, true, response.method, response.callback);
+
+            // Schedule another request
+            setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
         } else {
             response.result = this.cache[model];
             this.cache[model] = null;
@@ -748,7 +755,8 @@ var ew_api = {
                         if (val) list.push(callback ? callback(val) : val);
                     }
                 } else {
-                    list.push(callback ? callback(items[i]) : items[i]);
+                    var item = callback ? callback(items[i]) : items[i];
+                    if (item) list.push(item);
                 }
             }
         }
@@ -4886,8 +4894,21 @@ var ew_api = {
         var descr = getNodeValue(item,"DBSubnetGroupDescription");
         var status = getNodeValue(item, "DBSubnetGroupStatus");
         var vpcId = getNodeValue(item, "VpcId");
-        var subnets = this.getItems(item, "Subnets", "Subnet", ["SubnetIdentifier","Name","SubnetStatus"], function(obj) { return new DBSubnet(onj.SubnetIdentifier,obj.Name,obj.SubnetStatus) });
+        var subnets = this.getItems(item, "Subnets", "Subnet", ["SubnetIdentifier","Name","SubnetStatus"], function(obj) { return new DBSubnet(obj.SubnetIdentifier,obj.Name,obj.SubnetStatus) });
         return new DBSubnetGroup(name, descr, status, vpcId, subnets);
+    },
+
+    unpackDBSecurityGroup: function(item)
+    {
+        if (!item) return null;
+        var name = getNodeValue(item, "DBSecurityGroupName");
+        if (name == "") return null;
+        var descr = getNodeValue(item,"DBSecurityGroupDescription");
+        var owner = getNodeValue(item, "OwnerId");
+        var vpcId = getNodeValue(item, "VpcId");
+        var groups = this.getItems(item, "EC2SecurityGroups", "EC2SecurityGroup", ["EC2SecurityGroupName","EC2SecurityGroupOwnerId","Status"], function(obj) { return new Group(obj.EC2SecurityGroupName,obj.EC2SecurityGroupName,obj.Status,EC2SecurityGroupOwnerId) });
+        var ranges = this.getItems(item, "IPRanges", "IPRange", ["CIDRIP","Status"], function(obj) { return new Item(obj.CIDRIP,obj.Status)});
+        return new DBSecurityGroup(name, descr, vpcId, groups, ranges);
     },
 
     unpackDBInstance: function(item)
@@ -4916,9 +4937,9 @@ var ew_api = {
         var srcreplica = getNodeValue(item, "ReadReplicaSourceDBInstanceIdentifier");
         var optstatus = getNodeValue(item, "OptionGroupMembership", "Status");
         var optname = getNodeValue(item, "OptionGroupMembership", "OptionGroupName");
-        var pendingMods = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return new Tag(obj.tagName, obj.firstChild.nodeValue); });
+        var pendingMods = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Item(obj.tagName, obj.firstChild.nodeValue) : null; });
         var sgroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
-        var pgroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Tag(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
+        var pgroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Item(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
         var subnetGroup = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
 
         return new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created, license, autoupgrade,
@@ -4939,9 +4960,7 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             list.push(this.unpackDBInstance(items[i]));
         }
-
-        this.core.setModel('dbinstances', list);
-        response.result = list;
+        this.getNext(response, this.queryRDS, list);
     },
 
     deleteDBInstance : function(id, snapshotId, callback)
@@ -4963,8 +4982,8 @@ var ew_api = {
         params.push([ "DBInstanceIdentifier", id ]);
         params.push([ "Engine", Engine ]);
         params.push([ "DBInstanceClass", DBInstanceClass ]);
-        params.push([ "AllocatedStorage", storage ]);
-        params.push([ "MasterUserName", MasterUserName])
+        params.push([ "AllocatedStorage", AllocatedStorage ]);
+        params.push([ "MasterUsername", MasterUserName])
         params.push([ "MasterUserPassword", MasterUserPassword])
 
         if (options.AutoMinorVersionUpgrade) {
@@ -5184,13 +5203,15 @@ var ew_api = {
 
     describeDBParameterGroups: function(callback)
     {
-        this.queryRDS("DescribeDBParameterGroups", params, this, false, "onCompleteDescribeDBParameterGroups", callback);
+        this.queryRDS("DescribeDBParameterGroups", [], this, false, "onCompleteDescribeDBParameterGroups", callback);
     },
 
     onCompleteDescribeDBParameterGroups: function(response)
     {
         var xmlDoc = response.responseXML;
-        response.result = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(obj) { return new DBParameterGroup(obj.DBParameterGroupName,obj.Description,obj.DBParameterGroupName)});
+        var list = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(obj) { return new DBParameterGroup(obj.DBParameterGroupName,obj.Description,obj.DBParameterGroupName)});
+        this.core.setModel('dbparameters', list);
+        response.result = list;
     },
 
     describeDBParameters: function(name, callback)
@@ -5200,7 +5221,7 @@ var ew_api = {
 
     describeEngineDefaultParameters: function(family, callback)
     {
-        this.queryRDS("DescribeEngineDefaultParameters", [ [ "DBParameterGroupFamily", family]], this, false, "onCompleteDescribeDBParameters", callback);
+        return this.queryRDS("DescribeEngineDefaultParameters", [ [ "DBParameterGroupFamily", family]], this, callback ? false : true, "onCompleteDescribeDBParameters", callback);
     },
 
     onCompleteDescribeDBParameters: function(response)
@@ -5219,13 +5240,12 @@ var ew_api = {
             var amethod = getNodeValue(items[i], "ApplyMethod")
             var values = getNodeValue(items[i], "AllowedValues")
             var src = getNodeValue(items[i], "Source")
-
             list.push(new DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src))
         }
-        response.result = list;
+        this.getNext(response, this.queryRDS, list);
     },
 
-    describeDBEngineVersions: function(family, callback)
+    describeDBEngineVersions: function(callback)
     {
         this.queryRDS("DescribeDBEngineVersions", [], this, false, "onCompleteDescribeDBEngineVersions", callback);
     },
@@ -5244,8 +5264,7 @@ var ew_api = {
             var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
             list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
         }
-        this.core.setModel('dbengines', list);
-        response.result = list;
+        this.getNext(response, this.queryRDS, list);
     },
 
     modifyDBParameterGroup: function(name, options, callback)
@@ -5320,14 +5339,59 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "DBSubnetGroups", "DBSubnetGroup");
         for (var i = 0; i < items.length; i++) {
-            list.push(new this.unpackDBSubnetGroup(item));
+            list.push(this.unpackDBSubnetGroup(items[i]));
         }
-        response.result = list;
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    describeDBSecurityGroups: function(callback)
+    {
+        this.queryRDS("DescribeDBSecurityGroups", [], this, false, "onCompleteDescribeDBSecurityGroups", callback);
+    },
+
+    onCompleteDescribeDBSecurityGroups: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBSecurityGroups", "DBSecurityGroup");
+        for (var i = 0; i < items.length; i++) {
+            list.push(this.unpackDBSecurityGroup(items[i]));
+        }
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    describeOptionGroups: function(callback)
+    {
+        this.queryRDS("DescribeOptionGroups", [], this, false, "onCompleteDescribeOptionGroups", callback);
+    },
+
+    onCompleteDescribeOptionGroups: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "OptionGroupsList", "OptionGroup");
+        for (var i = 0; i < items.length; i++) {
+            var opts = [];
+            var name = getNodeValue(items[i], "OptionGroupName");
+            var engine = getNodeValue(items[i], "EngineName");
+            var ver = getNodeValue(items[i], "MajorEngineVersion");
+            var descr = getNodeValue(items[i], "OptionGroupDescription");
+            var olist = this.getItems(items[i], "Options", "Option");
+            for (var j = 0; j < opts.length; j++) {
+                var oname = getNodeValue(ilist[j], "OptionName");
+                var odescr = getNodeValue(ilist[j], "OptionDescription");
+                var oport = getNodeValue(ilist[j], "Port");
+                var ogroups = this.getItems(ilist[i], "DBSecurityGroupMemberships", "member", ["DBSecurityGroupName","Status"], function(obj) { return new Tag(obj.DBSecurityGroupName,obj.Status)});
+                opts.push(new DBOption(oname, odescr, oport, ogroups));
+            }
+            list.push(new DBOptionGroup(name, engine, ver, descr, opts));
+        }
+        this.getNext(response, this.queryRDS, list);
     },
 
     describeOrderableDBInstanceOptions: function(engine, callback)
     {
-        this.queryRDS("DescribeOrderableDBInstanceOptions", [ ["Engine", engine]], this, true, "onCompleteDescribeOrderableDBInstanceOptions", callback);
+        return this.queryRDS("DescribeOrderableDBInstanceOptions", [ ["Engine", engine]], this, callback ? false : true, "onCompleteDescribeOrderableDBInstanceOptions", callback);
     },
 
     onCompleteDescribeOrderableDBInstanceOptions: function(response)
@@ -5348,7 +5412,7 @@ var ew_api = {
             var azones = this.getItems(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
             list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones));
         }
-        response.result = list;
+        this.getNext(response, this.queryRDS, list);
     },
 
     unpackHostedZone: function(item)

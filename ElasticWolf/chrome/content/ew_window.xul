@@ -40,6 +40,8 @@
 <?xul-overlay href="chrome://ew/content/views/sns.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbengines.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dboptions.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbsubnets.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
 <?xul-overlay href="chrome://ew/content/views/autoscaling.xul"?>
 <?xul-overlay href="chrome://ew/content/views/graphs.xul"?>
@@ -215,6 +217,12 @@
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
 
             { name: "ew.tabs.db.engine",    views: [ { id: "ew.dbengines.view", view: ew_DBEnginesTreeView }, ] },
+
+            { name: "ew.tabs.db.option",    views: [ { id: "ew.dboptions.view", view: ew_DBOptionGroupsTreeView, },
+                                                      { id: "ew.dbparameters.view", view: ew_DBParameterGroupsTreeView, }, ] },
+
+            { name: "ew.tabs.db.subnet",    views: [ { id: "ew.dbsubnets.view", view: ew_DBSubnetGroupsTreeView, },
+                                                     { id: "ew.dbgroups.view", view: ew_DBSecurityGroupsTreeView, }, ] },
 
             { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
                                                       { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
@@ -400,6 +408,8 @@
        <treechildren>
          <treeitem><treerow><treecell label="Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Option/Parameter Groups" value="ew.tabs.db.option" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Subnet/Security Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -464,6 +474,8 @@
       <tabpanel id="ew.tabs.metric"/>
       <tabpanel id="ew.tabs.db.instance"/>
       <tabpanel id="ew.tabs.db.engine"/>
+      <tabpanel id="ew.tabs.db.option"/>
+      <tabpanel id="ew.tabs.db.subnet"/>
       <tabpanel id="ew.tabs.as.group"/>
       <tabpanel id="ew.tabs.as.policy"/>
       <tabpanel id="ew.tabs.as.action"/>

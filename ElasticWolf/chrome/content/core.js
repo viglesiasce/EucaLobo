@@ -654,7 +654,7 @@ var ew_core = {
     promptConfirm: function(title, msg, checkmsg, checkval)
     {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-        return promptService.confirmCheck(window, title, msg, ivalue, checkmsg, checkval);
+        return promptService.confirmCheck(window, title, msg, checkmsg, checkval);
     },
 
     promptData: function(title, msg, data, checkmsg, checkval)
@@ -1674,6 +1674,10 @@ var ew_core = {
         subscriptions: null,
         dbinstances: null,
         dbengines: null,
+        dboptions: null,
+        dbparameters: null,
+        dbsubnets: null,
+        dbgroups: null,
         roles: null,
         instanceProfiles: null,
         instanceStatus: null,
@@ -1695,6 +1699,7 @@ var ew_core = {
     // Refresh model list by name, this is primary interface to use in the lists and trees
     refreshModel: function()
     {
+        var me = this;
         for (var i = 0; i < arguments.length; i++) {
             var name = arguments[i];
             var now = (new Date).getTime();
@@ -1704,7 +1709,6 @@ var ew_core = {
             }
             debug('refresh model ' + name)
             this.progress[name] = now;
-            var me = this;
 
             switch (name) {
             case 'placementGroups':
@@ -1732,10 +1736,10 @@ var ew_core = {
                 this.api.describeLaunchConfigurations();
                 break;
             case "asactivities":
-                this.api.describeScalingActivities(function(list) { me.setModel(name, list); });
+                this.api.describeScalingActivities(function(list) { me.setModel("asactivities", list); });
                 break;
             case "asnotifications":
-                this.api.describeNotificationConfigurations(function(list) { me.setModel(name, list); });
+                this.api.describeNotificationConfigurations(function(list) { me.setModel("asnotifications", list); });
                 break;
             case "asinstances":
                 this.api.describeAutoScalingInstances();
@@ -1750,25 +1754,25 @@ var ew_core = {
                 this.api.listQueues();
                 break;
             case "certs":
-                this.api.listSigningCertificates(null, function(list) { me.setModel(name, list); });
+                this.api.listSigningCertificates(null, function(list) { me.setModel("certs", list); });
                 break;
             case "serverCerts":
                 this.api.listServerCertificates();
                 break;
             case "accesskeys":
-                this.api.listAccessKeys(null, function(list) { me.setModel(name, list); });
+                this.api.listAccessKeys(null, function(list) { me.setModel("accesskeys", list); });
                 break;
             case "alarms":
                 this.api.describeAlarms();
                 break;
             case "metrics":
-                this.api.listMetrics(null, null, null, function(list) { me.setModel(name, list); });
+                this.api.listMetrics(null, null, null, function(list) { me.setModel("metrics", list); });
                 break;
             case "vmfas":
                 this.api.listVirtualMFADevices();
                 break;
             case "mfas":
-                this.api.listMFADevices(null, function(list) { me.setModel(name, list); });
+                this.api.listMFADevices(null, function(list) { me.setModel("mfas", list); });
                 break;
             case "regions":
                 this.api.describeRegions();
@@ -1864,10 +1868,22 @@ var ew_core = {
                 this.api.listSubscriptions();
                 break;
             case "dbinstances":
-                this.api.describeDBInstances();
+                this.api.describeDBInstances(function(list) { me.setModel("dbinstances", list); });
+                break;
+            case "dbgroups":
+                this.api.describeDBSecurityGroups(function(list) { me.setModel("dbgroups", list); });
                 break;
             case "dbengines":
-                this.api.describeDBEngineVersions();
+                this.api.describeDBEngineVersions(function(list) { me.setModel("dbengines", list); });
+                break;
+            case "dbsubnets":
+                this.api.describeDBSubnetGroups(function(list) { me.setModel("dbsubnets", list); });
+                break;
+            case "dboptions":
+                this.api.describeOptionGroups(function(list) { me.setModel("dboptions", list); });
+                break;
+            case "dbparameters":
+                this.api.describeDBParameterGroups(function(list) { me.setModel("dbparameters", list); });
                 break;
             case "hostedZones":
                 this.api.listHostedZones();

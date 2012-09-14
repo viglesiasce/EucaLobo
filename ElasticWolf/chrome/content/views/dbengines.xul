@@ -12,7 +12,7 @@
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.dbengines.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_dbenginesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_DBEnginesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.dbengines.view" flex="1">

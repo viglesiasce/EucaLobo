@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.option" flex="1">
+    <vbox flex="1">
+
+    <groupbox flex="1" orient="vertical">
+        <caption label="DB Option Groups" />
+        <popupset>
+            <menupopup id="ew.dboptions.tree.contextmenu">
+                <menuitem oncommand="ew_DBOptionGroupsTreeView.displayDetails()" label="View Details" />
+            </menupopup>
+        </popupset>
+        <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <textbox id="ew.dboptions.search" size="15" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupsTreeView.refresh()" />
+        </toolbar>
+        <tree enableColumnDrag="true" id="ew.dboptions.view" flex="1">
+            <treecols>
+                <treecol id="dboption.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dboption.engine" label="Engine" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dboption.version" label="Version" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dboption.descr" label="Descr" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dboption.port" label="Port" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dboption.groups" label="Groups" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+            </treecols>
+            <treechildren id="ew.dboptions.tree.children" context="ew.dboptions.tree.contextmenu" />
+        </tree>
+    </groupbox>
+
+     <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
+        <grippy />
+      </splitter>
+
+        <groupbox flex="1" orient="vertical">
+            <caption label="DB Parameter Groups" />
+            <popupset>
+                <menupopup id="ew.dbparameters.tree.contextmenu">
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.dbparameters.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBParameterGroupsTreeView.refresh()" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.dbparameters.view" flex="1">
+                <treecols>
+                    <treecol id="dbparameter.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbparameter.family" label="Family" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbparameter.descr" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbparameters.tree.children" context="ew.dbparameters.tree.contextmenu" />
+            </tree>
+        </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

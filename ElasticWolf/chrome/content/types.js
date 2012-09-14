@@ -1811,10 +1811,12 @@ function Tag(name, value, id, type, propagate)
     }
 }
 
-function Group(id, name)
+function Group(id, name, status, owner)
 {
     this.id = id
     this.name = name
+    this.owner = owner || ""
+    this.status = status || "";
     this.toString = function() {
         return this.name + fieldSeparator + this.id;
     }
@@ -2782,7 +2784,7 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     this.licenseModel = license
     this.autoMinorVersionUpgrade = upgrade
     this.backupRetentionPeriod = brperiod
-    this.charSet = charset
+    this.charsetName = charset
     this.latestRestorableTime = lrtime
     this.multiAZ = multiAZ
     this.preferredBackupWindow = bkwin
@@ -2792,9 +2794,9 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     this.optionGroupName = optname
     this.optionGroupStatus = optstatus
     this.pendingModifiedValues = pendingMods
-    this.subnetGroup = subnetgrp
+    this.subnetGroupName = subnetgrp
     this.securityGroups = sgroups
-    this.parametersGroups = pgroups
+    this.parameterGroups = pgroups
 
     this.toString = function() {
         return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
@@ -2825,6 +2827,44 @@ function DBEngine(family, engine, version, descr, vdescr, chars)
 
     this.toString = function() {
         return this.engine + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
+    }
+}
+
+function DBOption(nme, descr, port, groups)
+{
+    this.name = name;
+    this.descr = descr;
+    this.port = port;
+    this.groups = groups;
+
+    this.toString = function() {
+        return this.name + ", " + this.descr + ", " + this.groups;
+    }
+}
+
+function DBSecurityGroup(name, descr, vpcId, groups, ranges)
+{
+    this.name = name;
+    this.descr = descr;
+    this.vpcId = vpcId;
+    this.groups = groups;
+    this.ipRanges = ranges;
+
+    this.toString = function() {
+        return this.name;
+    }
+}
+
+function DBOptionGroup(name, engine, version, descr, opts)
+{
+    this.name = name
+    this.engine = engine
+    this.version = version
+    this.descr = descr
+    this.options = opts;
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.engine + "/" + this.version + " (" + this.options + ")";
     }
 }
 
