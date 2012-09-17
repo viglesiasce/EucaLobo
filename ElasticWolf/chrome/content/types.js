@@ -2803,6 +2803,26 @@ function DBInstance(id, name, engine, version, host, port, user, dbclass, status
     }
 }
 
+function DBsnapshot(id, dbid, type, status, username, ver, engine, port, storage, ctime, license, azone, stime)
+{
+    this.id = id;
+    this.dbInstanceId = dbid
+    this.type = type;
+    this.status = status
+    this.userName = username
+    this.version = ver
+    this.engine = engine
+    this.port = port
+    this.allocatedStorage = stopage
+    this.createTime = ctime
+    this.licenseModel = license
+    this.availabilityZone = azone
+    this.snapshotTime = stime
+
+    this.toString = function() {
+        return this.dbInstanceId + fieldSeparator + this.engine + "/" + this.version;
+    }
+}
 
 function DBEvent(id, type, date, msg)
 {

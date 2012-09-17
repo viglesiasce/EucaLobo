@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.snapshot" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="DB Snapshots" />
+            <popupset>
+                <menupopup id="ew.dbsnapshots.contextmenu">
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.dbsnapshots.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_DBSnapshotsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.dbsnapshots.view" flex="1">
+                <treecols>
+                    <treecol id="instance.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.type" label="Type" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.engine" label="Engine" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.version" label="Version" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.status" label="Status" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.allocatedStorage" label="Storage" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.availabilityZone" label="Zone" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbsnapshots.children" context="ew.dbsnapshots.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

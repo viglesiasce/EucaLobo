@@ -5291,15 +5291,48 @@ var ew_api = {
         this.queryRDS("ResetDBParameterGroup", params, this, false, "onComplete", callback);
     },
 
-    describeEvents: function(duration, name, callback)
+    describeDBEvents: function(callback)
     {
-        this.queryRDS("DescribeEvents", [ [ "Duration", duration || 60]], this, false, "onCompleteDescribeEvents", callback);
+        var now = new Date();
+        var params = [];
+        params.push([ 'StartTime', (new Date(now.getTime() - 86400*13000)).toISOString()])
+        this.queryRDS("DescribeEvents", params, this, false, "onCompleteDescribeEvents", callback);
     },
 
     onCompleteDescribeEvents: function(response)
     {
         var xmlDoc = response.responseXML;
-        response.result = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(obj) { return new DBEventp(obj.SourceIdentifier,obj.SourceType,obj.Date,obj.Message)});
+        var list = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(obj) { return new DBEvent(obj.SourceIdentifier,obj.SourceType,obj.Date,obj.Message)});
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    describeDBSnapshots: function(family, callback)
+    {
+        return this.queryRDS("DescribeDBSnapshots", [], this, callback ? false : true, "onCompleteDescribeDBSnapshots", callback);
+    },
+
+    onCompleteDescribeDBSnapshots: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBSnapshots", "Snapshot");
+        for (var i = 0; i < items.length; i++) {
+            var id = getNodeValue(items[i], "DBSnapshotIdentifier")
+            var dbid = getNodeValue(items[i], "DBInstanceIdentifier")
+            var type = getNodeValue(items[i], "DBSnapshotType")
+            var username = getNodeValue(items[i], "MasterUsername")
+            var ver = getNodeValue(items[i], "EngineVersion")
+            var storage = getNodeValue(items[i], "AllocatedStorage")
+            var ctime = new Date(getNodeValue(items[i], "InstanceCreateTime"))
+            var license = getNodeValue(items[i], "LicenseModel")
+            var azone = getNodeValue(items[i], "AvailabilityZone")
+            var status = getNodeValue(items[i], "Status")
+            var engine = getNodeValue(items[i], "Engine")
+            var port = getNodeValue(items[i], "Port")
+            var stime = new Date(getNodeValue(items[i], "SnapshotCreateTime"))
+            list.push(new DBsnapshot(id, dbid, type, status, username, ver, engine, port, storage, ctime, license, azone, stime));
+        }
+        this.getNext(response, this.queryRDS, list);
     },
 
     createDBSubnetGroup: function(name, descr, subnets, callback)

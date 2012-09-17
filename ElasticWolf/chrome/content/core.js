@@ -1674,10 +1674,12 @@ var ew_core = {
         subscriptions: null,
         dbinstances: null,
         dbengines: null,
+        dbevents: null,
         dboptions: null,
         dbparameters: null,
         dbsubnets: null,
         dbgroups: null,
+        dbsnapshots: null,
         roles: null,
         instanceProfiles: null,
         instanceStatus: null,
@@ -1866,6 +1868,12 @@ var ew_core = {
                 break;
             case "subscriptions":
                 this.api.listSubscriptions();
+                break;
+            case "dbsnapshots":
+                this.api.describeDBSnapshots(function(list) { me.setModel("dbsnapshots", list); });
+                break;
+            case "dbevents":
+                this.api.describeDBEvents(function(list) { me.setModel("dbevents", list); });
                 break;
             case "dbinstances":
                 this.api.describeDBInstances(function(list) { me.setModel("dbinstances", list); });

@@ -42,6 +42,8 @@
 <?xul-overlay href="chrome://ew/content/views/dbengines.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dboptions.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbsubnets.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbevents.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbsnapshots.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
 <?xul-overlay href="chrome://ew/content/views/autoscaling.xul"?>
 <?xul-overlay href="chrome://ew/content/views/graphs.xul"?>
@@ -217,6 +219,10 @@
             { name: "ew.tabs.db.instance",  views: [ { id: "ew.dbinstances.view", view: ew_DBInstancesTreeView }, ] },
 
             { name: "ew.tabs.db.engine",    views: [ { id: "ew.dbengines.view", view: ew_DBEnginesTreeView }, ] },
+
+            { name: "ew.tabs.db.event",    views: [ { id: "ew.dbevents.view", view: ew_DBEventsTreeView }, ] },
+
+            { name: "ew.tabs.db.snapshot",    views: [ { id: "ew.dbsnapshots.view", view: ew_DBSnapshotsTreeView }, ] },
 
             { name: "ew.tabs.db.option",    views: [ { id: "ew.dboptions.view", view: ew_DBOptionGroupsTreeView, },
                                                       { id: "ew.dbparameters.view", view: ew_DBParameterGroupsTreeView, }, ] },
@@ -406,10 +412,12 @@
          <treecell label="Relational Database Service" src="images/rds.png" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Option/Parameter Groups" value="ew.tabs.db.option" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Subnet/Security Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Option/Parameter Groups" value="ew.tabs.db.option" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Subnet/Security Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Snapshots" value="ew.tabs.db.snapshot" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Events" value="ew.tabs.db.event" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -476,6 +484,8 @@
       <tabpanel id="ew.tabs.db.engine"/>
       <tabpanel id="ew.tabs.db.option"/>
       <tabpanel id="ew.tabs.db.subnet"/>
+      <tabpanel id="ew.tabs.db.event"/>
+      <tabpanel id="ew.tabs.db.snapshot"/>
       <tabpanel id="ew.tabs.as.group"/>
       <tabpanel id="ew.tabs.as.policy"/>
       <tabpanel id="ew.tabs.as.action"/>

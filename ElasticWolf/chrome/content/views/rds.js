@@ -3,6 +3,13 @@
 //  May 2012
 //
 
+var ew_DBSnapshotsTreeView = {
+    model: [ "dbsnapshots"],
+};
+
+var ew_DBEventsTreeView = {
+    model: [ "dbevents"],
+};
 
 var ew_DBEnginesTreeView = {
     model: [ "dbengines"],
