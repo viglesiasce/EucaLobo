@@ -1680,6 +1680,8 @@ var ew_core = {
         dbsubnets: null,
         dbgroups: null,
         dbsnapshots: null,
+        dbofferings: null,
+        dbreserved: null,
         roles: null,
         instanceProfiles: null,
         instanceStatus: null,
@@ -1871,6 +1873,12 @@ var ew_core = {
                 break;
             case "dbsnapshots":
                 this.api.describeDBSnapshots(function(list) { me.setModel("dbsnapshots", list); });
+                break;
+            case "dbreserved":
+                this.api.describeReservedDBInstances(function(list) { me.setModel("dbreserved", list); });
+                break;
+            case "dbofferings":
+                this.api.describeReservedDBInstancesOfferings(function(list) { me.setModel("dbofferings", list); });
                 break;
             case "dbevents":
                 this.api.describeDBEvents(function(list) { me.setModel("dbevents", list); });

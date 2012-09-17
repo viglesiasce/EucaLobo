@@ -41,8 +41,11 @@
 <?xul-overlay href="chrome://ew/content/views/dbinstances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbengines.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dboptions.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbparams.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbsubnets.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbgroups.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbevents.xul"?>
+<?xul-overlay href="chrome://ew/content/views/dbofferings.xul"?>
 <?xul-overlay href="chrome://ew/content/views/dbsnapshots.xul"?>
 <?xul-overlay href="chrome://ew/content/views/r53.xul"?>
 <?xul-overlay href="chrome://ew/content/views/autoscaling.xul"?>
@@ -225,10 +228,17 @@
             { name: "ew.tabs.db.snapshot",    views: [ { id: "ew.dbsnapshots.view", view: ew_DBSnapshotsTreeView }, ] },
 
             { name: "ew.tabs.db.option",    views: [ { id: "ew.dboptions.view", view: ew_DBOptionGroupsTreeView, },
-                                                      { id: "ew.dbparameters.view", view: ew_DBParameterGroupsTreeView, }, ] },
+                                                      { id: "ew.dboptions.options.view", view: ew_DBOptionGroupOptionsTreeView, }, ] },
 
-            { name: "ew.tabs.db.subnet",    views: [ { id: "ew.dbsubnets.view", view: ew_DBSubnetGroupsTreeView, },
-                                                     { id: "ew.dbgroups.view", view: ew_DBSecurityGroupsTreeView, }, ] },
+            { name: "ew.tabs.db.param",    views: [ { id: "ew.dbparameters.view", view: ew_DBParameterGroupsTreeView, },
+                                                    { id: "ew.dbparameters.params.view", view: ew_DBParameterGroupParametersTreeView, }, ] },
+
+            { name: "ew.tabs.db.subnet",    views: [ { id: "ew.dbsubnets.view", view: ew_DBSubnetGroupsTreeView } ] },
+
+            { name: "ew.tabs.db.group",    views: [ { id: "ew.dbgroups.view", view: ew_DBSecurityGroupsTreeView } ] },
+
+            { name: "ew.tabs.db.lease",    views: [ { id: "ew.dbofferings.view", view: ew_DBOfferingsTreeView },
+                                                    { id: "ew.dbreserved.view", view: ew_ReservedDBInstancesTreeView }] },
 
             { name: "ew.tabs.as.group",      views: [ { id: "ew.asgroups.view", view: ew_ASGroupsTreeView, },
                                                       { id: "ew.asconfigs.view", view: ew_ASConfigsTreeView, }, ] },
@@ -414,10 +424,13 @@
        <treechildren>
          <treeitem><treerow><treecell label="DB Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="DB Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Option/Parameter Groups" value="ew.tabs.db.option" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Subnet/Security Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Parameter Groups" value="ew.tabs.db.param" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Option Groups" value="ew.tabs.db.option" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Security Groups" value="ew.tabs.db.group" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="DB Subnet Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
          <treeitem><treerow><treecell label="DB Snapshots" value="ew.tabs.db.snapshot" /></treerow></treeitem>
          <treeitem><treerow><treecell label="DB Events" value="ew.tabs.db.event" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Reserved DB Instances" value="ew.tabs.db.lease" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -483,8 +496,11 @@
       <tabpanel id="ew.tabs.db.instance"/>
       <tabpanel id="ew.tabs.db.engine"/>
       <tabpanel id="ew.tabs.db.option"/>
+      <tabpanel id="ew.tabs.db.param"/>
       <tabpanel id="ew.tabs.db.subnet"/>
+      <tabpanel id="ew.tabs.db.group"/>
       <tabpanel id="ew.tabs.db.event"/>
+      <tabpanel id="ew.tabs.db.lease"/>
       <tabpanel id="ew.tabs.db.snapshot"/>
       <tabpanel id="ew.tabs.as.group"/>
       <tabpanel id="ew.tabs.as.policy"/>

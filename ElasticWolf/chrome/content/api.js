@@ -5185,6 +5185,28 @@ var ew_api = {
         this.queryRDS("RebootDBInstance", params, this, false, "onCompleteCreateDBInstance", callback);
     },
 
+    describeDBEngineVersions: function(callback)
+    {
+        this.queryRDS("DescribeDBEngineVersions", [], this, false, "onCompleteDescribeDBEngineVersions", callback);
+    },
+
+    onCompleteDescribeDBEngineVersions: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "DBEngineVersions", "DBEngineVersion");
+        for (var i = 0; i < items.length; i++) {
+            var family = getNodeValue(items[i], "DBParameterGroupFamily");
+            var descr = getNodeValue(items[i], "DBEngineDescription");
+            var vdescr = getNodeValue(items[i], "DBEngineVersionDescription");
+            var engine = getNodeValue(items[i], "Engine");
+            var ver = getNodeValue(items[i], "EngineVersion");
+            var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
+            list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
+        }
+        this.getNext(response, this.queryRDS, list);
+    },
+
     createDBParameterGroup: function(family, name, descr, callback)
     {
         var params = [];
@@ -5231,38 +5253,16 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "Parameters", "Parameter");
         for (var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "ParameterName")
-            var name = getNodeValue(items[i], "ParameterName")
+            var value = getNodeValue(items[i], "ParameterValue")
             var type = getNodeValue(items[i], "DataType")
             var descr = getNodeValue(items[i], "Description")
             var mver = getNodeValue(items[i], "MinimumEngineVersion")
-            var mod = getNodeValue(items[i], "IsModifiable")
+            var mod = toBool(getNodeValue(items[i], "IsModifiable"))
             var atype = getNodeValue(items[i], "ApplyType")
             var amethod = getNodeValue(items[i], "ApplyMethod")
             var values = getNodeValue(items[i], "AllowedValues")
             var src = getNodeValue(items[i], "Source")
             list.push(new DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src))
-        }
-        this.getNext(response, this.queryRDS, list);
-    },
-
-    describeDBEngineVersions: function(callback)
-    {
-        this.queryRDS("DescribeDBEngineVersions", [], this, false, "onCompleteDescribeDBEngineVersions", callback);
-    },
-
-    onCompleteDescribeDBEngineVersions: function(response)
-    {
-        var xmlDoc = response.responseXML;
-        var list = [];
-        var items = this.getItems(xmlDoc, "DBEngineVersions", "DBEngineVersion");
-        for (var i = 0; i < items.length; i++) {
-            var family = getNodeValue(items[i], "DBParameterGroupFamily");
-            var descr = getNodeValue(items[i], "DBEngineDescription");
-            var vdescr = getNodeValue(items[i], "DBEngineVersionDescription");
-            var engine = getNodeValue(items[i], "Engine");
-            var ver = getNodeValue(items[i], "EngineVersion");
-            var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
-            list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
         }
         this.getNext(response, this.queryRDS, list);
     },
@@ -5393,6 +5393,66 @@ var ew_api = {
         this.getNext(response, this.queryRDS, list);
     },
 
+    describeOptionGroupOptions: function(engine, callback)
+    {
+        this.queryRDS("DescribeOptionGroupOptions", [["Engine", engine]], this, false, "onCompleteDescribeOptionGroupOptions", callback);
+    },
+
+    onCompleteDescribeOptionGroupOptions: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "OptionGroupOptions", "OptionGroupOption");
+        for (var i = 0; i < items.length; i++) {
+            var name = getNodeValue(items[i], "Name");
+            var engine = getNodeValue(items[i], "EngineName");
+            var ver = getNodeValue(items[i], "MajorEngineVersion");
+            var port = getNodeValue(items[i], "DefaultPort");
+            var descr = getNodeValue(items[i], "Description");
+            var isport = toBool(getNodeValue(items[i], "PortRequired"));
+            var minver = getNodeValue(items[i], "MinimumRequiredMinorEngineVersion");
+            var depends = getNodeValue(items[i], "OptionsDependedOns");
+            list.push(new DBOptionGroupOption(name, engine, descr, ver, minver, port, isport, depends));
+        }
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    createOptionGroup: function(name, descr, engine, version, callback)
+    {
+        var params = [];
+        params.push(["OptionGroupDescription", descr])
+        params.push(["OptionGroupName", name])
+        params.push(["EngineName", engine])
+        params.push(["MajorEngineVersion", version]);
+        this.queryRDS("CreateOptionGroup", params, this, false, "onComplete", callback);
+    },
+
+    deleteOptionGroup: function(name, callback)
+    {
+        var params = [];
+        params.push(["OptionGroupName", name])
+        this.queryRDS("DeleteOptionGroup", params, this, false, "onComplete", callback);
+    },
+
+    modifyOptionGroup: function(name, now, include, remove, callback)
+    {
+        var params = [ ["OptionGroupName", name]];
+        params.push([ "ApplyImmediately", toBool(now)]);
+        for (var i = 0; i < include.length; i++) {
+            if (typeof include[i] == "object") {
+                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i].name])
+                if (include[i].port) params.push(["OptionsToInclude.member." + (i + 1) + ".Port", include[i].port])
+                if (include[i].groups) params.push(["OptionsToInclude.member." + (i + 1) + ".DBSecurityGroupMemberships", include[i].groups])
+            } else {
+                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i]])
+            }
+        }
+        for (var i = 0; i < remove.length; i++) {
+            params.push(["OptionsToRemove.member." + (i + 1), remove[i]])
+        }
+        this.queryRDS("modifyOptionGroup", params, this, false, "onComplete", callback);
+    },
+
     describeOptionGroups: function(callback)
     {
         this.queryRDS("DescribeOptionGroups", [], this, false, "onCompleteDescribeOptionGroups", callback);
@@ -5446,6 +5506,71 @@ var ew_api = {
             list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones));
         }
         this.getNext(response, this.queryRDS, list);
+    },
+
+    describeReservedDBInstancesOfferings : function(callback)
+    {
+        this.queryRDS("DescribeReservedDBInstancesOfferings", [], this, false, "onCompleteDescribeReservedDBInstancesOfferings", callback);
+    },
+
+    onCompleteDescribeReservedDBInstancesOfferings : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "ReservedDBInstancesOfferings", "ReservedDBInstancesOffering");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "ReservedDBInstancesOfferingId");
+            var type = getNodeValue(item, "DBInstanceClass");
+            var az = toBool(getNodeValue(item, "MultiAZ"));
+            var duration = secondsToYears(getNodeValue(item, "Duration"));
+            var fPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
+            var uPrice = getNodeValue(item, "UsagePrice");
+            var desc = getNodeValue(item, "ProductDescription");
+            var otype = getNodeValue(item, "OfferingType");
+            var rPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", ["RecurringChargeFrequency", "RecurringChargeAmount"], function(obj) { return new RecurringCharge(obj.RecurringChargeFrequency, obj.RecurringChargeAmount)});
+
+            list.push(new DBLeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype));
+        }
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    describeReservedDBInstances : function(callback)
+    {
+        this.queryRDS("DescribeReservedDBInstances", [], this, false, "onCompleteDescribeReservedInstances", callback);
+    },
+
+    onCompleteDescribeReservedInstances : function(response)
+    {
+        var xmlDoc = response.responseXML;
+
+        var list = new Array();
+        var items = this.getItems(xmlDoc, "ReservedDBInstances", "ReservedDBInstance");
+        for ( var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var id = getNodeValue(item, "ReservedDBInstanceId");
+            var type = getNodeValue(item, "DBInstanceClass");
+            var az = toBool(getNodeValue(item, "MultiAZ"));
+            var start = new Date(getNodeValue(item, "StartTime"));
+            var duration = secondsToYears(getNodeValue(item, "Duration"));
+            var fPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
+            var uPrice = getNodeValue(item, "UsagePrice");
+            var count = getNodeValue(item, "DBInstanceClass");
+            var desc = getNodeValue(item, "ProductDescription");
+            var state = getNodeValue(item, "State");
+            var otype = getNodeValue(item, "OfferingType");
+            var oid = getNodeValue(item, "ReservedDBInstancesOfferingId");
+            var rPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", ["RecurringChargeFrequency", "RecurringChargeAmount"], function(obj) { return new RecurringCharge(obj.RecurringChargeFrequency, obj.RecurringChargeAmount)});
+
+            list.push(new DBReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, otype, oid));
+        }
+        this.getNext(response, this.queryRDS, list);
+    },
+
+    purchaseReservedDBInstancesOffering : function(id, count, callback)
+    {
+        this.queryRDS("PurchaseReservedDBInstancesOffering", [ [ "ReservedDBInstancesOfferingId", id ], [ "DBInstanceCount", count ] ], this, false, "onComplete", callback);
     },
 
     unpackHostedZone: function(item)

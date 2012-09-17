@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.group" flex="1">
+    <vbox flex="1">
+
+        <groupbox flex="1" orient="vertical">
+            <caption label="DB Security Groups" />
+            <popupset>
+                <menupopup id="ew.dbgroups.tree.contextmenu">
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.dbgroups.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBSecurityGroupsTreeView.refresh()" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.dbgroups.view" flex="1">
+                <treecols>
+                    <treecol id="dbgroup.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.descr" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.vpcId" label="VPC" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.groups" label="EC2 Groups" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.ipRanges" label="IP Ranges" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbgroups.tree.children" context="ew.dbgroups.tree.contextmenu" />
+            </tree>
+        </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

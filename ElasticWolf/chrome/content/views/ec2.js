@@ -1575,7 +1575,8 @@ var ew_LeaseOfferingsTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var button = 0;
-
+        // Calc price on change
+        var price = "rc.items[13].obj.value=parseInt(rc.items[12].obj.value)*" + image.fixedPrice;
         while (button == 0) {
             var values = this.core.promptInput('Purchase Instance', [{label:"Instance Details",type:"section"},
                                                                      {label:"Offer ID",type:"label",value:image.id},
@@ -1589,7 +1590,7 @@ var ew_LeaseOfferingsTreeView = {
                                                                      {label:"Product Description",type:"label",value:image.productDescription},
                                                                      {label:"One Time Payment",type:"section"},
                                                                      {label:"One time payment/Instance(US$)",type:"label",value:image.fixedPrice},
-                                                                     {label:"Number of instances",type:"number",size:6,required:1,min:0,onkeyup:"rc.items[13].obj.value=parseInt(rc.items[12].obj.value)*" + image.fixedPrice},
+                                                                     {label:"Number of instances",type:"number",size:6,required:1,min:0,oninput:price,onchange:price},
                                                                      {label:"Total one time payment, due now",type:"label"} ])
             if (!values || !parseInt(values[12])) return;
             // Ensure that the user actually wants to purchase this offering

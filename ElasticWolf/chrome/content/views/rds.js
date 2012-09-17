@@ -25,10 +25,85 @@ var ew_DBSecurityGroupsTreeView = {
 
 var ew_DBOptionGroupsTreeView = {
     model: [ "dboptions"],
+
+    selectionChanged : function() {
+        var item = this.getSelected();
+        if (!item) return;
+        ew_DBOptionGroupOptionsTreeView.display(item.options);
+    },
+};
+
+var ew_DBOptionGroupOptionsTreeView = {
 };
 
 var ew_DBParameterGroupsTreeView = {
     model: [ "dbparameters"],
+
+    selectionChanged : function() {
+        var item = this.getSelected();
+        if (!item) return;
+        if (!item.parameters) {
+            this.core.api.describeDBParameters(item.name, function(list) {
+               item.parameters = list;
+               ew_DBParameterGroupParametersTreeView.display(item.parameters);
+            });
+        } else {
+            ew_DBParameterGroupParametersTreeView.display(item.parameters);
+        }
+    },
+};
+
+var ew_DBParameterGroupParametersTreeView = {
+};
+
+ew_DBOfferingsTreeView = {
+    model : ["dbofferings"],
+
+    purchaseOffering : function()
+    {
+        var item = this.getSelected();
+        if (!item) return;
+        var button = 0;
+        // Calc total price handler
+        var price = "rc.items[12].obj.value=parseInt(rc.items[11].obj.value)*" + item.fixedPrice;
+        while (button == 0) {
+            var values = this.core.promptInput('Purchase Instance', [{label:"Instance Details",type:"section"},
+                                                                     {label:"Offer ID",type:"label",value:item.id},
+                                                                     {label:"Instance Type",type:"label",value:item.dbInstanceClass},
+                                                                     {label:"Duration(years)",type:"label",value:item.duration},
+                                                                     {label:"Multi AZ",type:"label",value:item.multiAZ},
+                                                                     {label:"Offering Type",type:"label",value:item.offeringType},
+                                                                     {label:"Usage Price(US$)",type:"label",value:item.usagePrice},
+                                                                     {label:"Recuring Charges(US$)",type:"label",value:item.recurringCharges},
+                                                                     {label:"Product Description",type:"label",value:item.productDescription},
+                                                                     {label:"One Time Payment",type:"section"},
+                                                                     {label:"One time payment/Instance(US$)",type:"label",value:item.fixedPrice},
+                                                                     {label:"Number of instances",type:"number",size:6,required:1,min:0,oninput:price,onchange:price},
+                                                                     {label:"Total one time payment, due now (US$)",type:"label",value:item.fixedPrice} ])
+            if (!values || !parseInt(values[12])) return;
+            // Ensure that the user actually wants to purchase this offering
+            var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+            var flags = prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_0 + prompts.BUTTON_TITLE_IS_STRING * prompts.BUTTON_POS_1 + prompts.BUTTON_TITLE_CANCEL * prompts.BUTTON_POS_2 + prompts.BUTTON_POS_0_DEFAULT;
+            var msg = "You are about to purchase " + values[11] + " " + item.productDescription + " Reserved Instance(s) for $" + values[11] * parseInt(item.fixedPrice);
+            msg = msg + ". Are you sure?\n\nAn email will be sent to you shortly after we receive your order.";
+            button = prompts.confirmEx(window, "Confirm Reserved Instances Offering Purchase", msg, flags, "Edit Order", "Place Order", "", null, {});
+
+            // Edit: 0, Purchase: 1, Cancel: 2
+            if (button == 1) {
+                this.core.api.purchaseReservedDBInstancesOffering(item.id, values[11], function(id) { ew_ReservedInstancesTreeView.refresh(); });
+            }
+        }
+    },
+};
+
+ew_ReservedDBInstancesTreeView = {
+    model: ["dbreserved"],
+
+    isRefreshable : function()
+    {
+        return this.treeList.some(function(x) { return x.state == "payment-pending"; });
+    },
+
 };
 
 var ew_DBInstancesTreeView = {

@@ -2850,18 +2850,6 @@ function DBEngine(family, engine, version, descr, vdescr, chars)
     }
 }
 
-function DBOption(nme, descr, port, groups)
-{
-    this.name = name;
-    this.descr = descr;
-    this.port = port;
-    this.groups = groups;
-
-    this.toString = function() {
-        return this.name + ", " + this.descr + ", " + this.groups;
-    }
-}
-
 function DBSecurityGroup(name, descr, vpcId, groups, ranges)
 {
     this.name = name;
@@ -2872,6 +2860,34 @@ function DBSecurityGroup(name, descr, vpcId, groups, ranges)
 
     this.toString = function() {
         return this.name;
+    }
+}
+
+function DBOptionGroupOption(name, engine, descr, ver, minver, port, isport, depends)
+{
+    this.name = name
+    this.engine = engine
+    this.descr = descr
+    this.majorEngineVersion = ver
+    this.minimumRequiredMinorEngineVersion = minver
+    this.defaultPort = port
+    this.iportRequired = isport
+    this.dependsOn = depends
+
+    this.toString = function() {
+        return this.name + fieldSeparator + thsi.descr;
+    }
+}
+
+function DBOption(nme, descr, port, groups)
+{
+    this.name = name;
+    this.descr = descr;
+    this.port = port;
+    this.groups = groups;
+
+    this.toString = function() {
+        return this.name + fieldSeparator + this.descr + fieldSeparator + this.groups;
     }
 }
 
@@ -2893,6 +2909,7 @@ function DBParameterGroup(name, descr, family)
     this.name = name
     this.descr = descr
     this.family = family
+    this.parameters = null;
 
     this.toString = function() {
         return this.name
@@ -2961,6 +2978,44 @@ function DBSubnetGroup(name, descr, status, vpcId, subnets)
 
     this.toString = function() {
         return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets;
+    }
+}
+
+function DBLeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy)
+{
+    this.id = id;
+    this.dbInstanceClass = type;
+    this.multiAZ = az;
+    this.duration = duration;
+    this.fixedPrice = fPrice;
+    this.usagePrice = uPrice;
+    this.recurringCharges = rPrices;
+    this.productDescription = desc;
+    this.offeringType = offering;
+
+    this.toString = function() {
+        return this.id
+    }
+}
+
+function DBReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, otype, oid)
+{
+    this.id = id;
+    this.dbInstanceClass = type;
+    this.multiAZ = az;
+    this.startTime = start;
+    this.duration = duration;
+    this.fixedPrice = fPrice;
+    this.usagePrice = uPrice;
+    this.recurringCharges = rPrices;
+    this.count = count;
+    this.productDescription = desc;
+    this.state = state;
+    this.offeringType = otype
+    this.offerinfId = oid
+
+    this.toString = function() {
+        return this.dbInstanceClass  + fieldSeparator + this.fixedPrice + fieldSeparator +  this.recurringCharges + fieldSeparator + this.id;
     }
 }
 
