@@ -5753,7 +5753,7 @@ var ew_api = {
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup, tags, callback)
+    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags,callback)
     {
         var params = [ ["AutoScalingGroupName", name]]
         zones.forEach(function(x, i) {
@@ -5768,6 +5768,12 @@ var ew_api = {
         if (healthType) params.push(["HealthCheckType", healthType])
         if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
         if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+        if (tpolicies) {
+            if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
+            for (var i = 0; i < tpolicies.length; i++) {
+                params.push(["TerminationPolicies.member." + (i + 1), tpolicies[i]]);
+            }
+        }
 
         (elbs || []).forEach(function(x,i) {
             params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
@@ -5784,7 +5790,7 @@ var ew_api = {
         this.queryAS("CreateAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    updateAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup, tags, callback)
+    updateAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup, tpolicies, tags, callback)
     {
         var params = [ ["AutoScalingGroupName", name]];
 
@@ -5800,6 +5806,12 @@ var ew_api = {
         if (healthType) params.push(["HealthCheckType", healthType])
         if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
         if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+        if (tpolicies) {
+            if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
+            for (var i = 0; i < tpolicies.length; i++) {
+                params.push(["TerminationPolicies.member." + (i + 1), tpolicies[i]]);
+            }
+        }
 
         (elbs || []).forEach(function(x,i) {
             params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
@@ -5837,12 +5849,13 @@ var ew_api = {
             var placement = getNodeValue(items[i], "PlacementGroup");
             var elbs = this.getItems(items[i], "LoadBalancerNames", "member", "");
             var azones = this.getItems(items[i], "AvailabilityZones", "member", "");
+            var tpolicies = this.getItems(items[i], "TerminationPolicies", "member", "");
             var metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(obj) { return new Item(obj.Metric, obj.Granularity); });
             var granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
             var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new AutoScalingInstance(name,obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
             var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Item(obj.ProcessName,obj.SuspensionReason)})
             var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new Tag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,toBool(obj.PropagateAtLaunch))})
-            list.push(new AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags));
+            list.push(new AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tpolicies, tags));
         }
         this.core.setModel('asgroups', list);
         response.result = list;

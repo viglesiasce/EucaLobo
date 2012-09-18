@@ -3063,7 +3063,7 @@ function AutoScalingInstance(group, healthStatus, availabilityZone, instanceId, 
     }
 }
 
-function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tags)
+function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tpolicies, tags)
 {
     this.id = arn;
     this.name = name;
@@ -3083,6 +3083,7 @@ function AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown,
     this.metrics = metrics;
     this.instances = instances;
     this.suspendedProcesses = suspended;
+    this.terminationPolicies = tpolicies;
     this.tags = tags;
 
     this.toString = function() {

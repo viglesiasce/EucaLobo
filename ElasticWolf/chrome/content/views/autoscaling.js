@@ -68,6 +68,7 @@ var ew_ASGroupsTreeView = {
                       {label:"VPC Subnets",type:"listview",rows:5,list:this.core.queryModel('subnets')},
                       {label:"Load Balancers",type:"listview",rows:3,list:this.core.queryModel('loadBalancers')},
                       {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2. For more information about cluster placement group, see Using Cluster Instances"},
+                      {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5},
                       {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"}
                       ];
 
@@ -88,32 +89,33 @@ var ew_ASGroupsTreeView = {
             item.vpcZone.split(",").forEach(function(x) { inputs[9].checkedItems.push(me.core.findModel('subnets',x)); });
             inputs[10].checkedItems = item.loadBalancers;
             inputs[11].value = item.placementGroup;
-            inputs[12].value = item.tags.join("\n");
+            inputs[12].checkedItems = item.terminationPolicies;
+            inputs[13].value = item.tags.join("\n");
         }
 
         var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AustoScaling Group', inputs);
         if (!values) return;
 
-        var tags = this.core.parseTags(values[12]);
+        var tags = this.core.parseTags(values[13]);
         if (edit) {
             // Disable monitoring when updating live group
             var cfg = this.core.findModel('asconfigs', item.launchConfiguration, 'name');
             function doEdit() {
-                this.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], tags, function() {
+                me.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, function() {
                     if (cfg.monitoring) {
-                        this.core.api.enableMetricsCollection(item.name, function() { me.refresh(); });
+                        me.core.api.enableMetricsCollection(item.name, function() { me.refresh(); });
                     } else {
                         me.refresh();
                     }
                 });
             }
             if (cfg.monitoring) {
-                this.core.api.disableMetricsCollection(item.name, function() { doEdit(); });
+                me.core.api.disableMetricsCollection(item.name, function() { doEdit(); });
             } else {
                 doEdit();
             }
         } else {
-            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], tags, function() { me.refresh(); });
+            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, function() { me.refresh(); });
         }
     },
 

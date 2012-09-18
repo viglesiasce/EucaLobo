@@ -50,6 +50,8 @@
                     <splitter class="tree-splitter" />
                     <treecol id="asgroups.status" label="Status" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
+                    <treecol id="asgroups.terminationPolicies" label="Termination Policies" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.asgroups.children" context="ew.asgroups.contextmenu" />
             </tree>
