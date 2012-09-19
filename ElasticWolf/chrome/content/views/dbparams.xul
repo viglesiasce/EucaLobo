@@ -9,11 +9,15 @@
             <caption label="DB Parameter Groups" />
             <popupset>
                 <menupopup id="ew.dbparameters.tree.contextmenu">
+                  <menuitem oncommand="ew_DBParameterGroupsTreeView.addItem()" label="Add Group" />
+                  <menuitem oncommand="ew_DBParameterGroupsTreeView.deleteSelected();" label="Delete Group" />
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.dbparameters.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBParameterGroupsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBParameterGroupsTreeView.addItem()" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBParameterGroupsTreeView.deleteSelected()" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.dbparameters.view" flex="1">
                 <treecols>
@@ -40,7 +44,8 @@
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
             <textbox id="ew.dbparameters.params.search" size="15" />
-            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupsTreeView.refresh()" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBParameterGroupParametersTreeView.refresh()" />
+            <toolbarbutton image="images/edit.png" tooltiptext="Edit" oncommand="ew_DBParameterGroupParametersTreeView.editItem()" />
         </toolbar>
         <tree enableColumnDrag="true" id="ew.dbparameters.params.view" flex="1">
             <treecols>

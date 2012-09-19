@@ -5342,7 +5342,7 @@ var ew_api = {
         for (var i = 0; i < subnets.length; i++) {
             params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
         }
-        this.queryRDS("createDBSubnetGroup", params, this, false, "onComplete", callback);
+        this.queryRDS("CreateDBSubnetGroup", params, this, false, "onComplete", callback);
     },
 
     modifyDBSubnetGroup: function(name, descr, subnets, callback)
@@ -5352,13 +5352,13 @@ var ew_api = {
         for (var i = 0; i < subnets.length; i++) {
             params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
         }
-        this.queryRDS("modifyDBSubnetGroup", params, this, false, "onComplete", callback);
+        this.queryRDS("ModifyDBSubnetGroup", params, this, false, "onComplete", callback);
     },
 
     deleteDBSubnetGroup: function(name, callback)
     {
         var params = [ ["DBSubnetGroupName", name]];
-        this.queryRDS("deleteDBSubnetGroup", params, this, false, "onComplete", callback);
+        this.queryRDS("DeleteDBSubnetGroup", params, this, false, "onComplete", callback);
     },
 
     describeDBSubnetGroups: function(callback)
@@ -5395,7 +5395,7 @@ var ew_api = {
 
     describeOptionGroupOptions: function(engine, callback)
     {
-        this.queryRDS("DescribeOptionGroupOptions", [["Engine", engine]], this, false, "onCompleteDescribeOptionGroupOptions", callback);
+        this.queryRDS("DescribeOptionGroupOptions", [["EngineName", engine]], this, false, "onCompleteDescribeOptionGroupOptions", callback);
     },
 
     onCompleteDescribeOptionGroupOptions: function(response)
@@ -5442,7 +5442,11 @@ var ew_api = {
             if (typeof include[i] == "object") {
                 params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i].name])
                 if (include[i].port) params.push(["OptionsToInclude.member." + (i + 1) + ".Port", include[i].port])
-                if (include[i].groups) params.push(["OptionsToInclude.member." + (i + 1) + ".DBSecurityGroupMemberships", include[i].groups])
+                if (include[i].groups) {
+                    for (var j = 0; j < include[i].groups.length; j++) {
+                        params.push(["OptionsToInclude.member." + (i + 1) + ".DBSecurityGroupMemberships.member." + (j + 1), include[i].groups[j]])
+                    }
+                }
             } else {
                 params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i]])
             }
@@ -5450,7 +5454,7 @@ var ew_api = {
         for (var i = 0; i < remove.length; i++) {
             params.push(["OptionsToRemove.member." + (i + 1), remove[i]])
         }
-        this.queryRDS("modifyOptionGroup", params, this, false, "onComplete", callback);
+        this.queryRDS("ModifyOptionGroup", params, this, false, "onComplete", callback);
     },
 
     describeOptionGroups: function(callback)
@@ -5470,11 +5474,11 @@ var ew_api = {
             var ver = getNodeValue(items[i], "MajorEngineVersion");
             var descr = getNodeValue(items[i], "OptionGroupDescription");
             var olist = this.getItems(items[i], "Options", "Option");
-            for (var j = 0; j < opts.length; j++) {
-                var oname = getNodeValue(ilist[j], "OptionName");
-                var odescr = getNodeValue(ilist[j], "OptionDescription");
-                var oport = getNodeValue(ilist[j], "Port");
-                var ogroups = this.getItems(ilist[i], "DBSecurityGroupMemberships", "member", ["DBSecurityGroupName","Status"], function(obj) { return new Tag(obj.DBSecurityGroupName,obj.Status)});
+            for (var j = 0; j < olist.length; j++) {
+                var oname = getNodeValue(olist[j], "OptionName");
+                var odescr = getNodeValue(olist[j], "OptionDescription");
+                var oport = getNodeValue(olist[j], "Port");
+                var ogroups = this.getItems(olist[j], "DBSecurityGroupMemberships", "DBSecurityGroup", ["DBSecurityGroupName","Status"], function(obj) { return new Tag(obj.DBSecurityGroupName,obj.Status)});
                 opts.push(new DBOption(oname, odescr, oport, ogroups));
             }
             list.push(new DBOptionGroup(name, engine, ver, descr, opts));

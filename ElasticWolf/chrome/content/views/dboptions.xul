@@ -10,11 +10,15 @@
         <popupset>
             <menupopup id="ew.dboptions.tree.contextmenu">
                 <menuitem oncommand="ew_DBOptionGroupsTreeView.displayDetails()" label="View Details" />
+                <menuitem oncommand="ew_DBOptionGroupsTreeView.addItem()" label="Add Group" />
+                <menuitem oncommand="ew_DBOptionGroupsTreeView.deleteSelected();" label="Delete Group" />
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
             <textbox id="ew.dboptions.search" size="15" />
             <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupsTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBOptionGroupsTreeView.addItem()" />
+            <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBOptionGroupsTreeView.deleteSelected()" />
         </toolbar>
         <tree enableColumnDrag="true" id="ew.dboptions.view" flex="1">
             <treecols>
@@ -47,7 +51,9 @@
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.dboptions.options.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBParameterGroupsTreeView.refresh()" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupOptionsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBOptionGroupOptionsTreeView.addItem()" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBOptionGroupOptionsTreeView.deleteSelected()" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.dboptions.options.view" flex="1">
                 <treecols>

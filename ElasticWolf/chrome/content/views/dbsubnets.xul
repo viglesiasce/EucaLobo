@@ -10,11 +10,15 @@
         <popupset>
             <menupopup id="ew.dbsubnets.tree.contextmenu">
                 <menuitem oncommand="ew_DBSubnetGroupsTreeView.displayDetails()" label="View Details" />
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.addItem()" label="Add Subnet" />
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.deleteSelected();" label="Delete Subnet" />
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
             <textbox id="ew.dbsubnets.search" size="15" />
             <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBSubnetGroupsTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBSubnetGroupsTreeView.addItem()" />
+            <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBSubnetGroupsTreeView.deleteSelected()" />
         </toolbar>
         <tree enableColumnDrag="true" id="ew.dbsubnets.view" flex="1">
             <treecols>

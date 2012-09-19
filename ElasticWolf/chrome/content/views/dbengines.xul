@@ -19,7 +19,7 @@
                 <treecols>
                     <treecol id="instance.family" label="Family" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="instance.engine" label="Engine" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="instance.name" label="Engine" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="instance.version" label="Version" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />

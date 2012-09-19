@@ -199,9 +199,7 @@ var ew_ASConfigsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        if (!confirm('Delete configuration ' + item.name + '?')) return;
+        if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteLaunchConfiguration(item.name, function() { me.refresh(); });
     },
 
@@ -249,9 +247,7 @@ var ew_ASPoliciesTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        if (!confirm('Delete policy ' + item.name + '?')) return;
+        if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deletePolicy(item.group, item.name, function() { me.refresh(); });
     },
 
@@ -306,9 +302,7 @@ var ew_ASActionsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
-        if (!confirm('Delete action ' + item.name + '?')) return;
+        if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteScheduledAction(item.group, item.name, function() { me.refresh(); });
     },
 

@@ -5,6 +5,13 @@
 
 var ew_DBSnapshotsTreeView = {
     model: [ "dbsnapshots"],
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        if (!TreeView.deleteSelected.call(this)) return;
+    },
+
 };
 
 var ew_DBEventsTreeView = {
@@ -17,23 +24,108 @@ var ew_DBEnginesTreeView = {
 
 var ew_DBSubnetGroupsTreeView = {
     model: [ "dbsubnets"],
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        if (!TreeView.deleteSelected.call(this)) return;
+    },
 };
 
 var ew_DBSecurityGroupsTreeView = {
     model: [ "dbgroups"],
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        if (!TreeView.deleteSelected.call(this)) return;
+    },
+
 };
 
 var ew_DBOptionGroupsTreeView = {
-    model: [ "dboptions"],
+    model: [ "dboptions", "dbengines", "dbgroups"],
 
     selectionChanged : function() {
         var item = this.getSelected();
         if (!item) return;
         ew_DBOptionGroupOptionsTreeView.display(item.options);
     },
+
+    addItem: function()
+    {
+        var me = this;
+        var engines = this.core.queryModel("dbengines");
+        var values = this.core.promptInput("Create Option Group",
+                                    [{label:"Group Name",required:1},
+                                     {label:"Description",required:1},
+                                     {label:"Engine",type:"menulist",list:engines,key:"name",required:1,style:"max-width:350px" } ]);
+        if (!values) return;
+        var engine = this.core.findModel('dbengines', values[2], 'engine');
+        if (!engine) return;
+        // Take major version as first octets
+        var ver = engine.version.split(".").slice(0,2).join(".");
+        this.core.api.createOptionGroup(values[0],values[1],engine.name,ver,function() { me.refresh() });
+    },
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteOptionGroup(item.name, function() { me.refresh() });
+    },
 };
 
 var ew_DBOptionGroupOptionsTreeView = {
+
+    addItem: function()
+    {
+        var me = this;
+        var group = ew_DBOptionGroupsTreeView.getSelected();
+        if (!group) return;
+        var engine = this.core.findModel('dbengines', group.engine, 'engine');
+        var dbgroups = this.core.queryModel('dbgroups');
+        var inputs = [ {label:"Options",type:"menulist",list:[],key:"name",required:1,callback: function(item, idx) {
+                                var o = me.core.findObject(engine.options, item.obj.value, 'name') || {};
+                                this.rc.items[idx+2].required = o.portRequired ? true : false;
+                                this.rc.items[idx+2].obj.disabled = o.portRequired ? false : true;
+                                this.rc.items[idx+2].obj.value = o.portRequired ? o.defaultPort : 0;
+                            }
+                        },
+                       {label:"Apply immediately",type:"checkbox"},
+                       {label:"Port:",type:"number",disabled:true},
+                       {label:"DB Security Groups",type:"listview",list:dbgroups,flex:1,rows:5}];
+
+        function addOption(list) {
+            if (list) engine.options = list;
+            if (!engine.options.length) return alert("No options available for " + engine);
+            inputs[0].list = engine.options;
+            var values = me.core.promptInput('Add an option', inputs);
+            if (!values) return;
+            opt = { name: values[0], port: values[2], groups: values[3] };
+            me.core.api.modifyOptionGroup(group.name, values[1], [opt], [], function() {
+                group.options = null;
+                ew_DBOptionGroupsTreeView.refresh();
+            });
+        }
+
+        if (!engine.options) {
+            this.core.api.describeOptionGroupOptions(group.engine, function(list) { addOption(list); });
+        } else {
+            addOption();
+        }
+    },
+
+    deleteSelected : function()
+    {
+        var me = this;
+        var group = ew_DBOptionGroupsTreeView.getSelected();
+        var item = this.getSelected();
+        if (!item || !group) return;
+        var check = {value: false};
+        if (!this.core.promptConfirm("Delete option", "Delete " + item.name + " from " + group.name + "?", "Apply immediatley", check)) return;
+        this.core.api.modifyOptionGroup(item.name, check.value, [], [item.name], function() { ew_DBOptionGroupsTreeView.refresh() });
+    },
 };
 
 var ew_DBParameterGroupsTreeView = {
@@ -50,6 +142,12 @@ var ew_DBParameterGroupsTreeView = {
         } else {
             ew_DBParameterGroupParametersTreeView.display(item.parameters);
         }
+    },
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        if (!TreeView.deleteSelected.call(this)) return;
     },
 };
 
@@ -148,7 +246,7 @@ var ew_DBInstancesTreeView = {
         var dbgroups = this.core.queryModel('dbgroups');
 
         var inputs = [{label:"DB Instance Identifier",required:1,tooltiptext:"The DB Instance identifier. This parameter is stored as a lowercase string."},
-                      {label:"Engine",type:"menulist",list:engines,key:"engine",required:1,style:"max-width:350px"},
+                      {label:"Engine",type:"menulist",list:engines,key:"name",required:1,style:"max-width:350px"},
                       {label:"Engine Version",readonly:true},
                       {label:"DB Instance Class",type:"menulist",required:1,style:"max-width:350px"},
                       {label:"Allocated Storage",type:"number",required:1,help:"GB",min:5,max:1024,tooltiptext:"The amount of storage (in gigabytes) to be initially allocated for the database instance.MySQL: from 5 to 1024. Oracle: from 10 to 1024. SQL Server from 200 to 1024 (Standard Edition and Enterprise Edition) or from 30 to 1024 (Express Edition and Web Edition)"},

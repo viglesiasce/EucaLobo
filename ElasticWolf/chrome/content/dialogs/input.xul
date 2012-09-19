@@ -239,6 +239,7 @@
         case 'graph':
             graph(idx);
             break;
+
         case 'listview':
             if (onstart) {
                 obj.core = this.core;
@@ -247,6 +248,9 @@
                 obj.view = new ListView(obj);
             }
             break;
+        }
+        if (obj.callback) {
+            obj.callback.call(this, obj, idx, onstart);
         }
     }
 

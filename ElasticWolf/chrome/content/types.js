@@ -464,6 +464,12 @@ var TreeView = {
             this.core.win.details.setup.call(this.core.win.details, rc);
         }
     },
+    deleteSelected : function ()
+    {
+        var item = this.getSelected();
+        if (!item) return false;
+        if (!confirm('Delete ' + item.toString() + '?')) return false;
+    },
     getInputItems: function()
     {
         if (!this.tab) return [];
@@ -2836,17 +2842,17 @@ function DBEvent(id, type, date, msg)
     }
 }
 
-function DBEngine(family, engine, version, descr, vdescr, chars)
+function DBEngine(family, name, version, descr, vdescr, chars)
 {
     this.family = family;
-    this.engine = engine;
+    this.name = name;
     this.version = version;
     this.versionDescr = vdescr || "";
     this.descr = descr || "";
     this.charsets = chars || "";
 
     this.toString = function() {
-        return this.engine + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
+        return this.name + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
     }
 }
 
@@ -2871,15 +2877,18 @@ function DBOptionGroupOption(name, engine, descr, ver, minver, port, isport, dep
     this.majorEngineVersion = ver
     this.minimumRequiredMinorEngineVersion = minver
     this.defaultPort = port
-    this.iportRequired = isport
+    this.portRequired = isport
     this.dependsOn = depends
 
     this.toString = function() {
-        return this.name + fieldSeparator + thsi.descr;
+        return this.name + fieldSeparator + this.descr + fieldSeparator +
+               this.majorEngineVersion + "/" + this.minimumRequiredMinorEngineVersion +
+               (this.portRequired ? fieldSeparator + "Port Required" : "") +
+               (this.dependsOn ? fieldSeparator + "Depends " + this.dependsOn : "");
     }
 }
 
-function DBOption(nme, descr, port, groups)
+function DBOption(name, descr, port, groups)
 {
     this.name = name;
     this.descr = descr;
