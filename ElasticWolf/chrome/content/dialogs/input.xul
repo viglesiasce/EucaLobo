@@ -164,6 +164,12 @@
              item.setAttribute('oncommand', "handler(" + i + ")");
              break;
 
+          case 'description':
+             item = document.createElement(type);
+             item.setAttribute('style', 'white-space:pre-wrap;padding-bottom:5px;');
+             item.appendChild(document.createTextNode(value));
+             break;
+
           default:
              item = document.createElement(type);
              item.setAttribute('value', value);

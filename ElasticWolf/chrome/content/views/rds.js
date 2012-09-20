@@ -129,7 +129,7 @@ var ew_DBOptionGroupOptionsTreeView = {
 };
 
 var ew_DBParameterGroupsTreeView = {
-    model: [ "dbparameters"],
+    model: [ "dbparameters","dbengines"],
 
     selectionChanged : function() {
         var item = this.getSelected();
@@ -144,14 +144,73 @@ var ew_DBParameterGroupsTreeView = {
         }
     },
 
+    addItem: function()
+    {
+        var me = this;
+        var family = uniqueList(plainList(this.core.queryModel("dbengines"), "family"));
+        var values = this.core.promptInput("Create Option Group",
+                                    [{label:"Family",type:"menulist",list:family,required:1 } ,
+                                     {label:"Group Name",required:1},
+                                     {label:"Description",required:1} ]);
+        if (!values) return;
+        this.core.api.createDBParameterGroup(values[0],values[1],values[2],function() { me.refresh() });
+    },
+
     deleteSelected : function ()
     {
         var me = this;
         if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteDBParameterGroup(item.name, function() { me.refresh() });
     },
 };
 
 var ew_DBParameterGroupParametersTreeView = {
+
+    editItem: function() {
+        var item = this.getSelected();
+        var group = ew_DBParameterGroupsTreeView.getSelected();
+        if (!item || !group) return;
+        if (!item.isModifiable) return;
+        var value = {label:"Value",value:item.value,required:1 };
+
+        var inputs = [{label:"Name",type:"label",value:item.name },
+                      {label:"Descr",type:"description",value:item.descr,width:350 },
+                      {label:"Type",type:"label",value:item.type },
+                      {label:"Min Version",type:"label",value:item.minVersion },
+                      {label:"Apply Type",type:"label",value:item.applyType },
+                      {label:"Allowed Values",type:"description",value:item.allowedValues },
+                      {type:"separator"},
+                      value];
+
+        switch (item.type) {
+        case "integer":
+            value.type = "number";
+            var d = item.allowedValues.match(/([0-9]+)-([0-9]+)/);
+            if (d) {
+                value.min = parseInt(d[1]);
+                value.max = parseInt(d[2]);
+            }
+            break;
+        case "boolean":
+            value.type = "menulist";
+            value.list = [0,1];
+            inputs.splice(5, 1);
+            break;
+        case "string":
+            if (item.allowedValues) {
+                value.type = "menulist";
+                value.list = item.allowedValues.split(",");
+                inputs.splice(5, 1);
+            }
+            break;
+        }
+
+        var values = this.core.promptInput("Modify Parameter", inputs);
+        if (!values) return;
+        var params = [ { name: item.name, value: values[7], applyMethod: item.applyType == "dynamic" ? "immediate" : "pending-reboot"}];
+        this.core.api.modifyDBParameterGroup(group.name, params, function() { ew_DBParameterGroupsTreeView.refresh(); });
+    },
+
 };
 
 ew_DBOfferingsTreeView = {

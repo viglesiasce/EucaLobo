@@ -5271,9 +5271,9 @@ var ew_api = {
     {
         var params =  [ [ "DBParameterGroupName", name]];
         for (var i  = 0; i < options.length; i++) {
-            params.push(["Parameters.member." + i + ".ParameterName", options[i].name]);
-            params.push(["Parameters.member." + i + ".ParameterValue", options[i].value]);
-            params.push(["Parameters.member." + i + ".ApplyMethod", options[i].applyMethod]);
+            params.push(["Parameters.member." + (i + 1) + ".ParameterName", options[i].name]);
+            params.push(["Parameters.member." + (i + 1) + ".ParameterValue", options[i].value]);
+            params.push(["Parameters.member." + (i + 1) + ".ApplyMethod", options[i].applyMethod]);
         }
 
         this.queryRDS("ModifyDBParameterGroup", params, this, false, "onComplete", callback);
