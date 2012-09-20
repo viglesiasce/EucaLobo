@@ -292,7 +292,7 @@ var ew_InstancesTreeView = {
                                      {label:"Container Format",type:"menulist",list:["ova"]},
                                      ]);
         if (!values) return;
-        this.core.api.createInstanceExportTask(instance.id, values[2], values[3], values[0], values[4], values[5], values[6], function(list) {
+        this.core.api.createInstanceExportTask(instance.id, values[2], values[3], values[1], values[4], values[5], values[6], function(list) {
         });
     },
 
@@ -1758,7 +1758,24 @@ var ew_SpotInstanceRequestsTreeView = {
 };
 
 var ew_ExportTasksTreeView = {
-   model: ["exportTasks"],
+   model: ["exportTasks","instances"],
+
+   createInstanceExport: function()
+   {
+       var me = this;
+       instances = this.core.queryModel('instances', 'platform', 'windows', 'rootDeviceType', 'ebs');
+       var values = this.core.promptInput('Export Instance to S3',
+               [{label:"Instance",type:"menulist",list:instances,required:1},
+                {label:"Description"},
+                {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
+                {label:"S3 Bucket Name",type:"name",required:1},
+                {label:"S3 Prefix"},
+                {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                {label:"Container Format",type:"menulist",list:["ova"]},
+                ]);
+       if (!values) return;
+       this.core.api.createInstanceExportTask(values[0], values[2], values[3], values[1], values[4], values[5], values[6], function(list) { me.refresh(); });
+   },
 
    deleteSelected : function ()
    {
