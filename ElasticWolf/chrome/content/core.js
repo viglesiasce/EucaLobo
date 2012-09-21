@@ -553,7 +553,7 @@ var ew_core = {
 
     displayErrors: function()
     {
-        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}]);
+        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}], true);
     },
 
     displayUrl: function(url, protocol)
@@ -922,6 +922,8 @@ var ew_core = {
     errorMessage: function(msg)
     {
         if (!msg) msg = "";
+        // Resize message panel accordint to window size
+        $('ew_message').setAttribute('maxwidth', window.outerWidth * 0.75);
         $('ew_message').label = msg;
         $('ew_alert').hidden = msg == "";
 
@@ -933,13 +935,13 @@ var ew_core = {
     },
 
     // Show non modal error popup
-    errorDialog : function(msg, rsp)
+    errorDialog : function(msg, response)
     {
-        if (!rsp) rsp = {};
-        var rc = { core: this, msg: msg, action: rsp.action || "", errCode: rsp.errCode || "", errString: rsp.errString || "", requestId: rsp.requestId || "" };
+        if (!response) response = {};
+        var rc = { core: this, msg: msg, action: response.action || "", errCode: response.errCode || "", errString: response.errString || "", requestId: response.requestId || "" };
         // Reuse the same window
         if (!this.win.error || !this.win.error.setup) {
-            this.win.error = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable", rc);
+            this.win.error = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable,modeless", rc);
         } else
         if (this.win.error.setup) {
             this.win.error.setup.call(this.win.error, rc);
@@ -1815,7 +1817,7 @@ var ew_core = {
                 this.api.describeBundleTasks();
                 break;
             case "offerings":
-                this.api.describeLeaseOfferings();
+                this.api.describeReservedInstancesOfferings(true, function(list) { me.setModel("offerings", list); });
                 break;
             case "reservedInstances":
                 this.api.describeReservedInstances();
@@ -2327,29 +2329,32 @@ var ew_core = {
             ];
     },
 
-    getInstanceTypes: function(arch)
+    getInstanceTypes: function(arch, region)
     {
         var types = [
-           { name: "t1.micro: Up to 2 EC2 Compute Units (for short periodic bursts), 613 MiB, No storage, Low I/O", id: "t1.micro", x86_64: true, i386: true, },
-           { name: "m1.small: 1 EC2 Compute Unit (1 virtual core with 1 EC2 Compute Unit), 1.7 GiB, 150 GiB instance storage,  Moderate I/O", id: "m1.small", x86_64: true, i386: true },
-           { name: "m1.medium: 2 EC2 Compute Units (1 virtual core with 2 EC2 Compute Units), 3.75 GiB, 400 GiB instance storage (1 x 400 GiB), Moderate I/O", id: "m1.medium", x86_64: true, i386: true },
-           { name: "m1.large: 4 EC2 Compute Units (2 virtual cores with 2 EC2 Compute Units each), 7.5 GiB, 840 GiB instance storage (2 x 420 GiB), High I/O", id: "m1.large", x86_64: true, },
-           { name: "m1.xlarge: 8 EC2 Compute Units (4 virtual cores with 2 EC2 Compute Units each), 15 GiB, 1680 GB instance storage (4 x 420 GiB), High I/O", id: "m1.xlarge", x86_64: true, },
-           { name: "c1.medium: 5 EC2 Compute Units (2 virtual cores with 2.5 EC2 Compute Units each), 1.7 GiB, 340 GiB instance storage (340 GiB), Moderate I/O", id: "c1.medium", x86_64: true, i386: true },
-           { name: "c1.xlarge: 20 EC2 Compute Units (8 virtual cores with 2.5 EC2 Compute Units each), 7 GiB, 1680 GiB instance storage (4 x 420 GiB), High I/O", id: "c1.xlarge", x86_64: true, },
-           { name: "m2.xlarge : 6.5 EC2 Compute Units (2 virtual cores with 3.25 EC2 Compute Units each), 17.1 GiB, 410 GiB instance storage (1 x 410 GiB), Moderate I/O", id: "m2.xlarge", x86_64: true, },
-           { name: "m2.2xlarge: 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 34.2 GiB,  840 GiB instance storage (1 x 840 GiB), High I/O", id: "m2.2xlarge", x86_64: true, },
-           { name: "m2.4xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 68.4 GiB, 1680 GiB instance storage (2 x 840 GiB), High I/O", id: "m2.4xlarge", x86_64: true, },
-           { name: "hi1.4xlarge: 35 EC2 Compute Units (eight-cores with 4.37 ECUs each), 60 GiB, 2T SSD instance (2 x 1TB SSD), Very high (10 Gbps Ethernet)", id: "hi1.4xlarge", x86_64: true, },
-           { name: "cc1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), 23 GiB, 1690 GiB instance 64-bit storage (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cc1.4xlarge", x86_64: true, },
-           { name: "cc2.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core 'Sandy Bridge' architecture), 60.5 GiB, 3360 GiB instance (4 x 840 GiB), Very high (10 Gbps Ethernet", id: "cc2.8xlarge", x86_64: true, },
-           { name: "cg1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), plus 2 NVIDIA Tesla M2050 'Fermi' GPUs, 22 GiB, 1680 GiB instance (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cg1.4xlarge", x86_64: true, },
+           { name: "t1.micro: Up to 2 EC2 Compute Units (for short periodic bursts), 613 MiB, No storage, Low I/O", id: "t1.micro", x86_64: true, i386: true,  },
+           { name: "m1.small: 1 EC2 Compute Unit (1 virtual core with 1 EC2 Compute Unit), 1.7 GiB, 150 GiB instance storage,  Moderate I/O", id: "m1.small", x86_64: true, i386: true,  },
+           { name: "m1.medium: 2 EC2 Compute Units (1 virtual core with 2 EC2 Compute Units), 3.75 GiB, 400 GiB instance storage (1 x 400 GiB), Moderate I/O", id: "m1.medium", x86_64: true, i386: true,  },
+           { name: "m1.large: 4 EC2 Compute Units (2 virtual cores with 2 EC2 Compute Units each), 7.5 GiB, 840 GiB instance storage (2 x 420 GiB), High I/O", id: "m1.large", x86_64: true,  },
+           { name: "m1.xlarge: 8 EC2 Compute Units (4 virtual cores with 2 EC2 Compute Units each), 15 GiB, 1680 GB instance storage (4 x 420 GiB), High I/O", id: "m1.xlarge", x86_64: true,  },
+           { name: "c1.medium: 5 EC2 Compute Units (2 virtual cores with 2.5 EC2 Compute Units each), 1.7 GiB, 340 GiB instance storage (340 GiB), Moderate I/O", id: "c1.medium", x86_64: true, i386: true,  },
+           { name: "c1.xlarge: 20 EC2 Compute Units (8 virtual cores with 2.5 EC2 Compute Units each), 7 GiB, 1680 GiB instance storage (4 x 420 GiB), High I/O", id: "c1.xlarge", x86_64: true,  },
+           { name: "m2.xlarge : 6.5 EC2 Compute Units (2 virtual cores with 3.25 EC2 Compute Units each), 17.1 GiB, 410 GiB instance storage (1 x 410 GiB), Moderate I/O", id: "m2.xlarge", x86_64: true,  },
+           { name: "m2.2xlarge: 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 34.2 GiB,  840 GiB instance storage (1 x 840 GiB), High I/O", id: "m2.2xlarge", x86_64: true,  },
+           { name: "m2.4xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 68.4 GiB, 1680 GiB instance storage (2 x 840 GiB), High I/O", id: "m2.4xlarge", x86_64: true,  },
+           { name: "cc1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), 23 GiB, 1690 GiB instance 64-bit storage (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cc1.4xlarge", x86_64: true,  },
+           { name: "cc2.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core 'Sandy Bridge' architecture), 60.5 GiB, 3360 GiB instance (4 x 840 GiB), Very high (10 Gbps Ethernet", id: "cc2.8xlarge", x86_64: true,  },
+           { name: "cg1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), plus 2 NVIDIA Tesla M2050 'Fermi' GPUs, 22 GiB, 1680 GiB instance (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cg1.4xlarge", x86_64: true,  'us-gov-west-1': false },
+           { name: "hi1.4xlarge: 35 EC2 Compute Units (eight-cores with 4.37 ECUs each), 60 GiB, 2T SSD instance (2 x 1TB SSD), Very high (10 Gbps Ethernet)", id: "hi1.4xlarge", x86_64: true, 'us-gov-west-1': false },
            ];
 
         var list = [];
         for (var i in types) {
             types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); }
-            if (!arch || types[i][arch]) list.push(types[i]);
+            // Filter by region, type
+            if (region && types[i][region] == false) continue;
+            if (arch && !types[i][arch]) continue;
+            list.push(types[i]);
         }
         return list;
     },

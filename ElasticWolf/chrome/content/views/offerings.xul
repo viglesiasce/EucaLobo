@@ -5,21 +5,21 @@
     <tabpanel id="ew.tabs.lease" flex="1">
         <vbox flex="1">
             <groupbox orient="vertical" flex="1">
-                <caption label="&ew.captions.leases.offerings.label;" />
+                <caption label="&ew.captions.offerings.label;" />
                 <popupset>
                     <menupopup id="ew.offerings.contextmenu">
-                        <menuitem oncommand="ew_LeaseOfferingsTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
+                        <menuitem oncommand="ew_ReservedInstancesOfferingsTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
                         <menuseparator />
-                        <menuitem oncommand="ew_LeaseOfferingsTreeView.purchaseOffering();" label="Purchase Reserved Instances Offering" />
+                        <menuitem oncommand="ew_ReservedInstancesOfferingsTreeView.purchaseOffering();" label="Purchase Reserved Instances Offering" />
                         <menuseparator />
-                        <menuitem oncommand="ew_LeaseOfferingsTreeView.copyToClipboard('id');" label="&ew.contextmenu.copyid.label;" />
+                        <menuitem oncommand="ew_ReservedInstancesOfferingsTreeView.copyToClipboard('id');" label="&ew.contextmenu.copyid.label;" />
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
                         <textbox id="ew.offerings.search" size="15"  />
-                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_LeaseOfferingsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                        <toolbarbutton image="images/cash.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_LeaseOfferingsTreeView.purchaseOffering();" tooltiptext="PurchaseOffering" />
+                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedInstancesOfferingsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                        <toolbarbutton image="images/cash.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedInstancesOfferingsTreeView.purchaseOffering();" tooltiptext="PurchaseOffering" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.offerings.view" seltype="single" enableColumnDrag="true" flex="1" >
@@ -44,6 +44,8 @@
                         <splitter class="tree-splitter" />
                         <treecol id="offering.tenancy" label="&ew.offerings.tenancy.label;" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
+                        <treecol id="offering.marketPlace" label="Marketplace" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
                     </treecols>
                     <treechildren context="ew.offerings.contextmenu" />
                 </tree>
@@ -52,7 +54,7 @@
                 <grippy />
             </splitter>
             <groupbox orient="vertical" flex="1">
-                <caption label="&ew.captions.leases.rsvdInst.label;" />
+                <caption label="&ew.captions.reservedInstances.label;" />
                 <popupset>
                     <menupopup id="ew.reservedInstances.contextmenu">
                         <menuitem oncommand="ew_ReservedInstancesTreeView.displayDetails();" label="&ew.contextmenu.details.label;" />

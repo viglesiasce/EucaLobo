@@ -2348,7 +2348,7 @@ function RecurringCharge(frequency, amount)
     }
 }
 
-function LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy)
+function ReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy, market, mPrices)
 {
     this.id = id;
     this.instanceType = type;
@@ -2360,12 +2360,23 @@ function LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, of
     this.productDescription = desc;
     this.offeringType = offering;
     this.tenancy = tenancy;
+    this.marketPlace = market;
+    this.marketPrices = mPrices;
 
     this.toString = function() {
         return this.id
     }
 }
 
+function MarketPrice(price, count)
+{
+    this.price = price;
+    this.count = count;
+
+    this.toString = function() {
+        return '$' + this.price + fieldSeparator + this.count + ' available';
+    }
+}
 function ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy)
 {
     this.id = id;
@@ -2694,7 +2705,7 @@ function ExportTask(id, state, statusMsg, descr, instance, env, dfmt, cfmt, buck
 }
 
 
-function ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, desr, azone, bytes)
+function ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, descr, azone, bytes)
 {
     this.id = id
     this.state = state
@@ -2990,7 +3001,7 @@ function DBSubnetGroup(name, descr, status, vpcId, subnets)
     }
 }
 
-function DBLeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy)
+function DBReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, offering, tenancy)
 {
     this.id = id;
     this.dbInstanceClass = type;

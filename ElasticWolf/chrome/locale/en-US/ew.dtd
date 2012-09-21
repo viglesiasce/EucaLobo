@@ -232,8 +232,8 @@
 <!ENTITY ew.bundleInstance.s3.bucket.label "S3 Bucket Name">
 <!ENTITY ew.bundleInstance.s3.image.label "Image Name">
 
-<!ENTITY ew.captions.leases.offerings.label "Reserved Instances Offerings">
-<!ENTITY ew.captions.leases.rsvdInst.label "Your Reserved Instances">
+<!ENTITY ew.captions.offerings.label "Reserved Instances Offerings">
+<!ENTITY ew.captions.reservedInstances.label "Your Reserved Instances">
 
 <!ENTITY ew.offerings.id.label "Offering ID">
 <!ENTITY ew.offerings.instType.label "Instance Type">

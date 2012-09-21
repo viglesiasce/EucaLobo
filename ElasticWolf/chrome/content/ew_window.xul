@@ -13,7 +13,7 @@
 <?xul-overlay href="chrome://ew/content/views/volumes.xul"?>
 <?xul-overlay href="chrome://ew/content/views/snapshots.xul"?>
 <?xul-overlay href="chrome://ew/content/views/bundletasks.xul"?>
-<?xul-overlay href="chrome://ew/content/views/leaseofferings.xul"?>
+<?xul-overlay href="chrome://ew/content/views/offerings.xul"?>
 <?xul-overlay href="chrome://ew/content/views/vpcs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/subnets.xul"?>
 <?xul-overlay href="chrome://ew/content/views/vpns.xul"?>
@@ -76,17 +76,8 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/iam.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/certs.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/ec2.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/securitygroups.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/routing.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/azone.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/eip.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/leaseofferings.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/bundletasks.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/vpcs.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/vpns.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/loadbalancers.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/networkacls.js" />
-  <script type="application/x-javascript" src="chrome://ew/content/views/enis.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/s3.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/cloudwatch.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/autoscaling.js" />
@@ -170,10 +161,10 @@
 
             { name: "ew.tabs.dhcp",          views: [ { id: "ew.dhcpOptions.view", view: ew_DhcpoptsTreeView } ], },
 
-            { name: "ew.tabs.lease",         views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC", not: true }] },
+            { name: "ew.tabs.lease",         views: [ { id: "ew.offerings.view", view: ew_ReservedInstancesOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC", not: true }] },
                                                       { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView, filterList: [ { name: "productDescription", value: "VPC", not: true }] } ], },
 
-            { name: "ew.tabs.lease.vpc",     views: [ { id: "ew.offerings.view", view: ew_LeaseOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC" }] },
+            { name: "ew.tabs.lease.vpc",     views: [ { id: "ew.offerings.view", view: ew_ReservedInstancesOfferingsTreeView, filterList: [ { name: "productDescription", value: "VPC" }] },
                                                       { id: "ew.reservedInstances.view", view: ew_ReservedInstancesTreeView, filterList: [ { name: "productDescription", value: "VPC" }] }],
               owner: "ew.tabs.lease"           },
 
@@ -569,9 +560,9 @@
   </hbox>
 
   <statusbar>
-    <statusbarpanel id="ew_status" label=""/>
-    <spacer flex="1"/>
-    <statusbarpanel id="ew_message" label="" crop="end" style="color:#770022;max-width:60%;"/>
+    <statusbarpanel id="ew_status" label="" />
+    <spacer flex="1" />
+    <statusbarpanel id="ew_message" label="" crop="end" style="color:blue;cursor:pointer" onclick="ew_core.displayErrors();"/>
     <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" image="images/alert.png" onclick="ew_core.displayErrors();" />
   </statusbar>
 </window>

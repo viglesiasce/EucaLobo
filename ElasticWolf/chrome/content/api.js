@@ -4,7 +4,7 @@
 //
 
 var ew_api = {
-    EC2_API_VERSION: '2012-07-20',
+    EC2_API_VERSION: '2012-08-15',
     ELB_API_VERSION: '2012-06-01',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
@@ -27,6 +27,7 @@ var ew_api = {
     securityToken: "",
     httpCount: 0,
     errorList: [],
+    errorIgnore: /(is not enabled in this region|is not supported in your requested Availability Zone)/,
 
     isEnabled: function()
     {
@@ -46,14 +47,15 @@ var ew_api = {
         }
     },
 
-    displayError: function(msg)
+    displayError: function(msg, response)
     {
-        if (this.core.getBoolPrefs("ew.errors.show", false)) {
-            if (this.actionIgnore.indexOf(rc.action) == -1 && !msg.match(/(is not enabled in this region|is not supported in your requested Availability Zone)/)) {
-                this.core.errorDialog("Server responded with an error for " + rc.action, rc)
+        if (this.core.getBoolPrefs("ew.errors.show", true)) {
+            if (this.actionIgnore.indexOf(response.action) == -1 && !msg.match(this.errorIgnore)) {
+                this.core.errorDialog("Server responded with an error for " + response.action, response);
             }
+        } else {
+            this.core.errorMessage(msg);
         }
-        this.core.errorMessage(msg);
         // Add to the error list
         this.errorList.push((new Date()).strftime("%Y-%m-%d %H:%M:%S: ") + msg);
         if (this.errorList.length > 500) this.errorList.splice(0, 1);
@@ -593,7 +595,7 @@ var ew_api = {
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
-            this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""));
+            this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
             // Call error handler if passed as an object
             if (callback && !rc.skipCallback) {
                 if (typeof callback == "object" && callback.error) {
@@ -1529,15 +1531,16 @@ var ew_api = {
         response.result = list;
     },
 
-    describeLeaseOfferings : function(callback)
+    describeReservedInstancesOfferings : function(market, callback)
     {
-        this.queryEC2("DescribeReservedInstancesOfferings", [], this, false, "onCompleteDescribeLeaseOfferings", callback);
+        var params = [];
+        params.push(["IncludeMarketplace", market])
+        this.queryEC2("DescribeReservedInstancesOfferings", params, this, false, "onCompleteDescribeReservedInstancesOfferings", callback);
     },
 
-    onCompleteDescribeLeaseOfferings : function(response)
+    onCompleteDescribeReservedInstancesOfferings : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = this.getItems(xmlDoc, "reservedInstancesOfferingsSet", "item");
         for ( var i = 0; i < items.length; i++) {
@@ -1551,13 +1554,12 @@ var ew_api = {
             var desc = getNodeValue(item, "productDescription");
             var otype = getNodeValue(item, "offeringType");
             var tenancy = getNodeValue(item, "instanceTenancy");
+            var market = toBool(getNodeValue(item, "marketplace"));
             var rPrices = this.getItems(item, "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
-
-            list.push(new LeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy));
+            var mPrices = this.getItems(item, "pricingDetailsSet", "item", ["price","count"], function(obj) { return new MarketPrice(obj.price, obj.count)});
+            list.push(new ReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy, market, mPrices));
         }
-
-        this.core.setModel('offerings', list);
-        response.result = list;
+        this.getNext(response, this.QueryEC2, list);
     },
 
     createInstanceExportTask: function(id, targetEnv, bucket, descr, prefix, diskFormat, containerFormat, callback)
@@ -1663,7 +1665,7 @@ var ew_api = {
                     var cksum = getNodeValue(vols[j], "image", "checksum");
                     var vsize = getNodeValue(vols[j], "volume", "size");
                     var vid = getNodeValue(vols[j], "volume", "id");
-                    volumes.push(new ConversionTaskVolume(id, expire, vstatus, vstatusMsg, vid, vsize, fmt, isize, url, cksum, vdesr, azone, bytes))
+                    volumes.push(new ConversionTaskVolume(id, expire, vstatus, vstatusMsg, vid, vsize, fmt, isize, url, cksum, vdescr, azone, bytes))
                 }
                 list.push(new ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platform, descr, volumes))
             }
@@ -1705,9 +1707,14 @@ var ew_api = {
         response.result = list;
     },
 
-    purchaseOffering : function(id, count, callback)
+    purchaseReservedInstancesOffering : function(id, count, limit, callback)
     {
-        this.queryEC2("PurchaseReservedInstancesOffering", [ [ "ReservedInstancesOfferingId", id ], [ "InstanceCount", count ] ], this, false, "onComplete", callback);
+        var params = [];
+        params.push([ "ReservedInstancesOfferingId", id ]);
+        params.push([ "InstanceCount", count ]);
+        if (limit) params.push(["LimitPrice.Amount", limit]);
+
+        this.queryEC2("PurchaseReservedInstancesOffering", params, this, false, "onComplete", callback);
     },
 
     describeLaunchPermissions : function(imageId, callback)
@@ -2022,9 +2029,10 @@ var ew_api = {
 
     importInstance: function(instanceType, arch, diskFmt, diskBytes, diskUrl, diskSize, options, callback)
     {
-        var params = this.createLaunchParams(options);
-        params.push(["InstanceType", instanceType])
-        params.push(["Architecture", arch])
+        var params = this.createLaunchParams(options, "LaunchSpecification.");
+        //params.push(["Platform", "Windows"])
+        params.push(["LaunchSpecification.InstanceType", instanceType])
+        params.push(["LaunchSpecification.Architecture", arch])
         params.push(["DiskImage.1.Image.Format", diskFmt]);
         params.push(["DiskImage.1.Image.Bytes", diskBytes]);
         params.push(["DiskImage.1.Image.ImportManifestUrl", diskUrl]);
@@ -2062,7 +2070,7 @@ var ew_api = {
             params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
         }
         for (var i in options.securityGroupNames) {
-            params.push([ prefix + "SecurityGroup." + parseInt(i), typeof options.securityGroupNames[i] == "object" ? options.securityGroupNames[i].name : options.securityGroupNames[i] ]);
+            params.push([ prefix + "GroupName." + parseInt(i), typeof options.securityGroupNames[i] == "object" ? options.securityGroupNames[i].name : options.securityGroupNames[i] ]);
         }
         if (options.userData) {
             var b64str = "Base64:";
@@ -5535,7 +5543,7 @@ var ew_api = {
             var otype = getNodeValue(item, "OfferingType");
             var rPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", ["RecurringChargeFrequency", "RecurringChargeAmount"], function(obj) { return new RecurringCharge(obj.RecurringChargeFrequency, obj.RecurringChargeAmount)});
 
-            list.push(new DBLeaseOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype));
+            list.push(new DBReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype));
         }
         this.getNext(response, this.queryRDS, list);
     },
