@@ -1008,9 +1008,9 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
 
-        this.api.describeInstanceStatus(instance.id, false, function(list) {
+        this.core.api.describeInstanceStatus(instance.id, false, function(list) {
             instance.events = list;
-            me.core.propmtInput("Instance Status", [{label:"Events",type:"listview",list:instance.events,rows:10,multiple:false}]);
+            me.core.promptInput("Instance Status", [{label:"Events",type:"listview",list:instance.events,rows:10,multiple:false}]);
         });
     },
 

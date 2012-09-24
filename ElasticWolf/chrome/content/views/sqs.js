@@ -30,6 +30,7 @@ var ew_SQSTreeView = {
 
         this.core.api.getQueueAttributes(item.url, function(list) {
             list.forEach(function(x) { item[x.name] = x.value; });
+            TreeView.displayDetails.call(me);
         });
     },
 
@@ -86,7 +87,7 @@ var ew_SQSTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput("Message", [{label:"Text",multiline:true,rows:10,required:true,scrollbars:true},
+        var values = this.core.promptInput("Message", [{label:"Text",multiline:true,rows:15,cols:50,required:true,scrollbars:true},
                                                        {label:"Delay Seconds",type:"number",max:900}]);
         if (!values) return;
         this.core.api.sendMessage(item.url, values[0], values[1], function(id) {});
@@ -125,14 +126,14 @@ var ew_SQSMsgTreeView = {
         var item = this.getSelected();
         if (!item) return;
 
-        this.core.promptInput("Message", [{label:"Id",type:"label",value:item.id},
-                                          {label:"MD5",type:"label",value:item.md5},
+        this.core.promptInput("Message", [{label:"Id",readonly:true,value:item.id},
+                                          {label:"MD5",readonly:true,value:item.md5},
                                           {label:"Handle",readonly:true,value:item.handle},
-                                          {label:"SenderId",type:"label",value:item.SenderId},
+                                          {label:"SenderId",readonly:true,value:item.SenderId},
                                           {label:"SentTimestamp",type:"label",value:item.SentTimestamp},
                                           {label:"ApproximateReceiveCount",type:"label",value:item.ApproximateReceiveCount},
                                           {label:"ApproximateFirstReceiveTimestamp",type:"label",value:item.ApproximateFirstReceiveTimestamp},
-                                          {label:"Text",multiline:true,rows:10,cols:50,readonly:true,value:item.body}]);
+                                          {label:"Text",multiline:true,rows:10,cols:50,readonly:true,scrollbars:true,wrap:'off',value:item.body}]);
     },
 
     refresh: function()
