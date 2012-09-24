@@ -13,6 +13,7 @@
                  <menuitem id="ew.queues.contextmenu.perm" oncommand="ew_SQSTreeView.addPermission();" label="Add Permission" />
                  <menuitem id="ew.queues.contextmenu.config" oncommand="ew_SQSTreeView.configureQueue();" label="Configure Queue" />
                  <menuitem id="ew.queues.contextmenu.send" oncommand="ew_SQSTreeView.sendMessage();" label="Send a Message" />
+                 <menuitem id="ew.queues.contextmenu.copy" oncommand="ew_SQSTreeView.copyToClipboard('url);" label="Copy ARN" />
                 </menupopup>
             </popupset>
 

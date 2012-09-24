@@ -1002,6 +1002,18 @@ var ew_InstancesTreeView = {
         this.core.launchProcess(cmd, [filename]);
     },
 
+    showInstanceStatus: function()
+    {
+        var me = this;
+        var instance = this.getSelected();
+        if (!instance) return;
+
+        this.api.describeInstanceStatus(instance.id, false, function(list) {
+            instance.events = list;
+            me.core.propmtInput("Instance Status", [{label:"Events",type:"listview",list:instance.events,rows:10,multiple:false}]);
+        });
+    },
+
     isRefreshable : function()
     {
         for (var i in this.treeList) {

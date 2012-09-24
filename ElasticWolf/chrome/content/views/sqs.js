@@ -10,16 +10,27 @@ var ew_SQSTreeView = {
     menuChanged: function()
     {
         var item = this.getSelected();
-        $('ew.sqs.contextmenu.delete').disabled = item == null;
-        $('ew.sqs.contextmenu.perm').disabled = !item;
-        $('ew.sqs.contextmenu.config').disabled = !item;
+        $('ew.queues.contextmenu.delete').disabled = item == null;
+        $('ew.queues.contextmenu.perm').disabled = !item;
+        $('ew.queues.contextmenu.config').disabled = !item;
+        $('ew.queues.contextmenu.send').disabled = !item;
+        $('ew.queues.contextmenu.copy').disabled = !item;
     },
 
     selectionChanged: function()
     {
+        ew_SQSMsgTreeView.update();
+    },
+
+    displayDetails: function()
+    {
         var me = this;
         var item = this.getSelected();
-        ew_SQSMsgTreeView.update(item);
+        if (!item) return;
+
+        this.core.api.getQueueAttributes(item.url, function(list) {
+            list.forEach(function(x) { item[x.name] = x.value; });
+        });
     },
 
     addQueue: function()
@@ -41,7 +52,7 @@ var ew_SQSTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        if (!confirm('Delete Virtual MFA device ' + item.id)) return;
+        if (!confirm('Delete Queue ' + item.id)) return;
         this.core.api.deleteQueue(item.url, function(){ me.refresh() });
     },
 
@@ -68,7 +79,6 @@ var ew_SQSTreeView = {
             }
         }
         this.core.api.addQueuePermission(item.url, values[0], actions, function(id) {});
-
     },
 
     sendMessage: function()
@@ -76,7 +86,8 @@ var ew_SQSTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput("Message", [{label:"Text",multiline:true,rows:10,required:1}, {label:"Delay Seconds",type:"number",max:900}]);
+        var values = this.core.promptInput("Message", [{label:"Text",multiline:true,rows:10,required:true,scrollbars:true},
+                                                       {label:"Delay Seconds",type:"number",max:900}]);
         if (!values) return;
         this.core.api.sendMessage(item.url, values[0], values[1], function(id) {});
     },
@@ -94,10 +105,12 @@ var ew_SQSTreeView = {
         var item = this.getSelected();
         if (!item) return;
         this.core.api.getQueueAttributes(item.url, function(list) {
-            item.attributes = list;
+            list.forEach(function(x) { item[x.name] = x.value; });
+
             var values = me.core.promptAttributes('Configure Queue', fields, list);
             for (var i in values) {
                 me.core.api.setQueueAttributes(item.id, values[i].name, values[i].value)
+                item[values[i].name] = values[i].value;
             }
         });
     },
@@ -106,24 +119,39 @@ var ew_SQSTreeView = {
 var ew_SQSMsgTreeView = {
     name: "sqsmsg",
 
+    displayDetails: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+
+        this.core.promptInput("Message", [{label:"Id",type:"label",value:item.id},
+                                          {label:"MD5",type:"label",value:item.md5},
+                                          {label:"Handle",readonly:true,value:item.handle},
+                                          {label:"SenderId",type:"label",value:item.SenderId},
+                                          {label:"SentTimestamp",type:"label",value:item.SentTimestamp},
+                                          {label:"ApproximateReceiveCount",type:"label",value:item.ApproximateReceiveCount},
+                                          {label:"ApproximateFirstReceiveTimestamp",type:"label",value:item.ApproximateFirstReceiveTimestamp},
+                                          {label:"Text",multiline:true,rows:10,cols:50,readonly:true,value:item.body}]);
+    },
+
     refresh: function()
     {
         var queue = ew_SQSTreeView.getSelected();
         if (!queue) return;
         queue.messages = null;
-        ew_SQSTreeView.selectionChanged();
+        this.update();
     },
 
-    update: function(queue)
+    update: function()
     {
         var me = this;
-        if (!queue) {
-            display([]);
-            return;
-        }
-        this.display(queue.messages);
+        var queue = ew_SQSTreeView.getSelected();
+        if (!queue) return display([]);
+
+        this.display(queue.messages || []);
         if (!queue.messages) {
-            this.core.api.receiveMessage(queue.url, 0, 0, function(list) {
+            this.core.api.receiveMessage(queue.url, 10, 0, function(list) {
                queue.messages = list;
                me.display(queue.messages);
             });
@@ -136,7 +164,7 @@ var ew_SQSMsgTreeView = {
         var queue = ew_SQSTreeView.getSelected();
         if (!queue) return;
 
-        this.core.api.receiveMessage(queue.url, 0, 0, function(list) {
+        this.core.api.receiveMessage(queue.url, 10, 0, function(list) {
             for (var i = 0; i < list.length; i++) {
                 if (!me.find(list[i])) {
                     queue.messages.push(list[i]);
@@ -149,11 +177,14 @@ var ew_SQSMsgTreeView = {
     deleteMessage: function()
     {
         var me = this;
+        var queue = ew_SQSTreeView.getSelected();
+        if (!queue) return;
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete this message?')) return;
         this.core.api.deleteMessage(item.url, item.handle, function() {
-            me.remove(item);
+            me.core.removeObject(queue.messages, item.id);
+            me.update(queue);
         })
     },
 

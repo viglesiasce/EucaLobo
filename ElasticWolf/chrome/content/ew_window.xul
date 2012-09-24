@@ -308,7 +308,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="IAM" src="images/iam.png" value="ew.tabs.iam.folder" />
+         <treecell label="Identity and Access Management (IAM)" src="images/iam.png" value="ew.tabs.iam.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Users" value="ew.tabs.users" /></treerow></treeitem>
@@ -323,7 +323,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2" />
+         <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
@@ -352,7 +352,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Virtual Private Cloud" src="images/vpc.png" />
+         <treecell label="Virtual Private Cloud (VPC)" src="images/vpc.png" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.vpc.label;" value="ew.tabs.vpc" /></treerow></treeitem>
@@ -375,7 +375,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Cloud Watch" src="images/cloudwatch.png" />
+         <treecell label="Resource/Application Monitoring (CloudWatch)" src="images/cloudwatch.png" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Alarms" value="ew.tabs.alarm" /></treerow></treeitem>
@@ -386,13 +386,13 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Message Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
+         <treecell label="Message Queue Service (SQS)" value="ew.tabs.sqs" src="images/sqs.png" />
        </treerow>
       </treeitem>
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Push Notification Service" value="ew.tabs.sns" src="images/sns.png" />
+         <treecell label="Push Notification Service (SNS)" value="ew.tabs.sns" src="images/sns.png" />
        </treerow>
       </treeitem>
 
@@ -404,13 +404,13 @@
 
       <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="Route 53" value="ew.tabs.r53" src="images/53.png" />
+         <treecell label="Scalable Domain Name System (Route53)" value="ew.tabs.r53" src="images/53.png" />
        </treerow>
       </treeitem>
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Relational Database Service" src="images/rds.png" />
+         <treecell label="Relational Database Service (RDS)" src="images/rds.png" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="DB Instances" value="ew.tabs.db.instance" /></treerow></treeitem>

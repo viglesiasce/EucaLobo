@@ -19,8 +19,7 @@
       setup(this.rc);
   }
   function done() {
-      // Modal dialogs do not need core set
-      if (!this.rc.modal) this.rc.core.win.error = null;
+      this.rc.core.win.error = null;
       return true;
   }
   function setup(rc) {

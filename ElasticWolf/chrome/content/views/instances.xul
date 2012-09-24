@@ -13,16 +13,16 @@
           <menu label="Instance Lifecycle">
             <menupopup>
               <menuitem id="instances.context.start" oncommand="ew_InstancesTreeView.startInstance();" label="Start" />
-              <menuitem oncommand="ew_InstancesTreeView.rebootInstance();" label="Reboot" />
+              <menuitem id="instances.context.reboot" oncommand="ew_InstancesTreeView.rebootInstance();" label="Reboot" />
               <menuitem id="instances.context.stop" oncommand="ew_InstancesTreeView.stopInstance();" label="Stop" />
               <menuitem id="instances.context.forceStop" oncommand="ew_InstancesTreeView.stopInstance(true);" label="Force Stop" />
-              <menuitem oncommand="ew_InstancesTreeView.terminateInstance();" label="Terminate" style="color:red; font-weight:bold;"/>
+              <menuitem id="instances.context.terminate" oncommand="ew_InstancesTreeView.terminateInstance();" label="Terminate" style="color:red; font-weight:bold;"/>
             </menupopup>
           </menu>
           <menuseparator />
-          <menuitem oncommand="ew_InstancesTreeView.launchMore();" label="Launch More of these" />
-          <menuitem oncommand="ew_InstancesTreeView.associateWithEIP();" label="Associate with Elastic IP" />
-          <menuitem oncommand="ew_InstancesTreeView.attachEBSVolume();" label="Attach an EBS Volume" />
+          <menuitem id="instances.context.launch" oncommand="ew_InstancesTreeView.launchMore();" label="Launch More of these" />
+          <menuitem id="instances.context.eip" oncommand="ew_InstancesTreeView.associateWithEIP();" label="Associate with Elastic IP" />
+          <menuitem id="instances.context.attach" oncommand="ew_InstancesTreeView.attachEBSVolume();" label="Attach an EBS Volume" />
           <menuitem id="instances.context.createimage" oncommand="ew_InstancesTreeView.showCreateImageDialog();" label="Create Image (EBS AMI)" />
           <menuitem id="instances.context.export" oncommand="ew_InstancesTreeView.exportToS3();" label="Export to S3 Bucket" />
           <menuitem id="instances.context.bundle" oncommand="ew_InstancesTreeView.showBundleDialog();" label="Bundle into an S3 AMI" />
@@ -38,6 +38,7 @@
             <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
             <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
             <menuitem id="instances.context.showMetrics" oncommand="ew_InstancesTreeView.showMetrics();" label="Show Metrics" />
+            <menuitem id="instances.context.events" oncommand="ew_InstancesTreeView.showInstanceStatus();" label="Show Instance Status" />
             </menupopup>
           </menu>
           <menuseparator />

@@ -13,6 +13,9 @@ var ew_SNSTopicsTreeView = {
         $('ew.topics.contextmenu.delete').disabled = item == null;
         $('ew.topics.contextmenu.perm').disabled = !item;
         $('ew.topics.contextmenu.config').disabled = !item;
+        $('ew.topics.contextmenu.confirm').disabled = !item;
+        $('ew.topics.contextmenu.subscribe').disabled = !item;
+        $('ew.topics.contextmenu.publish').disabled = !item;
     },
 
     createTopic: function()
@@ -72,14 +75,16 @@ var ew_SNSTopicsTreeView = {
         var item = this.getSelected();
         if (!item) return;
 
+        var protos = [{id:"http", name:"Delivery of JSON-encoded message via HTTP POST"},
+                      {id:"https", name:"Delivery of JSON-encoded message via HTTPS POST"},
+                      {id:"email", name:"Delivery of message via SMTP"},
+                      {id:"email-json", name: "Delivery of JSON-encoded message via SMTP"},
+                      {id: "sms", name:"Delivery of message via SMS"},
+                      {id: "sqs", name: "Delivery of JSON-encoded message to an Amazon SQS queue"} ];
+
         var inputs = [{label:"Topic",type:"label",value:item.name},
                       {label:"Endpoint",required:1},
-                      {label:"Protocols",type:"menulist",list:[{id:"http", name:"Delivery of JSON-encoded message via HTTP POST"},
-                                                               {id:"https", name:"Delivery of JSON-encoded message via HTTPS POST"},
-                                                               {id:"email", name:"Delivery of message via SMTP"},
-                                                               {id:"email-json", name: "Delivery of JSON-encoded message via SMTP"},
-                                                               {id: "sms", name:"Delivery of message via SMS"},
-                                                               {id: "sqs", name: "Delivery of JSON-encoded message to an Amazon SQS queue"} ]}, ];
+                      {label:"Protocols",type:"menulist",list:protos,style:"width:350px;max-width:350px"}, ];
 
         var values = this.core.promptInput("Subscribe", inputs);
         if (!values) return;

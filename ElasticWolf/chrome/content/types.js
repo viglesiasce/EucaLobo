@@ -1783,16 +1783,6 @@ function S3BucketKey(bucket, name, type, size, mtime, owner, etag)
     }
 }
 
-function Queue(url)
-{
-    this.url = url;
-    this.name = url.split("/").pop();
-
-    this.toString = function() {
-        return this.name
-    }
-}
-
 function Item(name, value)
 {
     this.name = name
@@ -2200,7 +2190,8 @@ function InstanceStatusEvent(instanceId, availabilityZone, status, code, descrip
     this.endTime = endTime;
 
     this.toString = function() {
-        return this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator + this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
+        return this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
+               this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
     }
 }
 
@@ -2744,17 +2735,36 @@ function ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platfo
     }
 }
 
-function Message(id, body, handle, url)
+function Queue(url)
+{
+    this.url = url;
+    this.name = url.split("/").pop();
+    this.messages = null;
+
+    this.toString = function() {
+        return this.name
+    }
+}
+
+function Message(id, body, handle, md5, url)
 {
     this.id = id;
     this.body = body || "";
     this.handle = handle;
     this.url = url || "";
+    this.md5 = md5 || "";
     this.size = this.body.length;
-    this.subject = this.body.substr(0, 32);
+    this.subject = "";
 
+    // Try to determine the subject
+    try {
+        var o = JSON.parse(this.body)
+        this.subject = o.subject || o.type;
+    } catch(e) {
+        this.subject = this.body.split("\n")[0];
+    }
     this.toString = function() {
-        return this.id;
+        return this.id + (this.subject ? fieldSeparator + this.subject : "");
     }
 }
 

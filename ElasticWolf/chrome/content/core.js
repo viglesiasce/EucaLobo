@@ -940,7 +940,7 @@ var ew_core = {
         if (!response) response = {};
         var rc = { core: this, msg: msg, action: response.action || "", errCode: response.errCode || "", errString: response.errString || "", requestId: response.requestId || "" };
         // Reuse the same window
-        if (!this.win.error || !this.win.error.setup) {
+        if (!this.win.error) {
             this.win.error = window.openDialog("chrome://ew/content/dialogs/error.xul", null, "chrome,centerscreen,resizable,modeless", rc);
         } else
         if (this.win.error.setup) {
@@ -1784,7 +1784,7 @@ var ew_core = {
                 this.api.describeRegions();
                 break;
             case "instanceStatus":
-                this.api.describeInstanceStatus();
+                this.api.describeInstanceStatus(null, true);
                 break;
             case "volumeStatus":
                 this.api.describeVolumeStatus();

@@ -26,6 +26,7 @@ var ew_api = {
     secretKey: "",
     securityToken: "",
     httpCount: 0,
+    actionIgnore: [],
     errorList: [],
     errorIgnore: /(is not enabled in this region|is not supported in your requested Availability Zone)/,
 
@@ -2197,19 +2198,25 @@ var ew_api = {
         this.queryEC2("ModifyInstanceAttribute", params, this, false, "onComplete", callback);
     },
 
-    describeInstanceStatus : function (callback) {
-        this.queryEC2("DescribeInstanceStatus", [], this, false, "onCompleteDescribeInstanceStatus", callback);
+    describeInstanceStatus : function (id, all, callback)
+    {
+        var params = [];
+        if (id) params.push(["InstanceId", id])
+        if (all) params.push(["IncludeAllInstances", true])
+
+        this.queryEC2("DescribeInstanceStatus", params, this, false, "onCompleteDescribeInstanceStatus", callback);
     },
 
     onCompleteDescribeInstanceStatus : function (response)
     {
         var xmlDoc = response.responseXML;
+        var list = [];
         var items = this.getItems(xmlDoc, "instanceStatusSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var list = new Array();
             var instanceId = getNodeValue(item, "instanceId");
             var availabilityZone = getNodeValue(item, "availabilityZone");
+            list = [];
 
             var objs = item.getElementsByTagName("systemStatus");
             for (var j = 0; j < objs.length; j++) {
@@ -2247,6 +2254,7 @@ var ew_api = {
             var instance = this.core.findModel('instances', instanceId);
             if (instance) instance.events = list;
         }
+        response.result = list;
     },
 
     terminateInstances : function(instances, callback)
@@ -4680,7 +4688,7 @@ var ew_api = {
     onCompleteGetQueueAttributes : function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Tag(obj.Name,obj.Value)});
+        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Item(obj.Name,obj.Value)});
         response.result = list;
     },
 
@@ -4730,7 +4738,8 @@ var ew_api = {
             var id = getNodeValue(items[i], "MessageId");
             var handle = getNodeValue(items[i], "ReceiptHandle");
             var body = getNodeValue(items[i], "Body");
-            var msg = new Message(id, body, handle, response.url);
+            var md5 = getNodeValue(items[i], "MD5OfBody")
+            var msg = new Message(id, body, handle, md5, response.url);
 
             var attrs = items[i].getElementsByTagName('Attribute');
             for (var j = 0; j < attrs.length; j++) {
