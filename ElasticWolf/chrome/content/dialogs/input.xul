@@ -97,8 +97,9 @@
              for (var j in rc.items[i].list) {
                  var obj = rc.items[i].list[j];
                  var e = document.createElement('menuitem');
+                 var v = typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj;
                  e.setAttribute('label', rc.core.toString(obj));
-                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
+                 e.setAttribute('value', v);
                  popup.appendChild(e);
              }
              item.setAttribute('crop','end');

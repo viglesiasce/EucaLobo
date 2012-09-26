@@ -11,7 +11,7 @@
                         <menuitem oncommand="ew_SnapshotTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
                         <menuitem oncommand="ew_SnapshotTreeView.tag(event);" label="Edit EC2 Tag" />
                         <menuseparator />
-                        <menuitem oncommand="ew_SnapshotTreeView.showRegisterImageFromSnapshotDialog();" label="Register AMI from snapshot" />
+                        <menuitem oncommand="ew_SnapshotTreeView.createImageFromSnapshot();" label="Register AMI from snapshot" />
                         <menuitem oncommand="ew_SnapshotTreeView.viewPermissions();" label="Manage Permissions" />
                         <menuseparator />
                         <menuitem oncommand="ew_SnapshotTreeView.createVolume();" label="&ew.snapshot.contextmenu.createvol.label;" />

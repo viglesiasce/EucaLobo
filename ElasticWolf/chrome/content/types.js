@@ -1998,11 +1998,12 @@ function Snapshot(id, volumeId, status, startTime, progress, volumeSize, descrip
     }
 }
 
-function Volume(id, type, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags)
+function Volume(id, type, size, iops, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags)
 {
     this.id = id;
     this.type = type;
     this.size = size;
+    this.iops = iops;
     this.snapshotId = snapshotId;
     this.availabilityZone = zone;
     this.status = status;

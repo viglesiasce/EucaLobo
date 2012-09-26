@@ -17,7 +17,7 @@
                         <menuitem id="volumes.context.detach" oncommand="ew_VolumeTreeView.detachVolume();" label="&ew.volume.contextmenu.detach.label;" />
                         <menuitem id="volumes.context.forcedetach" oncommand="ew_VolumeTreeView.forceDetachVolume();" label="&ew.volume.contextmenu.forcedetach.label;" />
                         <menuitem id="volumes.context.deleteOnTermination" oncommand="ew_VolumeTreeView.changeDeleteOnTermination();" label="Change Delete On Termination" />
-                        <menuitem oncommand="ew_VolumeTreeView.createSnapshot();" label="&ew.volume.contextmenu.createsnap.label;" />
+                        <menuitem id="volumes.context.createSnapshot" oncommand="ew_VolumeTreeView.createSnapshot();" label="&ew.volume.contextmenu.createsnap.label;" />
                         <menuseparator />
                         <menuitem id="volumes.context.status" oncommand="ew_VolumeTreeView.showStatus();" label="Show Volume Status" />
                         <menuitem id="volumes.context.enableIO" oncommand="ew_VolumeTreeView.enableIO();" label="Enable Volume IO" />

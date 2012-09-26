@@ -2063,14 +2063,14 @@ var ew_core = {
             if (!columns && obj.hasOwnProperty('toString')) {
                 item = obj.toString()
             } else {
-                for (p in obj) {
-                    if (!columns && typeof obj[p] == "function") {
-                        if (p != "toString") continue;
-                        item += (item != "" ? fieldSeparator : "") + obj.toString();
-                    } else
-                    if (!columns || columns.indexOf(p) >= 0) {
-                        item += (item != "" ? fieldSeparator : "") + this.modelValue(p, obj[p]);
-                    }
+               for (p in obj) {
+                   if (typeof obj[p] == "function") {
+                       if (p != "toString") continue;
+                       item += (item != "" ? fieldSeparator : "") + obj.toString();
+                   } else
+                   if (!columns || columns.indexOf(p) >= 0) {
+                       item += (item != "" ? fieldSeparator : "") + this.modelValue(p, obj[p]);
+                   }
                 }
             }
             return item

@@ -810,7 +810,7 @@ var ew_api = {
         params.push([ 'BlockDeviceMapping.1.Ebs.SnapshotId', snapshotId ]);
         params.push([ 'BlockDeviceMapping.1.Ebs.DeleteOnTermination', deleteOnTermination ]);
 
-        this.queryEC2("RegisterImage", params, this, false, "onComplete", callback);
+        this.queryEC2("RegisterImage", params, this, false, "onComplete:imageId", callback);
     },
 
     deregisterImage : function(imageId, callback)
@@ -879,6 +879,7 @@ var ew_api = {
             var id = getNodeValue(item, "volumeId");
             var type = getNodeValue(item, "volumeType");
             var size = getNodeValue(item, "size");
+            var iops = getNodeValue(item, "iops");
             var snapshotId = getNodeValue(item, "snapshotId");
 
             var zone = getNodeValue(item, "availabilityZone");
@@ -893,7 +894,7 @@ var ew_api = {
             var deleteOnTermination = getNodeValue(aitem[0], "deleteOnTermination");
             var attachTime = new Date(getNodeValue(aitem[0], "attachTime"));
             var tags = this.getTags(item);
-            list.push(new Volume(id, type, size, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags));
+            list.push(new Volume(id, type, size, iops, snapshotId, zone, status, createTime, instanceId, device, attachStatus, attachTime, deleteOnTermination, tags));
         }
 
         this.core.setModel('volumes', list);
@@ -947,7 +948,6 @@ var ew_api = {
     onCompleteDescribeSnapshots : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = this.getItems(xmlDoc, "snapshotSet", "item");
         for ( var i = 0; i < items.length; i++) {
@@ -957,6 +957,7 @@ var ew_api = {
             var status = getNodeValue(item, "status");
             var startTime = new Date(getNodeValue(item, "startTime"));
             var progress = getNodeValue(item, "progress");
+            if (progress && progress.indexOf('%') == -1) progress += '%';
             var volumeSize = getNodeValue(item, "volumeSize");
             var description = getNodeValue(item, "description");
             var ownerId = getNodeValue(item, "ownerId")

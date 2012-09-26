@@ -231,15 +231,13 @@ var ew_AMIsTreeView = {
         var image = this.getSelected();
         if (image == null) return;
 
-        var ami = image.id;
-        var snapshot = image.snapshotId;
-        if (confirm("Are you sure you want to delete this AMI (" + ami + ") " + "and the accompanying snapshot (" + snapshot + ")?")) {
-            var wrap = function()
-            {
-                this.core.api.deleteSnapshot(snapshot, function() { ew_SnapshotTreeView.refresh() });
+        if (confirm("Are you sure you want to delete this AMI (" + image.id + ") " + "and the accompanying snapshots (" + image.volumes + ")?")) {
+            this.core.api.deregisterImage(image.id, function() {
+                for (var i in image.volumes) {
+                    me.core.api.deleteSnapshot(image.volumes[i].snapshotId, function() { ew_SnapshotTreeView.refresh() });
+                }
                 me.refresh();
-            }
-            this.core.api.deregisterImage(ami, wrap);
+            });
         }
     },
 
@@ -1017,7 +1015,7 @@ var ew_InstancesTreeView = {
     isRefreshable : function()
     {
         for (var i in this.treeList) {
-            if (this.treeList[i].state == "pending" || this.treeList[i].state == "shutting-down") return true;
+            if (["pending","shutting-down","stopping"].indexOf(this.treeList[i].state) != -1) return true;
         }
         return false;
     },
@@ -1072,21 +1070,24 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var descr = prompt('Snapshot description (optional):');
-        this.core.api.createSnapshot(image.id, desc, function() { me.core.refreshModel('snapshots'); });
+        this.core.api.createSnapshot(image.id, descr, function() { me.core.refreshModel('snapshots'); });
     },
 
-    createVolume : function (snap)
+    createVolume : function (image)
     {
         var me = this;
+        if (!image) image = this.getSelected();
         var zones = this.core.queryModel('availabilityZones');
-        var snapshots = this.core.queryModel('snapshots', "status", "completed");
+        var snapshots = this.core.queryModel('snapshots', "status", "completed", "owner", this.core.user.accountId);
         this.core.sortObjects(snapshots, ['name','description']);
-        var values = this.core.promptInput('Create Volume', [{label:"Size (GB)",type:"number",min:1,required:1},
-                                                             {label:"Name"},
-                                                             {label:"Availability Zone",type:"menulist",list:zones,required:1},
-                                                             {label:"Snapshot",type:"menulist",list:snapshots},
-                                                             {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
-                                                             {label:"IOPS",type:"number",min:1,max:1000}]);
+
+        var values = this.core.promptInput('Create Volume',
+                                    [{label:"Size (GB)",type:"number",min:1,required:1},
+                                     {label:"Name",required:1},
+                                     {label:"Availability Zone",type:"menulist",list:zones,required:1},
+                                     {label:"Snapshot",type:"menulist",list:snapshots,value:image ? image.id : "",style:"max-width:300px;"},
+                                     {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
+                                     {label:"IOPS",type:"number",min:1,max:1000}]);
         if (!values) return;
         var params = [];
         if (values[4] == "io1") {
@@ -1217,9 +1218,7 @@ var ew_VolumeTreeView = {
         // Walk the list of volumes to see whether there is a volume whose state needs to be refreshed
         for (var i in this.treeList) {
             var volume = this.treeList[i];
-            if (volume.status == "creating" || volume.status == 'deleting' || volume.attachStatus == "attaching" || volume.attachStStatus == "detaching") {
-                return true;
-            }
+            if (volume.status == "creating" || volume.status == 'deleting' || volume.attachStatus == "attaching" || volume.attachStStatus == "detaching") return true;
         }
         return false;
     },
@@ -1303,7 +1302,7 @@ var ew_SnapshotTreeView = {
 
     createVolume : function () {
         var image = this.getSelected();
-        if (image == null) return;
+        if (!image) return;
         ew_VolumeTreeView.createVolume(image);
     },
 
@@ -1314,12 +1313,12 @@ var ew_SnapshotTreeView = {
         return false;
     },
 
-    showRegisterImageFromSnapshotDialog : function() {
+    createImageFromSnapshot : function() {
         var image = this.getSelected();
-        if (image == null) return;
+        if (!image) return;
 
         var values = this.core.promptInput('Create AMI', [{label:"Snapshot",type:"label",value:image.toString()},
-                                                          {label:"AMI Name",type:"name",required:1},
+                                                          {label:"AMI Name",required:1},
                                                           {label:"Description"},
                                                           {label:"Architecture",type:"menulist",list: ["i386", "x86_64"],required:1},
                                                           {label:"Kernel ID"},
