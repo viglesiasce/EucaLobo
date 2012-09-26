@@ -1071,7 +1071,7 @@ var ew_VolumeTreeView = {
         var me = this;
         var image = this.getSelected();
         if (image == null) return;
-        var descr = propmt('Snapshot description (optional):');
+        var descr = prompt('Snapshot description (optional):');
         this.core.api.createSnapshot(image.id, desc, function() { me.core.refreshModel('snapshots'); });
     },
 
@@ -1293,11 +1293,12 @@ var ew_SnapshotTreeView = {
     },
 
     deleteSnapshot : function () {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
         var label = image.name ? (image.name + '@' + image.id) : image.id;
         if (!confirm("Delete snapshot " + label + "?"))  return;
-        this.core.api.deleteSnapshot(image.id);
+        this.core.api.deleteSnapshot(image.id, function() { me.refresh() });
     },
 
     createVolume : function () {

@@ -1683,7 +1683,6 @@ var ew_api = {
     onCompleteDescribeReservedInstances : function(response)
     {
         var xmlDoc = response.responseXML;
-
         var list = new Array();
         var items = this.getItems(xmlDoc, "reservedInstancesSet", "item");
         for ( var i = 0; i < items.length; i++) {
@@ -1700,7 +1699,6 @@ var ew_api = {
             var state = getNodeValue(item, "state");
             var tenancy = getNodeValue(item, "instanceTenancy");
             var rPrices = this.getItems(item, "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
-
             list.push(new ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy));
         }
 
@@ -5559,10 +5557,10 @@ var ew_api = {
 
     describeReservedDBInstances : function(callback)
     {
-        this.queryRDS("DescribeReservedDBInstances", [], this, false, "onCompleteDescribeReservedInstances", callback);
+        this.queryRDS("DescribeReservedDBInstances", [], this, false, "onCompleteDescribeDBReservedInstances", callback);
     },
 
-    onCompleteDescribeReservedInstances : function(response)
+    onCompleteDescribeDBReservedInstances : function(response)
     {
         var xmlDoc = response.responseXML;
 
