@@ -764,11 +764,6 @@ var ew_KeypairsTreeView = {
         this.core.api.deleteKeypair(keypair.name, function() {me.refresh();});
     },
 
-    runShell: function()
-    {
-        var keypair = this.getSelected();
-        this.core.launchShell(keypair, null);
-    },
 };
 
 
@@ -1262,8 +1257,7 @@ var ew_CredentialsTreeView = {
      runShell: function()
      {
          var cred = this.getSelected();
-         var keypair = ew_KeypairsTreeView.getSelected();
-         this.core.launchShell(keypair, cred);
+         this.core.launchShell(cred);
      },
 };
 

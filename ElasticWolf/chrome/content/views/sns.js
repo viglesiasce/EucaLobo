@@ -7,6 +7,12 @@
 var ew_SNSTopicsTreeView = {
     model: "topics",
 
+    selectionChanged: function()
+    {
+        TreeView.selectionChanged.call(this);
+        ew_SNSSubscriptionsTreeView.invalidate();
+    },
+
     menuChanged: function()
     {
         var item = this.getSelected();
@@ -144,6 +150,16 @@ var ew_SNSTopicsTreeView = {
 
 var ew_SNSSubscriptionsTreeView = {
     model: "subscriptions",
+
+    filter: function(list)
+    {
+        var nlist = [];
+        var topic = ew_SNSTopicsTreeView.getSelected();
+        for (var i in list) {
+            if (!topic || list[i].topicArn == topic.id) nlist.push(list[i]);
+        }
+        return nlist;
+    },
 
     unsubscribe: function()
     {

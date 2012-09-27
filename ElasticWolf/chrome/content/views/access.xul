@@ -54,7 +54,6 @@
                     <menuitem oncommand="ew_KeypairsTreeView.importKeypair();" label="&ew.keypairs.import.tip;"/>
                     <menuitem oncommand="ew_KeypairsTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
                     <menuitem oncommand="ew_KeypairsTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
-                    <menuitem oncommand="ew_KeypairsTreeView.runShell()" label="&ew.keypairs.shell.tip;"/>
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
@@ -66,7 +65,6 @@
                 <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
                 <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
                 <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairsTreeView.displayDetails()"/>
-                <toolbarbutton image="images/shell.png" tooltiptext="&ew.keypairs.shell.tip;" oncommand="ew_KeypairsTreeView.runShell()"/>
             </toolbar>
             <tree enableColumnDrag="true" id="ew.keypairs.view" flex="1">
                 <treecols>

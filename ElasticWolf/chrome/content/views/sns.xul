@@ -62,13 +62,13 @@
 
             <tree enableColumnDrag="true" seltype="single" id="ew.subscriptions.view" flex="1">
                 <treecols>
-                    <treecol id="sqs.topic" label="Topic" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.topicName" label="Topic" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="sqs.Protocol" label="Protocol" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.protocol" label="Protocol" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="sqs.Endpoint" label="Endpoint" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.endpoint" label="Endpoint" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="sqs.Owner" label="Owner" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="sqs.owner" label="Owner" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.subscriptions.children" context="ew.subscriptions.contextmenu" />

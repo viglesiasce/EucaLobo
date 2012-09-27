@@ -1973,7 +1973,10 @@ function AMI(id, name, description, location, state, status, arch, platform, aki
     ew_core.processTags(this)
 
     this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator + this.status + fieldSeparator + this.rootDeviceType;
+        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator +
+                this.state + fieldSeparator +
+                this.status + fieldSeparator +
+                this.rootDeviceType;
     }
 }
 
@@ -2020,9 +2023,14 @@ function Volume(id, type, size, iops, snapshotId, zone, status, createTime, inst
 
     this.toString = function() {
         return (this.name ? this.name + fieldSeparator : "") +
-                this.id + fieldSeparator + this.type + fieldSeparator + this.device + fieldSeparator + this.status + fieldSeparator + this.size + "GB" +
+                this.id + fieldSeparator +
+                this.status + fieldSeparator +
+                this.type + (this.type == "io1" ? "/" + this.iops : "") + fieldSeparator +
+                this.device + fieldSeparator +
+                this.size + "GB" +
                (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
-               (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+               fieldSeparator + this.attachStatus +
+               (this.instanceId ? " to (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
     }
 }
 
@@ -2088,7 +2096,8 @@ function InstanceBlockDeviceMapping(deviceName, volumeId, status, attachTime, de
     this.deleteOnTermination = toBool(deleteOnTermination);
 
     this.toString = function() {
-        return this.deviceName + fieldSeparator + this.status + fieldSeparator + this.volumeId + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "");
+        var vol = ew_core.modelValue("volumeId", this.volumeId);
+        return vol != this.voluemId ? vol : this.deviceName + fieldSeparator + this.status + fieldSeparator + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "");
     }
 }
 
@@ -2111,7 +2120,8 @@ function InstanceNetworkInterface(id, status, descr, subnetId, vpcId, ownerId, p
     this.privateIpAddresses = privateIps;
 
     this.toString = function() {
-        return (this.descr ? this.descr + fieldSeparator : "") + this.status + fieldSeparator + 'eth' + this.deviceIndex + fieldSeparator +
+        return (this.descr ? this.descr + fieldSeparator : "") +
+                this.status + fieldSeparator + 'eth' + this.deviceIndex + fieldSeparator +
                 (this.privateIpAddresses.length ? this.privateIpAddresses : this.privateIp + (this.publicIp ? "/" + this.publicIp : ""));
     }
 }
@@ -2165,7 +2175,7 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     ew_core.processTags(this);
 
     this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator + this.instanceType + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
+        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.instanceType + fieldSeparator + this.state + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
     }
 
     this.validate = function() {
@@ -2783,14 +2793,14 @@ function Topic(arn)
 function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
 {
     this.id = SubscriptionArn
-    this.TopicArn = TopicArn
-    this.topic = this.TopicArn.split(/[:\/]+/).pop()
-    this.Protocol = Protocol
-    this.Endpoint = Endpoint
-    this.Owner = Owner
+    this.topicArn = TopicArn
+    this.topicName = this.topicArn.split(/[:\/]+/).pop()
+    this.protocol = Protocol
+    this.endpoint = Endpoint
+    this.owner = Owner
 
     this.toString = function() {
-        return this.Protocol + fieldSeparator + this.Endpoint;
+        return this.protocol + fieldSeparator + this.endpoint;
     }
 }
 

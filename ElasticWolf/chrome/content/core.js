@@ -65,13 +65,13 @@ var ew_core = {
         this.getEndpoints();
 
         document.title = this.getAppName();
-        document.getElementById("ew.header").value = this.NAME + " version " + this.VERSION;
+        document.getElementById("ew.header").label = this.NAME + " version " + this.VERSION;
         document.getElementById("ew.url").value = this.URL;
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
         this.switchCredentials(this.findCredentials(this.getCurrentUser()));
-        this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.credential"));
+        this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.ew"));
 
         // Parse command line
         this.cmdLine = window.arguments ? window.arguments[0].QueryInterface(Components.interfaces.nsICommandLine) : null;
@@ -1396,7 +1396,7 @@ var ew_core = {
     },
 
     // Start command shell with given key pair and access key, setup environment variables to be used by AWS command line tools
-    launchShell : function(keyPair, cred)
+    launchShell : function(cred)
     {
         // Make sure we have directory
         if (!this.makeKeyHome()) return 0
@@ -1407,11 +1407,6 @@ var ew_core = {
         this.saveAccessKey(file, { id: cred ? cred.accessKey : this.api.accessKey, secret: cred ? cred.secretKey : this.api.secretKey });
         this.setEnv("AWS_CREDENTIAL_FILE", file);
 
-        // Setup environment
-        if (keyPair) {
-            this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile(keyPair.name));
-            this.setEnv("EC2_CERT", this.getCertificateFile(keyPair.name));
-        }
         this.setEnv("EC2_URL", this.api.urls.EC2);
         this.setEnv("AWS_IAM_URL", this.api.urls.IAM);
         this.setEnv("AWS_CLOUDWATCH_URL", this.api.urls.CW);
@@ -1436,7 +1431,7 @@ var ew_core = {
             this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
-        debug('launchShell:' + keyPair + ":" + cred + " " + path)
+        debug('launchShell:' + cred + " " + path)
         this.setEnv("PATH", path);
         this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
     },
