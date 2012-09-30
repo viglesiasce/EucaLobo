@@ -103,7 +103,7 @@
 
             { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
 
-            { name: "ew.tabs.ec2",           views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
+            { name: "ew.tabs.ec2.folder",    views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
@@ -321,7 +321,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2" />
+         <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
@@ -501,7 +501,7 @@
       <tabpanel id="ew.tabs.export"/>
       <tabpanel id="ew.tabs.placementgroup"/>
 
-      <tabpanel id="ew.tabs.ec2">
+      <tabpanel id="ew.tabs.ec2.folder">
        <vbox flex="1">
          <groupbox flex="1">
            <caption label="EC2 Resources Summary" />
