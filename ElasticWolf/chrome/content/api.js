@@ -11,7 +11,7 @@ var ew_api = {
     STS_API_VERSION: '2011-06-15',
     SQS_API_VERSION: '2011-10-01',
     SNS_API_VERSION: '2010-03-31',
-    RDS_API_VERSION: '2012-04-23',
+    RDS_API_VERSION: '2012-09-17',
     R53_API_VERSION: '2012-02-29',
     AS_API_VERSION: '2011-01-01',
     SIG_VERSION: '2',
@@ -589,7 +589,8 @@ var ew_api = {
 
         // Response callback is called in all cases, some errors can be ignored
         if (handlerObj) {
-            handlerObj.onResponseComplete(rc);
+            var res = handlerObj.onResponseComplete(rc);
+            if (rc.isSync) rc.result = res;
         }
         debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
@@ -679,7 +680,7 @@ var ew_api = {
         }
 
         if (this[method]) {
-            this[method](response, id, item);
+            return this[method](response, id, item);
         } else {
            alert('Error calling handler ' + response.method + ' for ' + response.action);
         }
@@ -712,10 +713,14 @@ var ew_api = {
         var model = response.action + ":" + response.params.filter(function(x) { return x[0] != "Marker" && x[0] != "NextToken"; });
         if (!this.cache[model]) this.cache[model] = [];
         this.cache[model] = this.cache[model].concat(list || []);
+        response.model = model;
 
         // Collected result will be returned by the last call only
         var marker = getNodeValue(xmlDoc, "Marker");
         var nextToken = getNodeValue(xmlDoc, "NextToken");
+
+        log('getNext: ' + model + ", token=" + (marker || nextToken) + ", rc=" + this.cache[model].length);
+
         if (nextToken || marker) {
             var params = cloneObject(response.params);
             if (marker) setParam(params, "Marker", marker);
@@ -723,7 +728,9 @@ var ew_api = {
             response.skipCallback = true;
 
             // In sync mode keep spinning until we collect evrything
-            if (response.isSync) return method.call(me, response.action, params, me, true, response.method, response.callback);
+            if (response.isSync) {
+                return method.call(me, response.action, params, me, true, response.method, response.callback);
+            }
 
             // Schedule another request
             setTimeout(function() { method.call(me, response.action, params, me, false, response.method, response.callback); }, 100);
@@ -731,6 +738,7 @@ var ew_api = {
             response.result = this.cache[model];
             this.cache[model] = null;
         }
+        return response.result;
     },
 
     // Parse XML node parentNode and extract all items by itemNode tag name, if item node has multiple fields, columns may be used to restrict which
@@ -5525,7 +5533,7 @@ var ew_api = {
             var azones = this.getItems(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
             list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones));
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     describeReservedDBInstancesOfferings : function(callback)

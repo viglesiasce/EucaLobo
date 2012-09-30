@@ -282,11 +282,12 @@ var ew_DBInstancesTreeView = {
             case 1: // Engine
                 var engine = me.core.findModel('dbengines', item.obj.value, 'engine');
                 input.rc.items[idx+1].obj.value = engine ? engine.version : '';
-                var list = engine ? me.core.api.describeOrderableDBInstanceOptions(item.obj.value) : [];
+                var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(item.obj.value) : []);
                 var dbclass = input.rc.items[idx+2].obj.value;
                 buildListbox(input.rc.items[idx+2].obj, list, 'instanceClass');
                 if (dbclass) input.rc.items[idx+2].obj.value = dbclass;
                 buildListbox(input.rc.items[17].obj, engine ? engine.charsets : []);
+                if (engine) engine.orderableOptions = list;
                 break;
 
             case 9: // Azone
