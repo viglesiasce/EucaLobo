@@ -42,7 +42,7 @@ var ew_UsersTreeView = {
     {
         var me = this;
         // GovCloud does not support this yet
-        if (!item.loginProfileDate && !this.core.isGovCloud()) {
+        if (!item.loginProfileDate) {
             this.core.api.getLoginProfile(item.name, function(date) { me.menuChanged() })
         }
         if (!item.groups) {
@@ -413,6 +413,7 @@ var ew_GroupsTreeView = {
         if (idx < 0) return;
         this.core.api.addUserToGroup(users[idx].name, item.name, function() {
             item.users = null;
+            users[idx].groups = null;
             me.invalidate();
         });
     },
@@ -427,6 +428,7 @@ var ew_GroupsTreeView = {
         if (!confirm("Remove user " + user.name + " from group " + item.name + "?")) return;
         this.core.api.removeUserFromGroup(user.name, item.name, function() {
             item.users = null;
+            user.groups = null;
             me.invalidate();
         });
     },
@@ -581,13 +583,10 @@ var ew_RolesTreeView = {
                                                           {label: "Path"},
                                                           {label:"Assumed Role Policy",multiline:true,rows:10,cols:50,required:1,value:policy} ]);
        if (values) {
-           this.core.api.createRole(values[0], values[1], values[3], function(role) {
-               me.core.addModel('roles', role);
-               me.invalidate();
-               me.select(role)
+           this.core.api.createRole(values[0], values[1], values[2], function(role) {
                me.core.api.createInstanceProfile(values[0], "", function(profile) {
-                   me.core.addRoleToInstanceProfile(profile.name, role.name, function() {
-                       me.selectionChanged();
+                   me.core.api.addRoleToInstanceProfile(profile.name, role.name, function() {
+                       me.refresh();
                    });
                });
            })
