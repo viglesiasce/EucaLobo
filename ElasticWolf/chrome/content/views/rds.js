@@ -268,7 +268,7 @@ var ew_DBInstancesTreeView = {
 
     isRefreshable : function()
     {
-        return this.treeList.some(function(x) { return x.state == "deleting" || x.state == "creating"; });
+        return this.treeList.some(function(x) { return x.status == "deleting" || x.status == "creating" | x.status == "backing-up"; });
     },
 
     putInstance: function(edit)
@@ -326,6 +326,7 @@ var ew_DBInstancesTreeView = {
                       {label:"Backup Retention Period",type:"number",value:1,max:8,tooltiptext:"The number of days for which automated backups are retained. Setting this parameter to a positive number enables backups. Setting this parameter to 0 disables automated backups. Cannot be set to 0 if the DB Instance is a master instance with read replicas."},
                       {label:"Preferred Backup Window",tooltiptext:"The daily time range during which automated backups are created if automated backups are enabled, using the BackupRetentionPeriod parameter.Constraints: Must be in the format hh24:mi-hh24:mi. Times should be Universal Time Coordinated (UTC). Must not conflict with the preferred maintenance window. Must be at least 30 minutes."},
                       {label:"Preferred Maintenance Window",tooltiptext:"The weekly time range (in UTC) during which system maintenance can occur. Format: ddd:hh24:mi-ddd:hh24:mi Default: A 30-minute window selected at random from an 8-hour block of time per region, occurring on a random day of the week. The following list shows the time blocks for each region from which the default maintenance windows are assigned. US-East (Northern Virginia) Region: 03:00-11:00 UTC,  US-West (Northern California) Region: 06:00-14:00 UTC, EU (Ireland) Region: 22:00-06:00 UTC, Asia Pacific (Singapore) Region: 14:00-22:00, UTC,  AsiaPacific(Tokyo)Region:17:00-03:00UTC, Valid Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun, Constraints: Minimum 30-minute window."},
+                      {label:"IOPS",type:"number",min:1000,max:10000,tooltiptext:"The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB Instance."},
                       ];
 
         if (edit) {
@@ -354,10 +355,12 @@ var ew_DBInstancesTreeView = {
             inputs[14].value = item.subnetGroupName;
             inputs[15].value = item.optionGroupName;
             inputs[16].value = item.parameterGroups.length ? item.parameterGroups[0].name : "";
-            inputs[17].value = item.charsetName;
+            inputs[17].value = item.characterSetName;
             inputs[18].value = item.backupRetentionPeriod;
             inputs[19].value = item.preferredBackupWindow;
             inputs[20].value = item.preferredMaintenanceWindow;
+            inputs[21].value = item.iops;
+            inputs.push({label:"Apply Immediately",type:"checkbox",tooltiptext:" Specifies whether or not the modifications in this request and any pending modifications are asynchronously applied as soon as possible, regardless of the PreferredMaintenanceWindow setting for the DB Instance. If this parameter is passed as false, changes to the DB Instance are applied on the next call to RebootDBInstance, the next maintenance reboot, or the next failure reboot, whichever occurs first."});
         }
         var values = this.core.promptInput((edit ? "Modify" : " Create") + " DB Instance", inputs, false, callback);
         if (!values) return;

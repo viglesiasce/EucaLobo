@@ -267,6 +267,12 @@ function getNodeValue(item, nodeName, childName)
     }
 }
 
+function setNodeValue(obj, item, nodeName, childName)
+{
+    var name = nodeName + (childName || "");
+    obj[name[0].toLowerCase() + name.substr(1)] = getNodeValue(item, nodeName, childName);
+}
+
 // From the list of objects return simple list with only specified properties from each object
 function plainList(list, id)
 {

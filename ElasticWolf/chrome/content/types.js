@@ -1785,14 +1785,13 @@ function S3BucketKey(bucket, name, type, size, mtime, owner, etag)
 
 function Item(name, value)
 {
-    this.name = name
-    this.value = value
+    this.name = name || "";
+    this.value = value || "";
 
     this.toString = function() {
-        return this.name + fieldSeparator + this.value;
+        return (this.name || "") + (this.value ? fieldSeparator + this.value : "");
     }
 }
-
 
 function Tag(name, value, id, type, propagate)
 {
@@ -2801,43 +2800,6 @@ function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
 
     this.toString = function() {
         return this.protocol + fieldSeparator + this.endpoint;
-    }
-}
-
-function DBInstance(id, name, engine, version, host, port, user, dbclass, status, azone, space, created, license, upgrade, brperiod, charset,
-                    lrtime, multiAZ, bkwin, prefwin, replicas, srcreplica, optname, optstatus, pendingMods, subnetgrp, sgroups, pgroups)
-{
-    this.id = id
-    this.name = name
-    this.engine = engine
-    this.version = version
-    this.host = host
-    this.port = port
-    this.masterUsername = user
-    this.instanceClass = dbclass
-    this.status = status
-    this.availabilityZone = azone
-    this.allocatedStorage = space
-    this.instanceCreateTime = created
-    this.licenseModel = license
-    this.autoMinorVersionUpgrade = upgrade
-    this.backupRetentionPeriod = brperiod
-    this.charsetName = charset
-    this.latestRestorableTime = lrtime
-    this.multiAZ = multiAZ
-    this.preferredBackupWindow = bkwin
-    this.preferredMaintenanceWindow = prefwin
-    this.readReplicaDBInstanceIdentifiers = replicas
-    this.readReplicaSourceDBInstanceIdentifier = srcreplica
-    this.optionGroupName = optname
-    this.optionGroupStatus = optstatus
-    this.pendingModifiedValues = pendingMods
-    this.subnetGroupName = subnetgrp
-    this.securityGroups = sgroups
-    this.parameterGroups = pgroups
-
-    this.toString = function() {
-        return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
     }
 }
 

@@ -4937,38 +4937,41 @@ var ew_api = {
 
     unpackDBInstance: function(item)
     {
-        var id = getNodeValue(item, "DBInstanceIdentifier");
-        var name = getNodeValue(item, "DBName");
-        var engine = getNodeValue(item, "Engine");
-        var ver = getNodeValue(item, "EngineVersion");
-        var host = getNodeValue(item, "Endpoint", "Address");
-        var port = getNodeValue(item, "Endpoint", "Port");
-        var user = getNodeValue(item, "MasterUsername");
-        var dbclass = getNodeValue(item, "DBInstanceClass");
-        var status = getNodeValue(item, "DBInstanceStatus");
-        var azone = getNodeValue(item, "AvailabilityZone");
-        var space = getNodeValue(item, "AllocatedStorage");
-        var created = getNodeValue(item, "InstanceCreateTime");
-        var license = getNodeValue(item, "LicenseModel");
-        var autoupgrade = getNodeValue(item, "AutoMinorVersionUpgrade");
-        var brperiod = getNodeValue(item, "BackupRetentionPeriod");
-        var charset = getNodeValue(item, "CharacterSetName");
-        var lrtime = getNodeValue(item, "LatestRestorableTime");
-        var multiAZ = getNodeValue(item, "MultiAZ");
-        var bkwin = getNodeValue(item, "PreferredBackupWindow");
-        var prefwin = getNodeValue(item, "PreferredMaintenanceWindow");
-        var replicas = getNodeValue(item, "ReadReplicaDBInstanceIdentifiers");
-        var srcreplica = getNodeValue(item, "ReadReplicaSourceDBInstanceIdentifier");
-        var optstatus = getNodeValue(item, "OptionGroupMembership", "Status");
-        var optname = getNodeValue(item, "OptionGroupMembership", "OptionGroupName");
-        var pendingMods = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Item(obj.tagName, obj.firstChild.nodeValue) : null; });
-        var sgroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
-        var pgroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Item(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
-        var subnetGroup = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
+        var obj = new Item();
+        obj.toString = function() {
+            return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
+        }
 
-        return new DBInstance(id, name, engine, ver, host, port, user, dbclass, status, azone, space, created, license, autoupgrade,
-                              brperiod, charset, lrtime, multiAZ, bkwin, prefwin, replicas, srcreplica, optname, optstatus,
-                              pendingMods, subnetGroup, sgroups, pgroups);
+        obj.id = getNodeValue(item, "DBInstanceIdentifier");
+        obj.name = getNodeValue(item, "DBName");
+        obj.engine = getNodeValue(item, "Engine");
+        obj.version = getNodeValue(item, "EngineVersion");
+        obj.host = getNodeValue(item, "Endpoint", "Address");
+        obj.port = getNodeValue(item, "Endpoint", "Port");
+        setNodeValue(obj, item, "MasterUsername");
+        obj.instanceClass = getNodeValue(item, "DBInstanceClass");
+        obj.status = getNodeValue(item, "DBInstanceStatus");
+        setNodeValue(obj, item, "AvailabilityZone");
+        setNodeValue(obj, item, "AllocatedStorage");
+        setNodeValue(obj, item, "InstanceCreateTime");
+        setNodeValue(obj, item, "LicenseModel");
+        setNodeValue(obj, item, "AutoMinorVersionUpgrade");
+        setNodeValue(obj, item, "BackupRetentionPeriod");
+        setNodeValue(obj, item, "CharacterSetName");
+        setNodeValue(obj, item, "LatestRestorableTime");
+        setNodeValue(obj, item, "MultiAZ");
+        setNodeValue(obj, item, "Iops");
+        setNodeValue(obj, item, "PreferredBackupWindow");
+        setNodeValue(obj, item, "PreferredMaintenanceWindow");
+        setNodeValue(obj, item, "ReadReplicaDBInstanceIdentifiers");
+        setNodeValue(obj, item, "ReadReplicaSourceDBInstanceIdentifier");
+        setNodeValue(obj, item, "OptionGroupMembership", "Status");
+        setNodeValue(obj, item, "OptionGroupMembership", "OptionGroupName");
+        obj.pendingModifiedValues = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Item(obj.tagName, obj.firstChild.nodeValue) : null; });
+        obj.securityGroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
+        obj.parameterGroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Item(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
+        obj.subnetGroupName = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
+        return obj;
     },
 
     describeDBInstances : function(callback)
@@ -5024,6 +5027,9 @@ var ew_api = {
         }
         if (options.DBName) {
             params.push(["DBName", options.DBName])
+        }
+        if (options.iops) {
+            params.push(["Iops", options.iops])
         }
         if (options.DBParameterGroupName) {
             params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
