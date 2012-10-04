@@ -42,6 +42,7 @@
                 row.appendChild(cell);
                 this.list.appendChild(row);
             }
+            window.focus();
         }
         function clicked() {
             this.rc.core.copyToClipboard(list.value);

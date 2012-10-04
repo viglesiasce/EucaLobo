@@ -521,7 +521,7 @@ var ew_GroupsTreeView = {
         } else
         if (!confirm('Delete policy ' + item.policies[idx])) return;
 
-        this.core.api.deleteGroupPolicy(item.name, item.policies[idx], text, function() {
+        this.core.api.deleteGroupPolicy(item.name, item.policies[idx], function() {
             item.policies = null;
             me.selectionChanged();
         });

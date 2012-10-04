@@ -200,6 +200,7 @@ var ew_ASConfigsTreeView = {
     {
         var me = this;
         if (!TreeView.deleteSelected.call(this)) return;
+        var item = this.getSelected();
         this.core.api.deleteLaunchConfiguration(item.name, function() { me.refresh(); });
     },
 
@@ -248,6 +249,7 @@ var ew_ASPoliciesTreeView = {
     {
         var me = this;
         if (!TreeView.deleteSelected.call(this)) return;
+        var item = this.getSelected();
         this.core.api.deletePolicy(item.group, item.name, function() { me.refresh(); });
     },
 
@@ -303,6 +305,7 @@ var ew_ASActionsTreeView = {
     {
         var me = this;
         if (!TreeView.deleteSelected.call(this)) return;
+        var item = this.getSelected();
         this.core.api.deleteScheduledAction(item.group, item.name, function() { me.refresh(); });
     },
 
