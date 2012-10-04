@@ -263,7 +263,7 @@
     <menu label="File">
       <menupopup>
        <menuitem label="New Window" image="images/add.png" class="menuitem-iconic" oncommand="newWindow();"/>
-       <menuitem label="Check For Updates" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.checkForUpdates();"/>
+       <menuitem label="Check For Updates" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.checkForUpdates(true);"/>
        <menuitem label="Submit an Issue" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.submitIssue();"/>
        <menuitem label="Show Error Log" image="images/revoke.png" class="menuitem-iconic" oncommand="ew_core.displayErrors();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
@@ -334,7 +334,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 networking" src="images/ec2.png" />
+         <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>

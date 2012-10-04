@@ -27,6 +27,7 @@ var ew_EC2TreeView = {
         var snapshots = this.core.queryModel('snapshots','owner', this.core.user.accountId);
         var images = this.core.queryModel('images','owner', this.core.user.accountId);
         var rsrvd = this.core.queryModel('reservedInstances');
+        var elbs = this.core.queryModel("loadBalancers", 'vpcId', null);
 
         this.listToInfo(instances, "Instances", list);
         this.listToInfo(groups, "Security Groups", list);
@@ -35,6 +36,7 @@ var ew_EC2TreeView = {
         this.listToInfo(images, "Images", list);
         this.listToInfo(snapshots, "Snapshots", list);
         this.listToInfo(rsrvd, "Reserved Instances", list);
+        this.listToInfo(elbs, "Load Balancers", list);
 
         if (!list.length) list.push({name: "Retrieving the data..."});
         TreeView.display.call(this, list);

@@ -220,6 +220,12 @@ var ew_core = {
         }
 
         this.setStrPrefs("ew.tab.current", name);
+
+        // Check for updates, daily
+        var now = (new Date()).getTime()/1000;
+        if (now - this.getIntPrefs('ew.updates.time', 0) > 86400) {
+            this.checkForUpdates();
+        }
         return true;
     },
 
@@ -890,7 +896,7 @@ var ew_core = {
         return parseInt(v[0]) * 100 + parseInt(v[1]) * 10 + parseInt(v[2]);
     },
 
-    checkForUpdates: function()
+    checkForUpdates: function(masg)
     {
         var me = this;
         if (!this.isEnabled()) return null;
@@ -905,18 +911,20 @@ var ew_core = {
             if (xmlhttp.readyState == 4) {
                 var data = xmlhttp.responseText;
                 while (d = rx.exec(data)) {
-                    debug(d);
+                    debug('update:' + d);
                     if (me.versionNum(d[1]) > ver) {
-                        me.promptInput('Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
+                        me.promptInput('Software Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
                         return;
                     }
                 }
-                alert("No new version available")
+                if (msg) alert("No new version available")
             }
         };
         xmlhttp.open("GET", this.URL, true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.send();
+        // Mark when we checked last time
+        this.setIntPrefs('ew.updates.time', (new Date()).getTime()/1000);
     },
 
     errorMessage: function(msg)
