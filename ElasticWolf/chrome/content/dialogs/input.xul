@@ -69,6 +69,7 @@
 
           case 'listview':
              item = document.createElement('listbox');
+             item.setAttribute('flex', '1');
              item.setAttribute('oncommand', "handler(" + i + ")");
              break;
 

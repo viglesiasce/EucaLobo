@@ -469,6 +469,7 @@ var TreeView = {
         var item = this.getSelected();
         if (!item) return false;
         if (!confirm('Delete ' + item.toString() + '?')) return false;
+        return true;
     },
     getInputItems: function()
     {
@@ -2426,7 +2427,11 @@ function Subnet(id, vpcId, cidr, state, availableIp, availabilityZone, tags)
     ew_core.processTags(this)
 
     this.toString = function() {
-        return this.cidr + fieldSeparator + (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.availableIp + fieldSeparator + this.availabilityZone;
+        return this.cidr + fieldSeparator + (this.name ? this.name + fieldSeparator : "") +
+               this.id + fieldSeparator +
+               this.vpcId + fieldSeparator +
+               this.availableIp + fieldSeparator +
+               this.availabilityZone;
     }
 }
 

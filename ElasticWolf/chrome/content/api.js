@@ -5370,7 +5370,7 @@ var ew_api = {
         var params = [ ["DBSubnetGroupName", name]];
         params.push([ "DBSubnetGroupDescription", descr]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
         }
         this.queryRDS("CreateDBSubnetGroup", params, this, false, "onComplete", callback);
     },
@@ -5380,7 +5380,7 @@ var ew_api = {
         var params = [ ["DBSubnetGroupName", name]];
         if (descr) params.push([ "DBSubnetGroupDescription", descr]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["SubnetIds.member." + i, typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
         }
         this.queryRDS("ModifyDBSubnetGroup", params, this, false, "onComplete", callback);
     },
@@ -5421,6 +5421,20 @@ var ew_api = {
             list.push(this.unpackDBSecurityGroup(items[i]));
         }
         this.getNext(response, this.queryRDS, list);
+    },
+
+    createDBSecurityGroup: function(name, descr, vpc, callback)
+    {
+        var params = [ ["DBSecurityGroupName", name]];
+        params.push([ "DBSecurityGroupDescription", descr]);
+        if (vpc) params.push([ "EC2VpcId", vpc]);
+        this.queryRDS("CreateDBSecurityGroup", params, this, false, "onComplete", callback);
+    },
+
+    deleteDBSecurityGroup: function(name, callback)
+    {
+        var params = [ ["DBSecurityGroupName", name]];
+        this.queryRDS("DeleteDBSecurityGroup", params, this, false, "onComplete", callback);
     },
 
     describeOptionGroupOptions: function(engine, callback)

@@ -23,22 +23,48 @@ var ew_DBEnginesTreeView = {
 };
 
 var ew_DBSubnetGroupsTreeView = {
-    model: [ "dbsubnets"],
+    model: [ "dbsubnets", "subnets"],
+
+    addItem: function() {
+        var me = this;
+        var subnets = this.core.queryModel("subnets");
+        var values = this.core.promptInput("Create Subnet Group",
+                            [{label:"Group Name",required:1},
+                             {label:"Description",required:1},
+                             {label:"Subnet",type:"listview",list:subnets } ]);
+        if (!values) return;
+        this.core.api.createDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh() });
+    },
 
     deleteSelected : function ()
     {
         var me = this;
+        item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteDBSubnetGroup(item.name,function() { me.refresh() });
     },
 };
 
 var ew_DBSecurityGroupsTreeView = {
-    model: [ "dbgroups"],
+    model: [ "dbgroups", "vpcs"],
+
+    addItem: function() {
+        var me = this;
+        var vpcs = this.core.queryModel("vpcs");
+        var values = this.core.promptInput("Create Security Group",
+                            [{label:"Group Name",required:1},
+                             {label:"Description",required:1},
+                             {label:"VPC",type:"menulist",list:vpcs } ]);
+        if (!values) return;
+        this.core.api.createDBSecurityGroup(values[0],values[1],values[2],function() { me.refresh() });
+    },
 
     deleteSelected : function ()
     {
         var me = this;
+        item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteDBSecurityGroup(item.name,function() { me.refresh() });
     },
 
 };
@@ -71,6 +97,7 @@ var ew_DBOptionGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
+        item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteOptionGroup(item.name, function() { me.refresh() });
     },
@@ -159,6 +186,7 @@ var ew_DBParameterGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
+        item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBParameterGroup(item.name, function() { me.refresh() });
     },
