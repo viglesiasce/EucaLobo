@@ -4915,11 +4915,21 @@ var ew_api = {
         if (!item) return null;
         var name = getNodeValue(item, "DBSubnetGroupName");
         if (name == "") return null;
-        var descr = getNodeValue(item,"DBSubnetGroupDescription");
-        var status = getNodeValue(item, "DBSubnetGroupStatus");
-        var vpcId = getNodeValue(item, "VpcId");
-        var subnets = this.getItems(item, "Subnets", "Subnet", ["SubnetIdentifier","Name","SubnetStatus"], function(obj) { return new DBSubnet(obj.SubnetIdentifier,obj.Name,obj.SubnetStatus) });
-        return new DBSubnetGroup(name, descr, status, vpcId, subnets);
+
+        var grp = new Item(name);
+        grp.descr = getNodeValue(item,"DBSubnetGroupDescription");
+        grp.status = getNodeValue(item, "SubnetGroupStatus");
+        grp.vpcId = getNodeValue(item, "VpcId");
+        grp.subnets = [];
+        var subnets = this.getItems(item, "Subnets", "Subnet");
+        for (var i = 0; i < subnets.length; i++) {
+            grp.subnets.push(new Element('id', getNodeValue(subnets[i], "SubnetIdentifier"),
+                                         'availabilityZone', getNodeValue(subnets[i], "SubnetAvailabilityZone", "Name"),
+                                         'status', getNodeValue(subnets[i], "SubnetStatus"),
+                                         'iopsCapable', toBool(getNodeValue(subnets[i], "SubnetAvailabilityZone", "ProvisionedIopsCapable")) ? "IopsCapable" : ""));
+        }
+        grp.toString = function() { return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets; }
+        return grp;
     },
 
     unpackDBSecurityGroup: function(item)

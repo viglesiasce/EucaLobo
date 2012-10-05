@@ -1794,6 +1794,19 @@ function Item(name, value)
     }
 }
 
+// Create an object with list of pairs describing properties in the form name, value, ...
+function Element()
+{
+    for (var i = 0; i < arguments.length; i+= 2) {
+        this[arguments[i]] = arguments[i + 1];
+    }
+
+    this.toString = function() {
+        var self = this;
+        return Object.keys(this).filter(function(x) {return typeof self[x] != "function" && self[x]}).map(function(x) {return self[x]}).join(fieldSeparator);
+    }
+}
+
 function Tag(name, value, id, type, propagate)
 {
     this.name = name || "";
@@ -2427,11 +2440,11 @@ function Subnet(id, vpcId, cidr, state, availableIp, availabilityZone, tags)
     ew_core.processTags(this)
 
     this.toString = function() {
-        return this.cidr + fieldSeparator + (this.name ? this.name + fieldSeparator : "") +
-               this.id + fieldSeparator +
+        return this.cidr + fieldSeparator +
+               this.availabilityZone + fieldSeparator +
                this.vpcId + fieldSeparator +
-               this.availableIp + fieldSeparator +
-               this.availabilityZone;
+               this.id +
+               (this.name ? fieldSeparator + this.name : "");
     }
 }
 
@@ -2962,30 +2975,6 @@ function DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpc
                           (this.readReplicaCapable ? " Replica" : "") + " " +
                           (this.vpcReadReplicaCapable ? " VPCReplica" : "") + fieldSeparator +
                           this.availabilityZones;
-    }
-}
-
-function DBSubnet(id, availabilityZone, status)
-{
-    this.id = id
-    this.availabilityZone = AvailabilityZone
-    this.status = status
-
-    this.toString = function() {
-        return this.id + fieldSeparator + this.availabilityZone + fieldSeparator + this.status
-    }
-}
-
-function DBSubnetGroup(name, descr, status, vpcId, subnets)
-{
-    this.name = name
-    this.descr = descr
-    this.status = status
-    this.vpcId = vpcId
-    this.subnets = subnets
-
-    this.toString = function() {
-        return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets;
     }
 }
 

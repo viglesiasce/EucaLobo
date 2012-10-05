@@ -23,17 +23,35 @@ var ew_DBEnginesTreeView = {
 };
 
 var ew_DBSubnetGroupsTreeView = {
-    model: [ "dbsubnets", "subnets"],
+    model: [ "dbsubnets", "subnets", "vpcs"],
 
     addItem: function() {
         var me = this;
         var subnets = this.core.queryModel("subnets");
+        this.core.sortObjects(subnets, ["vpcId", "cidrIp"])
         var values = this.core.promptInput("Create Subnet Group",
                             [{label:"Group Name",required:1},
                              {label:"Description",required:1},
                              {label:"Subnet",type:"listview",list:subnets } ]);
         if (!values) return;
         this.core.api.createDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh() });
+    },
+
+    editItem: function()
+    {
+        var me = this;
+        item = this.getSelected();
+        if (!item) return;
+        var checked = [];
+        item.subnets.forEach(function(x) { checked.push(me.core.findModel('subnets',x)); });
+        var subnets = this.core.queryModel("subnets");
+        this.core.sortObjects(subnets, ["vpcId", "cidrIp"]);
+        var values = this.core.promptInput("Edit Subnet Group",
+                            [{label:"Group Name",type:"label",value:item.name},
+                             {label:"Description",required:1,value:item.descr},
+                             {label:"Subnet",type:"listview",list:subnets,checkedItems: checked } ]);
+        if (!values) return;
+        this.core.api.modifyDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh() });
     },
 
     deleteSelected : function ()
