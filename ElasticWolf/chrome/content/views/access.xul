@@ -39,43 +39,6 @@
             <treechildren id="accesskey.tree.children" context="accesskey.tree.contextmenu" />
         </tree>
     </groupbox>
-
-     <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
-        <grippy />
-      </splitter>
-
-        <groupbox flex="1" orient="vertical">
-            <caption label="&ew.captions.keypairs.label;" />
-            <popupset>
-                <menupopup id="keypair.tree.contextmenu">
-                    <menuitem oncommand="ew_KeypairsTreeView.displayDetails()" label="&ew.keypairs.details.tip;" />
-                    <menuitem oncommand="ew_KeypairsTreeView.createKeypair()" label="&ew.keypairs.create.tip;" />
-                    <menuitem oncommand="ew_KeypairsTreeView.deleteSelected();" label="&ew.keypairs.delete.tip;" />
-                    <menuitem oncommand="ew_KeypairsTreeView.importKeypair();" label="&ew.keypairs.import.tip;"/>
-                    <menuitem oncommand="ew_KeypairsTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
-                    <menuitem oncommand="ew_KeypairsTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
-                </menupopup>
-            </popupset>
-            <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <textbox id="ew.keypairs.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_KeypairsTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="&ew.keypairs.create.tip;" oncommand="ew_KeypairsTreeView.createKeypair();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="&ew.keypairs.delete.tip;" oncommand="ew_KeypairsTreeView.deleteSelected();" />
-                <toolbarbutton image="images/import.png" tooltiptext="&ew.keypairs.import.tip;" oncommand="ew_KeypairsTreeView.importKeypair();" />
-                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
-                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
-                <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairsTreeView.displayDetails()"/>
-            </toolbar>
-            <tree enableColumnDrag="true" id="ew.keypairs.view" flex="1">
-                <treecols>
-                    <treecol id="keypair.name" label="&ew.keypairs.name.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="keypair.fingerprint" label="&ew.keypairs.fingerprint.label;" flex="4" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                </treecols>
-                <treechildren id="keypair.tree.children" context="keypair.tree.contextmenu" />
-            </tree>
-        </groupbox>
     </vbox>
     </tabpanel>
 </overlay>

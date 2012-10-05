@@ -58,6 +58,93 @@ var ew_EC2TreeView = {
     },
 };
 
+var ew_KeypairsTreeView = {
+    model: ["keypairs", "mfas"],
+
+    createKeypair : function ()
+    {
+        if (this.core.isGovCloud()) {
+            alert("This function is disabled in GovCloud region")
+            return
+        }
+        var name = prompt("Please provide a new keypair name");
+        if (name == null) return;
+        name = name.trim();
+        var me = this;
+        this.core.api.createKeypair(name, function(keypair) {
+            // Save key in the file
+            var file = me.core.getPrivateKeyFile(name);
+            var fp = FileIO.open(file)
+            FileIO.write(fp, keypair.material + "\n\n", "");
+            me.refresh();
+            me.core.alertDialog('Keypair Created', 'KeyPair ' + name + ' is saved in the ' + file);
+        });
+    },
+
+    importKeypair : function ()
+    {
+        var name = prompt("Please provide a new keypair name");
+        if (name == null) return;
+        name = name.trim();
+        var me = this;
+        // Create new private key file using openssl and return key value
+        var file = this.core.promptForFile("Select the public key file to upload:")
+        if (file) {
+            var body = readPublicKey(file)
+            if (body == '') {
+                return alert('Unable to read public key file ' + file);
+            }
+            this.core.api.importKeypair(name, body, function() { me.refresh() });
+        }
+    },
+
+    // If user is specified we create cet/keypair on behalf of that user, for keypair it does not matter,
+    // they go by name but for ceetificate we need valid user name
+    makeKeypair: function(uploadCert, user)
+    {
+        var name = prompt("Please provide a new keypair name:", user || "");
+        if (name == null) return;
+        name = name.trim();
+        var me = this;
+
+        if (!this.core.getKeyHome()) {
+            var file = this.core.promptForDir("Choose where to store keys and certificate or Cancel to use " + this.core.getKeyHome(), true)
+            if (file) {
+                this.setStrPrefs("ew.key.home", file);
+            }
+        }
+
+        // Create new certificate file using openssl and return cert value
+        var body = this.core.generateCertificate(name);
+        if (!body) {
+            return alert("Could not create certificate and key pair files");
+        }
+        // For signing in command line tools we need at least one certificate
+        if (uploadCert) {
+            ew_CertsTreeView.upload(body, user);
+        }
+
+        // Import new public key as new keypair
+        var file = this.core.getPublicKeyFile(name);
+        var pubkey = readPublicKey(file);
+        if (pubkey == '') {
+            return alert('Unable to read public key file ' + file);
+        }
+        this.core.api.importKeypair(name, pubkey, function() {me.refresh();});
+    },
+
+    deleteSelected  : function ()
+    {
+        var keypair = this.getSelected();
+        if (keypair == null) return;
+        if (!confirm("Delete key pair "+keypair.name+"?")) return;
+        var me = this;
+        this.core.api.deleteKeypair(keypair.name, function() {me.refresh();});
+    },
+
+};
+
+
 var ew_AMIsTreeView = {
     model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles', 'placementGroups' ],
     properties: ['ownerAlias', 'status', 'state'],

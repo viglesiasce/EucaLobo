@@ -6,6 +6,7 @@
 <?xul-overlay href="chrome://ew/content/views/instances.xul"?>
 <?xul-overlay href="chrome://ew/content/views/amis.xul"?>
 <?xul-overlay href="chrome://ew/content/views/access.xul"?>
+<?xul-overlay href="chrome://ew/content/views/keypairs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/certs.xul"?>
 <?xul-overlay href="chrome://ew/content/views/securitygroups.xul"?>
 <?xul-overlay href="chrome://ew/content/views/azone.xul"?>
@@ -114,8 +115,9 @@
 
             { name: "ew.tabs.image",         views: [ { id: "ew.images.view", view: ew_AMIsTreeView } ], },
 
-            { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeysTreeView },
-                                                      { id: "ew.keypairs.view", view: ew_KeypairsTreeView, } ], },
+            { name: "ew.tabs.access",        views: [ { id: "ew.accesskeys.view", view: ew_AccessKeysTreeView }, ]},
+
+            { name: "ew.tabs.keypair",       views: [ { id: "ew.keypairs.view", view: ew_KeypairsTreeView, } ] },
 
             { name: "ew.tabs.export",        views: [ { id: "ew.exportTasks.view", view: ew_ExportTasksTreeView },
                                                       { id: "ew.conversionTasks.view", view: ew_ConversionTasksTreeView, } ], },
@@ -300,7 +302,7 @@
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /> <treecell label="" value="ew.tabs.credential.info" properties="info" /> </treerow></treeitem>
-         <treeitem><treerow><treecell label="Access Keys/Keypairs" value="ew.tabs.access" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Access Keys" value="ew.tabs.access" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -337,6 +339,7 @@
          <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.folder" />
        </treerow>
        <treechildren>
+         <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
@@ -456,6 +459,7 @@
       <tabpanel id="ew.tabs.instance"/>
       <tabpanel id="ew.tabs.image"/>
       <tabpanel id="ew.tabs.access"/>
+      <tabpanel id="ew.tabs.keypair"/>
       <tabpanel id="ew.tabs.cert"/>
       <tabpanel id="ew.tabs.users"/>
       <tabpanel id="ew.tabs.roles"/>
