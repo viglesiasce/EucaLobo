@@ -2379,7 +2379,7 @@ function ReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPric
     this.marketPrices = mPrices;
 
     this.toString = function() {
-        return this.id
+        return this.id + fieldSeparator + this.instanceType
     }
 }
 

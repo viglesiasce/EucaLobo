@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "2.1.4",
+    VERSION: "2.1.5",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -2325,6 +2325,7 @@ var ew_core = {
                  { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
+                   version: '2012-06-15',
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "DescribeLoadBalancers", "ListQueues", "DescribeDBInstances" , "ListTopics", "ListSubscriptions", "hostedzone" ],

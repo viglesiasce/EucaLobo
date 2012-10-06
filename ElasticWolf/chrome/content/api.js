@@ -592,7 +592,7 @@ var ew_api = {
             var res = handlerObj.onResponseComplete(rc);
             if (rc.isSync) rc.result = res;
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
@@ -1544,7 +1544,7 @@ var ew_api = {
     describeReservedInstancesOfferings : function(market, callback)
     {
         var params = [];
-        params.push(["IncludeMarketplace", market])
+        if (this.versions.EC2 > '2012-06-15') params.push(["IncludeMarketplace", market]);
         this.queryEC2("DescribeReservedInstancesOfferings", params, this, false, "onCompleteDescribeReservedInstancesOfferings", callback);
     },
 
@@ -1848,6 +1848,7 @@ var ew_api = {
 
     onCompleteDescribeSpotInstanceRequests : function(response)
     {
+        response.hasErrors = false;
         var xmlDoc = response.responseXML;
 
         var list = new Array();
