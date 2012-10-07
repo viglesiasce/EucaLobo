@@ -363,7 +363,6 @@
 <!ENTITY ew.keypairs.create.tip "Create a new keypair">
 <!ENTITY ew.keypairs.delete.tip "Delete selected keypair">
 <!ENTITY ew.keypairs.import.tip "Create keypair from existing SSH key">
-<!ENTITY ew.keypairs.generate.tip "Create X.509 cert and SSH keys and import into keypair">
 <!ENTITY ew.keypairs.make.tip "Create SSH keys and import into keypair">
 <!ENTITY ew.keypairs.shell.tip "Run shell with selected keypair and current access key">
 

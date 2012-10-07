@@ -64,7 +64,7 @@ var ew_KeypairsTreeView = {
     createKeypair : function ()
     {
         if (this.core.isGovCloud()) {
-            alert("This function is disabled in GovCloud region")
+            alert("This function is disabled in GovCloud region, Please use Import keypair functions instead");
             return
         }
         var name = prompt("Please provide a new keypair name");
@@ -115,13 +115,14 @@ var ew_KeypairsTreeView = {
         }
 
         // Create new certificate file using openssl and return cert value
-        var body = this.core.generateCertificate(name);
-        if (!body) {
-            return alert("Could not create certificate and key pair files");
+        if (!this.core.generateKeypair(name)) {
+            return alert("Could not create key pair files");
         }
+
         // For signing in command line tools we need at least one certificate
         if (uploadCert) {
-            ew_CertsTreeView.upload(body, user);
+            var cert = FileIO.toString(this.core.getCertificateFile(name));
+            ew_CertsTreeView.upload(cert, user);
         }
 
         // Import new public key as new keypair

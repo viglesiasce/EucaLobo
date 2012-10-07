@@ -11,7 +11,6 @@ var ew_UsersTreeView = {
         $("ew.users.contextmenu.deletePassword").disabled = !item || (!item.loginProfileDate && !this.core.isGovCloud());
         $("ew.users.contextmenu.createKey").disabled = !item;
         $("ew.users.contextmenu.genKey").disabled = !item;
-        $("ew.users.contextmenu.makeKey").disabled = !item;
         $("ew.users.contextmenu.createTemp").disabled = !item;
         $("ew.users.contextmenu.deleteKey").disabled = !item || !item.accessKeys || !item.accessKeys.length;
         $("ew.users.contextmenu.enableVMFA").disabled = !item;
@@ -818,13 +817,11 @@ var ew_CertsTreeView = {
 
     createCert : function () {
         var me = this;
-        var body = this.core.generateCertificate();
-        if (body) {
-            this.upload(body);
-            alert('The certificate has been generated and will be uploaded shortly...')
-        } else {
-            alert("Could not generate new X509 certificate")
-        }
+        if (!this.core.generateKeypair()) return alert("Could not generate new X509 certificate");
+
+        var cert = FileIO.toString(this.getCertificateFile());
+        this.upload(cert);
+        alert('The certificate has been generated and will be uploaded shortly...')
     },
 
     upload: function(body, user)
@@ -869,13 +866,14 @@ var ew_ServerCertsTreeView = {
         var me = this;
         var values = this.core.promptInput("Server Certificate", [{label:"Certificate Name (must be unique):",required:1},{label:"Path"}]);
         if (!values) return;
-        var body = this.core.generateCertificate(values[0]);
-        if (!body) return alert("Could not generate new X509 certificate");
-        var pkey = FileIO.toString(this.getPrivateKeyFile(values[0]));
-        if (!pkey) return alert("Could not read provate key file");
-        alert('The server certificate ' + values[0] + ' was created and will be uploaded within 30 seconds to avoid errors related to difference between AWS server and your computer clocks...');
+        if (!this.core.generateKeypair(values[0])) return alert("Could not generate new X509 certificate");
 
-        setTimeout(function() { this.core.api.uploadServerCertificate(values[0], body, pkey, values[1], null, function() { me.refresh() }); }, 30000);
+        var cert = FileIO.toString(this.getCertificateFile(values[0]));
+        var pkey = FileIO.toString(this.getPrivateKeyFile(values[0]));
+        if (!pkey) return alert("Could not read private key file");
+        alert('The server certificate ' + values[0] + ' was created and will be uploaded within 30 seconds to avoid errors related to difference between AWS server and your computer clock...');
+
+        setTimeout(function() { this.core.api.uploadServerCertificate(values[0], cert, pkey, values[1], null, function() { me.refresh() }); }, 30000);
     },
 
     uploadCert : function (user) {

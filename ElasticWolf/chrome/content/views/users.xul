@@ -29,8 +29,7 @@
                 <menuitem id="ew.users.contextmenu.editPolicy" oncommand="ew_UsersTreeView.editPolicy();" label="Edit Policy" />
                 <menuitem id="ew.users.contextmenu.deletePolicy" oncommand="ew_UsersTreeView.deletePolicy();" label="Delete Policy" />
                 <menuseparator />
-                <menuitem id="ew.users.contextmenu.genKey" oncommand="ew_UsersTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
-                <menuitem id="ew.users.contextmenu.makeKey" oncommand="ew_UsersTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
+                <menuitem id="ew.users.contextmenu.genKey" oncommand="ew_UsersTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
                 </menupopup>
             </popupset>
 
@@ -39,8 +38,7 @@
                 <toolbarbutton image="images/refresh.png" oncommand="ew_UsersTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add User" oncommand="ew_UsersTreeView.addUser();" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Delete User" oncommand="ew_UsersTreeView.deleteUser();" />
-                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_UsersTreeView.makeKeypair(true);" />
-                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_UsersTreeView.makeKeypair();" />
+                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_UsersTreeView.makeKeypair();" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.users.view" flex="1">

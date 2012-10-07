@@ -37,8 +37,6 @@ var ew_SQSTreeView = {
     addQueue: function()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
 
         var name = prompt('Create Queue');
         if (!name) return;

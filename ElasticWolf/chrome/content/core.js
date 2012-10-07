@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "2.1.5",
+    VERSION: "2.1.6",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -292,6 +292,8 @@ var ew_core = {
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
             var cred = this.getActiveCredentials();
+            var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
+            tree.view.setCellText(idx, tree.columns[0], label);
             $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
@@ -1332,8 +1334,8 @@ var ew_core = {
         return this.getKeyHome() + DirIO.slash + name + (isWindows(navigator.platform) ? ".bat" : ".sh");
     },
 
-    // Create cert with private and public keys for given key name
-    generateCertificate : function(keyname)
+    // Create keypair with private and public keys for given key name
+    generateKeypair : function(keyname)
     {
         // Make sure we have directory
         if (!this.makeKeyHome()) return 0
@@ -1400,7 +1402,7 @@ var ew_core = {
             FileIO.remove(shellfile);
         }
 
-        return FileIO.toString(certfile)
+        return true;
     },
 
     // Start command shell with given key pair and access key, setup environment variables to be used by AWS command line tools

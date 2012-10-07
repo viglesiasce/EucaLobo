@@ -12,7 +12,6 @@
                     <menuitem oncommand="ew_KeypairsTreeView.createKeypair()" label="&ew.keypairs.create.tip;" />
                     <menuitem oncommand="ew_KeypairsTreeView.deleteSelected();" label="&ew.keypairs.delete.tip;" />
                     <menuitem oncommand="ew_KeypairsTreeView.importKeypair();" label="&ew.keypairs.import.tip;"/>
-                    <menuitem oncommand="ew_KeypairsTreeView.makeKeypair(true);" label="&ew.keypairs.generate.tip;"/>
                     <menuitem oncommand="ew_KeypairsTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
                 </menupopup>
             </popupset>
@@ -21,9 +20,8 @@
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_KeypairsTreeView.refresh()" />
                 <toolbarbutton image="images/add.png" tooltiptext="&ew.keypairs.create.tip;" oncommand="ew_KeypairsTreeView.createKeypair();" />
                 <toolbarbutton image="images/delete.png" tooltiptext="&ew.keypairs.delete.tip;" oncommand="ew_KeypairsTreeView.deleteSelected();" />
+                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
                 <toolbarbutton image="images/import.png" tooltiptext="&ew.keypairs.import.tip;" oncommand="ew_KeypairsTreeView.importKeypair();" />
-                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.generate.tip;" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
-                <toolbarbutton image="images/key.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_KeypairsTreeView.makeKeypair();" />
                 <toolbarbutton image="images/details.png" tooltiptext="&ew.keypairs.details.tip;" oncommand="ew_KeypairsTreeView.displayDetails()"/>
             </toolbar>
             <tree enableColumnDrag="true" id="ew.keypairs.view" flex="1">
