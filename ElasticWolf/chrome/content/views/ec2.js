@@ -216,10 +216,10 @@ var ew_AMIsTreeView = {
         return TreeView.filter.call(this, this.core.getImagesByType(list, $("ew.images.type").value));
     },
 
-    launchNewInstances : function()
+    launchNewInstances : function(image)
     {
         var me = this;
-        var image = this.getSelected();
+        if (!image) image = this.getSelected();
         if (!image) return;
 
         var retVal = { ok: null, max: ew_InstancesTreeView.max, image: image, core: this.core };
@@ -715,9 +715,19 @@ var ew_InstancesTreeView = {
         $("instances.context.forceStop").disabled = optDisabled;
     },
 
+    launchNewInstances : function()
+    {
+        var me = this;
+        var instance = this.getSelected();
+        if (!instance) return;
+        var image = this.core.findModel('images', instance.imageId);
+        if (!image) return alert('Cannot find AMI ' + instance.imageId);
+        ew_AMIsTreeView.launchNewInstances(image);
+    },
+
     launchMore : function() {
         var instance = this.getSelected();
-        if (instance == null) return;
+        if (!instance) return;
 
         var count = prompt("How many more instances of "+instance.id+"?", "1");
         if (!count) return;
@@ -732,7 +742,7 @@ var ew_InstancesTreeView = {
 
     terminateInstance : function() {
         var instances = this.getSelectedAll();
-        if (instances.length == 0) return;
+        if (!instances.length) return;
         if (!confirm("Terminate " + instances.length + " instance(s)?")) return;
 
         var me = this;
@@ -742,7 +752,7 @@ var ew_InstancesTreeView = {
     stopInstance : function(force)
     {
         var instances = this.getSelectedAll();
-        if (instances.length == 0) return;
+        if (!instances.length) return;
         if (!confirm("Stop " + instances.length + " instance(s)?")) return;
 
         var me = this;
@@ -906,10 +916,12 @@ var ew_InstancesTreeView = {
 
     showConsoleOutput : function(id, timestamp, output)
     {
+        var me = this;
         var instance = this.getSelected();
         if (!instance) return;
-        var output = this.core.api.getConsoleOutput(instance.id);
-        this.core.promptInput('Console', [{notitle:1,multiline:true,cols:120,rows:50,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:output}])
+        this.core.api.getConsoleOutput(instance.id, function(output) {
+            me.core.promptInput('Console', [{notitle:1,multiline:true,cols:120,rows:50,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:output}])
+        });
     },
 
     authorizeProtocolForGroup : function(transport, protocol, groups)
@@ -1105,7 +1117,7 @@ var ew_InstancesTreeView = {
     isRefreshable : function()
     {
         for (var i in this.treeList) {
-            if (["pending","shutting-down","stopping"].indexOf(this.treeList[i].state) != -1) return true;
+            if (["pending","shutting-down","stopping","starting"].indexOf(this.treeList[i].state) != -1) return true;
         }
         return false;
     },

@@ -32,9 +32,9 @@
                         <hbox flex="10">
                             <textbox id="ew.images.search" size="15" type="autocomplete" autocompletesearch="form-history" />
                             <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_AMIsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                            <toolbarbutton image="images/powerup.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.launchNewInstances();" tooltiptext="&ew.images.powerup.tip;" />
                             <toolbarbutton image="images/add.png" tooltiptext="&ew.images.register.tip;" oncommand="ew_AMIsTreeView.registerNewImage();" />
                             <toolbarbutton image="images/delete.png" tooltiptext="&ew.images.deregister.tip;" oncommand="ew_AMIsTreeView.deregisterImage();" />
+                            <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.launchNewInstances();" tooltiptext="&ew.images.powerup.tip;" />
                             <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                             <menulist id="ew.images.type" oncommand="ew_AMIsTreeView.filterChanged();" />
                         </hbox>

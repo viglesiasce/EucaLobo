@@ -2439,6 +2439,7 @@ var ew_api = {
         } else {
             response.result = formatJSON(response.responseText);
         }
+        return response.result;
     },
 
     setS3BucketPolicy : function(bucket, policy, callback)
@@ -2521,9 +2522,10 @@ var ew_api = {
         var obj = this.core.getS3Bucket(bucket)
         if (obj) obj.region = region;
         response.result = region;
+        return response.result;
     },
 
-    // Return list in syn cmode
+    // Return list in sync mode
     listS3BucketKeys : function(bucket, params, callback)
     {
         this.queryS3("GET", bucket, "", "", params, null, this, callback ? false : true, "onCompleteListS3BucketKeys", callback);
@@ -2553,6 +2555,7 @@ var ew_api = {
             obj.keys = list;
         }
         response.result = obj;
+        return response.result;
     },
 
     deleteS3Bucket : function(bucket, params, callback)
@@ -2583,6 +2586,7 @@ var ew_api = {
     onCompleteReadS3BucketKey : function(response)
     {
         response.result = response.responseText;
+        return response.result;
     },
 
     putS3BucketKey : function(bucket, key, path, params, text, callback)
@@ -2648,6 +2652,7 @@ var ew_api = {
         if (obj) obj.acls = list;
 
         response.result = obj;
+        return response.result;
     },
 
     setS3BucketKeyAcl : function(bucket, key, content, callback)
@@ -2667,6 +2672,7 @@ var ew_api = {
         if (obj) obj.acls = null;
 
         response.result = obj;
+        return response.result;
     },
 
     getS3BucketWebsite : function(bucket, callback)
@@ -2693,6 +2699,7 @@ var ew_api = {
             obj.errorKey = getNodeValue(doc[0], "Key");
         }
         response.result = obj;
+        return response.result;
     },
 
     setS3BucketWebsite : function(bucket, index, error, callback)
@@ -3186,6 +3193,7 @@ var ew_api = {
             output = '';
         }
         response.result = output;
+        return response.result;
     },
 
     describeAvailabilityZones : function(callback)
@@ -3771,7 +3779,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "VirtualMFADevices", "member");
         for ( var i = 0; i < items.length; i++) {
             var serial = getNodeValue(items[i], "SerialNumber");
-            var arn = getNodeValue(items[i], "Arn");
+            var arn = toArn(getNodeValue(items[i], "Arn"));
             var date = getNodeValue(items[i], "EnableDate");
             var user = getNodeValue(items[i], "UserName");
             list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), user));
@@ -3842,7 +3850,7 @@ var ew_api = {
 
     unpackInstanceProfile: function(item)
     {
-        var arn = getNodeValue(item, "Arn");
+        var arn = toArn(getNodeValue(item, "Arn"));
         var path = getNodeValue(item, "Path");
         var id = getNodeValue(item, "InstanceProfileId");
         var name = getNodeValue(item, "InstanceProfileName");
@@ -3925,7 +3933,7 @@ var ew_api = {
 
     unpackRole: function(item)
     {
-        var arn = getNodeValue(item, "Arn");
+        var arn = toArn(getNodeValue(item, "Arn"));
         var path = getNodeValue(item, "Path");
         var id = getNodeValue(item, "RoleId");
         var name = getNodeValue(item, "RoleName");
@@ -4003,7 +4011,7 @@ var ew_api = {
         var id = getNodeValue(item, "UserId");
         var name = getNodeValue(item, "UserName");
         var path = getNodeValue(item, "Path");
-        var arn = getNodeValue(item, "Arn");
+        var arn = toArn(getNodeValue(item, "Arn"));
         return new User(id, name, path, arn)
     },
 
@@ -4145,7 +4153,7 @@ var ew_api = {
         var path = getNodeValue(item, "Path");
         var name = getNodeValue(item, "GroupName");
         var id = getNodeValue(item, "GroupId");
-        var arn = getNodeValue(item, "Arn");
+        var arn = toArn(getNodeValue(item, "Arn"));
         return new UserGroup(id, name, path, arn);
     },
 
@@ -4246,7 +4254,7 @@ var ew_api = {
         var obj = this.core.findModel('groups', group.id);
         if (!obj) obj = group;
 
-        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(obj) { return new User(obj.UserId, obj.UserName, obj.Path, obj.Arn); });
+        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(obj) { return new User(obj.UserId, obj.UserName, obj.Path, toArn(obj.Arn)); });
 
         // Update with real users from the model so we can share between users and groups screens
         for (var i in users) {
@@ -4382,7 +4390,7 @@ var ew_api = {
     {
         var id = getNodeValue(item, "ServerCertificateId");
         var name = getNodeValue(item, "ServerCertificateName");
-        var arn = getNodeValue(item, "Arn");
+        var arn = toArn(getNodeValue(item, "Arn"));
         var path = getNodeValue(item, "Path");
         var date = getNodeValue(item, "UploadDate");
         var body = getNodeValue(item, "CertificateBody");
@@ -4430,7 +4438,7 @@ var ew_api = {
 
     unpackAlarm: function(item)
     {
-        var arn = getNodeValue(item, "AlarmArn");
+        var arn = toArn(getNodeValue(item, "AlarmArn"));
         var name = getNodeValue(item, "AlarmName");
         var enabled = getNodeValue(item, "ActionsEnabled");
         var actions = getNodeValue(item, "AlarmActions");
@@ -4629,7 +4637,7 @@ var ew_api = {
 
         var item = xmlDoc.getElementsByTagName('Credentials')[0];
         var id = getNodeValue(xmlDoc, "FederatedUser", "FederatedUserId");
-        var arn = getNodeValue(xmlDoc, "FederatedUser", "Arn");
+        var arn = toArn(getNodeValue(xmlDoc, "FederatedUser", "Arn"));
 
         var token = getNodeValue(item, "SessionToken");
         var key = getNodeValue(item, "AccessKeyId");
@@ -4793,7 +4801,7 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var list = this.getItems(xmlDoc, "Topics", "member", ["TopicArn"], function(obj) { return new Topic(obj.TopicArn); });
+        var list = this.getItems(xmlDoc, "Topics", "member", ["TopicArn"], function(obj) { return new Topic(toArn(obj.TopicArn)); });
         this.core.setModel('topics', list);
         response.result = list;
     },
@@ -4889,7 +4897,7 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) { return new Subscription(obj.TopicArn,obj.SubscriptionArn,obj.Protocol,obj.Endpoint,obj.Owner); });
+        var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) { return new Subscription(toArn(obj.TopicArn),toArn(obj.SubscriptionArn),obj.Protocol,obj.Endpoint,obj.Owner); });
 
         if (response.action == "ListSubscriptions") {
             this.core.setModel('subscriptions', list);
@@ -5305,7 +5313,7 @@ var ew_api = {
             var src = getNodeValue(items[i], "Source")
             list.push(new DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src))
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     modifyDBParameterGroup: function(name, options, callback)
@@ -5373,7 +5381,7 @@ var ew_api = {
             var stime = new Date(getNodeValue(items[i], "SnapshotCreateTime"))
             list.push(new DBsnapshot(id, dbid, type, status, username, ver, engine, port, storage, ctime, license, azone, stime));
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     createDBSubnetGroup: function(name, descr, subnets, callback)
@@ -5894,7 +5902,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "AutoScalingGroups", "member");
         for (var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "AutoScalingGroupName");
-            var arn = getNodeValue(items[i], "AutoScalingGroupARN");
+            var arn = toArn(getNodeValue(items[i], "AutoScalingGroupARN"));
             var date = new Date(getNodeValue(items[i], "CreatedTime"));
             var config = getNodeValue(items[i], "LaunchConfigurationName");
             var capacity = getNodeValue(items[i], "DesiredCapacity");
@@ -5958,7 +5966,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "LaunchConfigurations", "member");
         for (var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "LaunchConfigurationName");
-            var arn = getNodeValue(items[i], "LaunchConfigurationARN");
+            var arn = toArn(getNodeValue(items[i], "LaunchConfigurationARN"));
             var date = new Date(getNodeValue(items[i], "CreatedTime"));
             var type = getNodeValue(items[i], "InstanceType");
             var key = getNodeValue(items[i], "KeyName");
@@ -6129,10 +6137,10 @@ var ew_api = {
             var atype = getNodeValue(items[i], "AdjustmentType");
             var cooldown = getNodeValue(items[i], "Cooldown");
             var minadjust = getNodeValue(items[i], "MinAdjustmentStep");
-            var arn = getNodeValue(items[i], "PolicyARN");
+            var arn = toArn(getNodeValue(items[i], "PolicyARN"));
             var name = getNodeValue(items[i], "PolicyName");
             var adjust = getNodeValue(items[i], "ScalingAdjustment");
-            var alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(obj) { return new Item(obj.AlarmName, obj.AlarmARN);});
+            var alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(obj) { return new Item(obj.AlarmName, toArn(obj.AlarmARN));});
             list.push(new ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, alarms));
         }
         this.core.setModel('aspolicies', list);
@@ -6151,7 +6159,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "ScheduledUpdateGroupActions", "member");
         for (var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "ScheduledActionName");
-            var arn = getNodeValue(items[i], "ScheduledActionARN");
+            var arn = toArn(getNodeValue(items[i], "ScheduledActionARN"));
             var group = getNodeValue(items[i], "AutoScalingGroupName");
             var capacity = getNodeValue(items[i], "DesiredCapacity");
             var start = new Date(getNodeValue(items[i], "StartTime"));

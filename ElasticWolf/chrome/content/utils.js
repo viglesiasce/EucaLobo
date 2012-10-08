@@ -400,6 +400,12 @@ function toTitle(name)
     return name[0].toUpperCase() + name.substr(1);
 }
 
+function toArn(arn)
+{
+    if (ew_core.isGovCloud()) return arn.replace('arn:aws:', 'arn:aws-us-gov:');
+    return arn;
+}
+
 function isWindows(platform)
 {
     return platform.match(regExs['win']);

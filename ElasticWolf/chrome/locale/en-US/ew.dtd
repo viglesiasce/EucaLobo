@@ -343,7 +343,7 @@
 <!ENTITY ew.deletevpnattachment.tip "Detach">
 <!ENTITY ew.getcustomerconfig.tip "Save Customer Gateway Configuration">
 
-<!ENTITY ew.images.powerup.tip "Launch Instance(s)">
+<!ENTITY ew.images.powerup.tip "Launch New Instance(s)">
 <!ENTITY ew.images.register.tip "Register AMI">
 <!ENTITY ew.images.deregister.tip "Deregister AMI">
 
@@ -352,18 +352,18 @@
 <!ENTITY ew.launchperms.public.tip "Allow any user to launch this AMI">
 <!ENTITY ew.launchperms.reset.tip "Reset to defaults">
 
-<!ENTITY ew.instances.reboot.tip "Reboot Selected Instances">
-<!ENTITY ew.instances.powerdown.tip "Terminate Selected Instances">
 <!ENTITY ew.instances.console.tip "Show Console Output">
 <!ENTITY ew.instances.connect.tip "Connect To Public IP of the Instance">
-<!ENTITY ew.instances.start.tip "Start an EBS-backed Instance">
-<!ENTITY ew.instances.stop.tip "Stop an EBS-backed Instance">
+<!ENTITY ew.instances.start.tip "Start Selected Instances">
+<!ENTITY ew.instances.stop.tip "Stop Selected Instances">
+<!ENTITY ew.instances.reboot.tip "Reboot Selected Instances">
+<!ENTITY ew.instances.powerdown.tip "Terminate Selected Instances">
 
 <!ENTITY ew.keypairs.details.tip "Show keypair details">
 <!ENTITY ew.keypairs.create.tip "Create a new keypair">
 <!ENTITY ew.keypairs.delete.tip "Delete selected keypair">
-<!ENTITY ew.keypairs.import.tip "Create keypair from existing SSH key">
-<!ENTITY ew.keypairs.make.tip "Create SSH keys and import into keypair">
+<!ENTITY ew.keypairs.import.tip "Import existing SSH key into keypair">
+<!ENTITY ew.keypairs.make.tip "Create new SSH keys and import into keypair">
 <!ENTITY ew.keypairs.shell.tip "Run shell with selected keypair and current access key">
 
 <!ENTITY ew.accesskeys.create.tip "Create a new access key">
