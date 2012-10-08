@@ -442,9 +442,7 @@
     </treechildren>
     </tree>
 
-     <splitter style="min-width: 4px; height: 4px;" persist="state" collapse="after" resizebefore="closest">
-        <grippy />
-      </splitter>
+    <splitter persist="state" collapse="none" resizebefore="closest" />
 
     <tabbox flex="1">
     <tabpanels id="ew.tabs" flex="1" style="margin:5px;padding-top:0px;outline:0px;border:0px;">

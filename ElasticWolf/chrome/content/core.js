@@ -70,7 +70,7 @@ var ew_core = {
 
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
-        this.switchCredentials(this.findCredentials(this.getCurrentUser()));
+        this.switchCredentials(this.findCredentials(this.getAccountName()));
         this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.ew"));
 
         // Parse command line
@@ -379,7 +379,7 @@ var ew_core = {
             this.setStrPrefs("ew.account.name", cred.name);
             this.api.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
 
-            // Default endpoint doe snot need to be saved
+            // Default endpoint does not need to be saved
             if (cred.url != "") {
                 var endpoint = this.getEndpoint(null, cred.url);
                 if (!endpoint) endpoint = new Endpoint("", cred.url)
@@ -1124,7 +1124,7 @@ var ew_core = {
         return 1
     },
 
-    getCurrentUser : function()
+    getAccountName : function()
     {
         return this.getStrPrefs("ew.account.name", "");
     },
@@ -1247,22 +1247,22 @@ var ew_core = {
 
     getCredentialFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "AWSCredential_${keyname}.txt", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "AWSCredential_${keyname}.txt", [ [ "keyname", sanitize(name ? name : this.getAccountName()) ] ]);
     },
 
     getPrivateKeyFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PrivateKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PrivateKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getAccountName()) ] ]);
     },
 
     getPublicKeyFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PublicKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "PublicKey_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getAccountName()) ] ]);
     },
 
     getCertificateFile : function(name)
     {
-        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "X509Certificate_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getCurrentUser()) ] ]);
+        return this.getTemplateProcessed(this.getKeyHome() + this.getDirSeparator() + "X509Certificate_${keyname}.pem", [ [ "keyname", sanitize(name ? name : this.getAccountName()) ] ]);
     },
 
     getTemplateProcessed : function(file, params)
@@ -1298,7 +1298,7 @@ var ew_core = {
             file = file.replace(/\${keyhome}/g, quotepath(home));
         }
         if (file.indexOf("${user}") > -1) {
-            file = file.replace(/\${user}/g, this.getCurrentUser());
+            file = file.replace(/\${user}/g, this.getAccountName());
         }
         if (file.indexOf("${key}") > -1) {
             file = file.replace(/\${key}/g, quotepath(this.getPrivateKeyFile(keyname)));
@@ -1413,9 +1413,17 @@ var ew_core = {
 
         // Save access key into file by credentials name or account name
         if (!cred) cred = this.getActiveCredentials();
-        var file = this.getCredentialFile(cred ? cred.name : this.getCurrentUser());
+        var file = this.getCredentialFile(cred ? cred.name : this.getAccountName());
         this.saveAccessKey(file, { id: cred ? cred.accessKey : this.api.accessKey, secret: cred ? cred.secretKey : this.api.secretKey });
         this.setEnv("AWS_CREDENTIAL_FILE", file);
+
+        // Deprecated API for older EC2 tools
+        this.setEnv("EC2_PRIVATE_KEY", this.getPrivateKeyFile());
+        this.setEnv("EC2_CERT", this.getCertificateFile());
+
+        // New API for EC2 tools
+        this.setEnv("AWS_ACCESS_KEY", cred ? cred.accessKey : this.api.accessKey);
+        this.setEnv("AWS_SECRET_KEY", cred ? cred.secretKey : this.api.secretKey);
 
         this.setEnv("EC2_URL", this.api.urls.EC2);
         this.setEnv("AWS_IAM_URL", this.api.urls.IAM);

@@ -26,7 +26,7 @@ var ew_HostedZonesTreeView = {
     create: function()
     {
         var values = this.core.promptInput('Create Hosted Zone', [{label:'Doman Name',type:'name',required:1},
-                                                                  {label:'Unique Reference Id',required:1,value:this.core.getCurrentUser() + (new Date()).getTime()},
+                                                                  {label:'Unique Reference Id',required:1,value:this.core.getAccountName() + (new Date()).getTime()},
                                                                   {label:"Comment"}]);
         if (!values) return;
         var me = this;
@@ -141,7 +141,7 @@ var ew_HostedRecordsTreeView = {
         var values = this.core.promptInput('Create Record', inputs, 0, callback);
         if (!values) return;
         item = {};
-        item.comment = this.core.getCurrentUser();
+        item.comment = this.core.getAccountName();
         item.name = values[0];
         item.type = values[1];
         item.ttl = values[4];

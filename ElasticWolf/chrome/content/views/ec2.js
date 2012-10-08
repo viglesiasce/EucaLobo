@@ -721,8 +721,11 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
         var image = this.core.findModel('images', instance.imageId);
-        if (!image) return alert('Cannot find AMI ' + instance.imageId);
-        ew_AMIsTreeView.launchNewInstances(image);
+        if (image) {
+            return ew_AMIsTreeView.launchNewInstances(image);
+        }
+        if (!confirm('Cannot find AMI ' + instance.imageId + ', would you like to just start more like this instance ' + instance.id + ' instead?')) return;
+        this.launchMore();
     },
 
     launchMore : function() {

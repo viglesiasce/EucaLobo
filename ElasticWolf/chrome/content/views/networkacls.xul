@@ -31,8 +31,8 @@
                 </tree>
             </groupbox>
 
-            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
-                <grippy />
+            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+                
             </splitter>
 
             <groupbox orient="vertical" flex="1">
@@ -63,8 +63,8 @@
                 </tree>
             </groupbox>
 
-            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="after" resizebefore="closest">
-                <grippy />
+            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+                
             </splitter>
 
             <groupbox orient="vertical" flex="1">
