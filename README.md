@@ -73,6 +73,10 @@ clients for accessing Linux instances.
 
  it will produce two .zip files for each platform
 
+## Download binary releases
+
+  Packages for Windows and  Mac OS X are available at http://www.awsps.com/ElasticWolf
+
 ## Passing credentials via command line
 
  The parameters are:
