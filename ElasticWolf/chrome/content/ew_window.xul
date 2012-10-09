@@ -91,7 +91,7 @@
 
      // Mapping between panels and tree views, have to connect them excplicitely
      var ew_tabs = [
-            { name: "ew.tabs.ew",            },
+            { name: "ew.tabs.ew.folder",     },
 
             { name: "ew.tabs.prefs",         views: [ { view: ew_PrefsView } ] },
 
@@ -276,7 +276,7 @@
     </menu>
     <menu label="Help">
       <menupopup>
-       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_core.selectTab('ew.tabs.ew');"/>
+       <menuitem label="About" id="aboutName" image="images/about.png" class="menuitem-iconic" oncommand="ew_core.selectTab('ew.tabs.ew.folder');"/>
       </menupopup>
     </menu>
    </menubar>
@@ -519,7 +519,7 @@
        </vbox>
       </tabpanel>
 
-      <tabpanel id="ew.tabs.ew">
+      <tabpanel id="ew.tabs.ew.folder">
        <vbox flex="1">
          <groupbox flex="1">
            <caption id="ew.header" class="header" />

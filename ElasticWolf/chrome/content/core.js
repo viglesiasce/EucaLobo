@@ -71,7 +71,7 @@ var ew_core = {
         // Use last used credentials
         this.selectEndpoint(this.getActiveEndpoint());
         this.switchCredentials(this.findCredentials(this.getAccountName()));
-        this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.ew"));
+        this.selectTab(this.getStrPrefs("ew.tab.current", "ew.tabs.ew.folder"));
 
         // Parse command line
         this.cmdLine = window.arguments ? window.arguments[0].QueryInterface(Components.interfaces.nsICommandLine) : null;
