@@ -73,7 +73,7 @@ clients for accessing Linux instances.
 
  it will produce two .zip files for each platform
 
-## Dowmload binary releases
+## Download binary releases
 
   Packages for Windows and  Mac OS X are available at http://www.awsps.com/ElasticWolf
 
