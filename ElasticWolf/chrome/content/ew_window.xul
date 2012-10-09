@@ -60,7 +60,9 @@
 <?xul-overlay href="chrome://ew/content/views/placementgroups.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
-        orient="vertical" persist="width height screenX screenY sizemode" onload="ew_core.initialize(ew_tabs, ew_api)">
+        orient="vertical"
+        persist="width height screenX screenY sizemode" minwidth="600" minheight="400"
+        onload="ew_core.initialize(ew_tabs, ew_api)">
 
   <script src="chrome://venkman/content/venkman-overlay.js" />
 
@@ -289,7 +291,7 @@
     <treechildren id="menuchildren">
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Elastic Wolf" src="images/logo.png" value="ew.tabs.ew" />
+         <treecell label="Elastic Wolf" src="images/logo.png" value="ew.tabs.ew.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Preferences" value="ew.tabs.prefs" /></treerow></treeitem>
@@ -323,7 +325,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2.folder" />
+         <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2.c.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
@@ -336,18 +338,18 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.folder" />
+         <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.placementgroup.label;" value="ew.tabs.placementgroup" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.spot.label;" value="ew.tabs.spot" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.export.label;" value="ew.tabs.export" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -359,14 +361,14 @@
          <treeitem><treerow><treecell label="&ew.tabs.vpc.label;" value="ew.tabs.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.subnet.label;" value="ew.tabs.subnet" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.acl.label;" value="ew.tabs.acl" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.dhcp.label;" value="ew.tabs.dhcp" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.routing.label;" value="ew.tabs.routing" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.igw.label;" value="ew.tabs.igw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip.vpc" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eni.label;" value="ew.tabs.eni" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup.vpc" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.acl.label;" value="ew.tabs.acl" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.routing.label;" value="ew.tabs.routing" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.dhcp.label;" value="ew.tabs.dhcp" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer.vpc" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.igw.label;" value="ew.tabs.igw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.vgw.label;" value="ew.tabs.vgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.cgw.label;" value="ew.tabs.cgw" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.vpn.label;" value="ew.tabs.vpn" /></treerow></treeitem>

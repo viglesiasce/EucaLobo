@@ -26,6 +26,7 @@
           <menuitem id="instances.context.createimage" oncommand="ew_InstancesTreeView.showCreateImageDialog();" label="Create Image (EBS AMI)" />
           <menuitem id="instances.context.export" oncommand="ew_InstancesTreeView.exportToS3();" label="Export to S3 Bucket" />
           <menuitem id="instances.context.bundle" oncommand="ew_InstancesTreeView.showBundleDialog();" label="Bundle into an S3 AMI" />
+          <menuseparator />
           <menuitem id="instances.context.changeUserData" oncommand="ew_InstancesTreeView.changeUserData();" label="View/Change User Data" />
           <menuitem id="instances.context.changeInstanceType" oncommand="ew_InstancesTreeView.changeInstanceType();" label="Change Instance Type" />
           <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
@@ -33,14 +34,6 @@
           <menuitem id="instances.context.changeSourceDestCheck" oncommand="ew_InstancesTreeView.changeSourceDestCheck();" label="Change SourceDesct Check" />
           <menuitem id="instances.context.changeSecurityGroups" oncommand="ew_InstancesTreeView.changeSecurityGroups();" label="Change Security Groups" />
           <menuitem id="instances.context.changeDeleteOnTermination" oncommand="ew_InstancesTreeView.changeDeleteOnTermination();" label="Change Delete On Termination for Volumes" />
-          <menu label="Monitoring">
-            <menupopup>
-            <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
-            <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
-            <menuitem id="instances.context.showMetrics" oncommand="ew_InstancesTreeView.showMetrics();" label="Show Metrics" />
-            <menuitem id="instances.context.events" oncommand="ew_InstancesTreeView.showInstanceStatus();" label="Show Instance Status" />
-            </menupopup>
-          </menu>
           <menuseparator />
           <menuitem oncommand="ew_InstancesTreeView.showConsoleOutput();" label="Show Console Output" />
           <menuitem id="instances.context.getPassword" oncommand="ew_InstancesTreeView.getAdminPassword();" label="Get Administrator Password" />
@@ -54,6 +47,15 @@
               <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('privateDnsName');" label="Private DNS Name" />
               <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('privateIpAddress');" label="Private IP Address" />
               <menuitem id="instances.context.copyElastic" oncommand="ew_InstancesTreeView.copyToClipboard('eip');" label="Elastic IP Address" />
+            </menupopup>
+          </menu>
+          <menuseparator />
+          <menu label="Monitoring">
+            <menupopup>
+            <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
+            <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
+            <menuitem id="instances.context.showMetrics" oncommand="ew_InstancesTreeView.showMetrics();" label="Show Metrics" />
+            <menuitem id="instances.context.events" oncommand="ew_InstancesTreeView.showInstanceStatus();" label="Show Instance Status" />
             </menupopup>
           </menu>
           <menuseparator />

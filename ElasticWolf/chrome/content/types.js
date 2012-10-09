@@ -2203,8 +2203,9 @@ function Instance(reservationId, ownerId, requesterId, instanceId, imageId, stat
     }
 }
 
-function InstanceStatusEvent(instanceId, availabilityZone, status, code, description, startTime, endTime)
+function InstanceStatusEvent(type, instanceId, availabilityZone, status, code, description, startTime, endTime)
 {
+    this.type = type;
     this.instanceId = instanceId;
     this.availabilityZone = availabilityZone;
     this.status = status;
@@ -2214,8 +2215,10 @@ function InstanceStatusEvent(instanceId, availabilityZone, status, code, descrip
     this.endTime = endTime;
 
     this.toString = function() {
-        return this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
-               this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
+        return this.type + fieldSeparator +
+               this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
+               this.description + fieldSeparator +
+               this.code + (this.startTime ? fieldSeparator + this.startTime : "");
     }
 }
 
@@ -2424,7 +2427,10 @@ function Vpc(id, cidr, state, dhcpOptionsId, tenancy, tags)
     ew_core.processTags(this)
 
     this.toString = function() {
-        return this.cidr + fieldSeparator + (this.name ? this.name + fieldSeparator : "") + this.id;
+        return this.cidr + fieldSeparator +
+               (this.name ? this.name + fieldSeparator : "") +
+               this.id +
+               (this.instanceTenancy == "dedicated" ? fieldSeparator + "dedicated" : "");
     }
 }
 

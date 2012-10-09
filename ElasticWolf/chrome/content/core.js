@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "2.1.6",
+    VERSION: "2.1.7",
     NAME: 'ElasticWolf',
     URL: 'http://www.awsps.com/ElasticWolf/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -898,7 +898,7 @@ var ew_core = {
         return parseInt(v[0]) * 100 + parseInt(v[1]) * 10 + parseInt(v[2]);
     },
 
-    checkForUpdates: function(masg)
+    checkForUpdates: function(msg)
     {
         var me = this;
         if (!this.isEnabled()) return null;

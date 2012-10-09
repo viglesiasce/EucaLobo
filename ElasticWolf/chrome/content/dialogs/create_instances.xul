@@ -184,6 +184,17 @@
             return false;
         }
 
+        if (this.vpcMenu.value != "") {
+            var vpc = this.core.findModel('vpcs', this.vpcMenu.value);
+            if (vpc && vpc.instanceTenancy == "dedicated") {
+                if (!confirm("You have chosen to launch your instance(s) in VPC with dedicated tenancy.\n\n" +
+                         "This choice can add a signficant amount of cost to your EC2 charges "+
+                         "(see http://aws.amazon.com/dedicated-instances/). Are you sure you want to continue?")) {
+                    return false;
+                }
+            }
+        }
+
         if (this.retVal.tenancy == "dedicated") {
             if (this.retVal.instanceType.match('micro')) {
                 alert('Cannot run this instance type in dedicated mode');
@@ -194,7 +205,7 @@
                 $("ew.tabs").selectedIndex = 1;
                 return false;
             }
-            if (!confirm("You have chosen to launch your instance(s) with dedicated tenancy. " +
+            if (!confirm("You have chosen to launch your instance(s) with dedicated tenancy.\n\n" +
                          "This choice can add a signficant amount of cost to your EC2 charges "+
                          "(see http://aws.amazon.com/dedicated-instances/). Are you sure you want to continue?")) {
                 return false;
@@ -510,7 +521,7 @@
                     <label control="ew.tenancy" value="Instance Tenancy:" />
                     <menulist id="ew.tenancy" size="30" >
                          <menupopup>
-                            <menuitem label="Default" value="default"/>
+                            <menuitem label="Standard" value="default"/>
                             <menuitem label="Dedicated" value="dedicated"/>
                          </menupopup>
                     </menulist>

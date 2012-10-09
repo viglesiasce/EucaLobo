@@ -2234,7 +2234,7 @@ var ew_api = {
                     var name = getNodeValue(details[k], "name");
                     var code = getNodeValue(details[k], "status");
                     var date = getNodeValue(details[k], "impairedSince");
-                    list.push(new InstanceStatusEvent(instanceId, availabilityZone, status, code, name, date, ""));
+                    list.push(new InstanceStatusEvent("SystemStatus", instanceId, availabilityZone, status, code, name, date, ""));
                 }
             }
 
@@ -2246,7 +2246,7 @@ var ew_api = {
                     var name = getNodeValue(details[k], "name");
                     var code = getNodeValue(details[k], "status");
                     var date = getNodeValue(details[k], "impairedSince");
-                    list.push(new InstanceStatusEvent(instanceId, availabilityZone, status, code, name, date, ""));
+                    list.push(new InstanceStatusEvent("InstanceStatus", instanceId, availabilityZone, status, code, name, date, ""));
                 }
             }
 
@@ -2256,7 +2256,7 @@ var ew_api = {
                 var description = getNodeValue(objs[j], "description");
                 var startTime = getNodeValue(objs[j], "notBefore");
                 var endTime = getNodeValue(objs[j], "notAfter");
-                list.push(new InstanceStatusEvent(instanceId, availabilityZone, "", code, description, startTime, endTime));
+                list.push(new InstanceStatusEvent("Event", instanceId, availabilityZone, "", code, description, startTime, endTime));
             }
 
             var instance = this.core.findModel('instances', instanceId);
