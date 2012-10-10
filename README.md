@@ -3,10 +3,10 @@
 ElasticWolf is an application for managing Amazon Web Services resources with a simple and
 easy to use client-side UI.
 
-This project started as a fork of ElasticFox but most of the code has been rewritten since then. 
-It adds support for the GovCloud region, much better VPC support, and many other enhancements. 
-It is also packaged with all necessary tools and utilities to deal with private and public 
-keys and SSL certificates. In short, it provides everything for an AWS user to get going 
+This project started as a fork of ElasticFox but most of the code has been rewritten since then.
+It adds support for the GovCloud region, much better VPC support, and many other enhancements.
+It is also packaged with all necessary tools and utilities to deal with private and public
+keys and SSL certificates. In short, it provides everything for an AWS user to get going
 without using the command line tools.
 
 In addition, it integrates well with the AWS command line tools such that the user can
@@ -37,7 +37,7 @@ clients for accessing Linux instances.
 
 ## Testing on On Windows
 
-   * Download Git for Windows from http://code.google.com/p/msysgit/downloads/list 
+   * Download Git for Windows from http://code.google.com/p/msysgit/downloads/list
      or
      Explorer integration of Git from http://code.google.com/p/gitextensions/
 
@@ -49,7 +49,7 @@ clients for accessing Linux instances.
 
         "C:\Program Files\Git\cmd\git" clone git://github.com/aws-ew-dev/ElasticWolf.git
 
-   * To run the application execute with javascript console 
+   * To run the application execute with javascript console
 
        ElasticWolf/ElasticWolf.exe -jsconsole
 
@@ -61,9 +61,9 @@ clients for accessing Linux instances.
 
       "C:\Program Files\Git\cmd\git" pull
 
-   * To access git command line utilities without full path, go to 
-     My computer | Properties | Advanced System Properties | Environment Variables and 
-     add path to the git C:\Program Files\Git\cmd to Path system variable. 
+   * To access git command line utilities without full path, go to
+     My computer | Properties | Advanced System Properties | Environment Variables and
+     add path to the git C:\Program Files\Git\cmd to Path system variable.
 
 ## Building releases
 
@@ -75,7 +75,7 @@ clients for accessing Linux instances.
 
 ## Download binary releases
 
-  Packages for Windows and  Mac OS X are available at http://www.awsps.com/ElasticWolf
+  Packages for Windows and Mac OS X are available at http://www.elasticwolf.com
 
 ## Passing credentials via command line
 

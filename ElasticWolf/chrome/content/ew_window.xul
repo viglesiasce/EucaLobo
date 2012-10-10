@@ -329,9 +329,11 @@
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.bundletask.label;" value="ew.tabs.bundletask" /></treerow></treeitem>
+         <treeitem><treerow><treecell label="&ew.tabs.export.label;" value="ew.tabs.export" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.volume.label;" value="ew.tabs.volume" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.snapshot.label;" value="ew.tabs.snapshot" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.bundletask.label;" value="ew.tabs.bundletask" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.availzone.label;" value="ew.tabs.availzone" /></treerow></treeitem>
        </treechildren>
       </treeitem>
@@ -341,14 +343,12 @@
          <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.placementgroup.label;" value="ew.tabs.placementgroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.spot.label;" value="ew.tabs.spot" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.export.label;" value="ew.tabs.export" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
        </treechildren>
       </treeitem>
