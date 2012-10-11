@@ -8,7 +8,7 @@
   onload="init();"
   title="&ew.dialog.title.Create_Loadbalancer;"
   width="600"
-  height="500" >
+  height="600" >
 
   <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
   <script type="application/x-javascript" src="chrome://ew/content/types.js" />
@@ -21,13 +21,7 @@
 
     ListBox.init({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', items:this.core.queryModel('instances','state', 'running') });
 
-    var availZones = this.core.queryModel('availabilityZones');
-    var availZoneMenu = document.getElementById("ew.azones");
-    availZoneMenu.appendItem("", "");
-    for(var i in availZones) {
-        availZoneMenu.appendItem(availZones[i].name, availZones[i].name);
-    }
-    availZoneMenu.selectedIndex =  0;
+    this.azones = new ListView({ core:this.core, rows:4, width:350, name:'ew.azones', items:this.core.queryModel('availabilityZones') });
 
     this.subnets = this.core.queryModel('subnets');
     var subnetMenu = document.getElementById("ew.subnets");
@@ -66,11 +60,14 @@
     this.rc.UnhealthyThreshold = document.getElementById("ew.uThreshold").value.trim();
     this.rc.securityGroups = [];
     this.rc.subnetId = "";
-    this.rc.Zone = "";
+    this.rc.azones = [];
 
     var azsn = document.getElementById("ew.azsn").value;
     if (azsn == 'az') {
-        this.rc.Zone = document.getElementById("ew.azones").selectedItem.value;
+        this.azones.done();
+        for (var i in this.azones.selectedItems) {
+            this.rc.azones.push(this.azones.selectedItems[i].id);
+        }
     } else {
         this.rc.scheme = document.getElementById("ew.scheme").value.trim();
         this.rc.subnetId = document.getElementById("ew.subnets").selectedItem.value;
@@ -139,8 +136,8 @@
 
     var azsn = document.getElementById("ew.azsn").selectedItem.value;
     if (azsn == 'az') {
-        var azone = document.getElementById("ew.azones").value;
-        if (!azone) {
+        this.azones.done();
+        if (!this.azones.selectedItems.length) {
             alert('Please choose Availability Zone');
             return false;
         }
@@ -247,13 +244,13 @@
         </row>
         <row>
           <radio id="ew.azsn" checked="true" value="az" label="Availability Zone" oncommand="onChange()" />
-          <menulist id="ew.azones" />
+          <listbox id="ew.azones" />
         </row>
         <row align="start">
           <radio id="ew.azsn" value="sn" label="Subnet/Group" oncommand="onChange()" />
           <vbox flex="1">
             <menulist id="ew.subnets" onselect="refresh_group();" sizetopopup="none" style="max-width:350px;"/>
-            <listbox id="ew.groups" seltype="multiple" style="max-width:350px;height:100px;" />
+            <listbox id="ew.groups" seltype="multiple" style="max-width:350px;max-height:100px;" />
           </vbox>
         </row>
         <row>

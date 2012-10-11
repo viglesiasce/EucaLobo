@@ -3414,12 +3414,14 @@ var ew_api = {
         this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
     },
 
-    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azone, subnet, groups, scheme, callback)
+    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azones, subnet, groups, scheme, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
-        if (azone) {
-            params.push([ "AvailabilityZones.member.1", azone ]);
+        if (azones) {
+            for (var i = 0; i < azones.length; i++) {
+                params.push([ "AvailabilityZones.member." + (i + 1), azones[i] ]);
+            }
         }
         if (subnet) {
             params.push(["Subnets.member.1", subnet]);
