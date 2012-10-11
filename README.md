@@ -65,17 +65,29 @@ clients for accessing Linux instances.
      My computer | Properties | Advanced System Properties | Environment Variables and
      add path to the git C:\Program Files\Git\cmd to Path system variable.
 
+## Testing on Linux
+
+   *  Retrieve source code from the repository
+
+       git clone git://github.com/aws-ew-dev/ElasticWolf.git
+
+   * Install xulrunner, for example on Ubuntu
+
+     apt-get install xulrunner
+
+   * Execute ElasticWolf/ElasticWolf
+
 ## Building releases
 
  To create binary packages for Mac and Windows, just type
 
   make build
 
- it will produce two .zip files for each platform
+ it will produce .zip files for each platform in the ../
 
 ## Download binary releases
 
-  Packages for Windows and Mac OS X are available at http://www.elasticwolf.com
+  Packages for Windows, Linux and Mac OS X are available at http://www.elasticwolf.com
 
 ## Passing credentials via command line
 

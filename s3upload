@@ -27,7 +27,7 @@ if (path == "index.html") {
 
        res.on('end', function() {
           // file must contain new version, replace for all platforms
-          index = index.replace(/ElasticWolf-(osx|win)-[0-9\.]+zip/g, 'ElasticWolf-$1-' + file + '.zip');
+          index = index.replace(/ElasticWolf-(osx|win|linux)-[0-9\.]+zip/g, 'ElasticWolf-$1-' + file + '.zip');
 
           // Upload modified index to back into S3 bucket 
           s3.putBuffer(path, new Buffer(index), 'public-read', {'content-type':'text/html'}, function (err, res) {

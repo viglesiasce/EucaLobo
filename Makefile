@@ -13,7 +13,7 @@ dev:	clean_osx
 	ln -sf `pwd`/$(NAME)/application.ini $(OSX)/Resources/application.ini
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
-build:	clean build_osx build_win
+build:	clean build_osx build_win build_linux
 	make dev
 
 prepare: clean prepare_osx

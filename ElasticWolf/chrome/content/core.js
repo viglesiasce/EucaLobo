@@ -2343,7 +2343,7 @@ var ew_core = {
                    version: '2012-06-15',
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   actionIgnore: [ "DescribeLoadBalancers", "ListQueues", "DescribeDBInstances" , "ListTopics", "ListSubscriptions", "hostedzone" ],
+                   actionIgnore: [ "DescribeLoadBalancers", "DescribeLoadBalancerPolicyTypes", "ListQueues", "DescribeDBInstances" , "ListTopics", "ListSubscriptions", "hostedzone" ],
                  },
             ];
     },

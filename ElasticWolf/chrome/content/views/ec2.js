@@ -719,12 +719,15 @@ var ew_InstancesTreeView = {
     {
         var me = this;
         var instance = this.getSelected();
-        if (!instance) return;
+        if (!instance) {
+            alert('No existing instances, please choose AMI to launch from');
+            return this.core.selectTab('ew.tabs.image');
+        }
         var image = this.core.findModel('images', instance.imageId);
         if (image) {
             return ew_AMIsTreeView.launchNewInstances(image);
         }
-        if (!confirm('Cannot find AMI ' + instance.imageId + ', would you like to just start more like this instance ' + instance.id + ' instead?')) return;
+        if (!confirm('Cannot find AMI ' + instance.imageId + ' for this instance, would you like to just start more like this instance ' + instance.id + ' instead?')) return;
         this.launchMore();
     },
 

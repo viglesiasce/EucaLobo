@@ -23,6 +23,7 @@
 
     var availZones = this.core.queryModel('availabilityZones');
     var availZoneMenu = document.getElementById("ew.azones");
+    availZoneMenu.appendItem("", "");
     for(var i in availZones) {
         availZoneMenu.appendItem(availZones[i].name, availZones[i].name);
     }
@@ -30,6 +31,7 @@
 
     this.subnets = this.core.queryModel('subnets');
     var subnetMenu = document.getElementById("ew.subnets");
+    subnetMenu.appendItem("", "");
     for(var i = 0; i < subnets.length; i++) {
         subnetMenu.appendItem(subnets[i].toString(), subnets[i].id);
     }
@@ -62,6 +64,9 @@
     this.rc.Timeout = document.getElementById("ew.timeout").value.trim();
     this.rc.HealthyThreshold = document.getElementById("ew.HThreshold").value.trim();
     this.rc.UnhealthyThreshold = document.getElementById("ew.uThreshold").value.trim();
+    this.rc.securityGroups = [];
+    this.rc.subnetId = "";
+    this.rc.Zone = "";
 
     var azsn = document.getElementById("ew.azsn").value;
     if (azsn == 'az') {
@@ -70,12 +75,9 @@
         this.rc.scheme = document.getElementById("ew.scheme").value.trim();
         this.rc.subnetId = document.getElementById("ew.subnets").selectedItem.value;
         var groupMenu = document.getElementById('ew.groups');
-        this.rc.securityGroups = [];
         for (var i = 0; i < groupMenu.selectedItems.length; i++) {
             this.rc.securityGroups.push(groupMenu.selectedItems[i].value);
         }
-        var subnet = this.core.findModel('subnets', this.rc.subnetId);
-        this.rc.Zone = subnet.availabilityZone;
     }
     ListBox.done();
 
@@ -95,7 +97,7 @@
     for (var i = groupMenu.itemCount - 1; i >= 0; i--) {
         groupMenu.removeItemAt(i);
     }
-    var subnet = this.subnets[subnetMenu.selectedIndex];
+    var subnet = this.core.findObject(this.subnets, subnetMenu.value);
     if (!subnet) return;
 
     var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
@@ -114,7 +116,7 @@
     var instanceport = document.getElementById('ew.instanceport').value;
     var iInstanceport = parseInt(instanceport);
 
-    if (!/^[A-Za-z0-9]+$/.test(name)) {
+    if (!/^[A-Za-z0-9-]+$/.test(name)) {
         alert('Domain names must contain only alphanumeric characters or dashes.');
         return false;
     }
@@ -136,6 +138,14 @@
     }
 
     var azsn = document.getElementById("ew.azsn").selectedItem.value;
+    if (azsn == 'az') {
+        var azone = document.getElementById("ew.azones").value;
+        if (!azone) {
+            alert('Please choose Availability Zone');
+            return false;
+        }
+    }
+
     if (azsn == 'sn') {
         var subnetMenu = document.getElementById("ew.subnets");
         if (!subnetMenu.selectedItem) {
@@ -214,7 +224,7 @@
       <rows>
         <row>
           <label control="ew.Name" value="&ew.loadbalancerview.Name.label;" />
-          <textbox id="ew.Name" size="25" />
+          <textbox id="ew.Name" size="15" />
         </row>
         <row>
         <label control="ew.Protocol" value="&ew.loadbalancerview.protocol.label;" />
@@ -242,8 +252,8 @@
         <row align="start">
           <radio id="ew.azsn" value="sn" label="Subnet/Group" oncommand="onChange()" />
           <vbox flex="1">
-            <menulist id="ew.subnets" onselect="refresh_group();" />
-            <listbox id="ew.groups" seltype="multiple" style="height:100px;" />
+            <menulist id="ew.subnets" onselect="refresh_group();" sizetopopup="none" style="max-width:350px;"/>
+            <listbox id="ew.groups" seltype="multiple" style="max-width:350px;height:100px;" />
           </vbox>
         </row>
         <row>
@@ -279,30 +289,30 @@
         </row>
          <row>
           <label control="ew.pingport" value="&ew.loadbalancerview.Port.label;" />
-          <textbox id="ew.pingport" size="25" style="min-width: 8em" value="80" />
+          <textbox id="ew.pingport" size="15" style="min-width: 8em" value="80" />
         </row>
          <row>
           <label control="ew.pingpath" value="&ew.loadbalancerview.Path.label;" />
-          <textbox id="ew.pingpath" size="25" style="min-width: 8em" value="/index.html" />
+          <textbox id="ew.pingpath" size="15" style="min-width: 8em" value="/index.html" />
         </row>
          <row height="20px">
             <description style="font-weight:bold;">Advanced Options:</description>
          </row>
         <row>
           <label control="ew.timeout" value="&ew.loadbalancerview.Timeout.label;" />
-          <textbox id="ew.timeout" size="25" style="min-width: 8em" value="5" />
+          <textbox id="ew.timeout" size="15" style="min-width: 8em" value="5" />
         </row>
         <row>
           <label control="ew.Interval" value="&ew.loadbalancerview.interval.label;" />
-          <textbox id="ew.Interval" size="25" style="min-width: 8em" value="30" />
+          <textbox id="ew.Interval" size="15" style="min-width: 8em" value="30" />
         </row>
         <row>
           <label control="ew.uThreshold" value="&ew.loadbalancerview.UnhealthyThreshold.label;" />
-          <textbox id="ew.uThreshold" size="25" style="min-width: 8em" value="2" />
+          <textbox id="ew.uThreshold" size="15" style="min-width: 8em" value="2" />
         </row>
         <row>
           <label control="ew.HThreshold" value="&ew.loadbalancerview.HealthyThreshold.label;" />
-          <textbox id="ew.HThreshold" size="25" style="min-width: 8em" value="10" />
+          <textbox id="ew.HThreshold" size="15" style="min-width: 8em" value="10" />
         </row>
        </rows>
     </grid>

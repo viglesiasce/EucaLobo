@@ -3383,6 +3383,7 @@ var ew_api = {
 
     onCompleteDescribeLoadBalancerPolicyTypes : function(response)
     {
+        response.hasErrors = false;
         var xmlDoc = response.responseXML;
         var list = new Array();
         var items = this.getItems(xmlDoc, "PolicyTypeDescriptions", "member");
@@ -3417,7 +3418,9 @@ var ew_api = {
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
-        params.push([ "AvailabilityZones.member.1", azone ]);
+        if (azone) {
+            params.push([ "AvailabilityZones.member.1", azone ]);
+        }
         if (subnet) {
             params.push(["Subnets.member.1", subnet]);
             for (var i = 0; i < groups.length; i++) {
