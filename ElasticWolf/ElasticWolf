@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec xulrunner -app $(dirname $0)/application.ini
+
