@@ -15,7 +15,7 @@
                         <menuseparator />
                         <menuitem oncommand="ew_S3BucketsTreeView.refresh()" label="&ew.refresh.tip;" />
                         <menuitem id="ew.s3Buckets.create" oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
-                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder" />
+                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder(s)" />
                         <menuseparator />
                         <menuitem id="ew.s3Buckets.acl" oncommand="ew_S3BucketsTreeView.manageAcls();" label="Manage ACLs" />
                         <menuitem id="ew.s3Buckets.web" oncommand="ew_S3BucketsTreeView.manageWebsite();" label="Manage Website config" />
@@ -35,7 +35,7 @@
                     <toolbarbutton image="images/left.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.back()" tooltiptext="Back" />
                     <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.create();" tooltiptext="Create Bucket/Folder" />
-                    <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder" />
+                    <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder(s)" />
                     <toolbarbutton image="images/credentials.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageAcls();" tooltiptext="Manage ACLs" />
                     <toolbarbutton image="images/web.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageWebsite();" tooltiptext="Manage Website config" />
                     <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.displayInfo();" tooltiptext="Show Info" />
@@ -47,7 +47,7 @@
                 <label id="ew.s3Buckets.path" flex="1" />
                 <label id="ew.s3Buckets.status" style="color:green;text-align:right;" flex="1" />
                 </hbox>
-                <tree id="ew.s3Buckets.view" seltype="single" enableColumnDrag="true" flex="1" >
+                <tree id="ew.s3Buckets.view" enableColumnDrag="true" flex="1" >
                     <treecols>
                         <treecol id="s3.label" label="Name" flex="2" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />

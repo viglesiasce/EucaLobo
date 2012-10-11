@@ -355,6 +355,7 @@
 <!ENTITY ew.instances.console.tip "Show Console Output">
 <!ENTITY ew.instances.connect.tip "Connect To Public IP of the Instance">
 <!ENTITY ew.instances.start.tip "Start Selected Instances">
+<!ENTITY ew.instances.launch.tip "Launch Instances of the same AMI as selected">
 <!ENTITY ew.instances.stop.tip "Stop Selected Instances">
 <!ENTITY ew.instances.reboot.tip "Reboot Selected Instances">
 <!ENTITY ew.instances.powerdown.tip "Terminate Selected Instances">

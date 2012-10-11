@@ -624,6 +624,11 @@ var ew_core = {
     promptInput: function(title, items, modeless, callback)
     {
         var params = { core: this, title: title, items: items || [ "" ], values: null, modeless: modeless, callback: callback };
+
+        // Complex type, additional options
+        if (typeof title == "object") {
+            for (var p in title) params[p] = title[p];
+        }
         var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
         return modeless ? win : (params.ok ? params.values : null);
     },

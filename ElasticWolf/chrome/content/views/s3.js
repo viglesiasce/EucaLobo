@@ -195,31 +195,37 @@ var ew_S3BucketsTreeView = {
     remove: function()
     {
         var me = this;
-        var item = this.getSelected();
-        if (item == null) return;
-        if (!confirm("Delete " + item.name + "?")) return;
+        var items = this.getSelectedAll();
+        if (!items.length) return;
+        if (!confirm("Delete " + items.length + " items?")) return;
 
-        if (!item.bucket) {
-            this.core.api.deleteS3Bucket(item.name, {}, function() { me.refresh(true); });
-        } else {
-            this.core.getS3Bucket(item.bucket).keys = [];
-            this.core.api.deleteS3BucketKey(item.bucket, item.name, {}, function() { me.show(); });
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var last = i == items.length - 1;
+            if (!item.bucket) {
+                this.core.api.deleteS3Bucket(item.name, {}, last ? function() { me.refresh(true); } : function() {});
+            } else {
+                this.core.getS3Bucket(item.bucket).keys = [];
+                this.core.api.deleteS3BucketKey(item.bucket, item.name, {}, last ? function() { me.show(); } : function() {});
+            }
         }
     },
 
     download: function(ask)
     {
         var me = this;
+        var item = null;
 
         // Specify full S3 path from where to download
         if (ask) {
             var values = this.core.promptInput("Download from S3", [{label:"S3 Bucket Name:",required:1}, {label:"S3 File Name:",required:1}]);
             if (!values) return;
-            var item = { bucket: values[0], name: values[1] };
+            item = { bucket: values[0], name: values[1] };
         } else {
-            var item = this.getSelected()
+            item = this.getSelected()
             if (this.isFolder(item)) return;
         }
+        if (!item) return;
 
         var file = this.core.promptForFile("Save to file", true, DirIO.fileName(item.name))
         if (file) {
@@ -342,7 +348,7 @@ var ew_S3BucketsTreeView = {
     manageAcls: function()
     {
         var me = this;
-        var item = this.getSelected()
+        var item = this.getSelected();
         if (item == null) return
         var retVal = { ok : null, content: null };
 

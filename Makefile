@@ -27,6 +27,9 @@ build_osx: prepare_osx
 build_win:
 	zip -rq ../$(NAME)-win-$(VER).zip $(NAME)
 
+build_linux:
+	zip -rq ../$(NAME)-linux-$(VER).zip $(NAME) -x '*/xulrunner/**' '*.exe' '*.dll'
+	
 xpi:
 	(cd $(NAME) && zip -rq ../$(NAME)-$(VER).xpi .)
 
@@ -37,7 +40,9 @@ clean_osx:
 	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest
 
 put:	build
+	./s3upload www.elasticwolf.com/index.html $(VER)
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-osx-$(VER).zip ../ElasticWolf-osx-$(VER).zip 
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-win-$(VER).zip ../ElasticWolf-win-$(VER).zip 
+	./s3upload www.elasticwolf.com/Releases/ElasticWolf-linux-$(VER).zip ../ElasticWolf-linux-$(VER).zip 
 
 .PHONY: clean_osx dev

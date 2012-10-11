@@ -813,8 +813,7 @@ var ew_InstancesTreeView = {
         var types = this.core.getInstanceTypes();
         this.core.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
             var idx = me.core.promptList('Instance Type', 'Select instance type:', types );
-            if (idx == -1) return;
-            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', types[idx].value, function() { me.refresh() });
+            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', types[idx].id, function() { me.refresh() });
         });
     },
 
@@ -1714,7 +1713,7 @@ var ew_ReservedInstancesOfferingsTreeView = {
 
             if (image.marketPlace) inputs.push({label:"Market Price Limit ($US)",type:"number",size:6,min:0,});
 
-            var values = this.core.promptInput('Purchase Instance', inputs)
+            var values = this.core.promptInput({ title: 'Purchase Instance', buttons: { accept: 'Next' }}, inputs)
             if (!values) return;
 
             var count = parseInt(values[14]);

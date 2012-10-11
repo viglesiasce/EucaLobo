@@ -74,7 +74,7 @@
           <textbox id="ew.instances.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" />
           <toolbarbutton image="images/refresh.png" oncommand="ew_InstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarseparator />
-          <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.images.powerup.tip;" />
+          <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.instances.launch.tip;" />
           <toolbarbutton image="images/start.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.startInstance();" id="instances.button.start" tooltiptext="&ew.instances.start.tip;" />
           <toolbarbutton image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
           <toolbarbutton image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.stopInstance();" id="instances.button.stop" tooltiptext="&ew.instances.stop.tip;" />

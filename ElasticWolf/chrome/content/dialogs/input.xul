@@ -232,6 +232,11 @@
           }
           rows.appendChild(row);
       }
+      // Buttons labels
+      for (var b in rc.buttons) {
+         var button = document.documentElement.getButton(b);
+         if (button) button.label = rc.buttons[b];
+      }
       // Call handler on init
       for (var i = 0; i < rc.items.length; i++) {
           handler(i, true);

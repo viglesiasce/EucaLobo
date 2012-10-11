@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 var s3 = require('aws2js').load('s3');
+var fs = require('fs');
+var path = require('fs');
 
 if (process.argv.length < 4) {
     console.log(process.argv[1], "bucketPath file");
@@ -12,8 +14,34 @@ var file = process.argv[3];
 
 s3.setCredentials(process.env.AWS_ACCESS_KEY_ID, process.env.AWS_SECRET_ACCESS_KEY);
 s3.setBucket(bucket);
-s3.putFile(path, file, 'public-read', {'content-type':'application/zip'}, function (err, res) {
-   if (err) console.log(err);
-   process.exit(0);
-});
+
+// Update index.html with new version
+if (path == "index.html") {
+    var index = "";
+    s3.get(path, 'stream', function (err, res) {
+       if (err) console.log(err);
+
+       res.on('data', function(buf) {
+          index += buf.toString(); 
+       });
+
+       res.on('end', function() {
+          // file must contain new version, replace for all platforms
+          index = index.replace(/ElasticWolf-(osx|win)-[0-9\.]+zip/g, 'ElasticWolf-$1-' + file + '.zip');
+
+          // Upload modified index to back into S3 bucket 
+          s3.putBuffer(path, new Buffer(index), 'public-read', {'content-type':'text/html'}, function (err, res) {
+             if (err) console.log(err);
+             process.exit(0);
+          });
+       })
+    });
+
+} else {
+    // Upload file into S3 bucket
+    s3.putFile(path, file, 'public-read', {'content-type':'application/zip'}, function (err, res) {
+       if (err) console.log(err);
+       process.exit(0);
+    });
+}
 

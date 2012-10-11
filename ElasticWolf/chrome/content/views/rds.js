@@ -270,19 +270,21 @@ ew_DBOfferingsTreeView = {
         // Calc total price handler
         var price = "rc.items[12].obj.value=parseInt(rc.items[11].obj.value)*" + item.fixedPrice;
         while (button == 0) {
-            var values = this.core.promptInput('Purchase Instance', [{label:"Instance Details",type:"section"},
-                                                                     {label:"Offer ID",type:"label",value:item.id},
-                                                                     {label:"Instance Type",type:"label",value:item.dbInstanceClass},
-                                                                     {label:"Duration(years)",type:"label",value:item.duration},
-                                                                     {label:"Multi AZ",type:"label",value:item.multiAZ},
-                                                                     {label:"Offering Type",type:"label",value:item.offeringType},
-                                                                     {label:"Usage Price(US$)",type:"label",value:item.usagePrice},
-                                                                     {label:"Recuring Charges(US$)",type:"label",value:item.recurringCharges},
-                                                                     {label:"Product Description",type:"label",value:item.productDescription},
-                                                                     {label:"One Time Payment",type:"section"},
-                                                                     {label:"One time payment/Instance(US$)",type:"label",value:item.fixedPrice},
-                                                                     {label:"Number of instances",type:"number",size:6,required:1,min:0,oninput:price,onchange:price},
-                                                                     {label:"Total one time payment, due now (US$)",type:"label",value:item.fixedPrice} ])
+            var values = this.core.promptInput({ title: 'Purchase Instance', buttons: { accept: 'Next' } },
+                    [{label:"Instance Details",type:"section"},
+                     {label:"Offer ID",type:"label",value:item.id},
+                     {label:"Instance Type",type:"label",value:item.dbInstanceClass},
+                     {label:"Duration(years)",type:"label",value:item.duration},
+                     {label:"Multi AZ",type:"label",value:item.multiAZ},
+                     {label:"Offering Type",type:"label",value:item.offeringType},
+                     {label:"Usage Price(US$)",type:"label",value:item.usagePrice},
+                     {label:"Recuring Charges(US$)",type:"label",value:item.recurringCharges},
+                     {label:"Product Description",type:"label",value:item.productDescription},
+                     {label:"One Time Payment",type:"section"},
+                     {label:"One time payment/Instance(US$)",type:"label",value:item.fixedPrice},
+                     {label:"Number of instances",type:"number",size:6,required:1,min:0,oninput:price,onchange:price},
+                     {label:"Total one time payment, due now (US$)",type:"label",value:item.fixedPrice} ])
+
             if (!values || !parseInt(values[12])) return;
             // Ensure that the user actually wants to purchase this offering
             var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);

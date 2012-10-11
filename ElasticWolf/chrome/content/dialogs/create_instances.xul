@@ -19,7 +19,7 @@
     {
         ListBox.done();
         this.eniListView.done();
-        this.retVal.imageId = $('ew.ami.id').value;
+        this.retVal.imageId = $('ew.amiId').value;
         this.retVal.kernelId = $("ew.aki").value;
         this.retVal.ramdiskId = $("ew.ari").value;
         this.retVal.instanceType = $("ew.instancetypelist").selectedItem.value;
@@ -239,7 +239,7 @@
         if (!$('ew.imageId').value) return;
         this.image = this.core.findObject(this.images, $('ew.imageId').value);
         if (!this.image) return;
-        $("ew.ami.id").value = this.image.id;
+        $("ew.amiId").value = this.image.id;
         $("ew.ami.name").value = this.image.name || "";
         akiSelected();
     }
@@ -441,8 +441,8 @@
 
         $("ew.min").setAttribute('max', this.retVal.max);
         $("ew.max").setAttribute('max', this.retVal.max);
-        $("ew.ami.id").value = this.image ? this.image.id : "";
-        $("ew.ami.name").value = this.image ? this.image.name : "";
+        $("ew.amiId").value = this.image ? this.image.id : "";
+        $("ew.amiName").value = this.image ? this.image.name : "";
         $("ew.min").focus();
 
         if (this.retVal.spotRequest) {
@@ -502,12 +502,12 @@
             </columns>
             <rows flex="1">
                 <row>
-                    <label control="ew.ami.id" value="AMI ID:" />
-                    <label id="ew.ami.id" />
+                    <label control="ew.amiId" value="AMI ID:" />
+                    <label id="ew.amiId" />
                 </row>
                 <row>
-                    <label control="ew.ami.name" value="AMI Name:" />
-                    <label id="ew.ami.name" />
+                    <label control="ew.amiName" value="AMI Name:" />
+                    <label id="ew.amiName" />
                 </row>
                 <row>
                     <label control="ew.tag" value="Instance Name:" />
