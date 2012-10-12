@@ -535,7 +535,7 @@
            <label value="- Current credentials and endpoint is shown all the time in the left bottom corner of the status line" />
            <label value="- Double clicking on menu folders will expand/collapse them" />
            <label value="- Double clicking on any row in the lists will bring details window with all rows attributes" />
-           <label value="    - Highlighting any attribute will copy its value into the clipboard" />
+           <label value="    - Highlighting any attribute and double-click will copy its value into the clipboard" />
            <label value="    - Details windows is non-modal and may be hidden begind other windows" />
            <label value="- Right click on any selected row for context popup menu" />
            <label value="- Collected data is cached locally, so for immediate results or for new data always hit Refresh icon" />

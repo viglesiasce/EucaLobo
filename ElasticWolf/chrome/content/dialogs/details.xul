@@ -52,7 +52,7 @@
 
     <vbox flex="1">
       <label id="msg" value="" />
-      <listbox id="list" flex="1" rows="30" width="500" onclick="clicked()">
+      <listbox id="list" flex="1" rows="30" width="500" ondblclick="clicked()">
       <listhead>
         <listheader label="Name" />
         <listheader label="Value" />
@@ -62,6 +62,8 @@
         <listcol crop="end" flex="1" />
       </listcols>
       </listbox>
+      <spacer height="10" />
+      <description>Double-click on any row will copy the value into the clipboard</description>
     </vbox>
 </dialog>
 

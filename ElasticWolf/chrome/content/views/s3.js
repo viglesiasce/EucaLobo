@@ -48,7 +48,7 @@ var ew_S3BucketsTreeView = {
     displayDetails: function(event)
     {
         var item = this.getSelected()
-        if (item == null) return
+        if (!item) return
         // Folder or bucket
         if (this.isFolder(item)) {
             this.path.push(item.folder);
@@ -63,9 +63,12 @@ var ew_S3BucketsTreeView = {
     displayInfo : function()
     {
         var item = this.getSelected()
-        if (item == null) return
+        if (!item) return
         if (!this.path.length) {
             this.core.api.getS3BucketLocation(item.name);
+        }
+        if (!this.isFolder(item)) {
+            item.url = 'http://' + item.bucket + '.s3-website-' + this.core.api.region + '.amazonaws.com/' + item.name;
         }
         TreeView.displayDetails.call(this);
     },
@@ -153,6 +156,7 @@ var ew_S3BucketsTreeView = {
         $("ew.s3Buckets.upload").disabled = !this.path.length;
         $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
         $("ew.s3Buckets.proto").disabled = !item || !this.isFolder(item);
+        $("ew.s3Buckets.browser").disabled = !item || this.isFolder(item);
     },
 
     back: function(event)
@@ -239,8 +243,8 @@ var ew_S3BucketsTreeView = {
     {
         var me = this;
         item = this.getSelected()
-        if (!item || this.isFolder(item)) return;
-        this.core.displayUrl('http://' + item.bucket + '.s3-website-' + this.core.api.region + '.amazonaws.com')
+        if (!item || this.isFolder(item) || !item.url) return;
+        this.core.displayUrl(item.url);
     },
 
     upload: function(ask)

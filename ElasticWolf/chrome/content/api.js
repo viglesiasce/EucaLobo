@@ -80,9 +80,6 @@ var ew_api = {
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
         this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
-        this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
-        this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
-        this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
         this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
         this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
@@ -94,6 +91,9 @@ var ew_api = {
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
         this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
+        this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
+        this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
+        this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.actionIgnore = endpoint.actionIgnore || [];
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
     },
