@@ -40,9 +40,9 @@ clean_osx:
 	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest
 
 put:	build
-	./s3upload www.elasticwolf.com/index.html $(VER)
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-osx-$(VER).zip ../ElasticWolf-osx-$(VER).zip 
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-win-$(VER).zip ../ElasticWolf-win-$(VER).zip 
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-linux-$(VER).zip ../ElasticWolf-linux-$(VER).zip 
+	./s3upload www.elasticwolf.com/index.html $(VER)
 
 .PHONY: clean_osx dev
