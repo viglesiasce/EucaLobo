@@ -235,6 +235,14 @@ var ew_S3BucketsTreeView = {
         }
     },
 
+    downloadUrl: function()
+    {
+        var me = this;
+        item = this.getSelected()
+        if (!item || this.isFolder(item)) return;
+        this.core.displayUrl('http://' + item.bucket + '.s3-website-' + this.core.api.region + '.amazonaws.com')
+    },
+
     upload: function(ask)
     {
         var me = this;

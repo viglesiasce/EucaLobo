@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.0.1",
+    VERSION: "3.0.2",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -2343,6 +2343,7 @@ var ew_core = {
                    version: '2012-06-15',
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
+                   urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "DescribeLoadBalancers", "DescribeLoadBalancerPolicyTypes", "ListQueues", "DescribeDBInstances" , "ListTopics", "ListSubscriptions", "hostedzone" ],
                  },
             ];

@@ -27,8 +27,6 @@ var ew_SNSTopicsTreeView = {
     createTopic: function()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
 
         var name = prompt('Create Topic');
         if (!name) return;

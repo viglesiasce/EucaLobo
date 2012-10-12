@@ -52,7 +52,7 @@ var ew_SQSTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Queue ' + item.id)) return;
-        this.core.api.deleteQueue(item.url, function(){ me.refresh() });
+        this.core.api.deleteQueue(item.url, function() { me.refresh() });
     },
 
     addPermission: function()

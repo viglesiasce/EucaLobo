@@ -1,4 +1,10 @@
 #!/bin/sh
 
-exec xulrunner -app $(dirname $0)/application.ini
+xulrunner=$(which xulrunner)
+if [ "$xulrunner" = "" ]; then
+   echo "Please install xullrunner"
+   exit
+fi
+
+exec $xulrunner -app $(dirname $0)/application.ini
 
