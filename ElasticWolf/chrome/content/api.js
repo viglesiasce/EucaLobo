@@ -2417,7 +2417,7 @@ var ew_api = {
         var items = xmlDoc.getElementsByTagName("Bucket");
         for ( var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "Name");
-            var date = getNodeValue(items[i], "CreationDate");
+            var date = new Date(getNodeValue(items[i], "CreationDate"));
             list.push(new S3Bucket(name, date, owner));
         }
         this.core.setModel('s3Buckets', list);
@@ -2543,7 +2543,7 @@ var ew_api = {
             var size = getNodeValue(items[i], "Size");
             var type = getNodeValue(items[i], "StorageClass");
             var etag = getNodeValue(items[i], "ETag");
-            var mtime = getNodeValue(items[i], "LastModified");
+            var mtime = new Date(getNodeValue(items[i], "LastModified"));
             var owner = getNodeValue(items[i], "ID")
             list.push(new S3BucketKey(bucket, id, type, size, mtime, owner, etag));
         }

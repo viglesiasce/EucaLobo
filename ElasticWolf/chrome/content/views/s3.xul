@@ -15,6 +15,7 @@
                         <menuseparator />
                         <menuitem oncommand="ew_S3BucketsTreeView.refresh()" label="&ew.refresh.tip;" />
                         <menuitem id="ew.s3Buckets.create" oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
+                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.addExtBucket();" label="Add External Bucket" />
                         <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder(s)" />
                         <menuseparator />
                         <menuitem id="ew.s3Buckets.acl" oncommand="ew_S3BucketsTreeView.manageAcls();" label="Manage ACLs" />
@@ -50,7 +51,7 @@
                 </hbox>
                 <tree id="ew.s3Buckets.view" enableColumnDrag="true" flex="1" >
                     <treecols>
-                        <treecol id="s3.label" label="Name" flex="2" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                        <treecol id="s3.title" label="Name" flex="2" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
                         <treecol id="s3.mtime" label="Date" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />

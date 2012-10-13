@@ -16,7 +16,7 @@ var ew_S3BucketsTreeView = {
 
     isFolder: function(item)
     {
-        return !this.path.length || item.label[item.label.length - 1] == "/";
+        return !this.path.length || item.title[item.title.length - 1] == "/";
     },
 
     toParams: function(val)
@@ -64,43 +64,41 @@ var ew_S3BucketsTreeView = {
     {
         var item = this.getSelected()
         if (!item) return
-        if (!this.path.length) {
+        if (!this.path.length && !item.external) {
             this.core.api.getS3BucketLocation(item.name);
         }
-        if (!this.isFolder(item)) {
-            item.url = 'http://' + item.bucket + '.s3-website-' + this.core.api.region + '.amazonaws.com/' + item.name;
-        }
+        item.websiteUrl = 'http://' + (item.bucket || item.name) + '.s3-website-' + this.core.api.region + '.amazonaws.com/' + (item.bucket ? item.name : "");
+        item.url = 'http://' + (item.bucket || item.name) + '.s3' + (this.core.api.region == "us-east-1" ? "" : "-" + this.core.api.region) + '.amazonaws.com/' + (item.bucket ? item.name : "");
         TreeView.displayDetails.call(this);
     },
 
     display : function(list)
     {
-        var idx = -1;
         var path = this.path.join("/") + "/";
         var nlist = [];
         var labels = {};
         for (var i in list) {
             if (!this.path.length) {
-                list[i].folder = list[i].label = list[i].name;
+                list[i].folder = list[i].title = list[i].name;
                 nlist.push(list[i]);
             } else {
                 var n = this.path[0] + "/" + list[i].name;
                 var p = n.split("/");
                 if (n <= path || n.indexOf(path) != 0) continue;
-                list[i].folder = list[i].label = p.slice(this.path.length, this.path.length + 1).join("/");
-                if (p.length > this.path.length + 1) list[i].label += "/";
+                list[i].folder = list[i].title = p.slice(this.path.length, this.path.length + 1).join("/");
+                if (p.length > this.path.length + 1) list[i].title += "/";
                 // Skip subfolders
-                if (labels[list[i].label]) continue;
-                labels[list[i].label] = 1;
+                if (labels[list[i].title]) continue;
+                labels[list[i].title] = 1;
                 nlist.push(list[i]);
             }
             // Select given item
-            if (list[i].label == this.folder) {
+            if (list[i].title == this.folder) {
                 idx = nlist.length - 1;
             }
         }
         TreeView.display.call(this, nlist);
-        if (idx >= 0) this.setSelected(idx);
+        if (this.folder) this.select({ title: this.folder }, ["title"]);
         $("ew.s3Buckets.path").value = path;
         this.folder = '';
     },
@@ -109,7 +107,7 @@ var ew_S3BucketsTreeView = {
     {
         var me = this;
         if (!this.path.length) {
-            this.display(this.core.queryModel('s3Buckets'));
+            this.display(this.getList());
         } else {
             var item = this.core.getS3Bucket(this.path[0])
             if (!item) return;
@@ -143,6 +141,19 @@ var ew_S3BucketsTreeView = {
         }
     },
 
+    modelChanged: function()
+    {
+        // Add external buckets
+        var buckets = this.getExtBuckets();
+        for (var i in buckets) {
+            var item = new S3Bucket(buckets[i].name, buckets[i].mtime, buckets[i].owner);
+            item.external = true;
+            this.core.addModel('s3Buckets', item);
+            debug('ext bucket:' + item)
+        }
+        TreeView.modelChanged.call(this);
+    },
+
     selectionChanged: function()
     {
     },
@@ -169,6 +180,33 @@ var ew_S3BucketsTreeView = {
     {
         file = DirIO.fileName(file);
         document.getElementById("ew.s3Buckets.status").value = file + ": " + (p >= 0 && p <= 100 ? Math.round(p) : 100) + "%";
+    },
+
+    getExtBuckets: function()
+    {
+        var list = [];
+        try { list = JSON.parse(this.core.getStrPrefs('ew.s3.buckets')); } catch(e) {}
+        return list;
+    },
+
+    addExtBucket: function() {
+        var me = this;
+        var name = prompt('Enter bucket name to add to the list:');
+        if (!name) return;
+        this.core.api.listS3BucketKeys(name, null, {
+            success: function(list) {
+                debug(list)
+                var bucket = new S3Bucket(name, list.length ? new Date(list[0].mtime) : new Date(), list.length ? list[0].owner : "");
+                var buckets = me.getExtBuckets();
+                buckets.push(bucket);
+                me.core.setStrPrefs('ew.s3.buckets', JSON.stringify(buckets));
+                me.modelChanged();
+            },
+            error: function() {
+                alert('Unable to access bucket ' + name + '.\nPlease check permissions on that bucket, at least READ must enabled for this account or user:\n' + me.core.user.accountId + "\n" + me.core.user.id);
+            }
+        });
+
     },
 
     create: function() {
@@ -207,7 +245,14 @@ var ew_S3BucketsTreeView = {
             var item = items[i];
             var last = i == items.length - 1;
             if (!item.bucket) {
-                this.core.api.deleteS3Bucket(item.name, {}, last ? function() { me.refresh(true); } : function() {});
+                if (item.external) {
+                    var buckets = me.getExtBuckets();
+                    me.core.removeObject(buckets, item.name, "name");
+                    me.core.setStrPrefs('ew.s3.buckets', JSON.stringify(buckets));
+                    me.modelChanged();
+                } else {
+                    this.core.api.deleteS3Bucket(item.name, {}, last ? function() { me.refresh(true); } : function() {});
+                }
             } else {
                 this.core.getS3Bucket(item.bucket).keys = [];
                 this.core.api.deleteS3BucketKey(item.bucket, item.name, {}, last ? function() { me.show(); } : function() {});

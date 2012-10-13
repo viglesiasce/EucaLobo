@@ -387,6 +387,12 @@
        </treechildren>
       </treeitem>
 
+      <treeitem container="true" empty="true">
+       <treerow>
+         <treecell label="S3: Simple Storage Service" value="ew.tabs.s3" src="images/s3.png" />
+       </treerow>
+      </treeitem>
+
       <treeitem container="true" open="true">
        <treerow>
          <treecell label="SQS: Message Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
@@ -396,12 +402,6 @@
       <treeitem container="true" open="true">
        <treerow>
          <treecell label="SNS: Push Notification Service" value="ew.tabs.sns" src="images/sns.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" empty="true">
-       <treerow>
-         <treecell label="S3: Simple Storage Service" value="ew.tabs.s3" src="images/s3.png" />
        </treerow>
       </treeitem>
 
