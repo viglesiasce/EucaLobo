@@ -77,6 +77,12 @@ clients for accessing Linux instances.
 
    * Execute ElasticWolf/ElasticWolf
 
+   * If xullrunner is not availble as a package, use the commands below to install it:
+
+     cd /opt
+     sudo wget -O- https://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/13.0/runtimes/xulrunner-13.0.en-US.linux-`uname -p`.tar.bz2 | tar -xj
+     sudo ln -s /opt/xulrunner/xulrunner /usr/bin/xulrunner
+
 ## Building releases
 
  To create binary packages for Mac and Windows, just type
