@@ -8,6 +8,7 @@ var ew_S3BucketsTreeView = {
     model : "s3Buckets",
     path: [],
     folder: '',
+    owner: null,
 
     keyName: function(name)
     {
@@ -67,8 +68,6 @@ var ew_S3BucketsTreeView = {
         if (!this.path.length && !item.external) {
             this.core.api.getS3BucketLocation(item.name);
         }
-        item.websiteUrl = 'http://' + (item.bucket || item.name) + '.s3-website-' + this.core.api.region + '.amazonaws.com/' + (item.bucket ? item.name : "");
-        item.url = 'http://' + (item.bucket || item.name) + '.s3' + (this.core.api.region == "us-east-1" ? "" : "-" + this.core.api.region) + '.amazonaws.com/' + (item.bucket ? item.name : "");
         TreeView.displayDetails.call(this);
     },
 
@@ -78,9 +77,13 @@ var ew_S3BucketsTreeView = {
         var nlist = [];
         var labels = {};
         for (var i in list) {
+            list[i].websiteUrl = 'http://' + (list[i].bucket || list[i].name) + '.s3-website-' + this.core.api.region + '.amazonaws.com/' + (list[i].bucket ? list[i].name : "");
+            list[i].url = 'http://' + (list[i].bucket || list[i].name) + '.s3' + (this.core.api.region == "us-east-1" ? "" : "-" + this.core.api.region) + '.amazonaws.com/' + (list[i].bucket ? list[i].name : "");
             if (!this.path.length) {
                 list[i].folder = list[i].title = list[i].name;
                 nlist.push(list[i]);
+                // Save our owner id
+                if (!this.owner) this.owner = list[i].owner;
             } else {
                 var n = this.path[0] + "/" + list[i].name;
                 var p = n.split("/");
@@ -114,7 +117,7 @@ var ew_S3BucketsTreeView = {
             if (item.keys && item.keys.length) {
                 this.display(item.keys);
             } else {
-                this.core.api.listS3BucketKeys(item.name, null, {
+                this.core.api.listS3BucketKeys(item.name, "", null, {
                     success: function(obj) {
                         // By the time we got the whole list a user may click on back or another sub folder so we have to be sure we still want on this level
                         if (item.name != obj.name) return;
@@ -167,7 +170,7 @@ var ew_S3BucketsTreeView = {
         $("ew.s3Buckets.upload").disabled = !this.path.length;
         $("ew.s3Buckets.download").disabled = !item || this.isFolder(item);
         $("ew.s3Buckets.proto").disabled = !item || !this.isFolder(item);
-        $("ew.s3Buckets.browser").disabled = !item || this.isFolder(item);
+        $("ew.s3Buckets.browser").disabled = !item;
     },
 
     back: function(event)
@@ -193,7 +196,7 @@ var ew_S3BucketsTreeView = {
         var me = this;
         var name = prompt('Enter bucket name to add to the list:');
         if (!name) return;
-        this.core.api.listS3BucketKeys(name, null, {
+        this.core.api.listS3BucketKeys(name, "", null, {
             success: function(list) {
                 debug(list)
                 var bucket = new S3Bucket(name, list.length ? new Date(list[0].mtime) : new Date(), list.length ? list[0].owner : "");
@@ -203,7 +206,7 @@ var ew_S3BucketsTreeView = {
                 me.modelChanged();
             },
             error: function() {
-                alert('Unable to access bucket ' + name + '.\nPlease check permissions on that bucket, at least READ must enabled for this account or user:\n' + me.core.user.accountId + "\n" + me.core.user.id);
+                alert('Unable to access bucket ' + name + '.\nPlease check permissions on that bucket, at least READ ACL must set and action s3:ListBucket enabled.\n\nAccount: ' + me.core.user.accountId + "\n\n" + (me.owner ? "ID: " + me.owner : ""));
             }
         });
 

@@ -324,7 +324,7 @@ var ew_api = {
                 rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
             }
         }
-        strSign += (bucket ? "/" + bucket : "") + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+        strSign += (bucket ? "/" + bucket : "").toLowerCase() + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
         var signature = b64_hmac_sha1(this.secretKey, strSign);
 
         params["Authorization"] = "AWS " + this.accessKey + ":" + signature;
@@ -2413,12 +2413,13 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var list = new Array();
-        var owner = getNodeValue(xmlDoc, "ID")
+        var owner = getNodeValue(xmlDoc, "Owner", "ID")
+        var ownerName = getNodeValue(xmlDoc, "Owner", "DisplayName")
         var items = xmlDoc.getElementsByTagName("Bucket");
         for ( var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "Name");
             var date = new Date(getNodeValue(items[i], "CreationDate"));
-            list.push(new S3Bucket(name, date, owner));
+            list.push(new S3Bucket(name, date, owner, ownerName));
         }
         this.core.setModel('s3Buckets', list);
 
@@ -2526,9 +2527,9 @@ var ew_api = {
     },
 
     // Return list in sync mode
-    listS3BucketKeys : function(bucket, params, callback)
+    listS3BucketKeys : function(bucket, path, params, callback)
     {
-        this.queryS3("GET", bucket, "", "", params, null, this, callback ? false : true, "onCompleteListS3BucketKeys", callback);
+        this.queryS3("GET", bucket, "", path || "", params, null, this, callback ? false : true, "onCompleteListS3BucketKeys", callback);
     },
 
     onCompleteListS3BucketKeys : function(response)

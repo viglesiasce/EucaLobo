@@ -323,8 +323,29 @@ var ew_DBInstancesTreeView = {
     {
         var me = this;
 
-        function callback(idx, onstart) {
+        function action(inputs, values, dialog) {
+            var options = {};
+            options.EngineVersion = values[2];
+            for (var i = 0; i < inputs.length; i++) {
+                if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
+            }
+            if (edit) {
+                me.core.api.modifyDBInstance(values[0],options,function() { me.refresh(); if (dialog) dialog.close(); });
+            } else {
+                me.core.api.createDBInstance(values[0],values[1],values[3],values[4],values[5],values[6],options,function() { me.refresh(); if (dialog) dialog.close(); });
+            }
+        }
+
+        function callback(idx, onstart, onaccept) {
             var input = this;
+
+            // Accept callback, perform action and report about the error, close on success
+            if (onaccept) {
+                action(this.rc.items, this.rc.values, this);
+                return true;
+            }
+
+            // Validation
             var item = this.rc.items[idx];
             switch (idx) {
             case 1: // Engine
@@ -412,17 +433,6 @@ var ew_DBInstancesTreeView = {
         }
         var values = this.core.promptInput((edit ? "Modify" : " Create") + " DB Instance", inputs, false, callback);
         if (!values) return;
-
-        var options = {};
-        options.EngineVersion = values[2];
-        for (var i = 0; i < inputs.length; i++) {
-            if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
-        }
-        if (edit) {
-            this.core.api.modifyDBInstance(values[0],options,function() { me.refresh()});
-        } else {
-            this.core.api.createDBInstance(values[0],values[1],values[3],values[4],values[5],values[6],options,function() { me.refresh()});
-        }
     },
 
     rebootInstance: function() {

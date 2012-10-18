@@ -12,10 +12,10 @@
                         <menuitem id="ew.s3Buckets.back" oncommand="ew_S3BucketsTreeView.back()" label="Back" />
                         <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayInfo()" label="Show Info" />
                         <menuitem id="ew.s3Buckets.show" oncommand="ew_S3BucketsTreeView.displayDetails()" label="Show Contents" />
+                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.addExtBucket();" label="Add External Bucket" />
                         <menuseparator />
                         <menuitem oncommand="ew_S3BucketsTreeView.refresh()" label="&ew.refresh.tip;" />
                         <menuitem id="ew.s3Buckets.create" oncommand="ew_S3BucketsTreeView.create();" label="Create Bucket/Folder" />
-                        <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.addExtBucket();" label="Add External Bucket" />
                         <menuitem id="ew.s3Buckets.delete" oncommand="ew_S3BucketsTreeView.remove();" label="Delete Bucket/Folder(s)" />
                         <menuseparator />
                         <menuitem id="ew.s3Buckets.acl" oncommand="ew_S3BucketsTreeView.manageAcls();" label="Manage ACLs" />

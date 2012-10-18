@@ -1744,11 +1744,12 @@ function PolicyTypeAttributeDescription(name, type, cardinality, descr, dflt)
     }
 }
 
-function S3Bucket(name, mtime, owner)
+function S3Bucket(name, mtime, owner, ownerAlias)
 {
     this.name = name
     this.mtime = mtime
     this.owner = owner
+    this.ownerAlias = ownerAlias
     this.region = ""
     this.acls = null
     this.keys = []

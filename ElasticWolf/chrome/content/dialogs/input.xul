@@ -243,9 +243,9 @@
       }
     }
 
-    function handler(idx, onstart) {
+    function handler(idx, onstart, onaccept) {
         if (rc.callback) {
-            rc.callback.call(this, idx, onstart);
+            rc.callback.call(this, idx, onstart, onaccept);
         }
         var obj = rc.items[idx];
         switch (obj.type) {
@@ -263,7 +263,7 @@
             break;
         }
         if (obj.callback) {
-            obj.callback.call(this, obj, idx, onstart);
+            obj.callback.call(this, obj, idx, onstart, onaccept);
         }
     }
 
@@ -420,6 +420,8 @@
              return false;
           }
       }
+      // Call hanlder on accept, if it returns true we should not close the dialog and let the callback do it
+      if (handler(0, false, true)) return false;
       rc.ok = true;
       return true;
     }
