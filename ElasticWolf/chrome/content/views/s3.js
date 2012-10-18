@@ -196,9 +196,8 @@ var ew_S3BucketsTreeView = {
         var me = this;
         var name = prompt('Enter bucket name to add to the list:');
         if (!name) return;
-        this.core.api.listS3BucketKeys(name, "", null, {
+        this.core.api.listS3BucketKeys(name, "?max-keys=1", null, {
             success: function(list) {
-                debug(list)
                 var bucket = new S3Bucket(name, list.length ? new Date(list[0].mtime) : new Date(), list.length ? list[0].owner : "");
                 var buckets = me.getExtBuckets();
                 buckets.push(bucket);

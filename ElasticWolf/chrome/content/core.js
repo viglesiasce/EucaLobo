@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.0.3",
+    VERSION: "3.0.4",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',

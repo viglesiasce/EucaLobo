@@ -623,7 +623,7 @@ var ew_api = {
     {
         var rc = this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params);
         rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
-        rc.errString = "An unknown error occurred, please check connectivity";
+        rc.errString = "An unknown error occurred, please check connectivity and/or try to increase HTTTP timeout in the Preferences if this happens often";
         rc.requestId = "";
         rc.hasErrors = true;
 
