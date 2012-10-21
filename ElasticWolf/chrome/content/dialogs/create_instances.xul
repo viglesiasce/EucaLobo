@@ -234,16 +234,6 @@
         }
     }
 
-    function imageSelected()
-    {
-        if (!$('ew.imageId').value) return;
-        this.image = this.core.findObject(this.images, $('ew.imageId').value);
-        if (!this.image) return;
-        $("ew.amiId").value = this.image.id;
-        $("ew.ami.name").value = this.image.name || "";
-        akiSelected();
-    }
-
     function akiSelected()
     {
         var akiList = $("ew.aki");
@@ -303,7 +293,8 @@
         box.appendChild(groups);
 
         var subnet = this.core.findModel('subnets', $("ew.eniSubnet").value);
-        this.eniListView.init({ core:this.core, name:'ew.eniGroups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', (subnet ? subnet.vpcId : '') || 'none') });
+        if (!subnet) return;
+        this.eniListView.init({ core:this.core, name:'ew.eniGroups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId) });
     }
 
     function vpcSelected()
@@ -365,6 +356,7 @@
         this.vpcMenu = $("ew.vpcId");
         this.subnetMenu = $("ew.subnetId");
         this.eniListView = new ListView();
+        this.imagesListView = new ListView();
 
         this.images = this.core.queryModel('images');
         var keypairs = this.core.queryModel('keypairs');
@@ -445,21 +437,32 @@
         $("ew.amiName").value = this.image ? this.image.name : "";
         $("ew.min").focus();
 
+        var imgMenu = $("ew.images.type");
+        var filters = this.core.getImageFilters();
+        for ( var i in filters) {
+            imgMenu.appendItem(filters[i].name, filters[i].value)
+        }
+        imgMenu.selectedIndex = 0;
+        imagesFilterChanged();
+        if (!this.image) {
+            $('ew.tabs').selectedIndex = 6;
+        }
+
         if (this.retVal.spotRequest) {
             var tab = document.createElement('tab');
             tab.setAttribute('label', 'Spot Request');
             $('ew.tabs').appendChild(tab);
-            $('ew.tabs').selectedIndex = 6;
+            $('ew.tabs').selectedIndex = 7;
 
             var imgMenu = $("ew.imageType");
             var filters = this.core.getImageFilters();
-            for ( var i in filters) {
+            for (var i in filters) {
                 imgMenu.appendItem(filters[i].name, filters[i].value)
             }
             imgMenu.selectedIndex = 0;
 
             if (!this.image) {
-                filterChanged();
+                spotFilterChanged();
             } else {
                 var imageMenu = $("ew.imageId");
                 imageMenu.appendItem(this.image.toString(), this.image.id)
@@ -468,7 +471,7 @@
         }
     }
 
-    function filterChanged()
+    function spotFilterChanged()
     {
         var list = this.core.getImagesByType(this.images, $('ew.imageType').value);
         var imageMenu = $("ew.imageId");
@@ -477,9 +480,36 @@
             imageMenu.appendItem(list[i].toString(), list[i].id)
         }
         imageMenu.selectedIndex = 0;
-        imageSelected();
+        spotImageSelected();
     }
 
+    function spotImageSelected()
+    {
+        if (!$('ew.imageId').value) return;
+        this.image = this.core.findObject(this.images, $('ew.imageId').value);
+        imageChanged();
+    }
+
+    function imageChanged()
+    {
+        if (!this.image) return;
+        $("ew.amiId").value = this.image.id;
+        $("ew.amiName").value = this.image.name || "";
+        akiSelected();
+    }
+
+    function imagesFilterChanged()
+    {
+        var me = this;
+        var list = this.core.getImagesByType(this.images, $("ew.images.type").value);
+        list = filterList(list, $('ew.images.search').value);
+        this.imagesListView.init({ core:this.core, width: 600, rows:25, name:'ew.images', items:list, multiple: false, onclick: function() {
+           var list = $(this.name);
+           me.image = this.items[list.currentIndex];
+           me.imageChanged();
+        }
+        });
+    }
     ]]>
     </script>
 
@@ -491,6 +521,7 @@
          <tab label="Attach Device" />
          <tab label="Attach ENI" />
          <tab label="Options" />
+         <tab label="Images" />
        </tabs>
 
        <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
@@ -767,6 +798,16 @@
         </tabpanel>
 
         <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+         <vbox flex="1">
+           <hbox>
+             <textbox id="ew.images.search" size="15" type="autocomplete" autocompletesearch="form-history" onkeypress="imagesFilterChanged()" />
+             <menulist id="ew.images.type" oncommand="imagesFilterChanged()" />
+           </hbox>
+           <listbox id="ew.images" flex="1" />
+          </vbox>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
          <grid flex="1">
             <columns flex="1">
                 <column />
@@ -799,11 +840,11 @@
                 </row>
                 <row>
                     <label control="ew.imageType" value="Image Filter:" />
-                    <menulist id="ew.imageType" oncommand="filterChanged();" />
+                    <menulist id="ew.imageType" oncommand="spotFilterChanged();" />
                 </row>
                 <row>
                     <label control="ew.imageId" value="Image:" />
-                    <menulist id="ew.imageId" crop="end" sizetopopup="none" style="max-width: 450px;" oncommand="imageSelected();"/>
+                    <menulist id="ew.imageId" crop="end" sizetopopup="none" style="max-width: 450px;" oncommand="spotImageSelected();"/>
                 </row>
             </rows>
          </grid>

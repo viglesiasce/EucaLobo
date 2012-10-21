@@ -3230,13 +3230,16 @@ var ew_api = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("item");
         for ( var i = 0; i < items.length; i++) {
-            var publicIp = getNodeValue(items[i], "publicIp");
-            var instanceid = getNodeValue(items[i], "instanceId");
-            var allocId = getNodeValue(items[i], "allocationId");
-            var assocId = getNodeValue(items[i], "associationId");
-            var domain = getNodeValue(items[i], "domain");
-            var tags = this.getTags(items[i]);
-            list.push(new EIP(publicIp, instanceid, allocId, assocId, domain, tags));
+            var eni = new Element();
+            eni.publicIp = getNodeValue(items[i], "publicIp");
+            eni.instanceid = getNodeValue(items[i], "instanceId");
+            eni.allocationId = getNodeValue(items[i], "allocationId");
+            eni.associationId = getNodeValue(items[i], "associationId");
+            eni.networkInterfaceId = getNodeValue(items[i], "networkInterfaceId");
+            eni.domain = getNodeValue(items[i], "domain");
+            eni.tags = this.getTags(items[i]);
+            this.core.processTags(eni);
+            list.push(eni);
         }
         this.core.setModel('addresses', list);
         response.result = list;

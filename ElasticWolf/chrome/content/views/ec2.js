@@ -220,7 +220,6 @@ var ew_AMIsTreeView = {
     {
         var me = this;
         if (!image) image = this.getSelected();
-        if (!image) return;
 
         var retVal = { ok: null, max: ew_InstancesTreeView.max, image: image, core: this.core };
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
@@ -231,7 +230,7 @@ var ew_AMIsTreeView = {
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
-                me.core.selectTab('ew.tabs.instance' + (me.core.isVpcMode() ? ".vpc" : ""));
+                me.core.selectTab('ew.tabs.instance' + (me.core.isVpcMode() || me.core.isGovCloud() ? ".vpc" : ""));
             });
         }
     },
@@ -724,11 +723,7 @@ var ew_InstancesTreeView = {
             return this.core.selectTab('ew.tabs.image');
         }
         var image = this.core.findModel('images', instance.imageId);
-        if (image) {
-            return ew_AMIsTreeView.launchNewInstances(image);
-        }
-        if (!confirm('Cannot find AMI ' + instance.imageId + ' for this instance, would you like to just start more like this instance ' + instance.id + ' instead?')) return;
-        this.launchMore();
+        return ew_AMIsTreeView.launchNewInstances(image);
     },
 
     launchMore : function() {
@@ -1456,10 +1451,11 @@ var ew_ElasticIPTreeView = {
 
     menuChanged : function() {
         var eip = this.getSelected();
-        $("ew.addresses.contextmenu").disabled = (eip == null);
-        if (eip == null) return;
-        $("addresses.context.disassociate").disabled = !eip.instanceId;
-        $("addresses.context.dns").disabled = !eip.instanceId;
+        $("ew.addresses.contextmenu.release").disabled = !eip || eip.instanceId;
+        $("ew.addresses.contextmenu.disassociate").disabled = !eip || (!eip.instanceId && !eip.associationId);
+        $("ew.addresses.contextmenu.copyDns").disabled = !eip || !eip.instanceId;
+        $("ew.addresses.contextmenu.copyIp").disabled = !eip;
+        $("ew.addresses.contextmenu.tag").disabled = !eip;
     },
 
     allocateAddress : function() {
@@ -1530,14 +1526,13 @@ var ew_ElasticIPTreeView = {
     },
 
     disassociateAddress : function() {
+        var me = this;
         var eip = this.getSelected();
         if (eip == null) return;
-        if (eip.instanceId == null || eip.instanceId == '') {
-            alert("This EIP is not associated")
-            return;
+        if (!eip.instanceId && !eip.associationId) {
+            return alert("This EIP is not associated")
         }
-        if (!confirm("Disassociate "+eip.publicIp+" and instance "+eip.instanceId+"?")) return;
-        var me = this;
+        if (!confirm("Disassociate " + eip + "?")) return;
         this.core.api.disassociateAddress(eip, function() { me.refresh() });
     },
 

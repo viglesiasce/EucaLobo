@@ -300,6 +300,24 @@ function uniqueList(list, id)
     return nlist;
 }
 
+// Return only records that match given regexp
+function filterList(list, filter)
+{
+    if (!list) return [];
+    if (!filter) return list;
+    var nlist = [];
+    var rx = new RegExp(filter, "i");
+    for (var i in list) {
+        for (var j in list[i]) {
+            if (String(list[i][j]).match(rx)) {
+                nlist.push(list[i]);
+                break;
+            }
+        }
+    }
+    return nlist;
+}
+
 function parseQuery(str)
 {
     var a = str.split("?");
@@ -312,6 +330,14 @@ function parseQuery(str)
         o[parts[0]] = parts[1] ? parts[1] : true;
     }
     return o;
+}
+
+// Return true if given object represent empty value
+function empty(obj)
+{
+    if (!obj) return true;
+    if (obj instanceof Array && !obj.length) return true;
+    return false;
 }
 
 function trim(s)

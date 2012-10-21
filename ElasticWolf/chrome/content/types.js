@@ -319,18 +319,9 @@ var TreeView = {
     filter : function(list)
     {
         if (this.searchElement) {
-            var nlist = new Array();
-            var rx = new RegExp($(this.searchElement).value, "i");
-            for (var i in list) {
-                for (var j in list[i]) {
-                    if (String(list[i][j]).match(rx)) {
-                        nlist.push(list[i]);
-                        break;
-                    }
-                }
-            }
-            list = nlist;
+            list = filterList(list, $(this.searchElement).value);
         }
+
         // Must be list of lists, each item is object with name: value: properties
         if (this.filterList) {
             var nlist = new Array();
@@ -587,11 +578,12 @@ var ListBox = {
     selectedIndex: -1,
     selectedItems: [],
     core: null,
+    onclick: null,
 
     done: function()
     {
         var list = $(this.name);
-        this.selectedIndex = list.selectedIndex;
+        this.selectedIndex = list.currentIndex;
         this.selectedItems = [];
         if (this.multiple) {
             for (var i = 0; i < this.items.length; i++) {
@@ -601,6 +593,8 @@ var ListBox = {
                     this.selectedItems.push(this.items[i]);
                 }
             }
+        } else {
+            this.selectedItems.push(this.items[this.currentIndex]);
         }
         return true;
     },
@@ -618,7 +612,7 @@ var ListBox = {
         while (list.firstChild) {
             list.removeChild(list.firstChild);
         }
-        list.width = this.width;
+        if (this.width) list.width = this.width;
         list.setAttribute('rows', this.rows || 10);
         list.onclick = null;
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
@@ -711,6 +705,7 @@ var ListBox = {
                 this.items[list.currentIndex][this.checkedProperty] = checked;
             }
         }
+        if (this.onclick) this.onclick.call(this);
     },
 
     // Convert object into plain text to be used by list box
@@ -1804,7 +1799,11 @@ function Element()
 
     this.toString = function() {
         var self = this;
-        return Object.keys(this).filter(function(x) {return typeof self[x] != "function" && self[x]}).map(function(x) {return self[x]}).join(fieldSeparator);
+        return Object.keys(this).filter(function(x) {
+            return typeof self[x] != "function" && !empty(self[x]);
+        }).map(function(x) {
+            return ew_core.modelValue(x, self[x]);
+        }).join(fieldSeparator);
     }
 }
 
@@ -2323,21 +2322,6 @@ function AvailabilityZone(name, state, msg)
 
     this.toString = function() {
         return this.name + fieldSeparator + this.state;
-    }
-}
-
-function EIP(publicIp, instanceid, allocId, assocId, domain, tags)
-{
-    this.publicIp = publicIp;
-    this.instanceId = instanceid;
-    this.allocationId = allocId || "";
-    this.associationId = assocId || "";
-    this.domain = domain || "";
-    this.tags = tags;
-    ew_core.processTags(this)
-
-    this.toString = function() {
-        return this.publicIp + (this.instanceId ?  " (" + ew_core.modelValue('instanceId', this.instanceId) + ")" : "");
     }
 }
 
