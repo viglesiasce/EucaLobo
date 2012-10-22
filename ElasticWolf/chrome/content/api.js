@@ -27,6 +27,7 @@ var ew_api = {
     securityToken: "",
     httpCount: 0,
     actionIgnore: [],
+    actionVersion: {},
     errorList: [],
     errorIgnore: /(is not enabled in this region|is not supported in your requested Availability Zone)/,
 
@@ -95,7 +96,8 @@ var ew_api = {
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.actionIgnore = endpoint.actionIgnore || [];
-        debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore);
+        this.actionVersion = endpoint.actionVersion || {};
+        debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore + ", " + JSON.stringify(this.actionVersion));
     },
 
     getTimerKey: function()
@@ -183,12 +185,13 @@ var ew_api = {
         }
 
         var url = apiURL ? apiURL : this.urls.EC2;
+        var version = this.actionVersion[action] || apiVersion || this.versions.EC2;
         var sigValues = new Array();
         sigValues.push(new Array("Action", action));
         sigValues.push(new Array("AWSAccessKeyId", accessKey.id));
         sigValues.push(new Array("SignatureVersion", this.SIG_VERSION));
         sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
-        sigValues.push(new Array("Version", apiVersion ? apiVersion : this.versions.EC2));
+        sigValues.push(new Array("Version", version));
         sigValues.push(new Array("Timestamp", formattedTime));
         if (accessKey.securityToken != "") {
             sigValues.push(new Array("SecurityToken", accessKey.securityToken));
@@ -234,7 +237,7 @@ var ew_api = {
         xmlhttp.setRequestHeader("Content-Length", queryParams.length);
         xmlhttp.setRequestHeader("Connection", "close");
 
-        return this.sendRequest(xmlhttp, url, queryParams, isSync, action, handlerMethod, handlerObj, callback, params);
+        return this.sendRequest(xmlhttp, url, queryParams, isSync, action, version, handlerMethod, handlerObj, callback, params);
     },
 
     queryRoute53 : function(method, action, content, params, handlerObj, isSync, handlerMethod, callback)
@@ -270,7 +273,7 @@ var ew_api = {
             xmlhttp.setRequestHeader(p, params[p]);
         }
 
-        return this.sendRequest(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback);
+        return this.sendRequest(xmlhttp, url, content, isSync, action, this.versions.R53, handlerMethod, handlerObj, callback);
     },
 
     queryS3Prepare : function(method, bucket, key, path, params, content, expires)
@@ -418,7 +421,7 @@ var ew_api = {
             xmlhttp.setRequestHeader(p, req.headers[p]);
         }
 
-        return this.sendRequest(xmlhttp, req.url, content, isSync, method, handlerMethod, handlerObj, callback, [bucket, key, path]);
+        return this.sendRequest(xmlhttp, req.url, content, isSync, method, this.versions.S3, handlerMethod, handlerObj, callback, [bucket, key, path]);
     },
 
     updateS3Acl: function(item, callback)
@@ -467,7 +470,7 @@ var ew_api = {
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
         xmlhttp.overrideMimeType('text/xml');
-        return this.sendRequest(xmlhttp, url, null, true, stylesheet, "onCompleteCustomerGatewayConfigFormats", this, null, config || "");
+        return this.sendRequest(xmlhttp, url, null, true, stylesheet, this.versions.EC2, "onCompleteCustomerGatewayConfigFormats", this, null, config || "");
     },
 
     queryCheckIP : function(type)
@@ -481,7 +484,7 @@ var ew_api = {
         xmlhttp.open("GET", url, false);
         xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
         xmlhttp.overrideMimeType('text/plain');
-        return this.sendRequest(xmlhttp, url, null, true, "checkip", "onCompleteResponseText", this);
+        return this.sendRequest(xmlhttp, url, null, true, "checkip", this.versions.EC2, "onCompleteResponseText", this);
     },
 
     download: function(url, headers, filename, callback, progresscb)
@@ -533,9 +536,9 @@ var ew_api = {
         return false;
     },
 
-    sendRequest: function(xmlhttp, url, content, isSync, action, handlerMethod, handlerObj, callback, params)
+    sendRequest: function(xmlhttp, url, content, isSync, action, version, handlerMethod, handlerObj, callback, params)
     {
-        debug('sendRequest: ' + url + ', action=' + action + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
+        debug('sendRequest: ' + url + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
         var me = this;
 
         var xhr = xmlhttp;
@@ -1566,7 +1569,7 @@ var ew_api = {
     describeReservedInstancesOfferings : function(market, callback)
     {
         var params = [];
-        if (this.versions.EC2 > '2012-06-15') params.push(["IncludeMarketplace", market]);
+        if ((this.actionVersion["DescribeReservedInstancesOfferings"] || this.versions.EC2) > '2012-06-15') params.push(["IncludeMarketplace", market]);
         this.queryEC2("DescribeReservedInstancesOfferings", params, this, false, "onCompleteDescribeReservedInstancesOfferings", callback);
     },
 
