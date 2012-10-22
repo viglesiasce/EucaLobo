@@ -346,6 +346,14 @@ var ew_InstancesTreeView = {
     properties: [ 'state' ],
     max: 50,
 
+    isRefreshable : function()
+    {
+        for (var i in this.treeList) {
+            if (["pending","shutting-down","stopping","starting"].indexOf(this.treeList[i].state) != -1) return true;
+        }
+        return false;
+    },
+
     filter: function(list)
     {
         if (!list) return list;
@@ -1112,14 +1120,6 @@ var ew_InstancesTreeView = {
             instance.events = list;
             me.core.promptInput("Instance Status", [{label:"Events",type:"listview",list:instance.events,rows:10,multiple:false}]);
         });
-    },
-
-    isRefreshable : function()
-    {
-        for (var i in this.treeList) {
-            if (["pending","shutting-down","stopping","starting"].indexOf(this.treeList[i].state) != -1) return true;
-        }
-        return false;
     },
 
     showMetrics: function()

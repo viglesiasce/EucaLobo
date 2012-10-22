@@ -871,8 +871,16 @@ var ew_NetworkInterfacesTreeView = {
 };
 
 var ew_VpnConnectionTreeView = {
-    model: ['vpnConnections','customerGateways','vpnGateways','vpcs'],
+    model: ['vpnConnections','customerGateways','vpnGateways','vpcs','subnets'],
     searchElement: 'ew.vpnconnections.search',
+
+    isRefreshable : function()
+    {
+        for (var i in this.treeList) {
+            if (["pending","deleting"].indexOf(this.treeList[i].state) != -1) return true;
+        }
+        return false;
+    },
 
     menuChanged : function() {
         var image = this.getSelected();
@@ -912,9 +920,21 @@ var ew_VpnConnectionTreeView = {
         var cgws = this.core.queryModel('customerGateways');
         var values = this.core.promptInput("Create VPN Connection", [{label:"Type",value:"ipsec.1",required:1},
                                                                      {label:"Customer Gateway",type:"menulist",list:cgws,value:cgwid,required:1},
-                                                                     {label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1}])
+                                                                     {label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1},
+                                                                     {label: "Static Routes Only",type:"checkbox",oncommand:"rc.items[4].required=rc.items[3].obj.checked"},
+                                                                     {label: "IP prefixes on your side of VPN connection"},
+                                                                     {label:"",type:"label",value:"Comma separated, e.g.:10.0.0.0/16,10.1.1.0/16"}])
         if (!values) return;
-        this.core.api.createVpnConnection(values[0], values[1], values[2], function() { me.refresh();});
+        this.core.api.createVpnConnection(values[0], values[1], values[2], values[3], function(id) {
+            if (values[3]) {
+                var routes = values[4].split(",");
+                for (var i = 0; i < routes.length; i++) {
+                    this.core.api.createVpnConnectionRoute(id, routes[i], function(id) { if (i == routes.length -1) me.refresh(); });
+                }
+            } else {
+                me.refresh();
+            }
+        });
     },
 
     deleteVpnConnection : function () {
@@ -927,6 +947,35 @@ var ew_VpnConnectionTreeView = {
         var me = this;
         this.core.api.deleteVpnConnection(vpn.id, function() { me.refresh()});
     },
+
+    addRoute: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        var cidr = prompt("Please, provide static between VPN gateway and Customer gateway:")
+        if (!cidr) return;
+        this.core.api.createVpnConnectionRoute(item.id, cidr, function() { me.refresh(); });
+    },
+
+    deleteRoute: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item || !item.routes || !item.routes.length) {
+            return alert('No route to delete');
+        }
+        var idx = 0;
+
+        if (item.policies.length > 0) {
+            idx = this.core.promptList("Routes", "Select route to delete", item.routes);
+            if (idx < 0) return;
+        } else {
+            if (!confirm('Delete route ' + item.routes[idx] + '?')) return;
+        }
+        this.core.api.createVpnConnectionRoute(item.id, item.routes[idx].destinationCidrBlock, function() { me.refresh(); });
+    },
+
 };
 
 
@@ -986,10 +1035,10 @@ var ew_VpnGatewayTreeView = {
     },
 
     createVpnGateway : function () {
-        var values = this.core.promptInput('Create VPN Gateway', [{label:"Type",value:"ipsec.1"}, {label:"Availibility Zone",type:"menulist",list:this.core.queryModel('availabilityZones'),key:"name"}])
+        var values = this.core.promptInput('Create VPN Gateway', [{label:"Type",value:"ipsec.1"}])
         if (!values) return;
         var me = this;
-        this.core.api.createVpnGateway(values[0], values[1], function() {me.refresh()});
+        this.core.api.createVpnGateway(values[0], function() {me.refresh()});
     },
 
     deleteVpnGateway : function () {

@@ -4,7 +4,7 @@
 //
 
 var ew_api = {
-    EC2_API_VERSION: '2012-08-15',
+    EC2_API_VERSION: '2012-10-01',
     ELB_API_VERSION: '2012-06-01',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
@@ -755,7 +755,7 @@ var ew_api = {
                 if (columns != null) {
                     // Return object or just plain list if columns is a string
                     if (columns instanceof Array) {
-                        var obj = {};
+                        var obj = new Element();
                         for (var j in columns) {
                             var val = getNodeValue(items[i], columns[j]);
                             if (val) obj[columns[j]] = val;
@@ -1297,9 +1297,9 @@ var ew_api = {
         response.result = list;
     },
 
-    createVpnGateway : function(type, az, callback)
+    createVpnGateway : function(type, callback)
     {
-        this.queryEC2("CreateVpnGateway", [ [ "Type", type ], [ "AvailabilityZone", az ] ], this, false, "onComplete:vpnGatewayId", callback);
+        this.queryEC2("CreateVpnGateway", [ [ "Type", type ] ], this, false, "onComplete:vpnGatewayId", callback);
     },
 
     attachVpnGatewayToVpc : function(vgwid, vpcid, callback)
@@ -1414,35 +1414,57 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "vpnConnectionSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var id = getNodeValue(item, "vpnConnectionId");
-            var cgwId = getNodeValue(item, "customerGatewayId");
-            var vgwId = getNodeValue(item, "vpnGatewayId");
-            var type = getNodeValue(item, "type");
-            var state = getNodeValue(item, "state");
-            var ipAddress = getNodeValue(item, "ipAddress");
-            // Required since Firefox limits nodeValue to 4096 bytes
-            var cgwtag = item.getElementsByTagName("customerGatewayConfiguration")
-            var config = null;
-            if (cgwtag[0]) {
-                config = cgwtag[0].textContent;
+            var vpn = new Element();
+            vpn.toString = function() {
+                return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator +
+                        ew_core.modelValue("vgwId", this.vgwId) + fieldSeparator + ew_core.modelValue('cgwId', this.cgwId);
             }
 
-            var bgpAsn = getNodeValue(item, "bgpAsn");
-            var tags = this.getTags(item);
-            list.push(new VpnConnection(id, vgwId, cgwId, type, state, config, tags));
+            vpn.id = getNodeValue(item, "vpnConnectionId");
+            vpn.cgwId = getNodeValue(item, "customerGatewayId");
+            vpn.vgwId = getNodeValue(item, "vpnGatewayId");
+            vpn.type = getNodeValue(item, "type");
+            vpn.state = getNodeValue(item, "state");
+            vpn.staticRoutesOnly = getNodeValue(item, "options", "staticRoutesOnly");
+            vpn.attributes = getNodeValue(item, "vpn_connection_attributes");
+
+            // Required since Firefox limits nodeValue to 4096 bytes
+            var cgwtag = item.getElementsByTagName("customerGatewayConfiguration")
+            if (cgwtag[0]) {
+                vpn.config = cgwtag[0].textContent;
+            }
+            vpn.telemetry = this.getItems(item, "vgwTelemetry", "item", ["status", "outsideIpAddress","lastStatusChange","statusMessage","acceptedRouteCount"]);
+            vpn.routes = this.getItems(item, "routes", "item", ["state", "source","destinationCidrBlock"]);
+            vpn.tags = this.getTags(item);
+            this.core.processTags(vpn)
+            list.push(vpn);
         }
         this.core.setModel('vpnConnections', list);
         response.result = list;
     },
 
-    createVpnConnection : function(type, cgwid, vgwid, callback)
+    createVpnConnection : function(type, cgwid, vgwid, staticOnly, callback)
     {
-        this.queryEC2("CreateVpnConnection", [ [ "Type", type ], [ "CustomerGatewayId", cgwid ], [ "VpnGatewayId", vgwid ] ], this, false, "onComplete:vpnConnectionId", callback);
+        var params = [ [ "Type", type ] ];
+        params.push([ "CustomerGatewayId", cgwid ]);
+        params.push([ "VpnGatewayId", vgwid ] );
+        if (staticOnly) params.push([ "Options.StaticRoutesOnly", "true" ])
+        this.queryEC2("CreateVpnConnection", params, this, false, "onComplete:vpnConnectionId", callback);
     },
 
     deleteVpnConnection : function(id, callback)
     {
         this.queryEC2("DeleteVpnConnection", [ [ "VpnConnectionId", id ] ], this, false, "onComplete", callback);
+    },
+
+    createVpnConnectionRoute: function(id, cidr, callback)
+    {
+        this.queryEC2("CreateVpnConnectionRoute", [ [ "VpnConnectionId", id ], ["DestinationCidrBlock", cidr] ], this, false, "onComplete", callback);
+    },
+
+    deleteVpnConnectionRoute: function(id, cidr, callback)
+    {
+        this.queryEC2("DeleteVpnConnectionRoute", [ [ "VpnConnectionId", id ], ["DestinationCidrBlock", cidr] ], this, false, "onComplete", callback);
     },
 
     unpackImage: function(item)
@@ -1459,7 +1481,7 @@ var ew_api = {
         var rdt = getNodeValue(item, "rootDeviceType");
         var rdn = getNodeValue(item, "rootDeviceName");
         var ownerAlias = getNodeValue(item, "imageOwnerAlias");
-        var productCodes = this.getItems(item, "productCodes", "item", ["productCode", "type"], function(obj) { return new Group(obj.productCode, obj.type) });
+        var productCodes = this.getItems(item, "productCodes", "item", ["productCode", "type"]);
         var name = getNodeValue(item, "name");
         var description = getNodeValue(item, "description");
         var snapshotId = getNodeValue(item, "snapshotId");

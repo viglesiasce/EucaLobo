@@ -2451,23 +2451,6 @@ function DhcpOptions(id, options, tags)
     }
 }
 
-function VpnConnection(id, vgwId, cgwId, type, state, config, tags)
-{
-    this.id = id;
-    this.vgwId = vgwId;
-    this.cgwId = cgwId;
-    this.type = type;
-    this.state = state;
-    this.config = config;
-    this.tags = tags;
-    ew_core.processTags(this)
-
-    this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator +
-               ew_core.modelValue("vgwId", this.vgwId) + fieldSeparator + ew_core.modelValue('cgwId', this.cgwId);
-    }
-}
-
 function InternetGateway(id, vpcId, tags)
 {
     this.id = id

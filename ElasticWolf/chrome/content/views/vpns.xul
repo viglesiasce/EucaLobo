@@ -13,6 +13,9 @@
                         <menuitem oncommand="ew_VpnConnectionTreeView.deleteVpnConnection();" label="&ew.vpnconnection.contextmenu.delete.label;" />
                         <menuitem oncommand="ew_VpnConnectionTreeView.getCustomerConfig();" label="&ew.vpnconnection.contextmenu.config.label;" />
                         <menuseparator />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.addRoute();" label="Add Static Route" />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.deleteRoute();" label="Delete Static Route" />
+                        <menuseparator />
                         <menuitem oncommand="ew_VpnConnectionTreeView.copyToClipboard('id');" label="&ew.vpnconnection.contextmenu.copyvpnconnectionsid.label;" />
                     </menupopup>
                 </popupset>

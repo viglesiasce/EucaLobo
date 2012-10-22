@@ -48,7 +48,7 @@
             </groupbox>
 
             <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-            
+
             </splitter>
 
             <groupbox flex="1" orient="vertical">
