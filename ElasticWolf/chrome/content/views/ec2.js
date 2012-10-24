@@ -1841,7 +1841,7 @@ var ew_SpotInstanceRequestsTreeView = {
     showHistory: function()
     {
         var me = this;
-        function callback(idx, onstart) {
+        function onchange(idx, onstart) {
             var input = this;
             if (!(onstart && idx == 4 || !onstart)) return;
             var end = this.rc.items[2].obj.value ? new Date() : null;
@@ -1857,7 +1857,7 @@ var ew_SpotInstanceRequestsTreeView = {
                                                      {label:"Product",type:"menulist",list:['Linux/UNIX', 'SUSE Linux', 'Windows', 'Linux/UNIX (Amazon VPC)', 'SUSE Linux (Amazon VPC)', 'Windows (Amazon VPC)']},
                                                      {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
                                                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
-                                                     {label:"Price History",type:"graph",width:550,height:350,list:[]}], false, callback)
+                                                     {label:"Price History",type:"graph",width:550,height:350,list:[]}], {onchange:onchange})
     },
 
     datafeedChanged: function(obj)

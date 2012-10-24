@@ -8,7 +8,7 @@
     <groupbox flex="1" orient="vertical">
         <caption label="DB Subnet Groups" />
         <popupset>
-            <menupopup id="ew.dbsubnets.tree.contextmenu">
+            <menupopup id="ew.dbsubnets.contextmenu">
                 <menuitem oncommand="ew_DBSubnetGroupsTreeView.displayDetails()" label="View Details" />
                 <menuitem oncommand="ew_DBSubnetGroupsTreeView.addItem()" label="Add Subnet" />
                 <menuitem oncommand="ew_DBSubnetGroupsTreeView.editItem()" label="Edit Subnet" />
@@ -35,7 +35,7 @@
                 <treecol id="dbsubnet.subnets" label="Subnets" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                 <splitter class="tree-splitter" />
             </treecols>
-            <treechildren id="ew.dbsubnets.tree.children" context="ew.dbsubnets.tree.contextmenu" />
+            <treechildren id="ew.dbsubnets.tree.children" context="ew.dbsubnets.contextmenu" />
         </tree>
     </groupbox>
 

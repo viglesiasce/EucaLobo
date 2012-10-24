@@ -100,6 +100,52 @@ var ew_api = {
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore + ", " + JSON.stringify(this.actionVersion));
     },
 
+    getEC2Regions: function()
+    {
+        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
+                   urlIAM: 'https://iam.us-gov.amazonaws.com',
+                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
+                   urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
+                   actionVersion: { "DescribeReservedInstancesOfferings": "2012-06-15",
+                                    "DescribeReservedInstances": "2012-06-15",
+                                    "PurchaseReservedInstancesOffering": "2012-08-15" },
+                   actionIgnore: [ "hostedzone" ],
+                 },
+            ];
+    },
+
+    getS3Regions: function()
+    {
+        return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
+                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
+                 { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
+                 { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
+                 { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
+                 { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
+                 { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
+                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
+               ]
+    },
+
+    getRoute53Regions: function()
+    {
+        return [ {name: "Asia Pacific (Tokyo)",          id: "ap-northeast-1", toString: function() { return this.name; } },
+                 {name: "Asia Pacific (Singapore)",      id: "ap-southeast-1", toString: function() { return this.name; } },
+                 {name: "EU (Ireland)",                  id: "eu-west-1", toString: function() { return this.name; } },
+                 {name: "South America (Sao Paulo)",     id: "sa-east-1", toString: function() { return this.name; } },
+                 {name: "US East (Northern Virginia)",   id: "us-east-1", toString: function() { return this.name; } },
+                 {name: "US West (Northern California)", id: "us-west-1", toString: function() { return this.name; } },
+                 {name: "US West (Oregon)",              id: "us-west-2", toString: function() { return this.name; } },
+                 ];
+    },
+
     getTimerKey: function()
     {
         return String(Math.random()) + ":" + String(new Date().getTime());
@@ -278,8 +324,17 @@ var ew_api = {
 
     queryS3Prepare : function(method, bucket, key, path, params, content, expires)
     {
+        var regions = this.getS3Regions();
+
+        function getS3Region(region) {
+            for (var i in regions) {
+                if (regions[i].region == region) return regions[i];
+            }
+            return regions[0];
+        }
+
         var curTime = new Date().toUTCString();
-        var url = this.core.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + this.core.getS3Region(this.region || "").url;
+        var url = this.core.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + getS3Region(this.region || "").url;
 
         if (!params) params = {}
         if (!expires) expires = "";
@@ -4978,14 +5033,16 @@ var ew_api = {
     unpackDBSecurityGroup: function(item)
     {
         if (!item) return null;
-        var name = getNodeValue(item, "DBSecurityGroupName");
-        if (name == "") return null;
-        var descr = getNodeValue(item,"DBSecurityGroupDescription");
-        var owner = getNodeValue(item, "OwnerId");
-        var vpcId = getNodeValue(item, "VpcId");
-        var groups = this.getItems(item, "EC2SecurityGroups", "EC2SecurityGroup", ["EC2SecurityGroupName","EC2SecurityGroupOwnerId","Status"], function(obj) { return new Group(obj.EC2SecurityGroupName,obj.EC2SecurityGroupName,obj.Status,EC2SecurityGroupOwnerId) });
-        var ranges = this.getItems(item, "IPRanges", "IPRange", ["CIDRIP","Status"], function(obj) { return new Item(obj.CIDRIP,obj.Status)});
-        return new DBSecurityGroup(name, descr, vpcId, groups, ranges);
+        var grp = new Element();
+        grp.toString = function() {  return this.name; }
+        grp.name = getNodeValue(item, "DBSecurityGroupName");
+        if (!grp.name) return null;
+        grp.descr = getNodeValue(item,"DBSecurityGroupDescription");
+        grp.ownerId = getNodeValue(item, "OwnerId");
+        grp.vpcId = getNodeValue(item, "VpcId");
+        grp.groups = this.getItems(item, "EC2SecurityGroups", "EC2SecurityGroup", ["EC2SecurityGroupName","EC2SecurityGroupOwnerId","Status"]);
+        grp.ipRanges = this.getItems(item, "IPRanges", "IPRange", ["CIDRIP","Status"]);
+        return grp;
     },
 
     unpackDBInstance: function(item)
@@ -5488,6 +5545,34 @@ var ew_api = {
     {
         var params = [ ["DBSecurityGroupName", name]];
         this.queryRDS("DeleteDBSecurityGroup", params, this, false, "onComplete", callback);
+    },
+
+    authorizeDBSecurityGroupIngress: function(name, group, cidr, callback)
+    {
+        var params = [ ["DBSecurityGroupName", name]];
+        if (cidr) {
+            params.push([ "CIDRIP", cidr]);
+        } else
+        if (group) {
+            if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
+            if (group.name) params.push(["EC2SecurityGroupName", group.name])
+            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId])
+        }
+        this.queryRDS("AuthorizeDBSecurityGroupIngress", params, this, false, "onComplete", callback);
+    },
+
+    revokeDBSecurityGroupIngress: function(name, group, cidr, callback)
+    {
+        var params = [ ["DBSecurityGroupName", name]];
+        if (cidr) {
+            params.push([ "CIDRIP", cidr]);
+        } else
+        if (group) {
+            if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
+            if (group.name) params.push(["EC2SecurityGroupName", group.name])
+            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId])
+        }
+        this.queryRDS("RevokeDBSecurityGroupIngress", params, this, false, "onComplete", callback);
     },
 
     describeOptionGroupOptions: function(engine, callback)

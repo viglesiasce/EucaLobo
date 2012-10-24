@@ -8,9 +8,15 @@
         <groupbox flex="1" orient="vertical">
             <caption label="DB Security Groups" />
             <popupset>
-                <menupopup id="ew.dbgroups.tree.contextmenu">
+                <menupopup id="ew.dbgroups.contextmenu">
                 <menuitem oncommand="ew_DBSecurityGroupsTreeView.addItem()" label="Add Group" />
-                <menuitem oncommand="ew_DBSecurityGroupsTreeView.deleteSelected();" label="Delete Group" />
+                <menuitem id="ew.dbgroups.contextmenu.delete" oncommand="ew_DBSecurityGroupsTreeView.deleteSelected();" label="Delete Group" />
+                <menuseparator />
+                <menuitem id="ew.dbgroups.contextmenu.addGroup" oncommand="ew_DBSecurityGroupsTreeView.authorizeGroup()" label="Authorized Group" />
+                <menuitem id="ew.dbgroups.contextmenu.deleteGroup" oncommand="ew_DBSecurityGroupsTreeView.revokeGroup();" label="Revoke Group" />
+                <menuseparator />
+                <menuitem id="ew.dbgroups.contextmenu.addCidr" oncommand="ew_DBSecurityGroupsTreeView.authorizeCidr()" label="Authorized IP Range" />
+                <menuitem id="ew.dbgroups.contextmenu.deleteCidr" oncommand="ew_DBSecurityGroupsTreeView.revokeCidr();" label="Revoke IP Range" />
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
@@ -32,7 +38,7 @@
                     <treecol id="dbgroup.ipRanges" label="IP Ranges" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="ew.dbgroups.tree.children" context="ew.dbgroups.tree.contextmenu" />
+                <treechildren id="ew.dbgroups.children" context="ew.dbgroups.contextmenu" />
             </tree>
         </groupbox>
     </vbox>

@@ -8,7 +8,7 @@
         <groupbox flex="1" orient="vertical">
             <caption label="DB Parameter Groups" />
             <popupset>
-                <menupopup id="ew.dbparameters.tree.contextmenu">
+                <menupopup id="ew.dbparameters.contextmenu">
                   <menuitem oncommand="ew_DBParameterGroupsTreeView.addItem()" label="Add Group" />
                   <menuitem oncommand="ew_DBParameterGroupsTreeView.deleteSelected();" label="Delete Group" />
                 </menupopup>
@@ -28,18 +28,18 @@
                     <treecol id="dbparameter.descr" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="ew.dbparameters.tree.children" context="ew.dbparameters.tree.contextmenu" />
+                <treechildren id="ew.dbparameters.tree.children" context="ew.dbparameters.contextmenu" />
             </tree>
         </groupbox>
 
         <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-        
+
         </splitter>
 
         <groupbox flex="1" orient="vertical">
         <caption label="DB Parametes" />
         <popupset>
-            <menupopup id="ew.dbparameters.params.tree.contextmenu">
+            <menupopup id="ew.dbparameters.params.contextmenu">
             <menuitem oncommand="ew_DBParameterGroupParametersTreeView.editItem()" label="Edit Parameter" />
             </menupopup>
         </popupset>
@@ -68,7 +68,7 @@
                 <treecol id="dboption.source" label="Source" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                 <splitter class="tree-splitter" />
             </treecols>
-            <treechildren id="ew.dbparameters.params.tree.children" context="ew.dbparameters.params.tree.contextmenu" />
+            <treechildren id="ew.dbparameters.params.tree.children" context="ew.dbparameters.params.contextmenu" />
         </tree>
     </groupbox>
 

@@ -93,7 +93,7 @@ var ew_HostedRecordsTreeView = {
                       {label:"Set Id",disabled:true}];
 
         // Handler for input fields
-        function callback(idx) {
+        function onchange(idx) {
             this.rc.items[2].obj.value = types[this.rc.items[1].obj.value];
             switch (this.rc.items[6].obj.value) {
             case "No":
@@ -138,7 +138,7 @@ var ew_HostedRecordsTreeView = {
             }
         }
 
-        var values = this.core.promptInput('Create Record', inputs, 0, callback);
+        var values = this.core.promptInput('Create Record', inputs, {onchange:onchange});
         if (!values) return;
         item = {};
         item.comment = this.core.getAccountName();

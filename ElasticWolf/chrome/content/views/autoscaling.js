@@ -213,7 +213,7 @@ var ew_ASPoliciesTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        function callback(idx) {
+        function onchange(idx) {
             var item = this.rc.items[idx];
             switch (idx) {
             case 2:
@@ -240,7 +240,7 @@ var ew_ASPoliciesTreeView = {
             inputs[4].value = item.minAdjustmentStep;
             inputs[5].value = item.cooldown;
         }
-        var values = this.core.promptInput((edit ? "Edit" : "Create") + ' AutoScaling Policy', inputs, false, callback);
+        var values = this.core.promptInput((edit ? "Edit" : "Create") + ' AutoScaling Policy', inputs, { onchange: onchange});
         if (!values) return;
         this.core.api.putScalingPolicy(values[0],values[1],values[2],values[3],values[4],values[5], function() { me.refresh() });
     },

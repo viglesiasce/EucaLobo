@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.0.7",
+    VERSION: "3.0.8",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -530,7 +530,7 @@ var ew_core = {
             this.endpoints = [];
 
             // Default endpoints with posssible custom configuration like urls, versions for each service
-            var regions = this.getEC2Regions();
+            var regions = this.api.getEC2Regions();
             for (var i in regions) {
                 this.endpoints.push(regions[i]);
             }
@@ -561,7 +561,7 @@ var ew_core = {
 
     displayErrors: function()
     {
-        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}], true);
+        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}], {modeless:true});
     },
 
     displayUrl: function(url, protocol)
@@ -621,16 +621,20 @@ var ew_core = {
     // value:  initial value for the input field
     // type: default is textbox, can be checkbox, password, label, image...
     // all other properties will be additional attributes of the element
-    promptInput: function(title, items, modeless, callback)
+    promptInput: function(title, items, params)
     {
-        var params = { core: this, title: title, items: items || [ "" ], values: null, modeless: modeless, callback: callback };
+        if (!params) params = {};
+        params.core = this;
+        params.title = title;
+        params.items = items || [ "" ];
+        params.values = null;
 
         // Complex type, additional options
         if (typeof title == "object") {
             for (var p in title) params[p] = title[p];
         }
-        var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (modeless ? "modeless" : "modal"), params);
-        return modeless ? win : (params.ok ? params.values : null);
+        var win = window.openDialog("chrome://ew/content/dialogs/input.xul", null, "chrome,centerscreen,resizable," + (params.modeless ? "modeless" : "modal"), params);
+        return params.modeless ? win : (params.ok ? params.values : null);
     },
 
     promptForFile : function(msg, save, filename)
@@ -2135,7 +2139,7 @@ var ew_core = {
             for (var i in items) {
                 var matches = 0;
                 for (var j = 0; j < args.length - 1; j += 2) {
-                    // If value is null, this means oppsite, the property should be empty
+                    // If value is null, this means opposite, the property should be empty
                     if (args[j + 1] == null) {
                         if (!items[i][args[j]]) matches++;
                     } else {
@@ -2292,63 +2296,6 @@ var ew_core = {
     getSecurityGroupById: function(id)
     {
         return this.findObject(this.model.securityGroups, id)
-    },
-
-    getS3Region: function(region)
-    {
-        var regions = this.getS3Regions();
-        for (var i in regions) {
-            if (regions[i].region == region) {
-                return regions[i]
-            }
-        }
-        return regions[0]
-    },
-
-    getS3Regions: function()
-    {
-        return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
-                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
-                 { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
-                 { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
-                 { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
-                 { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
-                 { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
-                 { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
-               ]
-    },
-
-    getRoute53Regions: function()
-    {
-        return [ {name: "Asia Pacific (Tokyo)",          id: "ap-northeast-1", toString: function() { return this.name; } },
-                 {name: "Asia Pacific (Singapore)",      id: "ap-southeast-1", toString: function() { return this.name; } },
-                 {name: "EU (Ireland)",                  id: "eu-west-1", toString: function() { return this.name; } },
-                 {name: "South America (Sao Paulo)",     id: "sa-east-1", toString: function() { return this.name; } },
-                 {name: "US East (Northern Virginia)",   id: "us-east-1", toString: function() { return this.name; } },
-                 {name: "US West (Northern California)", id: "us-west-1", toString: function() { return this.name; } },
-                 {name: "US West (Oregon)",              id: "us-west-2", toString: function() { return this.name; } },
-                 ];
-    },
-
-    getEC2Regions: function()
-    {
-        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
-                   urlIAM: 'https://iam.us-gov.amazonaws.com',
-                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
-                   actionVersion: { "DescribeReservedInstancesOfferings": "2012-06-15",
-                                    "DescribeReservedInstances": "2012-06-15",
-                                    "PurchaseReservedInstancesOffering": "2012-08-15" },
-                   actionIgnore: [ "hostedzone" ],
-                 },
-            ];
     },
 
     getInstanceTypes: function(arch, region)

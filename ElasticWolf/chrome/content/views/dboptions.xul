@@ -8,7 +8,7 @@
     <groupbox flex="1" orient="vertical">
         <caption label="DB Option Groups" />
         <popupset>
-            <menupopup id="ew.dboptions.tree.contextmenu">
+            <menupopup id="ew.dboptions.contextmenu">
                 <menuitem oncommand="ew_DBOptionGroupsTreeView.displayDetails()" label="View Details" />
                 <menuitem oncommand="ew_DBOptionGroupsTreeView.addItem()" label="Add Group" />
                 <menuitem oncommand="ew_DBOptionGroupsTreeView.deleteSelected();" label="Delete Group" />
@@ -35,18 +35,18 @@
                 <treecol id="dboption.groups" label="Groups" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                 <splitter class="tree-splitter" />
             </treecols>
-            <treechildren id="ew.dboptions.tree.children" context="ew.dboptions.tree.contextmenu" />
+            <treechildren id="ew.dboptions.tree.children" context="ew.dboptions.contextmenu" />
         </tree>
     </groupbox>
 
      <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-        
+
       </splitter>
 
         <groupbox flex="1" orient="vertical">
             <caption label="DB Options" />
             <popupset>
-                <menupopup id="ew.dboptions.options.tree.contextmenu">
+                <menupopup id="ew.dboptions.options.contextmenu">
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
@@ -66,7 +66,7 @@
                     <treecol id="dbparameter.groups" label="Groups" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="ew.dboptions.options.tree.children" context="ew.dboptions.options.tree.contextmenu" />
+                <treechildren id="ew.dboptions.options.tree.children" context="ew.dboptions.options.contextmenu" />
             </tree>
         </groupbox>
     </vbox>

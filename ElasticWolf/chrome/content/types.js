@@ -2842,19 +2842,6 @@ function DBEngine(family, name, version, descr, vdescr, chars)
     }
 }
 
-function DBSecurityGroup(name, descr, vpcId, groups, ranges)
-{
-    this.name = name;
-    this.descr = descr;
-    this.vpcId = vpcId;
-    this.groups = groups;
-    this.ipRanges = ranges;
-
-    this.toString = function() {
-        return this.name;
-    }
-}
-
 function DBOptionGroupOption(name, engine, descr, ver, minver, port, isport, depends)
 {
     this.name = name

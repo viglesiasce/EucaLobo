@@ -221,7 +221,7 @@ var ew_S3BucketsTreeView = {
                                                           {name:"Bucket Owner Read",id:"bucket-owner-read"},
                                                           {name:"Bucket Owner Full Control",id:"bucket-owner-full-control"}],required:1}, ]
         if (!this.path.length) {
-            inputs.push({label:"Region",type:"menulist",list:this.core.getS3Regions(),key:'region'});
+            inputs.push({label:"Region",type:"menulist",list:this.core.api.getS3Regions(),key:'region'});
         }
 
         var values = this.core.promptInput("Create S3 " + this.path.length ? "Folder" : "Bucket", inputs);

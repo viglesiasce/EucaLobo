@@ -64,7 +64,16 @@ var ew_DBSubnetGroupsTreeView = {
 };
 
 var ew_DBSecurityGroupsTreeView = {
-    model: [ "dbgroups", "vpcs"],
+    model: [ "dbgroups", "vpcs", "securityGroups"],
+
+    menuChanged: function() {
+        var item = this.getSelected();
+        $("ew.dbgroups.contextmenu.delete").disabled = !item;
+        $("ew.dbgroups.contextmenu.addGroup").disabled = !item;
+        $("ew.dbgroups.contextmenu.addCidr").disabled = !item;
+        $("ew.dbgroups.contextmenu.deleteGroup").disabled = !item || !item.groups.length;
+        $("ew.dbgroups.contextmenu.deleteCidr").disabled = !item || !item.ipRanges.length;
+    },
 
     addItem: function() {
         var me = this;
@@ -85,6 +94,51 @@ var ew_DBSecurityGroupsTreeView = {
         this.core.api.deleteDBSecurityGroup(item.name,function() { me.refresh() });
     },
 
+    authorizeCidr: function()
+    {
+        var me = this;
+        item = this.getSelected();
+        if (!item) return;
+        var cidr = prompt("Please enter CIDR:")
+        if (!cidr) return;
+        this.core.api.authorizeDBSecurityGroupIngress(item.name, null, cidr, function() { me.refresh() });
+    },
+
+    revokeCidr: function()
+    {
+        var me = this;
+        item = this.getSelected();
+        if (!item || !item.ipRanges.length) return;
+        var idx = this.core.promptList("CIDR", "Select CIDR to delete", item.ipRanges);
+        if (idx < 0) return;
+        this.core.api.revokeDBSecurityGroupIngress(item.name, null, item.ipRanges[idx].CIDRIP, function() { me.refresh(); });
+    },
+
+    authorizeGroup: function()
+    {
+        var me = this;
+        item = this.getSelected();
+        if (!item) return;
+        var groups = this.core.queryModel('securityGroups').filter(function(x) { return (item.vpcId && item.vpcId == x.vpcId) || (!item.vpcId && !x.vpcId)});
+        var idx = this.core.promptList("CIDR", "Select Group to authorize", groups);
+        if (idx < 0) return;
+        var group = item.vpcId ? { id: groups[idx].id } : groups[idx];
+        this.core.api.authorizeDBSecurityGroupIngress(item.name, group, null, function() { me.refresh(); });
+    },
+
+    revokeGroup: function()
+    {
+        var me = this;
+        item = this.getSelected();
+        if (!item || !item.groups.length) return;
+        var idx = this.core.promptList("Groups", "Select group to delete", item.groups);
+        if (idx < 0) return;
+        // RDS uses lowercase for security groups, we use case sensitive match
+        var group = this.core.queryModel('securityGroups').filter(function(x) { return x.name.toLowerCase() == item.groups[idx].EC2SecurityGroupName; });
+        if (!group.length) return alert('Could not find group ' + item.groups[idx]);
+        group = item.vpcId ? { id: group[0].id } : group[0];
+        this.core.api.revokeDBSecurityGroupIngress(item.name, group, null, function() { me.refresh(); });
+    },
 };
 
 var ew_DBOptionGroupsTreeView = {
@@ -323,28 +377,32 @@ var ew_DBInstancesTreeView = {
     {
         var me = this;
 
-        function action(inputs, values, dialog) {
+        function onaccept() {
+            var dialog = this;
             var options = {};
+            var inputs = this.rc.items;
+            var values = this.rc.values;
+
             options.EngineVersion = values[2];
             for (var i = 0; i < inputs.length; i++) {
                 if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
             }
             if (edit) {
-                me.core.api.modifyDBInstance(values[0],options,function() { me.refresh(); if (dialog) dialog.close(); });
+                me.core.api.modifyDBInstance(values[0],options,function() {
+                    me.refresh();
+                    dialog.close();
+                });
             } else {
-                me.core.api.createDBInstance(values[0],values[1],values[3],values[4],values[5],values[6],options,function() { me.refresh(); if (dialog) dialog.close(); });
+                me.core.api.createDBInstance(values[0],values[1],values[3],values[4],values[5],values[6],options,function() {
+                    me.refresh();
+                    dialog.close();
+                });
             }
+            return true;
         }
 
-        function callback(idx, onstart, onaccept) {
+        function onchange(idx, onstart) {
             var input = this;
-
-            // Accept callback, perform action and report about the error, close on success
-            if (onaccept) {
-                action(this.rc.items, this.rc.values, this);
-                return true;
-            }
-
             // Validation
             var item = this.rc.items[idx];
             switch (idx) {
@@ -431,7 +489,7 @@ var ew_DBInstancesTreeView = {
             inputs[21].value = item.iops;
             inputs.push({label:"Apply Immediately",type:"checkbox",tooltiptext:" Specifies whether or not the modifications in this request and any pending modifications are asynchronously applied as soon as possible, regardless of the PreferredMaintenanceWindow setting for the DB Instance. If this parameter is passed as false, changes to the DB Instance are applied on the next call to RebootDBInstance, the next maintenance reboot, or the next failure reboot, whichever occurs first."});
         }
-        var values = this.core.promptInput((edit ? "Modify" : " Create") + " DB Instance", inputs, false, callback);
+        var values = this.core.promptInput((edit ? "Modify" : " Create") + " DB Instance", inputs, { onchange: onchange, onaccept: onaccept });
         if (!values) return;
     },
 

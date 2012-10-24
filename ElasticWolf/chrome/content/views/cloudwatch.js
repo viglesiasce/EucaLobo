@@ -74,6 +74,11 @@ var ew_MetricsTreeView = {
 var ew_MetricAlarmsTreeView = {
     model: ["alarms","topics","subscriptions","aspolicies","volumes","instances","metrics"],
     properties: ["stateValue"],
+    refreshTimeout: 30000,
+
+    isRefreshable: function() {
+        return true;
+    },
 
     chart: function() {
         var item = this.getSelected();
@@ -100,10 +105,42 @@ var ew_MetricAlarmsTreeView = {
     {
         var me = this;
 
-        function callback(idx, onstart) {
-            switch (this.rc.items[idx].label) {
+        function onaccept() {
+            var dialog = this;
+            var inputs = this.rc.items;
+            var values = this.rc.values;
+            var params = [];
+
+            for (var i in inputs) {
+                if (inputs[i].required || !values[i]) continue;
+                if (inputs[i].multiline) {
+                    var lines = values[i].split("\n");
+                    for (var j = 0; j < lines.length; j++) {
+                        if (!lines[j]) continue;
+                        if (inputs[i].label == "Dimensions") {
+                            var pair = lines[j].split(":");
+                            params.push([inputs[i].label + ".member." + (j + 1) + ".Name", pair[0]]);
+                            params.push([inputs[i].label + ".member." + (j + 1) + ".Value", pair[1]]);
+                        } else {
+                            params.push([inputs[i].label + ".member." + (j + 1), lines[j]]);
+                        }
+                    }
+                } else {
+                    params.push([inputs[i].label, values[i]]);
+                }
+            }
+            me.core.api.putMetricAlarm(values[0], values[2], values[3], values[5], values[6], values[7], values[8], values[9], params, function() {
+                me.refresh();
+                dialog.close();
+            });
+            return true;
+        }
+
+        function onchange(idx, onstart) {
+            var item = this.rc.items[idx];
+            switch (item.label) {
             case "Namespace":
-                this.rc.metrics = this.rc.core.queryModel('metrics', 'namespace', this.rc.items[idx].obj.value);
+                this.rc.metrics = this.rc.core.queryModel('metrics', 'namespace', item.obj.value);
                 this.rc.core.sortObjects(this.rc.metrics, 'dimensions');
                 buildListbox(this.rc.items[idx+1].obj, this.rc.metrics, 'name');
                 // Restore initial value for metric
@@ -111,7 +148,7 @@ var ew_MetricAlarmsTreeView = {
                 break;
 
             case "MetricName":
-                var metric = this.rc.metrics[this.rc.items[idx].obj.selectedIndex];
+                var metric = this.rc.metrics[item.obj.selectedIndex];
                 this.rc.items[idx+1].obj.value = '';
                 if (!metric) break;
                 for (var i in metric.dimensions) {
@@ -122,31 +159,32 @@ var ew_MetricAlarmsTreeView = {
             case "AlarmActions Topics":
             case "InsufficientDataActions Topics":
             case "OKActions Topics":
-                if (this.rc.items[idx].obj.value) {
+                if (item.obj.value) {
                     if (this.rc.items[idx-1].obj.value) this.rc.items[idx-1].obj.value += "\n";
-                    this.rc.items[idx-1].obj.value += this.rc.items[idx].obj.value;
-                    this.rc.items[idx].obj.value = '';
+                    this.rc.items[idx-1].obj.value += item.obj.value;
+                    item.obj.value = '';
                 }
                 break;
             }
         }
+
         var topics = this.core.queryModel('topics').concat(this.core.queryModel('aspolicies'));
         var inputs = [{label:"AlarmName",required:1},
-                      {label:"AlarmDescription"},
+                      {label:"AlarmDescription",maxlength:255},
                       {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
-                      {label:"MetricName",type:"menulist",required:1},
+                      {label:"MetricName",type:"menulist",required:1,style:"max-width:300px"},
                       {label:"Dimensions",multiline:true,cols:30,rows:3,wrap:'off',help:"One name:value pair per line"},
-                      {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold","GreaterThanThreshold","LessThanThreshold","LessThanOrEqualToThreshold"],required:1},
-                      {label:"Threshold",type:"number",decimalplaces:2,size:10,required:1},
-                      {label:"Period",type:"number",required:1,help:"seconds",value:300},
-                      {label:"EvaluationPeriods",type:"number",required:1,value:1},
-                      {label:"Statistic",type:"menulist",list:["Average","SampleCount","Sum","Minimum","Maximum"],required:1},
+                      {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold","GreaterThanThreshold","LessThanThreshold","LessThanOrEqualToThreshold"],required:1,tooltiptext:"The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand.Type: String.Valid Values:GreaterThanOrEqualToThreshold |GreaterThanThreshold |LessThanThreshold |LessThanOrEqualToThreshold"},
+                      {label:"Threshold",type:"number",decimalplaces:2,size:10,required:1,tooltiptext:"The value against which the specified statistic is compared."},
+                      {label:"Period",type:"number",required:1,help:"seconds",value:300,tooltiptext:"The period in seconds over which the specified statistic is applied."},
+                      {label:"EvaluationPeriods",type:"number",required:1,value:1,tooltiptext:"The number of periods over which data is compared to the specified threshold."},
+                      {label:"Statistic",type:"menulist",list:["Average","SampleCount","Sum","Minimum","Maximum"],required:1,tooltiptext:"The statistic to apply to the alarm's associated metric.Type: String. Valid Values: SampleCount | Average | Sum | Minimum | Maximum"},
                       {label:"Unit",type:"menulist",list:['Seconds','Microseconds','Milliseconds','Bytes','Kilobytes','Megabytes','Gigabytes','Terabytes','Bits','Kilobits','Megabits','Gigabits','Terabits','Percent','Count','Bytes/Second','Kilobytes/Second','Megabytes/Second','Gigabytes/Second','Terabytes/Second','Bits/Second','Kilobits/Second','Megabits/Second','Gigabits/Second','Terabits/Second','Count/Second']},
-                      {label:"AlarmActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"AlarmActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line",tooltiptext:"The list of actions to execute when this alarm transitions into an ALARM state from any other state. Each action is specified as an Amazon Resource Number (ARN). Currently the only action supported is publishing to an Amazon SNS topic or an Amazon Auto Scaling policy. Type: String list. Length constraints: Minimum of 0 item(s) in the list. Maximum of 5 item(s) in the list."},
                       {label:"AlarmActions Topics",type:"menulist",list:topics},
-                      {label:"InsufficientDataActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"InsufficientDataActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line",tooltiptext:"The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Number (ARN). Currently the only action supported is publishing to an Amazon SNS topic or an Amazon Auto Scaling policy."},
                       {label:"InsufficientDataActions Topics",type:"menulist",list:topics},
-                      {label:"OKActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line"},
+                      {label:"OKActions",multiline:true,cols:40,rows:3,wrap:'off',help:"One ARN per line",tooltiptext:"The list of actions to execute when this alarm transitions into an OK state from any other state. Each action is specified as an Amazon Resource Number (ARN). Currently the only action supported is publishing to an Amazon SNS topic or an Amazon Auto Scaling policy."},
                       {label:"OKActions Topics",type:"menulist",list:topics},
                       ];
 
@@ -170,28 +208,8 @@ var ew_MetricAlarmsTreeView = {
             inputs[15].value = item.okActions;
         }
 
-        var values = this.core.promptInput("Put CloudWatch Alarm", inputs, false, callback);
+        var values = this.core.promptInput("Put CloudWatch Alarm", inputs, {onchange:onchange,onaccept:onaccept});
         if(!values) return;
-        var params = [];
-        for (var i in inputs) {
-            if (inputs[i].required || !values[i]) continue;
-            if (inputs[i].multiline) {
-                var lines = values[i].split("\n");
-                for (var j = 0; j < lines.length; j++) {
-                    if (!lines[j]) continue;
-                    if (inputs[i].label == "Dimensions") {
-                        var pair = lines[j].split(":");
-                        params.push([inputs[i].label + ".member." + (j + 1) + ".Name", pair[0]]);
-                        params.push([inputs[i].label + ".member." + (j + 1) + ".Value", pair[1]]);
-                    } else {
-                        params.push([inputs[i].label + ".member." + (j + 1), lines[j]]);
-                    }
-                }
-            } else {
-                params.push([inputs[1].label, values[1]]);
-            }
-        }
-        this.core.api.putMetricAlarm(values[0], values[2], values[3], values[5], values[6], values[7], values[8], values[9], params, function() { me.refresh() });
     },
 
     deleteAlarm: function()
