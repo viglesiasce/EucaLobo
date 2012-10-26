@@ -4,12 +4,28 @@
 //
 
 var ew_DBSnapshotsTreeView = {
-    model: [ "dbsnapshots"],
+    model: [ "dbsnapshots", "dbinstances"],
+
+    menuChanged: function() {
+        var item = this.getSelected();
+        $("ew.dbsnapshots.contextmenu.delete").disabled = !item;
+    },
+
+    addItem: function(instance)
+    {
+        var me = this;
+        var values = this.core.promptInput("Snapshot", [{label:"DB Instance",type:"menulist",list:this.core.queryModel("dbinstances"),required:1,value:instance ? instance.id : ""},
+                                                        {label:"DB Snapshot Identifier",type:"name",required:1}]);
+        if (!values) return;
+        this.core.api.createDBSnapshot(values[0], values[1], function() { me.refresh() });
+    },
 
     deleteSelected : function ()
     {
         var me = this;
+        item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteDBSnapshot(item.id, function() { me.refresh() });
     },
 
 };
@@ -368,6 +384,14 @@ ew_ReservedDBInstancesTreeView = {
 var ew_DBInstancesTreeView = {
     model: [ "dbinstances","dbengines","dboptions","dbparameters","dbsubnets","dbgroups",'availabilityZones'],
 
+    menuChanged: function() {
+        var item = this.getSelected();
+        $("ew.dbinstances.contextmenu.delete").disabled = !item;
+        $("ew.dbinstances.contextmenu.edit").disabled = !item;
+        $("ew.dbinstances.contextmenu.reboot").disabled = !item;
+        $("ew.dbinstances.contextmenu.snapshot").disabled = !item;
+    },
+
     isRefreshable : function()
     {
         return this.treeList.some(function(x) { return x.status == "deleting" || x.status == "creating" | x.status == "backing-up"; });
@@ -382,6 +406,7 @@ var ew_DBInstancesTreeView = {
             var options = {};
             var inputs = this.rc.items;
             var values = this.rc.values;
+            var engine = me.core.findModel('dbengines', values[1], 'versionDescr');
 
             options.EngineVersion = values[2];
             for (var i = 0; i < inputs.length; i++) {
@@ -393,7 +418,7 @@ var ew_DBInstancesTreeView = {
                     dialog.close();
                 });
             } else {
-                me.core.api.createDBInstance(values[0],values[1],values[3],values[4],values[5],values[6],options,function() {
+                me.core.api.createDBInstance(values[0],engine.name,values[3],values[4],values[5],values[6],options,function() {
                     me.refresh();
                     dialog.close();
                 });
@@ -407,9 +432,9 @@ var ew_DBInstancesTreeView = {
             var item = this.rc.items[idx];
             switch (idx) {
             case 1: // Engine
-                var engine = me.core.findModel('dbengines', item.obj.value, 'engine');
+                var engine = me.core.findModel('dbengines', item.obj.value, 'versionDescr');
                 input.rc.items[idx+1].obj.value = engine ? engine.version : '';
-                var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(item.obj.value) : []);
+                var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(engine.name) : []);
                 var dbclass = input.rc.items[idx+2].obj.value;
                 buildListbox(input.rc.items[idx+2].obj, list, 'instanceClass');
                 if (dbclass) input.rc.items[idx+2].obj.value = dbclass;
@@ -433,7 +458,7 @@ var ew_DBInstancesTreeView = {
         var dbgroups = this.core.queryModel('dbgroups');
 
         var inputs = [{label:"DB Instance Identifier",required:1,tooltiptext:"The DB Instance identifier. This parameter is stored as a lowercase string."},
-                      {label:"Engine",type:"menulist",list:engines,key:"name",required:1,style:"max-width:350px"},
+                      {label:"Engine",type:"menulist",list:engines,key:"versionDescr",required:1,style:"max-width:350px"},
                       {label:"Engine Version",readonly:true},
                       {label:"DB Instance Class",type:"menulist",required:1,style:"max-width:350px"},
                       {label:"Allocated Storage",type:"number",required:1,help:"GB",min:5,max:1024,tooltiptext:"The amount of storage (in gigabytes) to be initially allocated for the database instance.MySQL: from 5 to 1024. Oracle: from 10 to 1024. SQL Server from 200 to 1024 (Standard Edition and Enterprise Edition) or from 30 to 1024 (Express Edition and Web Edition)"},
@@ -510,6 +535,14 @@ var ew_DBInstancesTreeView = {
         if (check.value) snapshot = prompt('Please provide name for the final DB snapshot:');
         this.core.api.deleteDBInstance(item.id, snapshot, function() { me.refresh(); });
     },
+
+    createSnapshot: function()
+    {
+        var item = this.getSelected();
+        if (!item) return;
+        ew_DBSnapshotsTreeView.addItem(item);
+    },
+
 };
 
 

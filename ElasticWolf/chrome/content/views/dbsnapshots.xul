@@ -7,6 +7,8 @@
             <caption label="DB Snapshots" />
             <popupset>
                 <menupopup id="ew.dbsnapshots.contextmenu">
+                <menuitem oncommand="DBSnapshotsTree.addItem()" label="Create Snapshot" />
+                <menuitem id="ew.dbsnapshots.contextmenu.delete" oncommand="ew_DBSnapshotsTreeView.deleteSelected();" label="Delete Snapshot" />
                 </menupopup>
             </popupset>
 

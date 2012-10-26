@@ -5344,7 +5344,7 @@ var ew_api = {
             var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
             list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     createDBParameterGroup: function(family, name, descr, callback)
@@ -5446,7 +5446,7 @@ var ew_api = {
         this.getNext(response, this.queryRDS, list);
     },
 
-    describeDBSnapshots: function(family, callback)
+    describeDBSnapshots: function(callback)
     {
         return this.queryRDS("DescribeDBSnapshots", [], this, callback ? false : true, "onCompleteDescribeDBSnapshots", callback);
     },
@@ -5455,24 +5455,40 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
         var list = [];
-        var items = this.getItems(xmlDoc, "DBSnapshots", "Snapshot");
+        var items = this.getItems(xmlDoc, "DBSnapshots", "DBSnapshot");
         for (var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "DBSnapshotIdentifier")
-            var dbid = getNodeValue(items[i], "DBInstanceIdentifier")
-            var type = getNodeValue(items[i], "DBSnapshotType")
-            var username = getNodeValue(items[i], "MasterUsername")
-            var ver = getNodeValue(items[i], "EngineVersion")
-            var storage = getNodeValue(items[i], "AllocatedStorage")
-            var ctime = new Date(getNodeValue(items[i], "InstanceCreateTime"))
-            var license = getNodeValue(items[i], "LicenseModel")
-            var azone = getNodeValue(items[i], "AvailabilityZone")
-            var status = getNodeValue(items[i], "Status")
-            var engine = getNodeValue(items[i], "Engine")
-            var port = getNodeValue(items[i], "Port")
-            var stime = new Date(getNodeValue(items[i], "SnapshotCreateTime"))
-            list.push(new DBsnapshot(id, dbid, type, status, username, ver, engine, port, storage, ctime, license, azone, stime));
+            var snap = new Element();
+            snap.toString = function() {
+                return this.dbInstanceId + fieldSeparator + this.engine + "/" + this.version;
+            }
+            snap.id = getNodeValue(items[i], "DBSnapshotIdentifier")
+            snap.dbInstanceId = getNodeValue(items[i], "DBInstanceIdentifier")
+            snap.type = getNodeValue(items[i], "DBSnapshotType")
+            snap.userName = getNodeValue(items[i], "MasterUsername")
+            snap.version = getNodeValue(items[i], "EngineVersion")
+            snap.allocatedStorage = getNodeValue(items[i], "AllocatedStorage")
+            snap.createTime = new Date(getNodeValue(items[i], "InstanceCreateTime"))
+            snap.licenseModel = getNodeValue(items[i], "LicenseModel")
+            snap.availabilityZone = getNodeValue(items[i], "AvailabilityZone")
+            snap.status = getNodeValue(items[i], "Status")
+            snap.engine = getNodeValue(items[i], "Engine")
+            snap.port = getNodeValue(items[i], "Port")
+            snap.snapshotTime = new Date(getNodeValue(items[i], "SnapshotCreateTime"))
+            list.push(snap);
         }
         return this.getNext(response, this.queryRDS, list);
+    },
+
+    createDBSnapshot: function(db, snapshot, callback)
+    {
+        var params = [ ["DBInstanceIdentifier", db]];
+        params.push([ "DBSnapshotIdentifier", snapshot]);
+        this.queryRDS("CreateDBSnapshot", params, this, false, "onComplete:DBSnapshotIdentifier", callback);
+    },
+
+    deleteDBSnapshot: function(snapshot, callback)
+    {
+        this.queryRDS("DeleteDBSnapshot", [ ["DBSnapshotIdentifier", snapshot]], this, false, "onComplete", callback);
     },
 
     createDBSubnetGroup: function(name, descr, subnets, callback)

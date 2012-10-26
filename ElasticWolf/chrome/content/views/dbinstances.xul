@@ -7,10 +7,12 @@
             <caption label="DB Instances" />
             <popupset>
                 <menupopup id="ew.dbinstances.contextmenu">
-                  <menuitem id="addInstance" oncommand="ew_DBInstancesTreeView.putInstance();" label="Add Instance" />
-                  <menuitem id="addInstance" oncommand="ew_DBInstancesTreeView.putInstance(true);" label="Edit Instance" />
-                  <menuitem id="deleteInstance" oncommand="ew_DBInstancesTreeView.deleteInstance();" label="Delete Instance" />
-                  <menuitem id="rebootInstance" oncommand="ew_DBInstancesTreeView.rebootInstance();" label="Reboot Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.add" oncommand="ew_DBInstancesTreeView.putInstance();" label="Add Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.edit" oncommand="ew_DBInstancesTreeView.putInstance(true);" label="Edit Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.delete" oncommand="ew_DBInstancesTreeView.deleteInstance();" label="Delete Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.reboot" oncommand="ew_DBInstancesTreeView.rebootInstance();" label="Reboot Instance" />
+                  <menuseparator />
+                  <menuitem id="ew.dbinstances.contextmenu.snapshot" oncommand="ew_DBInstancesTreeView.createSnapshot();" label="Create Snapshot" />
                 </menupopup>
             </popupset>
 

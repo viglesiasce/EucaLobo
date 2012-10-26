@@ -415,7 +415,7 @@
               return false;
           }
           // Make sure required fields are not empty
-          if (rc.items[i].required && !rc.values[i]) {
+          if (rc.items[i].required && !rc.values[i] && !(type == 'number' && rc.values[i] == '')) {
              alert(rc.items[i].label + " is required");
              return false;
           }
