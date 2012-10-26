@@ -4,11 +4,12 @@
 //
 
 var ew_DBSnapshotsTreeView = {
-    model: [ "dbsnapshots", "dbinstances"],
+    model: [ "dbsnapshots", "dbinstances","dbengines","dboptions","dbparameters","dbsubnets","dbgroups",'availabilityZones'],
 
     menuChanged: function() {
         var item = this.getSelected();
         $("ew.dbsnapshots.contextmenu.delete").disabled = !item;
+        $("ew.dbsnapshots.contextmenu.restoreSnapshot").disabled = !item;
     },
 
     addItem: function(instance)
@@ -26,6 +27,72 @@ var ew_DBSnapshotsTreeView = {
         item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBSnapshot(item.id, function() { me.refresh() });
+    },
+
+    restoreSnapshot: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+
+        var snapshots = this.core.queryModel("dbsnapshots");
+        var engines = this.core.queryModel("dbengines");
+        var options = this.core.queryModel("dboptions");
+        var dbparams = this.core.queryModel("dbparameters");
+        var dbsubnets = this.core.queryModel("dbsubnets");
+        var dbgroups = this.core.queryModel('dbgroups');
+
+        function onaccept() {
+            var options = {};
+            var inputs = this.rc.items;
+            var values = this.rc.values;
+            for (var i = 0; i < inputs.length; i++) {
+                if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
+            }
+            me.core.api.restoreDBInstanceFromDBSnapshot(values[1], values[0], options, function() { me.refresh() });
+            return 1;
+        }
+
+        function onchange(idx, onstart) {
+            var input = this;
+            // Validation
+            var item = this.rc.items[idx];
+            switch (item.label) {
+            case 'Engine':
+                var engine = me.core.findModel('dbengines', item.obj.value, 'name');
+                var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(engine.name) : []);
+                var dbclass = input.rc.items[idx+1].obj.value;
+                buildListbox(input.rc.items[idx+1].obj, list, 'instanceClass');
+                if (dbclass) input.rc.items[idx+1].obj.value = dbclass;
+                if (engine) engine.orderableOptions = list;
+                break;
+
+            case "Availability Zone":
+                this.rc.items[idx+1].obj.checked = false;
+                break;
+
+            case "Multi AZ":
+                if (item.obj.checked) this.rc.items[idx-1].obj.value = "";
+                break;
+            }
+        }
+
+        var inputs = [{label:"Snapshot",readonly:true,value:item.id},
+                      {label:"DB Instance Identifier",required:1,tooltiptext:"The DB Instance identifier. This parameter is stored as a lowercase string."},
+                      {label:"Engine",type:"menulist",list:engines,key:"name",required:1,style:"max-width:350px"},
+                      {label:"DB Instance Class",type:"menulist",required:1,style:"max-width:350px"},
+                      {label:"DB Name",tooltiptext:"The meaning of this parameter differs according to the database engine you use.MySQL: The name of the database to create when the DB Instance is created. If this parameter is not specified, no database is created in the DB Instance. Constraints: Must contain 1 to 64 alphanumeric characters, Cannot be a word reserved by the specified database engine.Oracle:The Oracle System ID (SID) of the created DB Instance.Default: ORCL Constraints: Cannot be longer than 8 characters, SQL Server: Not applicable. Must be null."},
+                      {label:"Port",type:"number",tooltiptext:"The port number on which the database accepts connections."},
+                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
+                      {label:"Multi AZ",type:"checkbox",tooltiptext:"Specifies if the DB Instance is a Multi-AZ deployment. For Microsoft SQL Server, must be set to false. You cannot set the AvailabilityZone parameter if the MultiAZ parameter is set to true."},
+                      {label:"Auto Minor Version Upgrade", type:"checkbox",tooltiptext:"Indicates that minor engine upgrades will be applied automatically to the DB Instance during the maintenance window."},
+                      {label:"License Model",type:"menulist",list:['license-included','bring-your-own-license','general-public-license']},
+                      {label:"DB Subnet Group Name",type:"menulist",list:dbsubnets,key:'name',tooltiptext:"A DB Subnet Group to associate with this DB Instance.If there is no DB Subnet Group, then it is a non-VPC DB instance."},
+                      {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."},
+                      ];
+
+        var values = this.core.promptInput("Restore from Snapshot", inputs, { onchange: onchange, onaccept: onaccept });
+        if (!values) return;
     },
 
 };
@@ -382,7 +449,7 @@ ew_ReservedDBInstancesTreeView = {
 };
 
 var ew_DBInstancesTreeView = {
-    model: [ "dbinstances","dbengines","dboptions","dbparameters","dbsubnets","dbgroups",'availabilityZones'],
+    model: [ "dbinstances","dbengines","dbsnapshots","dboptions","dbparameters","dbsubnets","dbgroups",'availabilityZones'],
 
     menuChanged: function() {
         var item = this.getSelected();
@@ -390,11 +457,13 @@ var ew_DBInstancesTreeView = {
         $("ew.dbinstances.contextmenu.edit").disabled = !item;
         $("ew.dbinstances.contextmenu.reboot").disabled = !item;
         $("ew.dbinstances.contextmenu.snapshot").disabled = !item;
+        $("ew.dbinstances.contextmenu.restoreTime").disabled = !item;
+        $("ew.dbinstances.contextmenu.replica").disabled = !item;
     },
 
     isRefreshable : function()
     {
-        return this.treeList.some(function(x) { return x.status == "deleting" || x.status == "creating" | x.status == "backing-up"; });
+        return this.treeList.some(function(x) { return x.status == "modifying" || x.status == "deleting" || x.status == "creating" | x.status == "backing-up"; });
     },
 
     putInstance: function(edit)
@@ -430,8 +499,8 @@ var ew_DBInstancesTreeView = {
             var input = this;
             // Validation
             var item = this.rc.items[idx];
-            switch (idx) {
-            case 1: // Engine
+            switch (item.label) {
+            case "Engine":
                 var engine = me.core.findModel('dbengines', item.obj.value, 'versionDescr');
                 input.rc.items[idx+1].obj.value = engine ? engine.version : '';
                 var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(engine.name) : []);
@@ -442,11 +511,11 @@ var ew_DBInstancesTreeView = {
                 if (engine) engine.orderableOptions = list;
                 break;
 
-            case 9: // Azone
+            case "Availability Zone":
                 this.rc.items[idx+1].obj.checked = false;
                 break;
 
-            case 10: // MultiAZ
+            case "Multi AZ":
                 if (item.obj.checked) this.rc.items[idx-1].obj.value = "";
                 break;
             }
@@ -541,6 +610,103 @@ var ew_DBInstancesTreeView = {
         var item = this.getSelected();
         if (!item) return;
         ew_DBSnapshotsTreeView.addItem(item);
+    },
+
+    restoreTime: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+        var snapshots = this.core.queryModel("dbsnapshots");
+        var engines = this.core.queryModel("dbengines");
+        var options = this.core.queryModel("dboptions");
+        var dbparams = this.core.queryModel("dbparameters");
+        var dbsubnets = this.core.queryModel("dbsubnets");
+        var dbgroups = this.core.queryModel('dbgroups');
+
+        function onaccept() {
+            var options = {};
+            var inputs = this.rc.items;
+            var values = this.rc.values;
+            for (var i = 0; i < inputs.length; i++) {
+                if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
+            }
+            me.core.api.restoreDBInstanceToPointInTime(values[0], values[1], options, function() { me.refresh() });
+            return 1;
+        }
+
+        function onchange(idx, onstart) {
+            var input = this;
+            // Validation
+            var item = this.rc.items[idx];
+            switch (item.label) {
+            case 'Engine':
+                var engine = me.core.findModel('dbengines', item.obj.value, 'name');
+                var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(engine.name) : []);
+                var dbclass = input.rc.items[idx+1].obj.value;
+                buildListbox(input.rc.items[idx+1].obj, list, 'instanceClass');
+                if (dbclass) input.rc.items[idx+1].obj.value = dbclass;
+                if (engine) engine.orderableOptions = list;
+                break;
+
+            case "Availability Zone":
+                this.rc.items[idx+1].obj.checked = false;
+                break;
+
+            case "Multi AZ":
+                if (item.obj.checked) this.rc.items[idx-1].obj.value = "";
+                break;
+
+            case "Restore Time":
+                this.rc.items[idx+1].obj.checked = false;
+                break;
+
+            case "Use Latest Restorable Time":
+                if (item.obj.checked) this.rc.items[idx-1].obj.value = "";
+                break;
+            }
+        }
+
+        var inputs = [{label:"Source DB Instance Identifier",readonly:true,value:item.id,tooltiptext:"The identifier of the source DB Instance from which to restore."},
+                      {label:"Target DB Instance Identifier",required:1,tooltiptext:"The name of the new database instance to be created."},
+                      {label:"Engine",type:"menulist",list:engines,key:"name",required:1,style:"max-width:350px"},
+                      {label:"DB Instance Class",type:"menulist",required:1,style:"max-width:350px"},
+                      {label:"DB Name",tooltiptext:"The meaning of this parameter differs according to the database engine you use.MySQL: The name of the database to create when the DB Instance is created. If this parameter is not specified, no database is created in the DB Instance. Constraints: Must contain 1 to 64 alphanumeric characters, Cannot be a word reserved by the specified database engine.Oracle:The Oracle System ID (SID) of the created DB Instance.Default: ORCL Constraints: Cannot be longer than 8 characters, SQL Server: Not applicable. Must be null."},
+                      {label:"Port",type:"number",tooltiptext:"The port number on which the database accepts connections."},
+                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
+                      {label:"Multi AZ",type:"checkbox",tooltiptext:"Specifies if the DB Instance is a Multi-AZ deployment. For Microsoft SQL Server, must be set to false. You cannot set the AvailabilityZone parameter if the MultiAZ parameter is set to true."},
+                      {label:"Auto Minor Version Upgrade", type:"checkbox",tooltiptext:"Indicates that minor engine upgrades will be applied automatically to the DB Instance during the maintenance window."},
+                      {label:"License Model",type:"menulist",list:['license-included','bring-your-own-license','general-public-license']},
+                      {label:"DB Subnet Group Name",type:"menulist",list:dbsubnets,key:'name',tooltiptext:"A DB Subnet Group to associate with this DB Instance.If there is no DB Subnet Group, then it is a non-VPC DB instance."},
+                      {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."},
+                      {label:"Restore Time",tooltiptext:"The date and time to restore from. Valid Values: Value must be a UTC time. Constraints: Must be before the latest restorable time for the DB Instance.  CannotbespecifiedifUseLatestRestorableTime parameter is true"},
+                      {label:"Use Latest Restorable Time",type:"checkbox",tooltiptext:"Specifies whether (true) or not (false) the DB Instance is restored from the latest backup time."},];
+
+        var values = this.core.promptInput("Restore to Point in Time", inputs, { onchange: onchange, onaccept: onaccept });
+        if (!values) return;
+    },
+
+    createReplica: function()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!item) return;
+
+        var options = this.core.queryModel("dboptions");
+        var engine = me.core.findModel('dbengines', item.engine, 'name');
+        var list = engine.orderableOptions || me.core.api.describeOrderableDBInstanceOptions(engine.name);
+
+        var inputs = [{label:"Source DB Instance Identifier",readonly:true,value:item.id,tooltiptext:"The identifier of the DB Instance that will act as the source for the Read Replica. Each DB Instance can have up to five Read Replicas."},
+                      {label:"DB Instance Identifier",required:1,tooltiptext:"The DB Instance identifier of the Read Replica. This is the unique key that identifies a DB Instance."},
+                      {label:"DB Instance Class",type:"menulist",list:list,required:1,style:"max-width:350px"},
+                      {label:"Port",type:"number",tooltiptext:"The port number on which the database accepts connections."},
+                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
+                      {label:"Auto Minor Version Upgrade", type:"checkbox",tooltiptext:"Indicates that minor engine upgrades will be applied automatically to the DB Instance during the maintenance window."},
+                      {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."}]
+
+        var values = this.core.promptInput("Create DB Read Replica", inputs);
+        if (!values) return;
+        this.core.api.createDBInstanceReadReplica(values[1],values[0], function() { me.refresh() })
     },
 
 };

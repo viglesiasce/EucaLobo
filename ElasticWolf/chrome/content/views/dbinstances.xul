@@ -13,6 +13,8 @@
                   <menuitem id="ew.dbinstances.contextmenu.reboot" oncommand="ew_DBInstancesTreeView.rebootInstance();" label="Reboot Instance" />
                   <menuseparator />
                   <menuitem id="ew.dbinstances.contextmenu.snapshot" oncommand="ew_DBInstancesTreeView.createSnapshot();" label="Create Snapshot" />
+                  <menuitem id="ew.dbinstances.contextmenu.restoreTime" oncommand="ew_DBInstancesTreeView.restoreTime();" label="Restore to Point In Time" />
+                  <menuitem id="ew.dbinstances.contextmenu.replica" oncommand="ew_DBInstancesTreeView.createReplica();" label="Create Read Replica" />
                 </menupopup>
             </popupset>
 

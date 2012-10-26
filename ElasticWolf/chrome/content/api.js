@@ -5317,6 +5317,30 @@ var ew_api = {
         this.queryRDS("RestoreDBInstanceToPointInTime", params, this, false, "onCompleteCreateDBInstance", callback);
     },
 
+    createDBInstanceReadReplica : function(id, sourceId, options, callback)
+    {
+        var params = []
+        params.push([ "SourceDBInstanceIdentifier", sourceId ]);
+        params.push([ "DBInstanceIdentifier", id ]);
+
+        if (options.AvailabilityZone) {
+            params.push([ "AvailabilityZone", options.AvailabilityZone ]);
+        }
+        if (options.AutoMinorVersionUpgrade) {
+            params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
+        }
+        if (options.DBInstanceClass) {
+            params.push([ "DBInstanceClass", options.DBInstanceClass ]);
+        }
+        if (options.OptionGroupName) {
+            params.push([ "OptionGroupName", options.OptionGroupName ]);
+        }
+        if (options.Port) {
+            params.push([ "Port", options.Port ]);
+        }
+        this.queryRDS("CreateDBInstanceReadReplica", params, this, false, "onCompleteCreateDBInstance", callback);
+    },
+
     rebootDBInstance: function(id, ForceFailover, callback)
     {
         var params = [];
