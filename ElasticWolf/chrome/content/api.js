@@ -1051,10 +1051,10 @@ var ew_api = {
             var group = getNodeValue(items[i], "group");
             var user = getNodeValue(items[i], "userId");
             if (group != '') {
-                list.push({ id: group, type: 'Group', snapshotId: snapshotId })
+                list.push({ id: group, type: 'Group', snapshotId: id })
             } else
             if (user != '') {
-                list.push({ id: user, type: 'UserId', snapshotId: snapshotId })
+                list.push({ id: user, type: 'UserId', snapshotId: id })
             }
         }
 

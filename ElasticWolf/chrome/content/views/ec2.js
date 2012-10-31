@@ -849,7 +849,7 @@ var ew_InstancesTreeView = {
             value = (value == "true")
             if (confirm((value ? "Disable" : "Enable") + " source/destination checking?")) {
                 for (var i = 0; i < instances.length; i++) {
-                    me.core.api.modifyInstanceAttribute(instances[i].id, "SourceDesctCheck", !value);
+                    me.core.api.modifyInstanceAttribute(instances[i].id, "SourceDestCheck", !value);
                 }
             }
         });

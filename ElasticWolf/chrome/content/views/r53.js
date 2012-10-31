@@ -89,7 +89,7 @@ var ew_HostedRecordsTreeView = {
                       {label:"",type:"section"},
                       {label:"Routing Policy",type:"radio",list:["Simple", "Weighted", "Latency"]},
                       {label:"Weight",disabled:true},
-                      {label:"Region",type:"menulist",list:this.core.getRoute53Regions(),disabled:true},
+                      {label:"Region",type:"menulist",list:this.core.api.getRoute53Regions(),disabled:true},
                       {label:"Set Id",disabled:true}];
 
         // Handler for input fields
