@@ -30,6 +30,8 @@
                 <treecols>
                     <treecol id="eip.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
+                    <treecol id="eip.domain" label="Domain" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                     <treecol id="eip.publicIp" label="&ew.eip.address.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="eip.instanceId" label="Instance" flex="1" persist="width ordinal hidden sortDirection" />
@@ -39,8 +41,6 @@
                     <treecol id="eip.allocationId" label="AllocId" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="eip.associationId" label="AssocId" flex="1" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="eip.domain" label="Domain" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.addresses.children" context="ew.addresses.contextmenu" />

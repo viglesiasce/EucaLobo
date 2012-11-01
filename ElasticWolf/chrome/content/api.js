@@ -3312,7 +3312,7 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             var eni = new Element();
             eni.publicIp = getNodeValue(items[i], "publicIp");
-            eni.instanceid = getNodeValue(items[i], "instanceId");
+            eni.instanceId = getNodeValue(items[i], "instanceId");
             eni.allocationId = getNodeValue(items[i], "allocationId");
             eni.associationId = getNodeValue(items[i], "associationId");
             eni.networkInterfaceId = getNodeValue(items[i], "networkInterfaceId");
@@ -6267,7 +6267,7 @@ var ew_api = {
         this.queryAS("PutScalingPolicy", params, this, false, "onComplete", callback);
     },
 
-    putScheduledUpdateGroupAction: function(name, group, capacity, recurrence, start, end, min, max)
+    putScheduledUpdateGroupAction: function(name, group, capacity, recurrence, start, end, min, max, callback)
     {
         var params = [];
         params.push(["ScheduledActionName", name]);
@@ -6317,17 +6317,20 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "ScheduledUpdateGroupActions", "member");
         for (var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "ScheduledActionName");
-            var arn = toArn(getNodeValue(items[i], "ScheduledActionARN"));
-            var group = getNodeValue(items[i], "AutoScalingGroupName");
-            var capacity = getNodeValue(items[i], "DesiredCapacity");
-            var start = new Date(getNodeValue(items[i], "StartTime"));
-            var end = new Date(getNodeValue(items[i], "EndTime"));
-            var recur = getNodeValue(items[i], "Recurrence");
-            var min = getNodeValue(items[i], "MinSize");
-            var max = getNodeValue(items[i], "MaxSize");
-
-            list.push(new ScalingAction(name, arn, group, capacity, recur, start, end, min, max));
+            var action = new Element();
+            action.toString = function() {
+                return this.name + fieldSeparator + this.group + fieldSeparator + this.recurrence
+            }
+            action.name = getNodeValue(items[i], "ScheduledActionName");
+            action.id = toArn(getNodeValue(items[i], "ScheduledActionARN"));
+            action.group = getNodeValue(items[i], "AutoScalingGroupName");
+            action.capacity = getNodeValue(items[i], "DesiredCapacity");
+            action.start = new Date(getNodeValue(items[i], "StartTime"));
+            action.end = new Date(getNodeValue(items[i], "EndTime"));
+            action.recurrence = getNodeValue(items[i], "Recurrence");
+            action.min = getNodeValue(items[i], "MinSize");
+            action.max = getNodeValue(items[i], "MaxSize");
+            list.push(action);
         }
         this.core.setModel('asactions', list);
         response.result = list;

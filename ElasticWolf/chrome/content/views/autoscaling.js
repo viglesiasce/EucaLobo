@@ -290,15 +290,15 @@ var ew_ASActionsTreeView = {
             inputs[1].value = item.group;
             inputs[2].value = item.capacity;
             inputs[3].value = item.recurrence;
-            inputs[4].value = item.start.toISOString();
-            inputs[5].value = item.end.toISOString();
+            inputs[4].value = isNaN(item.start) ? "" : item.start.toISOString();
+            inputs[5].value = isNaN(item.end) ? "" : item.end.toISOString();
             inputs[6].value = item.minSize;
             inputs[7].value = item.maxSize;
         }
 
         var values = this.core.promptInput((edit ? " Edit" : "Create") + " Scheduled Action", inputs);
-        if (!values) return
-        this.core.putScheduledUpdateGroupAction(values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], function() { me.refresh() });
+        if (!values) return;
+        this.core.api.putScheduledUpdateGroupAction(values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], function() { me.refresh() });
     },
 
     deleteSelected : function ()

@@ -342,7 +342,7 @@ var ew_AMIsTreeView = {
 };
 
 var ew_InstancesTreeView = {
-    model: ['instances', 'images', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'snapshots', 'volumes', 'instanceProfiles', 'instanceStatus'],
+    model: ['instances', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'images', 'snapshots', 'volumes', 'instanceProfiles', 'instanceStatus'],
     properties: [ 'state' ],
     max: 50,
 
@@ -430,11 +430,6 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (instance == null) return;
 
-        if (instance.state != "running") {
-            alert("Instance should in running state")
-            return;
-        }
-
         if (!this.isInstanceReadyToUse(instance)) return;
 
         // A volume can be attached to this instance only if:
@@ -462,10 +457,6 @@ var ew_InstancesTreeView = {
         var me = this;
         var instance = this.getSelected();
         if (instance == null) return;
-        if (instance.state != "running") {
-            alert("Instance should in running state")
-            return;
-        }
 
         // Determine if there is actually an EIP to associate with
         var eipList = this.core.queryModel('addresses');
@@ -1448,6 +1439,13 @@ var ew_SnapshotTreeView = {
 var ew_ElasticIPTreeView = {
     model: [ "addresses", "instances", "networkInterfaces" ],
     tagId: "publicIp",
+
+    activate: function()
+    {
+        $("eip.networkInterfaceId").hidden = this.core.isVpcMode() ? false : true;
+        $("eip.allocationId").hidden = this.core.isVpcMode() ? false : true;
+        $("eip.associationId").hidden = this.core.isVpcMode() ? false : true;
+    },
 
     menuChanged : function() {
         var eip = this.getSelected();

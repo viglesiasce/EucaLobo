@@ -3078,23 +3078,6 @@ function ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, ala
     }
 }
 
-function ScalingAction(name, arn, group, capacity, recurrence, start, end, min, max)
-{
-    this.id = arn
-    this.name = name
-    this.group = group
-    this.capacity  = capacity
-    this.recurrence = recurrence
-    this.start = start
-    this.end = end
-    this.minSize = min
-    this.maxSize = max
-
-    this.toString = function() {
-        return this.name + fieldSeparator + this.group + fieldSeparator + this.recurrence
-    }
-}
-
 function AutoScalingActivity(id, group, descr, cause, details, status, statusMsg, progress, start, end)
 {
     this.id = id
