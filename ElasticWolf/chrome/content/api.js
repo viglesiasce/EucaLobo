@@ -3498,7 +3498,7 @@ var ew_api = {
         this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
     },
 
-    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azones, subnet, groups, scheme, callback)
+    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azones, subnets, groups, scheme, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -3507,8 +3507,10 @@ var ew_api = {
                 params.push([ "AvailabilityZones.member." + (i + 1), azones[i] ]);
             }
         }
-        if (subnet) {
-            params.push(["Subnets.member.1", subnet]);
+        if (subnets) {
+            for (var i = 0; i < subnets.length; i++) {
+                params.push(["Subnets.member." + (i + 1), subnets[i]]);
+            }
             for (var i = 0; i < groups.length; i++) {
                 params.push(["SecurityGroups.member." + (i + 1), groups[i]]);
             }

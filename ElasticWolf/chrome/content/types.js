@@ -579,16 +579,16 @@ var ListBox = {
     selectedItems: [],
     core: null,
     onclick: null,
+    listbox: null,
 
     done: function()
     {
-        var list = $(this.name);
-        this.selectedIndex = list.currentIndex;
+        this.selectedIndex = this.listbox.currentIndex;
         this.selectedItems = [];
         if (this.multiple) {
             for (var i = 0; i < this.items.length; i++) {
                 var cell = $(this.name + '.check' + i);
-                var checked = cell && cell.hasAttribute('checked', 'true') ? true : false;
+                var checked = cell ? toBool(cell.getAttribute('checked')) : false;
                 if (checked) {
                     this.selectedItems.push(this.items[i]);
                 }
@@ -607,22 +607,24 @@ var ListBox = {
         }
         this.selectedIndex = -1;
         this.selectedItems = [];
-        var list = $(this.name);
-        if (!list) return;
-        while (list.firstChild) {
-            list.removeChild(list.firstChild);
+        this.listbox = $(this.name);
+        if (!this.listbox) return;
+        while (this.listbox.firstChild) {
+            this.listbox.removeChild(this.listbox.firstChild);
         }
-        if (this.width) list.width = this.width;
-        list.setAttribute('rows', this.rows || 10);
-        list.onclick = null;
+        if (this.width) this.listbox.width = this.width;
+        this.listbox.setAttribute('rows', this.rows || 10);
+        this.listbox.onclick = null;
+
+        var list = this.listbox;
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
 
         var head = document.createElement('listhead');
         head.setAttribute('flex', '1');
-        list.appendChild(head);
+        this.listbox.appendChild(head);
         var cols = document.createElement('listcols');
         cols.setAttribute('flex', '1');
-        list.appendChild(cols);
+        this.listbox.appendChild(cols);
 
         if (this.headers && this.headers.length) {
             if (this.multiple) {
@@ -674,7 +676,7 @@ var ListBox = {
                 cell.setAttribute('label', val);
                 row.setAttribute('tooltiptext', val);
                 row.appendChild(cell);
-                list.appendChild(row);
+                this.listbox.appendChild(row);
             } else {
                 var row = document.createElement('listitem');
                 var cell = document.createElement('listcell');
@@ -683,29 +685,31 @@ var ListBox = {
                 row.setAttribute('tooltiptext', val);
                 for (var j in this.checkedItems) {
                     if (this.items[i] == this.checkedItems[j]) {
-                        list.selectedIndex = i;
+                        this.listbox.selectedIndex = i;
                     }
                 }
                 row.appendChild(cell);
-                list.appendChild(row);
+                this.listbox.appendChild(row);
             }
         }
     },
 
     selectionChanged: function()
     {
+        var self = this;
+        var checked = false;
+        if (this.listbox.currentIndex == -1) return;
         if (this.multiple) {
-            var list = $(this.name);
-            if (list.currentIndex == -1) return;
-            var cell = $(this.name + '.check' + list.currentIndex);
-            if (!cell) return;
-            var checked = !toBool(cell.getAttribute('checked'));
-            cell.setAttribute('checked', checked);
+            var cell = $(this.name + '.check' + this.listbox.currentIndex);
+            if (cell) {
+                checked = !toBool(cell.getAttribute('checked'));
+                cell.setAttribute('checked', checked);
+            }
             if (this.checkedProperty) {
-                this.items[list.currentIndex][this.checkedProperty] = checked;
+                this.items[this.listbox.currentIndex][this.checkedProperty] = checked;
             }
         }
-        if (this.onclick) this.onclick.call(this);
+        if (this.onclick) setTimeout(function() {self.onclick.call(self, self.items[self.listbox.currentIndex], checked)}, 10);
     },
 
     // Convert object into plain text to be used by list box

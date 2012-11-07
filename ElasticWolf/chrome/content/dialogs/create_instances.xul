@@ -503,9 +503,8 @@
         var me = this;
         var list = this.core.getImagesByType(this.images, $("ew.images.type").value);
         list = filterList(list, $('ew.images.search').value);
-        this.imagesListView.init({ core:this.core, width: 600, rows:25, name:'ew.images', items:list, multiple: false, onclick: function() {
-           var list = $(this.name);
-           me.image = this.items[list.currentIndex];
+        this.imagesListView.init({ core:this.core, width: 600, rows:25, name:'ew.images', items:list, multiple: false, onclick: function(item) {
+           me.image = item;
            me.imageChanged();
         }
         });

@@ -1,5 +1,5 @@
 var ew_LoadbalancerTreeView = {
-    model: [ "loadBalancers", "availabilityZones", "instances","cerverCerts", "subnets", "elbPolicyTypes" ],
+    model: [ "loadBalancers", "availabilityZones", "securityGroups", "instances","cerverCerts", "subnets", "elbPolicyTypes" ],
 
     display: function(list)
     {
@@ -33,7 +33,7 @@ var ew_LoadbalancerTreeView = {
         var retVal = {ok:null, vpc: this.core.isVpcMode() };
         window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",this.core, retVal);
         if (retVal.ok) {
-            this.core.api.createLoadBalancer(retVal.name, retVal.Protocol, retVal.elbport, retVal.instanceport, retVal.azones, retVal.subnetId, retVal.securityGroups, retVal.scheme, function() {
+            this.core.api.createLoadBalancer(retVal.name, retVal.Protocol, retVal.elbport, retVal.instanceport, retVal.azones, retVal.subnets, retVal.securityGroups, retVal.scheme, function() {
                 me.core.api.configureHealthCheck(retVal.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold, function() {
                     if (retVal.instances.length > 0) {
                         me.core.api.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh() });

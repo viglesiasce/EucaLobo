@@ -7,7 +7,7 @@
   onwizardfinish="return launch();"
   onload="init();"
   title="&ew.dialog.title.Create_Loadbalancer;"
-  width="600"
+  width="700"
   height="600" >
 
   <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
@@ -16,20 +16,17 @@
   <![CDATA[
 
   function init() {
+    var self = this;
     this.core = window.arguments[0];
     this.rc = window.arguments[1];
 
-    ListBox.init({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', items:this.core.queryModel('instances','state', 'running') });
-
-    this.azones = new ListView({ core:this.core, rows:4, width:350, name:'ew.azones', items:this.core.queryModel('availabilityZones') });
-
+    this.instanceList = new ListView({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', items:this.core.queryModel('instances','state', 'running') });
     this.subnets = this.core.queryModel('subnets');
-    var subnetMenu = document.getElementById("ew.subnets");
-    subnetMenu.appendItem("", "");
-    for(var i = 0; i < subnets.length; i++) {
-        subnetMenu.appendItem(subnets[i].toString(), subnets[i].id);
-    }
-    subnetMenu.selectedIndex = 0;
+    this.core.sortObjects(this.subnets, ['vpcId', 'availabilityZone']);
+    this.subnetList = new ListView({ core:this.core, rows:4, width:450, name:'ew.subnets', items:this.subnets, onclick: function(item, checked) { self.refresh_group(item, checked) } });
+    this.groupList = new ListView({ core:this.core, rows:5, width:450, name:'ew.groups', items:[] });
+
+    this.azoneList = new ListView({ core:this.core, rows:4, width:450, name:'ew.azones', items:this.core.queryModel('availabilityZones') });
 
     var azsn = document.getElementById("ew.azsn").selectedIndex = this.rc.vpc ? 1 : 0;
     onChange();
@@ -59,51 +56,45 @@
     this.rc.HealthyThreshold = document.getElementById("ew.HThreshold").value.trim();
     this.rc.UnhealthyThreshold = document.getElementById("ew.uThreshold").value.trim();
     this.rc.securityGroups = [];
-    this.rc.subnetId = "";
+    this.rc.subnets = [];
     this.rc.azones = [];
 
     var azsn = document.getElementById("ew.azsn").value;
     if (azsn == 'az') {
-        this.azones.done();
-        for (var i in this.azones.selectedItems) {
-            this.rc.azones.push(this.azones.selectedItems[i].id);
+        this.azoneList.done();
+        for (var i in this.azoneList.selectedItems) {
+            this.rc.azones.push(this.azoneList.selectedItems[i].id);
         }
     } else {
+        this.subnetList.done();
+        this.groupList.done();
         this.rc.scheme = document.getElementById("ew.scheme").value.trim();
-        this.rc.subnetId = document.getElementById("ew.subnets").selectedItem.value;
-        var groupMenu = document.getElementById('ew.groups');
-        for (var i = 0; i < groupMenu.selectedItems.length; i++) {
-            this.rc.securityGroups.push(groupMenu.selectedItems[i].value);
+        for (var i in this.subnetList.selectedItems) {
+            this.rc.subnets.push(this.subnetList.selectedItems[i].id);
+        }
+        for (var i in this.groupList.selectedItems) {
+            this.rc.securityGroups.push(this.groupList.selectedItems[i].value);
         }
     }
-    ListBox.done();
+    instanceList.done();
 
     this.rc.instances = [];
-    for (var i in ListBox.selectedItems) {
-        this.rc.instances.push(ListBox.selectedItems[i].id);
+    for (var i in this.instanceList.selectedItems) {
+        this.rc.instances.push(this.instanceList.selectedItems[i].id);
     }
 
     this.rc.ok = true;
     return true;
   }
 
-  function refresh_group() {
-    var subnetMenu = document.getElementById("ew.subnets");
-    var groupMenu = document.getElementById("ew.groups");
-
-    for (var i = groupMenu.itemCount - 1; i >= 0; i--) {
-        groupMenu.removeItemAt(i);
+  function refresh_group(item, checked) {
+    this.subnetList.done();
+    var groups = [];
+    for (var i in this.subnetList.selectedItems) {
+        var list = this.core.queryModel('securityGroups', 'vpcId', this.subnetList.selectedItems[i].vpcId);
+        groups = groups.concat(list);
     }
-    var subnet = this.core.findObject(this.subnets, subnetMenu.value);
-    if (!subnet) return;
-
-    var groups = this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId);
-    for (var i = 0; i < groups.length; i++) {
-        groupMenu.appendItem(groups[i].name, groups[i].id);
-        if (groups[i].name == 'default') {
-            groupMenu.selectItem(groupMenu.getItemAtIndex(i));
-        }
-    }
+    this.groupList.init({ core:this.core, rows:5, width:450, name:'ew.groups', items:groups });
   }
 
   function validate1() {
@@ -136,22 +127,21 @@
 
     var azsn = document.getElementById("ew.azsn").selectedItem.value;
     if (azsn == 'az') {
-        this.azones.done();
-        if (!this.azones.selectedItems.length) {
+        this.azoneList.done();
+        if (!this.azoneList.selectedItems.length) {
             alert('Please choose Availability Zone');
             return false;
         }
     }
 
     if (azsn == 'sn') {
-        var subnetMenu = document.getElementById("ew.subnets");
-        if (!subnetMenu.selectedItem) {
-            alert('Please choose a subnet.');
+        this.subnetList.done();
+        this.groupList.done();
+        if (!this.subnetList.selectedItems.length) {
+            alert('Please choose one or more subnets.');
             return false;
         }
-
-        var groups = document.getElementById('ew.groups');
-        if (groups.selectedItems.length == 0) {
+        if (!this.groupList.selectedItems.length) {
             alert('Please choose one or more security groups.');
             return false;
         }
@@ -249,8 +239,9 @@
         <row align="start">
           <radio id="ew.azsn" value="sn" label="Subnet/Group" oncommand="onChange()" />
           <vbox flex="1">
-            <menulist id="ew.subnets" onselect="refresh_group();" sizetopopup="none" style="max-width:350px;"/>
-            <listbox id="ew.groups" seltype="multiple" style="max-width:350px;max-height:100px;" />
+            <listbox id="ew.subnets" />
+            <label control="ew.groups" value="Security Groups" />
+            <listbox id="ew.groups" />
           </vbox>
         </row>
         <row>
