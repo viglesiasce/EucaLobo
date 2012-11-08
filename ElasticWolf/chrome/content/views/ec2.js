@@ -446,7 +446,8 @@ var ew_InstancesTreeView = {
                                                 [{label:"Instance",type:"label",value:instance.toString()},
                                                  {label:"Volume",type:"menulist",list:volumes,required:1},
                                                  {label:"Device",required:1,value:isWindows(instance.platform) ? "windows_device" : "",readonly: isWindows(instance.platform) ? true : false},
-                                                 {type:"label",notitle:1,value:"Linux devices: /dev/sda through /dev/sdp"}]);
+                                                 {type:"label",value:"Linux devices: /dev/sdf through /dev/sdp"},
+                                                 {type:"label",value:"Windows devices: xvdf through xvdp"}]);
         if (!values) return;
         ew_VolumeTreeView.attachEBSVolume(values[1], instance.id, values[2]);
         this.core.selectTab('ew.tabs.volume')
@@ -1228,7 +1229,8 @@ var ew_VolumeTreeView = {
         var values = this.core.promptInput('Create EBS Atatchment', [{label:"Volume",type:"label",list:image.toString()},
                                                                      {label:"Instance",type:"menulist",list:instances,required:1,oncommand:"rc.items[2].obj.value = isWindows(rc.items[1].list[rc.items[1].obj.selectedIndex].platform)?'windows_device':''"},
                                                                      {label:"Device",required:1},
-                                                                     {type:"label",notitle:1,value:"Linux devices: /dev/sda through /dev/sdp"}]);
+                                                                     {type:"label",value:"Linux devices: /dev/sdf through /dev/sdp"},
+                                                                     {type:"label",value:"Windows devices: xvdf through xvdp"}]);
         if (!values) return;
 
         // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
