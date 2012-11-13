@@ -9,7 +9,7 @@ var ew_api = {
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
     STS_API_VERSION: '2011-06-15',
-    SQS_API_VERSION: '2011-10-01',
+    SQS_API_VERSION: '2012-11-05',
     SNS_API_VERSION: '2010-03-31',
     RDS_API_VERSION: '2012-09-17',
     R53_API_VERSION: '2012-02-29',
@@ -4828,11 +4828,12 @@ var ew_api = {
         this.querySQS(url, "DeleteMessage", [["ReceiptHandle", handle]], this, false, "onComplete", callback);
     },
 
-    receiveMessage : function(url, max, visibility, callback)
+    receiveMessage : function(url, max, visibility, timeout, callback)
     {
         var params = [ [ "AttributeName", "All"] ];
         if (max) params.push(["MaxNumberOfMessages", max]);
         if (visibility) params.push(["VisibilityTimeout", visibility]);
+        if (typeof timeout == "number") params.push(["WaitTimeSeconds", timeout]);
         this.querySQS(url, "ReceiveMessage", params, this, false, "onCompleteReceiveMessage", callback);
     },
 

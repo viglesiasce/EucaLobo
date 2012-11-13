@@ -97,6 +97,7 @@ var ew_SQSTreeView = {
                        {label:"Maximum Message Size (bytes)",type:"number",name:"MaximumMessageSize"},
                        {label:"Message Retention Period Seconds",type:"number",value:345600,min:60,max:14*86400,name:"MessageRetentionPeriod"},
                        {label:"Delay Seconds",type:"number",min:0,max:900,name:"DelaySeconds"},
+                       {label:"Receive Message Wait Time Seconds",type:"number",min:0,max:20,name:" ReceiveMessageWaitTimeSeconds"},
                        {label:"Policy",multiline:true,rows:12,flex:"2",width:"100%",name:"Policy"},
                        ];
 
@@ -150,7 +151,7 @@ var ew_SQSMsgTreeView = {
 
         this.display(queue.messages || []);
         if (!queue.messages) {
-            this.core.api.receiveMessage(queue.url, 10, 0, function(list) {
+            this.core.api.receiveMessage(queue.url, 10, 0, $('ew.messages.timeout').valueNumber, function(list) {
                queue.messages = list;
                me.display(queue.messages);
             });
@@ -163,7 +164,7 @@ var ew_SQSMsgTreeView = {
         var queue = ew_SQSTreeView.getSelected();
         if (!queue) return;
 
-        this.core.api.receiveMessage(queue.url, 10, 0, function(list) {
+        this.core.api.receiveMessage(queue.url, 10, 0, $('ew.messages.timeout').valueNumber, function(list) {
             for (var i = 0; i < list.length; i++) {
                 if (!me.find(list[i])) {
                     queue.messages.push(list[i]);
