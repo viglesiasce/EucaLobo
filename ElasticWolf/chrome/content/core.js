@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.0.12",
+    VERSION: "3.0.13",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -1722,6 +1722,7 @@ var ew_core = {
         conversionTaskss: null,
         spotPriceHistory: null,
         spotInstanceRequests: null,
+        jobflows: null
     },
 
     // Refresh model list by name, this is primary interface to use in the lists and trees
@@ -1924,6 +1925,9 @@ var ew_core = {
                 break;
             case "dbparameters":
                 this.api.describeDBParameterGroups(function(list) { me.setModel("dbparameters", list); });
+                break;
+            case "jobflows":
+                this.api.describeJobFlows();
                 break;
             case "hostedZones":
                 this.api.listHostedZones();

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.emr.jobflow" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="Elastic MapReduce" />
+            <popupset>
+                <menupopup id="ew.jobflows.contextmenu">
+                 <menuitem oncommand="ew_JobFlowsTreeView.addItem()" label="Create Job Flow" />
+                 <menuitem id="ew.jobflows.contextmenu.delete" oncommand="ew_JobFlowsTreeView.deleteSelected();" label="Delete Job Flow" />
+                 <menuitem id="ew.jobflows.contextmenu.protect" oncommand="ew_JobFlowsTreeView.setTerminationProtection();" label="Set termination protection" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.jobflows.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_JobFlowsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" oncommand="ew_JobFlowsTreeView.addItem();" tooltiptext="Add Job Flow" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_JobFlowsTreeView.deleteSelected();" tooltiptext="Delete Job Flow" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.jobflows.view" flex="1">
+                <treecols>
+                    <treecol id="jobs.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.state" label="State" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.availabilityZone" label="Availability Zone" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.jobflows.children" context="ew.jobflows.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

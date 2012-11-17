@@ -14,6 +14,7 @@ var ew_api = {
     RDS_API_VERSION: '2012-09-17',
     R53_API_VERSION: '2012-02-29',
     AS_API_VERSION: '2011-01-01',
+    EMR_API_VERSION: '2009-03-31',
     SIG_VERSION: '2',
 
     core: null,
@@ -94,6 +95,8 @@ var ew_api = {
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
         this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
+        this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
+        this.versions.EMR = endpoint.versionEMR || this.EMR_API_VERSION;
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.actionIgnore = endpoint.actionIgnore || [];
         this.actionVersion = endpoint.actionVersion || {};
@@ -208,6 +211,11 @@ var ew_api = {
     querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
     {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
+    },
+
+    queryEMR : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.EMR, this.versions.EMR);
     },
 
     querySNS : function (action, params, handlerObj, isSync, handlerMethod, callback)
@@ -811,19 +819,31 @@ var ew_api = {
             for (var i = 0; i < items.length; i++) {
                 if (items[i].parentNode && items[i].parentNode.tagName != parentNode) continue;
                 if (columns != null) {
-                    // Return object or just plain list if columns is a string
                     if (columns instanceof Array) {
                         var obj = new Element();
-                        for (var j in columns) {
-                            var val = getNodeValue(items[i], columns[j]);
-                            if (val) obj[columns[j]] = val;
+                        // Return objecty with given set of properties
+                        if (columns.length) {
+                            for (var j in columns) {
+                                var val = getNodeValue(items[i], columns[j]);
+                                if (val) obj[columns[j]] = val;
+                            }
+                            list.push(callback ? callback(obj) : obj);
+                        } else {
+                            // Empty columns means take all tags
+                            var props = items[i].childNodes;
+                            for (var j = 0; j < props.length; j++) {
+                                var val = props[j].firstChild ? props[j].firstChild.nodeValue : props[j].nodeValue;
+                                if (val) obj[props[j].tagName] = val;
+                            }
                         }
-                        list.push(callback ? callback(obj) : obj);
+                        if (Object.keys(obj).length) list.push(callback ? callback(obj) : obj);
                     } else {
+                        // List of values for one column only
                         var val = columns == "" ? items[i].firstChild.nodeValue : getNodeValue(items[i], columns);
                         if (val) list.push(callback ? callback(val) : val);
                     }
                 } else {
+                    // Return DOM element as is
                     var item = callback ? callback(items[i]) : items[i];
                     if (item) list.push(item);
                 }
@@ -6387,6 +6407,101 @@ var ew_api = {
         }
         this.getNext(response, this.queryAS, list);
 
+    },
+
+    describeJobFlows: function(callback)
+    {
+        this.queryEMR("DescribeJobFlows", [], this, false, "onCompleteDescribeJobFlows", callback);
+    },
+
+    onCompleteDescribeJobFlows: function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = [];
+        var items = this.getItems(xmlDoc, "JobFlows", "member");
+        for (var i = 0; i < items.length; i++) {
+            var job = new Element();
+            job.toString = function() {
+                return this.name + fieldSeparator + this.id + fieldSeparator + this.state;
+            }
+            job.id = getNodeValue(items[i], "JobFlowId");
+            job.name = getNodeValue(items[i], "Name")
+            job.logURI = getNodeValue(items[i], "LogUri")
+            job.supportedProducts = getNodeValue(items[i], "SupportedProducts");
+            job.amiVersion = getNodeValue(items[i], "AmiVersion")
+            job.state = getNodeValue(items[i], "ExecutionStatusDetail", "State")
+            job.creationDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "CreationDateTime"));
+            job.startDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "StartDateTime"));
+            job.endDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "EndDateTime"));
+            job.readyDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "ReadyDateTime"));
+            job.lastStateReason = getNodeValue(items[i], "ExecutionStatusDetail", "LastStateChangeReason");
+            job.availabilityZone = getNodeValue(items[i], "Placement", "AvailabilityZone");
+            job.slaveInstanceType = getNodeValue(items[i], "SlaveInstanceType");
+            job.ec2KeyName = getNodeValue(items[i], "Ec2KeyName");
+            job.ec2SubnetId = getNodeValue(items[i], "Ec2SubnetId");
+            job.hadoopVersion = getNodeValue(items[i], "HadoopVersion");
+            job.masterInstanceType = getNodeValue(items[i], "MasterInstanceType");
+            job.masterInstanceId = getNodeValue(items[i], "MasterInstanceId");
+            job.masterPublicDnsName = getNodeValue(items[i], "MasterPublicDnsName");
+            job.mormalizedInstanceHours = getNodeValue(items[i], "NormalizedInstanceHours");
+            job.instanceCount = getNodeValue(items[i], "InstanceCount");
+            job.keepJobFlowAliveWhenNoSteps = toBool(getNodeValue(items[i], "KeepJobFlowAliveWhenNoSteps"));
+            job.terminationProtected = toBool(getNodeValue(items[i], "TerminationProtected"));
+            job.instanceGroups = this.getItems(items[i], "InstanceGroups", "member", [], function(obj) {
+                obj.toString = function () { return this.Name + fieldSeparator + this.State + fieldSeparator + this.InstanceRole + fieldSeparator + this.InstanceType; }
+                return obj;
+            });
+            job.steps = [];
+            var steps = this.getItems(items[i], "Steps", "member");
+            for (var j = 0; j < steps.length; j++) {
+                var step = new Element();
+                step.toString = function() { return step.name + fieldSeparator + step.state }
+                step.state = getNodeValue(steps[j], "ExecutionStatusDetail", "State")
+                step.creationDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "CreationDateTime"));
+                step.startDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "StartDateTime"));
+                step.endDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "EndDateTime"));
+                step.lastStateReason = getNodeValue(steps[j], "ExecutionStatusDetail", "LastStateChangeReason");
+                step.name = getNodeValue(steps[j], "StepConfig", "Name")
+                step.actionOnFailure = getNodeValue(steps[j], "StepConfig", "ActionOnFailure")
+                step.hadoopArgs = this.getItems(steps[j], "Args", "member", [])
+                step.hadoopJar = getNodeValue(steps[j], "HadoopJarStep", "Jar")
+                step.hadoopMainClass = getNodeValue(steps[j], "HadoopJarStep", "MainClass")
+                step.hadoopProperties = this.getItems(steps[j], "HadoopJarStep", "Properties", [])
+                job.steps.push(step)
+            }
+            job.bootstrapActions = [];
+            var actions = this.getItems(items[i], "BootstrapActions", "member");
+            for (var j = 0; j < actions.length; j++) {
+                var action = new Element();
+                action.name = getNodeValue(actions[j], "Name")
+                action.path = getNodeValue(actions[j], "Path")
+                action.args = this.getItems(actions[j], "Args", "member", []);
+                job.bootstrapActions.push(action)
+            }
+            list.push(job)
+        }
+        this.core.setModel('jobflows', list);
+        response.result = list;
+    },
+
+    terminateJobFlows: function(id, callback)
+    {
+        var params = [];
+        if (!Array.isArray(id)) id = [ id ];
+        for (var i = 0; i < id.length; i++) {
+            params.push(["JobFlowIds.member." + (i + 1), id]);
+        }
+        this.queryEMR("TerminateJobFlows", params, this, false, "onComplete", callback);
+    },
+
+    setTerminationProtection: function(id, flag, callback)
+    {
+        var params = [["TerminationProtected", toBool(flag)]]
+        if (!Array.isArray(id)) id = [ id ];
+        for (var i = 0; i < id.length; i++) {
+            params.push(["JobFlowIds.member." + (i + 1), id]);
+        }
+        this.queryEMR("SetTerminationProtection", params, this, false, "onComplete", callback);
     },
 
 };
