@@ -1181,7 +1181,7 @@ var ew_VolumeTreeView = {
                                      {label:"Availability Zone",type:"menulist",list:zones,required:1},
                                      {label:"Snapshot",type:"menulist",list:snapshots,value:image ? image.id : "",style:"max-width:300px;"},
                                      {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
-                                     {label:"IOPS",type:"number",min:1,max:1000}]);
+                                     {label:"IOPS",type:"number",min:100,max:2000}]);
         if (!values) return;
         var params = [];
         if (values[4] == "io1") {

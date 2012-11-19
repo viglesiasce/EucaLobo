@@ -317,6 +317,7 @@ var ew_api = {
             if (keys.length) this.sessionkey = keys[0];
 
             if (!this.sessionkey) {
+                debug('requesting new session token...')
                 this.getSessionToken(null, null, null, null, function(key) {
                     me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                     me.sessionkey = key;
@@ -330,16 +331,16 @@ var ew_api = {
         var json = JSON.stringify(params);
         var strSign = 'POST\n/\n\nhost:' + host + '\nx-amz-date:' + utcTime + '\nx-amz-security-token:' + key.securityToken + '\nx-amz-target:' + target + '\n\n' + json;
         var sig = b64_hmac_sha256(key.secret, strSign);
-        var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-target;x-amz-security-token,Signature=' + sig;
+        var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-security-token;x-amz-target,Signature=' + sig;
         var headers = { 'user-agent': this.core.getUserAgent(),
                         'host': host,
                         'x-amzn-authorization': auth,
                         'x-amz-date': utcTime,
+                        'date': utcTime,
                         'x-amz-security-token': key.securityToken,
                         'x-amz-target': target,
-                        'content-type': 'application/x-amz-json-1.0; charset=UTF-8',
-                        'content-length': json.length,
-                        'connection': "close" };
+                        'content-type': 'application/x-amz-json-1.0',
+                        'content-length': json.length };
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
@@ -347,11 +348,10 @@ var ew_api = {
             return null;
         }
         debug(strSign)
-        debug(b64_sha1(strSign))
         debug(auth)
 
         xmlhttp.open("POST", url, !isSync);
-        xmlhttp.overrideMimeType('application/x-amz-json-1.0; charset=UTF-8');
+        xmlhttp.overrideMimeType('application/x-amz-json-1.0');
         for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
 
         return this.sendRequest(xmlhttp, url, json, isSync, action, version, handlerMethod, handlerObj, callback, params);
