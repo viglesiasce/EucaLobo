@@ -15,6 +15,7 @@ var ew_api = {
     R53_API_VERSION: '2012-02-29',
     AS_API_VERSION: '2011-01-01',
     EMR_API_VERSION: '2009-03-31',
+    DDB_API_VERSION: '2011-12-05',
     SIG_VERSION: '2',
 
     core: null,
@@ -97,6 +98,8 @@ var ew_api = {
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
         this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
         this.versions.EMR = endpoint.versionEMR || this.EMR_API_VERSION;
+        this.urls.DDB = endpoint.urlDDB || 'http://dynamodb.' + this.region + '.amazonaws.com';
+        this.versions.DDB = endpoint.versionDDB || this.DDB_API_VERSION;
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.actionIgnore = endpoint.actionIgnore || [];
         this.actionVersion = endpoint.actionVersion || {};
@@ -292,6 +295,66 @@ var ew_api = {
         xmlhttp.setRequestHeader("Connection", "close");
 
         return this.sendRequest(xmlhttp, url, queryParams, isSync, action, version, handlerMethod, handlerObj, callback, params);
+    },
+
+    queryDDB : function (action, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        var me = this;
+        if (!this.isEnabled()) return null;
+
+        var url = this.urls.DDB;
+        var version = this.versions.DDB;
+        var curTime = new Date();
+        var utcTime = curTime.toUTCString();
+        var target = 'DynamoDB_' + version.replace(/\-/g,'') + '.' + action;
+        var host = url.replace("http://", "");
+        url += '/';
+
+        // Generate new session key
+        if (!this.sessionkey || this.sessionkey.expires < curTime) {
+            this.sessionkey = null;
+            var keys = this.core.getTempKeys();
+            if (keys.length) this.sessionkey = keys[0];
+
+            if (!this.sessionkey) {
+                this.getSessionToken(null, null, null, null, function(key) {
+                    me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
+                    me.sessionkey = key;
+                    me.queryDDB(action, params, handlerObj, isSync, handlerMethod, callback);
+                });
+                return;
+            }
+        }
+
+        var key = this.sessionkey;
+        var json = JSON.stringify(params);
+        var strSign = 'POST\n/\n\nhost:' + host + '\nx-amz-date:' + utcTime + '\nx-amz-security-token:' + key.securityToken + '\nx-amz-target:' + target + '\n\n' + json;
+        var sig = b64_hmac_sha256(key.secret, strSign);
+        var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-target;x-amz-security-token,Signature=' + sig;
+        var headers = { 'user-agent': this.core.getUserAgent(),
+                        'host': host,
+                        'x-amzn-authorization': auth,
+                        'x-amz-date': utcTime,
+                        'x-amz-security-token': key.securityToken,
+                        'x-amz-target': target,
+                        'content-type': 'application/x-amz-json-1.0; charset=UTF-8',
+                        'content-length': json.length,
+                        'connection': "close" };
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            log("Could not create xmlhttp object");
+            return null;
+        }
+        debug(strSign)
+        debug(b64_sha1(strSign))
+        debug(auth)
+
+        xmlhttp.open("POST", url, !isSync);
+        xmlhttp.overrideMimeType('application/x-amz-json-1.0; charset=UTF-8');
+        for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
+
+        return this.sendRequest(xmlhttp, url, json, isSync, action, version, handlerMethod, handlerObj, callback, params);
     },
 
     queryRoute53 : function(method, action, content, params, handlerObj, isSync, handlerMethod, callback)
@@ -658,7 +721,7 @@ var ew_api = {
             var res = handlerObj.onResponseComplete(rc);
             if (rc.isSync) rc.result = res;
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
+        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
         // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
         // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
@@ -688,33 +751,41 @@ var ew_api = {
     createResponseError : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
         var rc = this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params);
-        rc.errCode = "Unknown: " + (xmlhttp ? xmlhttp.status : 0);
+        rc.errCode = "Unknown: " + rc.status;
         rc.errString = "An unknown error occurred, please check connectivity and/or try to increase HTTTP timeout in the Preferences if this happens often";
         rc.requestId = "";
         rc.hasErrors = true;
 
-        if (xmlhttp && xmlhttp.responseXML) {
+        if (rc.contentType.indexOf("/xml") > -1 && rc.responseXML) {
             // EC2 common error reponse format
-            rc.errCode = getNodeValue(xmlhttp.responseXML, "Code");
-            rc.errString = getNodeValue(xmlhttp.responseXML, "Message");
-            rc.requestId = getNodeValue(xmlhttp.responseXML, "RequestID");
+            rc.errCode = getNodeValue(rc.responseXML, "Code");
+            rc.errString = getNodeValue(rc.responseXML, "Message");
+            rc.requestId = getNodeValue(rc.responseXML, "RequestID");
 
             // Route53 error messages
             if (!rc.errString) {
-                rc.errString = this.getItems(xmlhttp.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
-                if (rc.errString) rc.errCode = "InvalidChangeBatch";
+                rc.errString = this.getItems(rc.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
+                if (rc.errString.length) rc.errCode = "InvalidChangeBatch";
             }
-            debug('response error: ' +  action + ", " + xmlhttp.responseText + ", " + rc.errString + ", " + url);
+        } else
+        if (rc.contentType == 'application/x-amz-json-1.0') {
+            var json = {};
+            try { json = JSON.parse(rc.responseText) } catch(e) { json.message = e; debug(rc.responseText) }
+            rc.errString = action + ' [' + rc.status + ']: ' + (json.message || json['__type']);
         }
+        debug('response error: ' +  action + ", " + rc.responseText + ", " + rc.errString + ", " + url);
         return rc;
     },
 
     createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
+        var type = xmlhttp ? xmlhttp.getResponseHeader('Content-Type') : "";
+        var xmldoc = xmlhttp && (type || "").indexOf('/xml') > -1 ? xmlhttp.responseXML : null;
         return { xmlhttp: xmlhttp,
-                 responseXML: xmlhttp && xmlhttp.responseXML ? xmlhttp.responseXML : document.createElement('document'),
+                 contentType : type || "",
+                 responseXML: xmldoc || document.createElement('document'),
                  responseText: xmlhttp ? xmlhttp.responseText : '',
-                 status : xmlhttp.status,
+                 status : xmlhttp ? xmlhttp.status : 0,
                  url: url,
                  action: action,
                  method: handlerMethod,
@@ -755,12 +826,22 @@ var ew_api = {
     // Common response callback when there is no need to parse result but only to call user callback
     onComplete : function(response, id, item)
     {
-        if (id && item) {
+        if (id && item && response.responseXML) {
             response.result = this.getItems(response.responseXML, id, item, "");
         } else
 
-        if (id) {
+        if (id && response.responseXML) {
             response.result = getNodeValue(response.responseXML, id);
+        } else
+
+        if (response.responseText && type == 'application/x-amz-json-1.0') {
+            try {
+                response.result = JSON.parse(xmlhttp.responseText);
+            } catch(e) {
+                response.hasErrors = true
+                response.errString = e;
+                debug(xmlhttp.responseText);
+            }
         }
     },
 
@@ -6502,6 +6583,16 @@ var ew_api = {
             params.push(["JobFlowIds.member." + (i + 1), id]);
         }
         this.queryEMR("SetTerminationProtection", params, this, false, "onComplete", callback);
+    },
+
+    listTables: function(params, callback) {
+        if (!params) params = {};
+        this.queryDDB('ListTables', params, this, false, "onCompleteListTables", callback);
+    },
+
+    onCompleteListTables: function(response)
+    {
+
     },
 
 };

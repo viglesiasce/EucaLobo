@@ -860,7 +860,13 @@ var ew_core = {
         for (var i in list) {
             list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
         }
-        return list;
+        // Remove expired keys
+        var rc = [];
+        var now = new Date();
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].expire > now) rc.push(list[i]);
+        }
+        return rc;
     },
 
     deleteTempKey: function(key)
@@ -1722,7 +1728,8 @@ var ew_core = {
         conversionTaskss: null,
         spotPriceHistory: null,
         spotInstanceRequests: null,
-        jobflows: null
+        jobflows: null,
+        ddb:null,
     },
 
     // Refresh model list by name, this is primary interface to use in the lists and trees
@@ -1928,6 +1935,9 @@ var ew_core = {
                 break;
             case "jobflows":
                 this.api.describeJobFlows();
+                break;
+            case "ddb":
+                this.api.listTables();
                 break;
             case "hostedZones":
                 this.api.listHostedZones();

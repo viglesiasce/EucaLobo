@@ -17,10 +17,6 @@ var ew_JobFlowsTreeView = {
     addItem: function(instance)
     {
         var me = this;
-        var values = this.core.promptInput("Snapshot", [{label:"DB Instance",type:"menulist",list:this.core.queryModel("dbinstances"),required:1,value:instance ? instance.id : ""},
-                                                        {label:"DB Snapshot Identifier",type:"name",required:1}]);
-        if (!values) return;
-        this.core.api.createDBSnapshot(values[0], values[1], function() { me.refresh() });
     },
 
     deleteSelected : function ()

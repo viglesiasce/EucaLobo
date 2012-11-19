@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.ddb" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="DynamoDB Tables" />
+            <popupset>
+                <menupopup id="ew.ddb.contextmenu">
+                 <menuitem oncommand="ew_DDBTreeView.addItem()" label="Create Table" />
+                 <menuitem id="ew.ddb.contextmenu.delete" oncommand="ew_DDBTreeView.deleteSelected();" label="Delete Table" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <textbox id="ew.ddb.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_DDBTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" oncommand="ew_DDBTreeView.addItem();" tooltiptext="Add Table" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_DDBTreeView.deleteSelected();" tooltiptext="Delete Table" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.ddb.view" flex="1">
+                <treecols>
+                    <treecol id="jobs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.status" label="Status" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.hashKey" label="Hash Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.rangeKey" label="Range Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.readThroughtput" label="Read Throughtput" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="jobs.writeThroughtput" label="Write Throughput" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.ddb.children" context="ew.ddb.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>
