@@ -141,10 +141,6 @@
             alert('Please choose one or more subnets.');
             return false;
         }
-        if (!this.groupList.selectedItems.length) {
-            alert('Please choose one or more security groups.');
-            return false;
-        }
     }
 
     return true;

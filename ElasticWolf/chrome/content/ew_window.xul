@@ -308,10 +308,10 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Access" src="images/iam.png" />
+         <treecell label="Credentials and Regions" src="images/iam.png" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="Credentials" value="ew.tabs.credential" /> </treerow></treeitem>
+         <treeitem><treerow><treecell label="Manage Credentials" value="ew.tabs.credential" /> </treerow></treeitem>
          <treeitem><treerow><treecell label="Access Keys" value="ew.tabs.access" /></treerow></treeitem>
        </treechildren>
       </treeitem>
@@ -415,13 +415,13 @@
 
       <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="DynamoDB" value="ew.tabs.ddb" src="images/dynamodb.png" />
+         <treecell label="Route53: Scalable Domain Name System" value="ew.tabs.r53" src="images/53.png" />
        </treerow>
       </treeitem>
 
       <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="Route53: Scalable Domain Name System" value="ew.tabs.r53" src="images/53.png" />
+         <treecell label="DynamoDB" value="ew.tabs.ddb" src="images/dynamodb.png" />
        </treerow>
       </treeitem>
 

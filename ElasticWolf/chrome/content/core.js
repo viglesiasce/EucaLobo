@@ -292,7 +292,7 @@ var ew_core = {
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
             var cred = this.getActiveCredentials();
-            var label = cred ? 'Credentials: ' + cred.name + "/" + this.api.region : "Manage Credentials";
+            var label = cred ? 'Current: ' + cred.name + "/" + this.api.region : "Manage Credentials";
             tree.view.setCellText(idx, tree.columns[0], label);
             $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
