@@ -112,7 +112,7 @@
                 return false;
             }
         }
-
+        this.retVal.type = $("ew.type").value;
         this.retVal.ok = true;
         this.retVal.newPerm = newPerm;
         return true;

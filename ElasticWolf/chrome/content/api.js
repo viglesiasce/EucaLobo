@@ -834,7 +834,7 @@ var ew_api = {
             response.result = getNodeValue(response.responseXML, id);
         } else
 
-        if (response.responseText && type == 'application/x-amz-json-1.0') {
+        if (response.responseText && response.type == 'application/x-amz-json-1.0') {
             try {
                 response.result = JSON.parse(xmlhttp.responseText);
             } catch(e) {
