@@ -346,7 +346,7 @@
        </treechildren>
       </treeitem>
 
-      <treeitem container="true" open="true">
+      <treeitem container="true" open="true" class="ec2">
        <treerow>
          <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
        </treerow>
@@ -425,13 +425,10 @@
        </treerow>
       </treeitem>
 
-      <treeitem container="true" open="true">
+      <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="EMR: Elastic MapReduce" src="images/emr.png" />
+         <treecell label="Elastic MapReduce" value="ew.tabs.emr.jobflow" src="images/emr.png" />
        </treerow>
-       <treechildren>
-         <treeitem><treerow><treecell label="Job Flows" value="ew.tabs.emr.jobflow" /></treerow></treeitem>
-       </treechildren>
       </treeitem>
 
       <treeitem container="true" open="true">

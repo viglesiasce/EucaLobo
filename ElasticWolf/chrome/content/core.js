@@ -17,6 +17,8 @@ var ew_core = {
     user: {},
     win: {},
     tabs: null,
+    platforms: "EC2,VPC",
+    vpcId: null,
     credentials : null,
     endpoints: null,
     prefs: null,
@@ -296,10 +298,16 @@ var ew_core = {
             tree.view.setCellText(idx, tree.columns[0], label);
             $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
+        // Hide items in non advanced mode
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
         var items = document.getElementsByClassName("advanced");
         for (var i = 0; i < items.length; i++) {
             items[i].hidden = !advanced;
+        }
+        // Hie items in VPC only mode
+        var items = document.getElementsByClassName("ec2");
+        for (var i = 0; i < items.length; i++) {
+            items[i].hidden = this.vpcId != null;
         }
     },
 

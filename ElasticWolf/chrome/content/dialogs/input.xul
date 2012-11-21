@@ -406,6 +406,12 @@
              rc.values[i] = obj.decimalPlaces ? parseFloat(obj.value) : parseInt(obj.value);
              break;
 
+          case 'menulist':
+             if (rc.items[i].actual) {
+                 rc.values[i] = rc.items[i].list[obj.selectedIndex];
+                 break;
+             }
+
           default:
              rc.values[i] = obj.value;
           }

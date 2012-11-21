@@ -7,12 +7,124 @@
     <vbox flex="1">
     <tabbox flex="1" style="padding: 20px;" >
        <tabs id="ew.tabs">
+         <tab label="System" selected="true" />
          <tab label="Paths" selected="true" />
          <tab label="Security" selected="true" />
-         <tab label="System" selected="true" />
        </tabs>
 
        <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <grid>
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row>
+                    <label control="ew.home" value="AWS Account:" />
+                    <textbox id="ew.account" readonly="true" size="80" />
+                </row>
+                <row>
+                    <label control="ew.home" value="AWS User:" />
+                    <textbox id="ew.user" readonly="true" size="80" />
+                </row>
+                <row>
+                   <label control="ew.platforms" value="Platforms Supported:" />
+                   <label id="ew.platforms" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                   <label control="ew.sys" value="Platform:" />
+                   <label id="ew.sys" />
+                </row>
+                <row>
+                   <label control="ew.version" value="Version:" />
+                   <label id="ew.version" />
+                </row>
+                <row>
+                   <label control="ew.ec2_version" value="EC2 API Version:" />
+                   <label id="ew.ec2_version" />
+                </row>
+                <row>
+                   <label control="ew.iam_version" value="IAM API Version:" />
+                   <label id="ew.iam_version" />
+                </row>
+                <row>
+                   <label control="ew.elb_version" value="Elastic Load Balancing API Version:" />
+                   <label id="ew.elb_version" />
+                </row>
+                <row>
+                   <label control="ew.cw_version" value="CloudWatch API Version:" />
+                   <label id="ew.cw_version" />
+                </row>
+                <row>
+                   <label control="ew.sqs_version" value="SQS API Version:" />
+                   <label id="ew.sqs_version" />
+                </row>
+                <row>
+                   <label control="ew.sts_version" value="STS API Version:" />
+                   <label id="ew.sts_version" />
+                </row>
+                <row>
+                   <label control="ew.as_version" value="AutoScaling API Version:" />
+                   <label id="ew.as_version" />
+                </row>
+                <row>
+                   <label control="ew.emr_version" value="EMR API Version:" />
+                   <label id="ew.emr_version" />
+                </row>
+                <row>
+                   <label control="ew.ddb_version" value="DynamoDB API Version:" />
+                   <label id="ew.ddb_version" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will make the console filled with debugging messages" />
+                    <checkbox id="ew.debug.enabled" />
+                </row>
+                <row>
+                    <label control="ew.http.enabled" value="Enable HTTP requests:" tooltiptext="Temporary disable all HTTP request making the tool UI only, this is developers option" />
+                    <checkbox id="ew.http.enabled" />
+                </row>
+                <row>
+                    <label control="ew.prompt.open.port" value="Ask about opening ports on instance launch" tooltiptext="When new instance is launched it may need inbound ports to be opened for access, use this to enable/disable confirmation popup about opening ports, if disabled, ports for access (RDP, SSH) will be open automatically if needed" />
+                    <checkbox id="ew.prompt.open.port" />
+                </row>
+                <row>
+                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enabled more advanced and not often used features" />
+                    <checkbox id="ew.advanced.mode" />
+                </row>
+                <row>
+                    <label control="ew.errors.show" value="Show errors in popups" tooltiptext="On error display it in popup or in the status line at the bottom" />
+                    <checkbox id="ew.errors.show" />
+                </row>
+                <row>
+                    <label control="ew.http.timeout" value="HTTP timeout(ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
+                    <textbox id="ew.http.timeout" type="number" size="5" maxlength="5" style="max-width:100px;" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label value="" />
+                    <hbox>
+                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates()" />
+                    <button id="ew.updates" label="Show Errors" oncommand="ew_core.displayErrors()" />
+                    <button id="ew.venkman" label="Run Venkman" oncommand="start_venkman()" />
+                    </hbox>
+                </row>
+            </rows>
+        </grid>
+        </tabpanel>
+
         <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
         <grid>
             <columns>
@@ -176,96 +288,6 @@
         </grid>
         </tabpanel>
 
-        <tabpanel id="ew.tab.tools" orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
-        <grid>
-            <columns>
-                <column />
-                <column />
-            </columns>
-            <rows>
-                <row>
-                    <label control="ew.home" value="AWS Account:" />
-                    <label id="ew.user" />
-                </row>
-                <row>
-                   <label value=" "/>
-                   <label value=" "/>
-                </row>
-                <row>
-                   <label control="ew.sys" value="Platform:" />
-                   <label id="ew.sys" />
-                </row>
-                <row>
-                   <label control="ew.version" value="Version:" />
-                   <label id="ew.version" />
-                </row>
-                <row>
-                   <label control="ew.ec2_version" value="EC2 API Version:" />
-                   <label id="ew.ec2_version" />
-                </row>
-                <row>
-                   <label control="ew.iam_version" value="IAM API Version:" />
-                   <label id="ew.iam_version" />
-                </row>
-                <row>
-                   <label control="ew.elb_version" value="Elastic Load Balancing API Version:" />
-                   <label id="ew.elb_version" />
-                </row>
-                <row>
-                   <label control="ew.cw_version" value="CloudWatch API Version:" />
-                   <label id="ew.cw_version" />
-                </row>
-                <row>
-                   <label control="ew.sqs_version" value="SQS API Version:" />
-                   <label id="ew.sqs_version" />
-                </row>
-                <row>
-                   <label control="ew.sts_version" value="STS API Version:" />
-                   <label id="ew.sts_version" />
-                </row>
-                <row>
-                   <label value=" "/>
-                   <label value=" "/>
-                </row>
-                <row>
-                    <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will make the console filled with debugging messages" />
-                    <checkbox id="ew.debug.enabled" />
-                </row>
-                <row>
-                    <label control="ew.http.enabled" value="Enable HTTP requests:" tooltiptext="Temporary disable all HTTP request making the tool UI only, this is developers option" />
-                    <checkbox id="ew.http.enabled" />
-                </row>
-                <row>
-                    <label control="ew.prompt.open.port" value="Ask about opening ports on instance launch" tooltiptext="When new instance is launched it may need inbound ports to be opened for access, use this to enable/disable confirmation popup about opening ports, if disabled, ports for access (RDP, SSH) will be open automatically if needed" />
-                    <checkbox id="ew.prompt.open.port" />
-                </row>
-                <row>
-                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enabled more advanced and not often used features" />
-                    <checkbox id="ew.advanced.mode" />
-                </row>
-                <row>
-                    <label control="ew.errors.show" value="Show errors in popups" tooltiptext="On error display it in popup or in the status line at the bottom" />
-                    <checkbox id="ew.errors.show" />
-                </row>
-                <row>
-                    <label control="ew.http.timeout" value="HTTP timeout(ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
-                    <textbox id="ew.http.timeout" type="number" size="5" maxlength="5" style="max-width:100px;" />
-                </row>
-                <row>
-                   <label value=" "/>
-                   <label value=" "/>
-                </row>
-                <row>
-                    <label value="" />
-                    <hbox>
-                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates()" />
-                    <button id="ew.updates" label="Show Errors" oncommand="ew_core.displayErrors()" />
-                    <button id="ew.venkman" label="Run Venkman" oncommand="start_venkman()" />
-                    </hbox>
-                </row>
-            </rows>
-        </grid>
-        </tabpanel>
        </tabpanels>
     </tabbox>
     </vbox>

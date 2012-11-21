@@ -6529,7 +6529,7 @@ var ew_api = {
             job.keepJobFlowAliveWhenNoSteps = toBool(getNodeValue(items[i], "KeepJobFlowAliveWhenNoSteps"));
             job.terminationProtected = toBool(getNodeValue(items[i], "TerminationProtected"));
             job.instanceGroups = this.getItems(items[i], "InstanceGroups", "member", [], function(obj) {
-                obj.toString = function () { return this.Name + fieldSeparator + this.State + fieldSeparator + this.InstanceRole + fieldSeparator + this.InstanceType; }
+                obj.toString = function () { return this.Name + fieldSeparator + this.State + fieldSeparator + this.InstanceRole + fieldSeparator + this.InstanceType + fieldSeparator + this.InstanceRunningCount + '/' + this.InstanceRequestCount; }
                 return obj;
             });
             job.steps = [];
@@ -6573,6 +6573,53 @@ var ew_api = {
             params.push(["JobFlowIds.member." + (i + 1), id]);
         }
         this.queryEMR("TerminateJobFlows", params, this, false, "onComplete", callback);
+    },
+
+    modifyInstanceGroups: function(groups, callback)
+    {
+        var params = [];
+        if (!Array.isArray(groups)) groups = [ groups ];
+        for (var i = 0; i < groups.length; i++) {
+            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceGroupId", groups[i].InstanceGroupId]);
+            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceCount", groups[i].InstanceCount]);
+        }
+        this.queryEMR("ModifyInstanceGroups", params, this, false, "onComplete", callback);
+    },
+
+
+    addInstanceGroups: function(id, groups, callback)
+    {
+        var params = [ ["JobFlowId", id]];
+        if (!Array.isArray(groups)) groups = [ groups ];
+        for (var i = 0; i < groups.length; i++) {
+            params.push(["InstanceGroups.member." + (i + 1) + ".Name", groups[i].Name]);
+            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceCount", groups[i].InstanceCount]);
+            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceRole", groups[i].InstanceRole]);
+            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceType", groups[i].InstanceType]);
+            params.push(["InstanceGroups.member." + (i + 1) + ".Market", groups[i].Market]);
+            if (groups[i].BidPrice) params.push(["InstanceGroups.member." + (i + 1) + ".BidPrice", groups[i].BidPrice]);
+        }
+        this.queryEMR("AddInstanceGroups", params, this, false, "onComplete", callback);
+    },
+
+    addJobFlowSteps: function(id, steps, callback)
+    {
+        var params = [ ["JobFlowId", id]];
+        if (!Array.isArray(steps)) steps = [ steps ];
+        for (var i = 0; i < steps.length; i++) {
+            params.push(["Steps.member." + (i + 1) + ".Name", steps[i].Name]);
+            params.push(["Steps.member." + (i + 1) + ".ActionOnFailure", steps[i].ActionOnFailure]);
+            params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Jar", steps[i].Jar]);
+            if (steps[i].MainClass) params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.MainClass", steps[i].MainClass]);
+            for (var j = 0 ; i < steps[i].Args.length; j++) {
+                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Args.member." + (j + 1), steps[i].Args[j]]);
+            }
+            for (var j = 0; j < steps[i].Properties.length; j++) {
+                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Properties.member.Key" + (j + 1), steps[i].Properties[j].name]);
+                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Properties.member.Value" + (j + 1), steps[i].Properties[j].value]);
+            }
+        }
+        this.queryEMR("AddJobFlowSteps", params, this, false, "onComplete", callback);
     },
 
     setTerminationProtection: function(id, flag, callback)

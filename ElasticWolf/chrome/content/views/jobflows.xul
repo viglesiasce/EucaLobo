@@ -10,6 +10,9 @@
                  <menuitem oncommand="ew_JobFlowsTreeView.addItem()" label="Create Job Flow" />
                  <menuitem id="ew.jobflows.contextmenu.delete" oncommand="ew_JobFlowsTreeView.deleteSelected();" label="Delete Job Flow" />
                  <menuitem id="ew.jobflows.contextmenu.protect" oncommand="ew_JobFlowsTreeView.setTerminationProtection();" label="Set termination protection" />
+                 <menuitem id="ew.jobflows.contextmenu.modgroup" oncommand="ew_JobFlowsTreeView.modifyGroup();" label="Modify Instance Group" />
+                 <menuitem id="ew.jobflows.contextmenu.addgroup" oncommand="ew_JobFlowsTreeView.addGroup();" label="Add Instance Group" />
+                 <menuitem id="ew.jobflows.contextmenu.addstep" oncommand="ew_JobFlowsTreeView.addFlowStep();" label="Add Job Flow Step" />
                 </menupopup>
             </popupset>
 
