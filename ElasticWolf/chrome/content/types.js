@@ -303,7 +303,7 @@ var TreeView = {
         }
         var me = this;
         // Ignore refresh timer if we have popup active
-        this.refreshTimer = setTimeout(function() { if (!me.menuActive) me.refresh() }, this.refreshTimeout);
+        this.refreshTimer = setTimeout(function() { if (!me.menuActive) me.onRefreshTimer() }, this.refreshTimeout);
         log('start timer ' + this.getName() + ' for ' + this.refreshTimeout + ' ms');
     },
     stopRefreshTimer : function()
@@ -311,6 +311,10 @@ var TreeView = {
         if (this.refreshTimer) {
             clearTimeout(this.refreshTimer);
         }
+    },
+    onRefreshTimer: function()
+    {
+        this.refresh();
     },
     invalidate : function()
     {

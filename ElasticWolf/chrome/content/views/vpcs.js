@@ -397,6 +397,7 @@ var ew_SubnetsTreeView = {
 
     display: function(list)
     {
+        if (!this.isVisible()) return;
         var tables = this.core.queryModel('routeTables');
         var acls = this.core.queryModel('networkAcls');
         for (var k in list) {

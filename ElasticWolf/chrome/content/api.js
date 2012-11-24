@@ -329,27 +329,29 @@ var ew_api = {
 
         var key = this.sessionkey;
         var json = JSON.stringify(params);
-        var strSign = 'POST\n/\n\nhost:' + host + '\nx-amz-date:' + utcTime + '\nx-amz-security-token:' + key.securityToken + '\nx-amz-target:' + target + '\n\n' + json;
-        var sig = b64_hmac_sha256(key.secret, strSign);
+        var strSign = "POST\n/\n\nhost:" + host + "\nx-amz-date:" + utcTime + "\nx-amz-security-token:" + key.securityToken + "\nx-amz-target:" + target + "\n\n" + json;
+        var sig = b64_hmac_sha256(key.secret, str_sha256(strSign));
         var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-security-token;x-amz-target,Signature=' + sig;
         var headers = { 'user-agent': this.core.getUserAgent(),
                         'host': host,
                         'x-amzn-authorization': auth,
                         'x-amz-date': utcTime,
-                        'date': utcTime,
                         'x-amz-security-token': key.securityToken,
                         'x-amz-target': target,
-                        'content-type': 'application/x-amz-json-1.0',
-                        'content-length': json.length };
+                        'content-type': 'application/x-amz-json-1.0; charset=UTF-8',
+                        'content-length': json.length,
+                        'accept': '',
+                        'accept-language': '',
+                        'accept-encoding': '',
+                        'pragma': '',
+                        'cache-control': '',
+                        'connection': 'close' };
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
             log("Could not create xmlhttp object");
             return null;
         }
-        debug(strSign)
-        debug(auth)
-
         xmlhttp.open("POST", url, !isSync);
         xmlhttp.overrideMimeType('application/x-amz-json-1.0');
         for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
@@ -781,23 +783,37 @@ var ew_api = {
     {
         var type = xmlhttp ? xmlhttp.getResponseHeader('Content-Type') : "";
         var xmldoc = xmlhttp && (type || "").indexOf('/xml') > -1 ? xmlhttp.responseXML : null;
-        return { xmlhttp: xmlhttp,
-                 contentType : type || "",
-                 responseXML: xmldoc || document.createElement('document'),
-                 responseText: xmlhttp ? xmlhttp.responseText : '',
-                 status : xmlhttp ? xmlhttp.status : 0,
-                 url: url,
-                 action: action,
-                 method: handlerMethod,
-                 isSync: isSync,
-                 hasErrors: false,
-                 skipCallback: false,
-                 params: params || {},
-                 callback: callback,
-                 result: null,
-                 errCode: "",
-                 errString: "",
-                 requestId: "" };
+
+        var response = {
+            xmlhttp: xmlhttp,
+            contentType : type || "",
+            responseXML: xmldoc || document.createElement('document'),
+            responseText: xmlhttp ? xmlhttp.responseText : '',
+            status : xmlhttp ? xmlhttp.status : 0,
+            url    : url,
+            action:     action,
+            method: handlerMethod,
+            isSync: isSync,
+            hasErrors: false,
+            skipCallback: false,
+            params: params || {},
+            callback: callback,
+            result: null,
+            json: null,
+            errCode: "",
+            errString: "",
+            requestId: ""
+        };
+
+        if (response.responseText && response.contentType == 'application/x-amz-json-1.0') {
+            try {
+                response.json = JSON.parse(response.responseText);
+            } catch(e) {
+                response.hasErrors = true
+                response.errString = e;
+            }
+        }
+        return response;
     },
 
     // Main callback on request complete, if callback specified in the form onComplete:id,
@@ -832,16 +848,22 @@ var ew_api = {
 
         if (id && response.responseXML) {
             response.result = getNodeValue(response.responseXML, id);
+        }
+    },
+
+    // Common response callback when there is no need to parse result but only to call user callback
+    onCompleteJson : function(response, id, item)
+    {
+        if (id && item && response.json && response.json[id] && response.json[i][item]) {
+            response.result = response.json[id][item];
         } else
 
-        if (response.responseText && response.type == 'application/x-amz-json-1.0') {
-            try {
-                response.result = JSON.parse(xmlhttp.responseText);
-            } catch(e) {
-                response.hasErrors = true
-                response.errString = e;
-                debug(xmlhttp.responseText);
-            }
+        if (id && response.json && response.json[id]) {
+            response.result = response.json[id];
+        } else
+
+        if (response.json) {
+            response.result = response.json;
         }
     },
 
@@ -6632,14 +6654,41 @@ var ew_api = {
         this.queryEMR("SetTerminationProtection", params, this, false, "onComplete", callback);
     },
 
-    listTables: function(params, callback) {
+    listTables: function(params, callback)
+    {
         if (!params) params = {};
         this.queryDDB('ListTables', params, this, false, "onCompleteListTables", callback);
     },
 
     onCompleteListTables: function(response)
     {
+        var json = response.json;
+        if (!json) return;
 
+        var list = [];
+        for (var i in json.TableNames) {
+            var ddb = new Element('name', json.TableNames[i]);
+            list.push(ddb);
+        }
+        this.core.setModel('ddb', list);
+        response.result = list;
     },
 
+    describeTable: function(name, callback)
+    {
+        var params = { TableName: name };
+        this.queryDDB('DescribeTable', params, this, false, "onCompleteJson:Table", callback);
+    },
+
+    deleteTable: function(name, callback)
+    {
+        var params = { TableName: name };
+        this.queryDDB('DeleteTable', params, this, false, "onCompleteJson:TableDescription", callback);
+    },
+
+    updateTable: function(name, r, w, callback)
+    {
+        var params = {"TableName":name, "ProvisionedThroughput":{"ReadCapacityUnits":r,"WriteCapacityUnits":w } }
+        this.queryDDB('UpdateTable', params, this, false, "onCompleteJson:TableDescription", callback);
+    },
 };

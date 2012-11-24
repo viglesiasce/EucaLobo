@@ -9,6 +9,7 @@
                 <menupopup id="ew.ddb.contextmenu">
                  <menuitem oncommand="ew_DDBTreeView.addItem()" label="Create Table" />
                  <menuitem id="ew.ddb.contextmenu.delete" oncommand="ew_DDBTreeView.deleteSelected();" label="Delete Table" />
+                 <menuitem id="ew.ddb.contextmenu.config" oncommand="ew_DDBTreeView.configure();" label="Configure Table" />
                 </menupopup>
             </popupset>
 
@@ -17,21 +18,26 @@
                 <toolbarbutton image="images/refresh.png" oncommand="ew_DDBTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" oncommand="ew_DDBTreeView.addItem();" tooltiptext="Add Table" />
                 <toolbarbutton image="images/delete.png" oncommand="ew_DDBTreeView.deleteSelected();" tooltiptext="Delete Table" />
+                <toolbarbutton image="images/edit.png" oncommand="ew_DDBTreeView.configure();" tooltiptext="Configure Table" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.ddb.view" flex="1">
                 <treecols>
-                    <treecol id="jobs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="jobs.status" label="Status" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.status" label="Status" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="jobs.hashKey" label="Hash Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.size" label="Size" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="jobs.rangeKey" label="Range Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.count" label="Count" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="jobs.readThroughtput" label="Read Throughtput" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.hashKey" label="Hash Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="jobs.writeThroughtput" label="Write Throughput" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="ddb.rangeKey" label="Range Key" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="ddb.readCapacity" label="Read Capacity" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="ddb.writeCapacity" label="Write Capacity" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.ddb.children" context="ew.ddb.contextmenu" />
