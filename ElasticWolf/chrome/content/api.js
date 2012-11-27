@@ -6663,14 +6663,13 @@ var ew_api = {
     onCompleteListTables: function(response)
     {
         var json = response.json;
-        if (!json) return;
+        if (!json) return response.result = [];
 
         var list = [];
         for (var i in json.TableNames) {
             var ddb = new Element('name', json.TableNames[i]);
             list.push(ddb);
         }
-        this.core.setModel('ddb', list);
         response.result = list;
     },
 
@@ -6678,6 +6677,15 @@ var ew_api = {
     {
         var params = { TableName: name };
         this.queryDDB('DescribeTable', params, this, false, "onCompleteJson:Table", callback);
+    },
+
+    createTable: function(name, hash, hashtype, range, rangetype, rlimit, wlimit, callback)
+    {
+        var schema = { "HashKeyElement": {"AttributeName": hash,"AttributeType": hashtype } };
+        if (range && rangetype) schema.RangeKeyElement = {"AttributeName": range,"AttributeType": rangetype };
+
+        var params = { "TableName": name, "KeySchema": schema, "ProvisionedThroughput":{"ReadCapacityUnits": rlimit,"WriteCapacityUnits": wlimit }}
+        this.queryDDB('CreateTable', params, this, false, "onCompleteJson:TableDescription", callback);
     },
 
     deleteTable: function(name, callback)
@@ -6688,7 +6696,7 @@ var ew_api = {
 
     updateTable: function(name, r, w, callback)
     {
-        var params = {"TableName":name, "ProvisionedThroughput":{"ReadCapacityUnits":r,"WriteCapacityUnits":w } }
+        var params = {"TableName": name, "ProvisionedThroughput": {"ReadCapacityUnits":r,"WriteCapacityUnits":w } }
         this.queryDDB('UpdateTable', params, this, false, "onCompleteJson:TableDescription", callback);
     },
 };

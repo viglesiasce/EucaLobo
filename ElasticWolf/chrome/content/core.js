@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.0.13",
+    VERSION: "3.0.14",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -1945,7 +1945,7 @@ var ew_core = {
                 this.api.describeJobFlows();
                 break;
             case "ddb":
-                this.api.listTables();
+                this.api.listTables({}, function(list) { me.setModel('ddb', list) });
                 break;
             case "hostedZones":
                 this.api.listHostedZones();
