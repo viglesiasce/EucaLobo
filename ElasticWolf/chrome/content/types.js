@@ -570,7 +570,7 @@ var TreeView = {
 // Dynamic multicolumn listbox
 var ListBox = {
     headers: [],
-    name: 'list',
+    name: 'listbox',
     title: null,
     columns: null,
     multiple: true,
@@ -587,6 +587,7 @@ var ListBox = {
 
     done: function()
     {
+        if (!this.name || !this.listbox) return false;
         this.selectedIndex = this.listbox.currentIndex;
         this.selectedItems = [];
         if (this.multiple) {
@@ -611,6 +612,7 @@ var ListBox = {
         }
         this.selectedIndex = -1;
         this.selectedItems = [];
+        if (!this.name) return;
         this.listbox = $(this.name);
         if (!this.listbox) return;
         while (this.listbox.firstChild) {
@@ -722,6 +724,13 @@ var ListBox = {
         return this.core.toString(obj, this.columns);
     },
 };
+
+//Create new instance of the list box
+function ListView(params)
+{
+    this.init(params);
+}
+ListView.prototype = ListBox;
 
 var FileIO = {
     exists : function(path)
@@ -1247,13 +1256,6 @@ var Base64 = {
         return string;
     },
 }
-
-// Create new instance of the list box
-function ListView(params)
-{
-    this.init(params);
-}
-ListView.prototype = ListBox;
 
 // Heavily modified jsgraph library for charts using HTML5 Canvas, original author's message is below:
 //
