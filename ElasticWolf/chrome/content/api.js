@@ -725,8 +725,6 @@ var ew_api = {
         }
         debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
-        // Prevent from showing error dialog on every error until success, this happens in case of wrong credentials or endpoint and until all views not refreshed,
-        // also ignore not supported but implemented API calls, handle known cases when API calls are not supported yet
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
             // Call error handler if passed as an object
@@ -758,11 +756,13 @@ var ew_api = {
         rc.requestId = "";
         rc.hasErrors = true;
 
-        if (rc.contentType.indexOf("/xml") > -1 && rc.responseXML) {
+        if (rc.responseText.indexOf('<?xml') > -1) {
+            var xml = new DOMParser().parseFromString(rc.responseText, "text/xml");
+
             // EC2 common error reponse format
-            rc.errCode = getNodeValue(rc.responseXML, "Code");
-            rc.errString = getNodeValue(rc.responseXML, "Message");
-            rc.requestId = getNodeValue(rc.responseXML, "RequestID");
+            rc.errCode = getNodeValue(xml, "Code");
+            rc.errString = getNodeValue(xml, "Message");
+            rc.requestId = getNodeValue(xml, "RequestID");
 
             // Route53 error messages
             if (!rc.errString) {
@@ -790,7 +790,7 @@ var ew_api = {
             responseXML: xmldoc || document.createElement('document'),
             responseText: xmlhttp ? xmlhttp.responseText : '',
             status : xmlhttp ? xmlhttp.status : 0,
-            url    : url,
+            url  : url,
             action:     action,
             method: handlerMethod,
             isSync: isSync,

@@ -904,10 +904,10 @@ var ew_VpnConnectionTreeView = {
            return;
         }
 
-        var devices = this.core.queryVpnConnectionStylesheets();
+        var devices = this.core.api.queryVpnConnectionStylesheets();
         var idx = this.core.promptList("Customer Gateway configuration", "Select device type:", devices, {columns: ['title'] });
         if (idx >= 0) {
-            var result = this.core.queryVpnConnectionStylesheets(devices[idx].filename, vpn.config);
+            var result = this.core.api.queryVpnConnectionStylesheets(devices[idx].filename, vpn.config);
             if (!result) {
                 return alert("Error processing gateway configuration");
             }
