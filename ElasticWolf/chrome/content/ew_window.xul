@@ -253,7 +253,9 @@
 
             { name: "ew.tabs.emr.jobflow",  views: [ { id: "ew.jobflows.view", view: ew_JobFlowsTreeView, }, ] },
 
-            { name: "ew.tabs.ddb",          views: [ { id: "ew.ddb.view", view: ew_DDBTreeView, }, ] },
+            { name: "ew.tabs.ddb",          views: [ { id: "ew.ddb.view", view: ew_DDBTreeView, },
+                                                     { id: "ew.ddb.items.view", view: ew_DDBItemsTreeView, }, ] },
+
     ]
 
   ]]>

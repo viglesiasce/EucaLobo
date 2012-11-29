@@ -6681,7 +6681,7 @@ var ew_api = {
 
     createTable: function(name, hash, hashtype, range, rangetype, rlimit, wlimit, callback)
     {
-        var schema = { "HashKeyElement": {"AttributeName": hash,"AttributeType": hashtype } };
+        var schema = { "HashKeyElement": {"AttributeName": hash, "AttributeType": hashtype } };
         if (range && rangetype) schema.RangeKeyElement = {"AttributeName": range,"AttributeType": rangetype };
 
         var params = { "TableName": name, "KeySchema": schema, "ProvisionedThroughput":{"ReadCapacityUnits": rlimit,"WriteCapacityUnits": wlimit }}
@@ -6698,5 +6698,144 @@ var ew_api = {
     {
         var params = {"TableName": name, "ProvisionedThroughput": {"ReadCapacityUnits":r,"WriteCapacityUnits":w } }
         this.queryDDB('UpdateTable', params, this, false, "onCompleteJson:TableDescription", callback);
+    },
+
+    getItem: function(name, key, range, options, callback)
+    {
+        var params = { TableName: table, Key: { HashKeyElement: toDynamoDB(key) } };
+        if (range) params.Key.RangeKeyElement = toDynamoDB(range);
+        if (options.attributesToGet) {
+            params.AttributesToGet = options.attributesToGet;
+        }
+        if (options.consistentRead) {
+            params.ConsistentRead = options.consistentRead;
+        }
+        this.queryDDB('getItem', params, this, false, "onCompleteJson", callback);
+    },
+
+    putItem: function(name, item, options, callback)
+    {
+        var params = { TableName: name, Item: toDynamoDB(item) };
+        if (options.expected) {
+            params.Expected = {};
+            for (var i in options.expected) {
+                params.Expected[i] = {};
+                if (typeof options.expected[i].exists === 'boolean') {
+                    params.Expected[i].Exists = options.expected[i].exists;
+                }
+                if (typeof options.expected[i].value !== 'undefined') {
+                    params.Expected[i].Value = toDynamoDB(options.expected[i].value);
+                }
+            }
+        }
+        if (options.returnValues) {
+            params.ReturnValues = options.returnValues;
+        }
+        this.queryDDB('putItem', params, this, false, "onCompleteJson", callback);
+    },
+
+    deleteItem: function(name, key, range, options, callback)
+    {
+        var params = { TableName: name, Key: { HashKeyElement: toDynamoDB(key) } };
+        if (range) params.Key.RangeKeyElement = toDynamoDB(range);
+        if (options.expected) {
+            params.Expected = {};
+            for (var i in options.expected) {
+                params.Expected[i] = {};
+                if (typeof options.expected[i].exists === 'boolean') {
+                    params.Expected[i].Exists = options.expected[i].exists;
+                }
+                if (typeof options.expected[i].value !== 'undefined') {
+                    params.Expected[i].Value = toDynamoDB(options.expected[i].value);
+                }
+            }
+        }
+        if (options.returnValues) {
+            params.ReturnValues = options.returnValues;
+        }
+        this.queryDDB('DeleteItem', params, this, false, "onCompleteJson", callback);
+    },
+
+    queryTable: function(name, key, options, callback)
+    {
+        var params = { TableName: name, Key: { HashKeyElement: toDynamoDB(key) } };
+        if (options.attributesToGet) {
+            params.AttributesToGet = options.attributesToGet;
+        }
+        if (options.limit) {
+            params.Limit = options.limit;
+        }
+        if (options.consistentRead) {
+            params.ConsistentRead = options.consistentRead;
+        }
+        if (options.count && !options.attributesToGet) {
+            params.Count = options.count;
+        }
+        if (options.rangeKeyCondition) {
+            for (var op in options.rangeKeyCondition) {
+                if (typeof op === 'string') {
+                    params.RangeKeyCondition = {"AttributeValueList":[],"ComparisonOperator": op.toUpperCase() };
+                    if (op == 'between' && Array.isArray(options.rangeKeyCondition[op]) && options.rangeKeyCondition[op].length > 1) {
+                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op][0]));
+                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op][1]));
+                    } else {
+                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op]));
+                    }
+                }
+            }
+        }
+        if (options.scanIndexForward === false) {
+            params.ScanIndexForward = false;
+        }
+        if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
+            params.ExclusiveStartKey = { HashKeyElement: scToDDB(options.exclusiveStartKey.hash) };
+            if (options.exclusiveStartKey.range) {
+                params.ExclusiveStartKey.RangeKeyElement = scToDDB(options.exclusiveStartKey.range);
+            }
+        }
+        this.queryDDB('Query', params, this, false, "onCompleteJson", callback);
+    },
+
+    scanTable: function(name, options, callback)
+    {
+        var params = { TableName: name };
+        if (options.attributesToGet) {
+            params.AttributesToGet = options.attributesToGet;
+        }
+        if (options.limit) {
+            params.Limit = options.limit;
+        }
+        if (options.count && !options.attributesToGet) {
+            params.Count = options.count;
+        }
+        if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
+            params.ExclusiveStartKey = { HashKeyElement: scToDDB(options.exclusiveStartKey.hash) };
+            if (options.exclusiveStartKey.range) {
+                params.ExclusiveStartKey.RangeKeyElement = scToDDB(options.exclusiveStartKey.range);
+            }
+        }
+        if (options.filter) {
+            params.ScanFilter = {}
+            for (var attr in options.filter) {
+                if (options.filter.hasOwnProperty(attr)) {
+                    for (var op in options.filter[attr]) {
+                        if (typeof op === 'string') {
+                            params.ScanFilter[attr] = {"AttributeValueList":[],"ComparisonOperator": op.toUpperCase()};
+                            if(op === 'not_null' || op === 'null') {
+                                // nothing ot do
+                            } else
+                            if ((op == 'between' || op == 'in') && Array.isArray(options.filter[attr][op]) && options.filter[attr][op].length > 1) {
+                                for (var i = 0; i < options.filter[attr][op].length; ++i) {
+                                    params.ScanFilter[attr].AttributeValueList.push(scToDDB(options.filter[attr][op][i]));
+                                }
+                            } else {
+                                params.ScanFilter[attr].AttributeValueList.push(scToDDB(options.filter[attr][op]));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        this.queryDDB('Scan', params, this, false, "onCompleteJson", callback);
     },
 };

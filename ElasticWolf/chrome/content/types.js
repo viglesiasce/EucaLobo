@@ -374,7 +374,10 @@ var TreeView = {
             clearTimeout(this.searchTimer);
         }
         var me = this;
-        this.searchTimer = setTimeout(function() { me.invalidate(); }, 500);
+        this.searchTimer = setTimeout(function() { me.onSearch; }, 500);
+    },
+    onSearch: function() {
+        me.invalidate();
     },
     display : function(list)
     {

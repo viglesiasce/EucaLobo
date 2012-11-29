@@ -73,7 +73,7 @@ var ew_DDBTreeView = {
     selectionChanged: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
         if (!item.status) {
             this.refreshItem(item);
@@ -102,7 +102,7 @@ var ew_DDBTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteTable(item.name, function(table) { me.updateTable(item, table); });
     },
@@ -110,7 +110,7 @@ var ew_DDBTreeView = {
     configure: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
         var values = this.core.promptInput("Configure Table",
                 [ {label:"Table",type:"label",value:item.name,required:true},
@@ -120,3 +120,61 @@ var ew_DDBTreeView = {
         this.core.api.updateTable(item.name, values[1], values[2], function(table) { me.updateTable(item, table); });
     },
 };
+
+var ew_DDBItemsTreeView = {
+    lastItem: null,
+
+    addItem: function(instance)
+    {
+        var me = this;
+    },
+
+    editItem: function(instance)
+    {
+        var me = this;
+    },
+
+    deleteSelected : function ()
+    {
+        var me = this;
+        var item = this.getSelected();
+        if (!TreeView.deleteSelected.call(this)) return;
+        this.core.api.deleteItem(item.name, function(table) {
+            me.remove(item, 'key');
+        });
+    },
+
+    onSearch: function() {
+        var me = this;
+        var search = $(this.searchElement).value;
+    },
+
+    scan: function(instance)
+    {
+        var me = this;
+        var table = ew_DDBTreeView.getSelected();
+        this.core.api.scanTable(table.name, { limit: 10 }, function(rc) {
+            me.lastItem = rc.LastEvaluatedKey;
+            var list = [];
+            for (var i in rc.Items) {
+                var item = fromDynamoDB(rc.Items[i]);
+                item.hashKey = item[table.hashKey];
+                if (table.rangeKey) item.rangeKey = item[table.rangeKey];
+                list.push(item)
+            }
+            me.display(list);
+        });
+    },
+
+    nextPage: function(instance)
+    {
+        var me = this;
+    },
+
+    prevPage: function(instance)
+    {
+        var me = this;
+    },
+
+};
+

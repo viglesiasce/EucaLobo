@@ -61,9 +61,7 @@
         <treechildren id="loadbalancer.tree.children" context="loadbalancer.tree.contextmenu" />
       </tree>
     </groupbox>
-      <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-        
-      </splitter>
+      <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest"></splitter>
       <groupbox orient="vertical" flex="1">
         <caption label="&ew.captions.InstanceHealth.label;" />
         <tree id="ew.instancehealth.view" seltype="single" enableColumnDrag="true" flex="1">

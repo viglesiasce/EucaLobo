@@ -199,7 +199,7 @@ function cloneObject(obj)
 {
     if (typeof obj != "object") return obj;
     var newObj = (obj instanceof Array) ? [] : {};
-    for (i in obj) {
+    for (var i in obj) {
         if (obj[i] && typeof obj[i] == "object") {
             newObj[i] = cloneObject(obj[i]);
         } else {
@@ -430,6 +430,55 @@ function toArn(arn)
 {
     if (ew_core.isGovCloud()) return arn.replace('arn:aws:', 'arn:aws-us-gov:');
     return arn;
+}
+
+function toDynamoDB(value)
+{
+    if (typeof value === 'number') {
+        return { "N": value.toString() };
+    }
+    if (Array.isArray(value)) {
+        var arr = [];
+        var length = value.length;
+        var isSS = false;
+        for (var i = 0; i < length; ++i) {
+            if (typeof value[i] === 'string') {
+                arr[i] = value[i];
+                isSS = true;
+            } else
+            if (typeof value[i] === 'number') {
+                arr[i] = value[i].toString();
+            }
+        }
+        return isSS ? {"SS": arr} : {"NS": arr};
+    }
+    return { "S": String(value) };
+}
+
+function fromDynamoDB(ddb)
+{
+    if  (typeof ddb !== 'object') return ddb;
+    var res = {};
+    for (var i in ddb) {
+        if (ddb.hasOwnProperty(i)) {
+            if (ddb[i]['S'])
+                res[i] = ddb[i]['S'];
+            else
+            if (ddb[i]['SS'])
+                res[i] = ddb[i]['SS'];
+            else
+            if (ddb[i]['N'])
+                res[i] = parseFloat(ddb[i]['N']);
+            else
+            if (ddb[i]['NS']) {
+                res[i] = [];
+                for (var j = 0; j < ddb[i]['NS'].length; j ++) {
+                    res[i][j] = parseFloat(ddb[i]['NS'][j]);
+                }
+            }
+        }
+    }
+    return res;
 }
 
 function isWindows(platform)

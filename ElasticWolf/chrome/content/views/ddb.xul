@@ -3,6 +3,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <tabpanel id="ew.tabs.ddb" flex="1">
+    <vbox flex="1">
         <groupbox orient="vertical" flex="1" >
             <caption label="DynamoDB Tables" />
             <popupset>
@@ -43,5 +44,42 @@
                 <treechildren id="ew.ddb.children" context="ew.ddb.contextmenu" />
             </tree>
         </groupbox>
+
+        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+        </splitter>
+
+        <groupbox orient="vertical" flex="1">
+          <caption label="Items" />
+
+          <popupset>
+            <menupopup id="ew.ddb.items.contextmenu">
+            <menuitem id="ew.ddb.items.contextmenu.add" oncommand="ew_DDBItemsTreeView.addItem()" label="Add Item" />
+            <menuitem id="ew.ddb.items.contextmenu.delete" oncommand="ew_DDBItemsTreeView.deleteSelected();" label="Delete Item" />
+            <menuitem id="ew.ddb.items.contextmenu.edit" oncommand="ew_DDBItemsTreeView.editItem();" label="Edit Item" />
+            <menuitem id="ew.ddb.items.contextmenu.scan" oncommand="ew_DDBItemsTreeView.scan();" label="Scan Table" />
+            </menupopup>
+          </popupset>
+
+          <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <textbox id="ew.ddb.items.search" size="15" />
+            <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.addItem();" tooltiptext="Add Item" />
+            <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.editItem();" tooltiptext="Edit Item" />
+            <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.deleteSelected();" tooltiptext="Delete Item" />
+            <toolbarseparator/>
+            <toolbarbutton label="Scan" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
+            <toolbarbutton label="Next" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
+            <toolbarbutton label="Prev" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.prevPage();" tooltiptext="Prev Page" />
+          </toolbar>
+          <tree id="ew.ddb.items.view" enableColumnDrag="true" flex="1">
+            <treecols>
+              <treecol id="ddb.hashKey" label="Hash Key" flex="1" persist="width ordinal hidden sortDirection" />
+              <splitter class="tree-splitter" />
+              <treecol id="ddb.rangeKey" label="Range Key" flex="1" persist="width ordinal hidden sortDirection" />
+              <splitter class="tree-splitter" />
+            </treecols>
+            <treechildren id="ew.ddb.items.children" context="ew.ddb.items.contextmenu" />
+          </tree>
+        </groupbox>
+    </vbox>
     </tabpanel>
 </overlay>
