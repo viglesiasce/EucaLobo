@@ -666,7 +666,7 @@ var ew_api = {
 
     sendRequest: function(xmlhttp, url, content, isSync, action, version, handlerMethod, handlerObj, callback, params)
     {
-        debug('sendRequest: ' + url + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + params);
+        debug('sendRequest: ' + url + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
         var me = this;
 
         var xhr = xmlhttp;
@@ -6758,7 +6758,7 @@ var ew_api = {
 
     queryTable: function(name, key, options, callback)
     {
-        var params = { TableName: name, Key: { HashKeyElement: toDynamoDB(key) } };
+        var params = { TableName: name, HashKeyValue: toDynamoDB(key) };
         if (options.attributesToGet) {
             params.AttributesToGet = options.attributesToGet;
         }
@@ -6774,12 +6774,22 @@ var ew_api = {
         if (options.rangeKeyCondition) {
             for (var op in options.rangeKeyCondition) {
                 if (typeof op === 'string') {
-                    params.RangeKeyCondition = {"AttributeValueList":[],"ComparisonOperator": op.toUpperCase() };
-                    if (op == 'between' && Array.isArray(options.rangeKeyCondition[op]) && options.rangeKeyCondition[op].length > 1) {
-                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op][0]));
-                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op][1]));
-                    } else {
-                        params.RangeKeyCondition.AttributeValueList.push(scToDDB(options.rangeKeyCondition[op]));
+                    params.RangeKeyCondition = {"AttributeValueList":[], "ComparisonOperator": op.toUpperCase() };
+                    switch (op.toLowerCase()) {
+                    case 'between':
+                        if (Array.isArray(options.rangeKeyCondition[op]) && options.rangeKeyCondition[op].length > 1) {
+                            params.RangeKeyCondition.AttributeValueList.push(toDynamoDB(options.rangeKeyCondition[op][0]));
+                            params.RangeKeyCondition.AttributeValueList.push(toDynamoDB(options.rangeKeyCondition[op][1]));
+                        }
+                        break;
+
+                    case 'eq':
+                    case 'le':
+                    case 'lt':
+                    case 'ge':
+                    case 'gt':
+                    case 'begins_with':
+                        params.RangeKeyCondition.AttributeValueList.push(toDynamoDB(options.rangeKeyCondition[op]));
                     }
                 }
             }
@@ -6788,11 +6798,12 @@ var ew_api = {
             params.ScanIndexForward = false;
         }
         if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
-            params.ExclusiveStartKey = { HashKeyElement: scToDDB(options.exclusiveStartKey.hash) };
+            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.hash) };
             if (options.exclusiveStartKey.range) {
-                params.ExclusiveStartKey.RangeKeyElement = scToDDB(options.exclusiveStartKey.range);
+                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.range);
             }
         }
+
         this.queryDDB('Query', params, this, false, "onCompleteJson", callback);
     },
 
@@ -6809,9 +6820,9 @@ var ew_api = {
             params.Count = options.count;
         }
         if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
-            params.ExclusiveStartKey = { HashKeyElement: scToDDB(options.exclusiveStartKey.hash) };
+            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.hash) };
             if (options.exclusiveStartKey.range) {
-                params.ExclusiveStartKey.RangeKeyElement = scToDDB(options.exclusiveStartKey.range);
+                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.range);
             }
         }
         if (options.filter) {
@@ -6826,10 +6837,10 @@ var ew_api = {
                             } else
                             if ((op == 'between' || op == 'in') && Array.isArray(options.filter[attr][op]) && options.filter[attr][op].length > 1) {
                                 for (var i = 0; i < options.filter[attr][op].length; ++i) {
-                                    params.ScanFilter[attr].AttributeValueList.push(scToDDB(options.filter[attr][op][i]));
+                                    params.ScanFilter[attr].AttributeValueList.push(toDynamoDB(options.filter[attr][op][i]));
                                 }
                             } else {
-                                params.ScanFilter[attr].AttributeValueList.push(scToDDB(options.filter[attr][op]));
+                                params.ScanFilter[attr].AttributeValueList.push(toDynamoDB(options.filter[attr][op]));
                             }
                         }
                     }

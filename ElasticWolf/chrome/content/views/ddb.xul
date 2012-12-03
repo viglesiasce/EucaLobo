@@ -61,14 +61,42 @@
           </popupset>
 
           <toolbar style="padding: 0px 3px; -moz-box-align: center">
-            <textbox id="ew.ddb.items.search" size="15" />
+           <hbox flex="2">
             <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.addItem();" tooltiptext="Add Item" />
             <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.editItem();" tooltiptext="Edit Item" />
             <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.deleteSelected();" tooltiptext="Delete Item" />
             <toolbarseparator/>
-            <toolbarbutton label="Scan" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
-            <toolbarbutton label="Next" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
-            <toolbarbutton label="Prev" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.prevPage();" tooltiptext="Prev Page" />
+            <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
+            <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
+            <toolbarbutton label="Prev" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.prevPage();" tooltiptext="Prev Page" />
+            <toolbarseparator/>
+            Hash Key: <textbox id="ew.ddb.items.key" size="10" />
+            Range Key:
+            <menulist id="ew.ddb.items.op">
+            <menupopup>
+              <menuitem label="EQ" value="eq" selected="true"/>
+              <menuitem label="LE" value="le" />
+              <menuitem label="LT" value="lt" />
+              <menuitem label="GE" value="ge"/>
+              <menuitem label="GT" value="gt"/>
+              <menuitem label="BEGIN WITH" value="begins_with"/>
+              <menuitem label="BETWEEN" value="between"/>
+            </menupopup>
+            </menulist>
+            <textbox id="ew.ddb.items.range1" size="10" /> : <textbox id="ew.ddb.items.range2" size="10" />
+            <toolbarbutton label="Query" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.query();" tooltiptext="Query Table" />
+            <toolbarseparator/>
+            Limit:
+            <menulist id="ew.ddb.items.limit">
+            <menupopup>
+              <menuitem label="25" value="25"   selected="true"/>
+              <menuitem label="50" value="50" />
+              <menuitem label="100" value="100" />
+              <menuitem label="250" value="250"/>
+              <menuitem label="500" value="500"/>
+            </menupopup>
+            </menulist>
+           </hbox>
           </toolbar>
           <tree id="ew.ddb.items.view" enableColumnDrag="true" flex="1">
             <treecols>

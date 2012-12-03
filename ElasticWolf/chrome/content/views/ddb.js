@@ -138,22 +138,51 @@ var ew_DDBItemsTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (!TreeView.deleteSelected.call(this)) return;
+        if (!item || !confirm('Delete ' + item.name + '?')) return;
         this.core.api.deleteItem(item.name, function(table) {
             me.remove(item, 'key');
         });
     },
 
-    onSearch: function() {
+    query: function() {
         var me = this;
-        var search = $(this.searchElement).value;
+        var table = ew_DDBTreeView.getSelected();
+        if (!table) return;
+        var key = $("ew.ddb.items.key").value;
+        if (!key) return;
+        if (table.hashType == 'N') key = parseFloat(key);
+        var range1 = $("ew.ddb.items.range1").value;
+        var range2 = $("ew.ddb.items.range2").value;
+        var op = $("ew.ddb.items.op").value;
+        var options = { limit: parseInt($("ew.ddb.items.limit").value) };
+        if (op && range1) {
+            if (table.rangeType == 'N') {
+                range1 = parseFloat(range1);
+                if (range2) range2 = parseFloat(range2);
+            }
+            options.rangeKeyCondition = {};
+            options.rangeKeyCondition[op] = op == 'between' ? [ range1, range2] : range1;
+        }
+
+        this.core.api.queryTable(table.name, key, options, function(rc) {
+            me.lastItem = rc.LastEvaluatedKey;
+            var list = [];
+            for (var i in rc.Items) {
+                var item = fromDynamoDB(rc.Items[i]);
+                item.hashKey = item[table.hashKey];
+                if (table.rangeKey) item.rangeKey = item[table.rangeKey];
+                list.push(item)
+            }
+            me.display(list);
+        });
     },
 
     scan: function(instance)
     {
         var me = this;
         var table = ew_DDBTreeView.getSelected();
-        this.core.api.scanTable(table.name, { limit: 10 }, function(rc) {
+        if (!table) return;
+        this.core.api.scanTable(table.name, { limit: parseInt($("ew.ddb.items.limit").value) }, function(rc) {
             me.lastItem = rc.LastEvaluatedKey;
             var list = [];
             for (var i in rc.Items) {
