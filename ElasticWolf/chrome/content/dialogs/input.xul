@@ -16,217 +16,14 @@
   <![CDATA[
 
     function init() {
-      var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
       this.rc = window.arguments[0];
       this.core = rc.core;
       document.title = rc.title;
       var parent = document.getElementById('main');
       var rows = null;
       for (var i = 0; i < rc.items.length; i++) {
-          var title = rc.items[i].label || '';
-          var type = rc.items[i].type || 'textbox';
-          var value = rc.items[i].value || '';
-          var item = null;
-
-          var row = document.createElement('row');
-          var box = document.createElement('box');
-
-          switch (type) {
-          case 'section':
-               rows = createSection(parent, title, rc.items[i].help, rc.items[i]);
-               continue;
-
-          case 'dir':
-          case 'file':
-             rc.items[i].custombox = 1;
-             item = document.createElement('textbox');
-             box.appendChild(item);
-             var button = document.createElement('button');
-             button.setAttribute('label', "Browse");
-             button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
-             box.appendChild(button);
-             break;
-
-          case 'graph':
-             var item = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-             item.setAttribute('class', 'graph');
-             item.setAttribute('width', rc.items[i].width || '280');
-             item.setAttribute('height', rc.items[i].height || '240');
-             box.appendChild(item);
-             break;
-
-          case 'image':
-             item = document.createElement(type);
-             item.setAttribute('src', value);
-             break;
-
-          case 'link':
-             item = document.createElement('description');
-             item.setAttribute('style', 'color:blue');
-             item.setAttribute('value', value);
-             item.setAttribute('onclick', "rc.core.displayUrl('" + rc.items[i].url + "')");
-             break;
-
-          case 'listview':
-             item = document.createElement('listbox');
-             item.setAttribute('flex', '1');
-             item.setAttribute('oncommand', "handler(" + i + ")");
-             break;
-
-          case 'listbox':
-             item = document.createElement(type);
-             for (var j in rc.items[i].list) {
-                 var obj = rc.items[i].list[j];
-                 var e = document.createElement('listitem');
-                 e.setAttribute('label', rc.core.toString(obj));
-                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
-                 item.appendChild(e);
-             }
-             item.setAttribute('value', value);
-             item.setAttribute('oncommand', "handler(" + i + ")");
-             break;
-
-          case 'menulist':
-             item = document.createElement(type);
-             var popup = document.createElement('menupopup');
-             popup.setAttribute('crop','none');
-             item.appendChild(popup);
-             if (!rc.items[i].required) {
-                 var e = document.createElement('menuitem');
-                 popup.appendChild(e);
-             }
-             for (var j in rc.items[i].list) {
-                 var obj = rc.items[i].list[j];
-                 var e = document.createElement('menuitem');
-                 var v = typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj;
-                 e.setAttribute('label', rc.core.toString(obj));
-                 e.setAttribute('value', v);
-                 popup.appendChild(e);
-             }
-             item.setAttribute('crop','end');
-             item.setAttribute('sizetopopup','none');
-             item.setAttribute('value', value);
-             item.setAttribute('oncommand', "handler(" + i + ")");
-             break;
-
-          case 'radio':
-             var item = document.createElement('radiogroup');
-             for (var j in rc.items[i].list) {
-                 var obj = rc.items[i].list[j];
-                 var e = document.createElement('radio');
-                 e.setAttribute('label', rc.core.toString(obj));
-                 e.setAttribute('value', typeof obj == "object" ? obj[rc.items[i].key || "id"] : obj);
-                 item.appendChild(e);
-             }
-             item.setAttribute('orient', 'horizontal');
-             item.setAttribute('value', value);
-             item.setAttribute('oncommand', "handler(" + i + ")");
-             break;
-
-          case 'password':
-             item = document.createElement('textbox');
-             item.setAttribute('type', type);
-             item.setAttribute('value', value);
-             item.setAttribute('onchange', "handler(" + i + ")");
-             break;
-
-          case 'number':
-             item = document.createElement('textbox');
-             item.setAttribute('type', type);
-             item.setAttribute('value', value);
-             item.setAttribute('size', rc.items[i].size || 5);
-             item.setAttribute('onchange', "handler(" + i + ")");
-             break;
-
-          case 'cidr':
-          case 'ip':
-          case 'email':
-          case 'textbox':
-             item = document.createElement('textbox');
-             item.setAttribute('value', value);
-             if (!rc.items[i].multiline) {
-                 item.setAttribute('size', rc.items[i].size || 45);
-             }
-             item.setAttribute('onchange', "handler(" + i + ")");
-             break;
-
-          case 'name':
-          case 'column':
-          case 'autocomplete':
-             item = document.createElement('textbox');
-             item.setAttribute('type', 'autocomplete');
-             item.setAttribute('value', value);
-             item.setAttribute('autocompletesearch', "form-history");
-             item.setAttribute('size', rc.items[i].size || 45);
-             item.setAttribute('onchange', "handler(" + i + ")");
-             break;
-
-          case 'checkbox':
-             item = document.createElement('checkbox');
-             item.setAttribute('checked', value);
-             item.setAttribute('oncommand', "handler(" + i + ")");
-             break;
-
-          case 'description':
-             item = document.createElement(type);
-             item.setAttribute('style', 'white-space:pre-wrap;padding-bottom:5px;');
-             item.appendChild(document.createTextNode(value));
-             break;
-
-          default:
-             item = document.createElement(type);
-             item.setAttribute('value', value);
-             item.setAttribute('oncommand', "handler(event)");
-          }
-          rc.items[i].obj = item;
-          item.setAttribute('id', 'item' + i);
-
-          for (var p in rc.items[i]) {
-              // Ignore our reserved attributes
-              if (reserved.indexOf(p) > -1) continue;
-              item.setAttribute(p, rc.items[i][p]);
-          }
-
-          if (rc.items[i].bold) {
-             box.setAttribute('class', 'header');
-          }
-
-          // Optional title
-          if (!rc.items[i].notitle) {
-              var label = document.createElement('label');
-              label.setAttribute('value', title + (rc.items[i].required ? "*" : ""));
-              label.setAttribute('class', 'header');
-              row.appendChild(label);
-          }
-
-          // Embed inside the box
-          if (!rc.items[i].custombox) {
-              if (!rc.items[i].nobox) {
-                  box.appendChild(item);
-              } else {
-                  box = item;
-              }
-          }
-
-          // This can apply to the box or the item
-          if (rc.items[i].fixed) {
-             box.setAttribute('autostretch', 'never');
-          }
-
-          // For images scale the whole row
-          if (rc.items[i].scale) {
-              box.setAttribute('flex', '1');
-              row.setAttribute('flex', '1');
-          }
-
-          // Text on the right
-          if (rc.items[i].help) {
-             var help = document.createElement('label');
-             help.setAttribute('value', rc.items[i].help);
-             box.appendChild(help);
-          }
-          row.appendChild(box);
-
+          var row = createItem(rc.items[i], i);
+          if (!row) continue;
           // First time, create the title
           if (!rows) {
               rows = createSection(parent, rc.title, rc.help);
@@ -291,6 +88,216 @@
         if (path) {
             document.getElementById(id).value = path;
         }
+    }
+
+    function createItem(obj, i)
+    {
+        var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
+        var title = obj.label || '';
+        var type = obj.type || 'textbox';
+        var value = obj.value || '';
+        var item = null;
+
+        var row = document.createElement('row');
+        var box = document.createElement('box');
+
+        switch (type) {
+        case 'section':
+             rows = createSection(parent, title, obj.help, obj);
+             return null;
+
+        case 'dir':
+        case 'file':
+           obj.custombox = 1;
+           item = document.createElement('textbox');
+           box.appendChild(item);
+           var button = document.createElement('button');
+           button.setAttribute('label', "Browse");
+           button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
+           box.appendChild(button);
+           break;
+
+        case 'graph':
+           var item = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+           item.setAttribute('class', 'graph');
+           item.setAttribute('width', obj.width || '280');
+           item.setAttribute('height', obj.height || '240');
+           box.appendChild(item);
+           break;
+
+        case 'image':
+           item = document.createElement(type);
+           item.setAttribute('src', value);
+           break;
+
+        case 'link':
+           item = document.createElement('description');
+           item.setAttribute('style', 'color:blue');
+           item.setAttribute('value', value);
+           item.setAttribute('onclick', "rc.core.displayUrl('" + obj.url + "')");
+           break;
+
+        case 'listview':
+           item = document.createElement('listbox');
+           item.setAttribute('flex', '1');
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'listbox':
+           item = document.createElement(type);
+           for (var j in obj.list) {
+               var obj = obj.list[j];
+               var e = document.createElement('listitem');
+               e.setAttribute('label', rc.core.toString(obj));
+               e.setAttribute('value', typeof obj == "object" ? obj[obj.key || "id"] : obj);
+               item.appendChild(e);
+           }
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'menulist':
+           item = document.createElement(type);
+           var popup = document.createElement('menupopup');
+           popup.setAttribute('crop','none');
+           item.appendChild(popup);
+           if (!obj.required) {
+               var e = document.createElement('menuitem');
+               popup.appendChild(e);
+           }
+           for (var j in obj.list) {
+               var obj = obj.list[j];
+               var e = document.createElement('menuitem');
+               var v = typeof obj == "object" ? obj[obj.key || "id"] : obj;
+               e.setAttribute('label', rc.core.toString(obj));
+               e.setAttribute('value', v);
+               popup.appendChild(e);
+           }
+           item.setAttribute('crop','end');
+           item.setAttribute('sizetopopup','none');
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'radio':
+           var item = document.createElement('radiogroup');
+           for (var j in obj.list) {
+               var obj = obj.list[j];
+               var e = document.createElement('radio');
+               e.setAttribute('label', rc.core.toString(obj));
+               e.setAttribute('value', typeof obj == "object" ? obj[obj.key || "id"] : obj);
+               item.appendChild(e);
+           }
+           item.setAttribute('orient', 'horizontal');
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'password':
+           item = document.createElement('textbox');
+           item.setAttribute('type', type);
+           item.setAttribute('value', value);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'number':
+           item = document.createElement('textbox');
+           item.setAttribute('type', type);
+           item.setAttribute('value', value);
+           item.setAttribute('size', obj.size || 5);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'cidr':
+        case 'ip':
+        case 'email':
+        case 'textbox':
+           item = document.createElement('textbox');
+           item.setAttribute('value', value);
+           if (!obj.multiline) {
+               item.setAttribute('size', obj.size || 45);
+           }
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'name':
+        case 'column':
+        case 'autocomplete':
+           item = document.createElement('textbox');
+           item.setAttribute('type', 'autocomplete');
+           item.setAttribute('value', value);
+           item.setAttribute('autocompletesearch', "form-history");
+           item.setAttribute('size', obj.size || 45);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'checkbox':
+           item = document.createElement('checkbox');
+           item.setAttribute('checked', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'description':
+           item = document.createElement(type);
+           item.setAttribute('style', 'white-space:pre-wrap;padding-bottom:5px;');
+           item.appendChild(document.createTextNode(value));
+           break;
+
+        default:
+           item = document.createElement(type);
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(event)");
+        }
+        obj.obj = item;
+        item.setAttribute('id', 'item' + i);
+
+        for (var p in obj) {
+            // Ignore our reserved attributes
+            if (reserved.indexOf(p) > -1) continue;
+            item.setAttribute(p, obj[p]);
+        }
+
+        if (obj.bold) {
+           box.setAttribute('class', 'header');
+        }
+
+        // Optional title
+        if (!obj.notitle) {
+            var label = document.createElement('label');
+            label.setAttribute('value', title + (obj.required ? "*" : ""));
+            label.setAttribute('class', 'header');
+            row.appendChild(label);
+        }
+
+        // Embed inside the box
+        if (!obj.custombox) {
+            if (!obj.nobox) {
+                box.appendChild(item);
+            } else {
+                box = item;
+            }
+        }
+
+        // This can apply to the box or the item
+        if (obj.fixed) {
+           box.setAttribute('autostretch', 'never');
+        }
+
+        // For images scale the whole row
+        if (obj.scale) {
+            box.setAttribute('flex', '1');
+            row.setAttribute('flex', '1');
+        }
+
+        // Text on the right
+        if (obj.help) {
+           var help = document.createElement('label');
+           help.setAttribute('value', obj.help);
+           box.appendChild(help);
+        }
+        row.appendChild(box);
+
+        return row;
     }
 
     function createHeader(parent, title, help)

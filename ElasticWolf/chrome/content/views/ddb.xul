@@ -54,8 +54,8 @@
           <popupset>
             <menupopup id="ew.ddb.items.contextmenu">
             <menuitem id="ew.ddb.items.contextmenu.add" oncommand="ew_DDBItemsTreeView.addItem()" label="Add Item" />
+            <menuitem id="ew.ddb.items.contextmenu.edit" oncommand="ew_DDBItemsTreeView.putItem();" label="Edit Item" />
             <menuitem id="ew.ddb.items.contextmenu.delete" oncommand="ew_DDBItemsTreeView.deleteSelected();" label="Delete Item" />
-            <menuitem id="ew.ddb.items.contextmenu.edit" oncommand="ew_DDBItemsTreeView.editItem();" label="Edit Item" />
             <menuitem id="ew.ddb.items.contextmenu.scan" oncommand="ew_DDBItemsTreeView.scan();" label="Scan Table" />
             </menupopup>
           </popupset>
@@ -63,12 +63,12 @@
           <toolbar style="padding: 0px 3px; -moz-box-align: center">
            <hbox flex="2">
             <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.addItem();" tooltiptext="Add Item" />
-            <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.editItem();" tooltiptext="Edit Item" />
+            <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.putItem();" tooltiptext="Edit Item" />
             <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.deleteSelected();" tooltiptext="Delete Item" />
             <toolbarseparator/>
             <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
             <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
-            <toolbarbutton label="Edit" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.editItem();" tooltiptext="Edit Item" />
+            <toolbarbutton label="Edit" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.putItem();" tooltiptext="Edit Item" />
             <toolbarseparator/>
             Hash Key: <textbox id="ew.ddb.items.key" size="10" />
             Range Key:

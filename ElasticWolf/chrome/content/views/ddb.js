@@ -124,12 +124,30 @@ var ew_DDBTreeView = {
 var ew_DDBItemsTreeView = {
     lastItem: null,
 
-    addItem: function(instance)
+    addItem: function()
     {
         var me = this;
+        var table = ew_DDBTreeView.getSelected();
+        if (!table) return;
+        var inputs = [ {label:"Table",type:"label",value:table.name } ];
+        inputs.push({label:table.hashKey,type:table.hashType=="N"?"number":"textbox" })
+        if (table.rangeKey) {
+            inputs.push({label:table.rangeKey,type:table.rangeType=="N"?"number":"textbox" })
+        }
+        var values = this.core.promptInput("Add Item", inputs);
+        if (!values) return;
+        var item = {};
+        for (var i = 1; i < inputs.length; i++) {
+            item[inputs[i].label] = values[i];
+        }
+        this.core.api.putItem(table.name, item, {}, function() {
+            item._hashKey = item[table._hashKey];
+            if (table._rangeKey) item._rangeKey = item[table._rangeKey];
+            me.core.appendModel(item);
+        });
     },
 
-    editItem: function(instance)
+    putItem: function()
     {
         var me = this;
         var table = ew_DDBTreeView.getSelected();
