@@ -6710,7 +6710,7 @@ var ew_api = {
         if (options.consistentRead) {
             params.ConsistentRead = options.consistentRead;
         }
-        this.queryDDB('getItem', params, this, false, "onCompleteJson", callback);
+        this.queryDDB('GetItem', params, this, false, "onCompleteJson", callback);
     },
 
     putItem: function(name, item, options, callback)
@@ -6731,7 +6731,7 @@ var ew_api = {
         if (options.returnValues) {
             params.ReturnValues = options.returnValues;
         }
-        this.queryDDB('putItem', params, this, false, "onCompleteJson", callback);
+        this.queryDDB('PutItem', params, this, false, "onCompleteJson", callback);
     },
 
     deleteItem: function(name, key, range, options, callback)
@@ -6797,10 +6797,10 @@ var ew_api = {
         if (options.scanIndexForward === false) {
             params.ScanIndexForward = false;
         }
-        if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
-            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.hash) };
-            if (options.exclusiveStartKey.range) {
-                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.range);
+        if (options.exclusiveStartKey && options.exclusiveStartKey.HashKeyElement) {
+            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.HashKeyElement) };
+            if (options.exclusiveStartKey.RangeKeyElement) {
+                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.RangeKeyElement);
             }
         }
 
@@ -6819,10 +6819,10 @@ var ew_api = {
         if (options.count && !options.attributesToGet) {
             params.Count = options.count;
         }
-        if (options.exclusiveStartKey && options.exclusiveStartKey.hash) {
-            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.hash) };
-            if (options.exclusiveStartKey.range) {
-                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.range);
+        if (options.exclusiveStartKey && options.exclusiveStartKey.HashKeyElement) {
+            params.ExclusiveStartKey = { HashKeyElement: toDynamoDB(options.exclusiveStartKey.HashKeyElement) };
+            if (options.exclusiveStartKey.RangeKeyElement) {
+                params.ExclusiveStartKey.RangeKeyElement = toDynamoDB(options.exclusiveStartKey.RangeKeyElement);
             }
         }
         if (options.filter) {

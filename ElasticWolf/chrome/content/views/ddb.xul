@@ -68,7 +68,7 @@
             <toolbarseparator/>
             <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
             <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
-            <toolbarbutton label="Prev" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.prevPage();" tooltiptext="Prev Page" />
+            <toolbarbutton label="Edit" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.editItem();" tooltiptext="Edit Item" />
             <toolbarseparator/>
             Hash Key: <textbox id="ew.ddb.items.key" size="10" />
             Range Key:
@@ -100,9 +100,9 @@
           </toolbar>
           <tree id="ew.ddb.items.view" enableColumnDrag="true" flex="1">
             <treecols>
-              <treecol id="ddb.hashKey" label="Hash Key" flex="1" persist="width ordinal hidden sortDirection" />
+              <treecol id="ddb._hashKey" label="Hash Key" flex="1" persist="width ordinal hidden sortDirection" />
               <splitter class="tree-splitter" />
-              <treecol id="ddb.rangeKey" label="Range Key" flex="1" persist="width ordinal hidden sortDirection" />
+              <treecol id="ddb._rangeKey" label="Range Key" flex="1" persist="width ordinal hidden sortDirection" />
               <splitter class="tree-splitter" />
             </treecols>
             <treechildren id="ew.ddb.items.children" context="ew.ddb.items.contextmenu" />

@@ -436,7 +436,16 @@ function toDynamoDB(value)
 {
     if (typeof value === 'number') {
         return { "N": value.toString() };
-    }
+    } else
+    if (typeof value === 'object') {
+        var obj = {};
+        for (var i in value) {
+          if (value.hasOwnProperty(i) && value[i] !== null) {
+              obj[i] = toDynamoDB(value[i]);
+          }
+        }
+        return obj;
+    } else
     if (Array.isArray(value)) {
         var arr = [];
         var length = value.length;
