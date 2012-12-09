@@ -31,7 +31,7 @@ build_linux:
 	zip -rq ../$(NAME)-linux-$(VER).zip $(NAME) -x '*/xulrunner/**' '*.exe' '*.dll'
 	
 xpi:
-	(cd $(NAME) && zip -rq ../$(NAME)-$(VER).xpi .)
+	(cd $(NAME) && zip -rq ../../$(NAME)-$(VER).xpi . -x 'xulrunner/**')
 
 clean: clean_osx
 	rm -rf *.zip *.xpi ../$(NAME)-*.zip
@@ -43,6 +43,7 @@ put:	build
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-osx-$(VER).zip ../ElasticWolf-osx-$(VER).zip 
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-win-$(VER).zip ../ElasticWolf-win-$(VER).zip 
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-linux-$(VER).zip ../ElasticWolf-linux-$(VER).zip 
+	[ -f ../ElasticWolf-$(VER).xpi ] && ./s3upload www.elasticwolf.com/Releases/ElasticWolf-$(VER).xpi ../ElasticWolf-$(VER).xpi
 	./s3upload www.elasticwolf.com/index.html $(VER)
 
 .PHONY: clean_osx dev

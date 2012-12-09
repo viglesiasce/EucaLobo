@@ -146,10 +146,10 @@
         case 'listbox':
            item = document.createElement(type);
            for (var j in obj.list) {
-               var obj = obj.list[j];
+               var o = obj.list[j];
                var e = document.createElement('listitem');
-               e.setAttribute('label', rc.core.toString(obj));
-               e.setAttribute('value', typeof obj == "object" ? obj[obj.key || "id"] : obj);
+               e.setAttribute('label', rc.core.toString(o));
+               e.setAttribute('value', typeof o == "object" ? o[obj.key || "id"] : o);
                item.appendChild(e);
            }
            item.setAttribute('value', value);
@@ -166,10 +166,10 @@
                popup.appendChild(e);
            }
            for (var j in obj.list) {
-               var obj = obj.list[j];
+               var o = obj.list[j];
                var e = document.createElement('menuitem');
-               var v = typeof obj == "object" ? obj[obj.key || "id"] : obj;
-               e.setAttribute('label', rc.core.toString(obj));
+               var v = typeof o == "object" ? o[obj.key || "id"] : o;
+               e.setAttribute('label', rc.core.toString(o));
                e.setAttribute('value', v);
                popup.appendChild(e);
            }
@@ -182,10 +182,10 @@
         case 'radio':
            var item = document.createElement('radiogroup');
            for (var j in obj.list) {
-               var obj = obj.list[j];
+               var o = obj.list[j];
                var e = document.createElement('radio');
-               e.setAttribute('label', rc.core.toString(obj));
-               e.setAttribute('value', typeof obj == "object" ? obj[obj.key || "id"] : obj);
+               e.setAttribute('label', rc.core.toString(o));
+               e.setAttribute('value', typeof o == "object" ? o[obj.key || "id"] : o);
                item.appendChild(e);
            }
            item.setAttribute('orient', 'horizontal');
@@ -296,7 +296,6 @@
            box.appendChild(help);
         }
         row.appendChild(box);
-
         return row;
     }
 

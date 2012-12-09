@@ -89,8 +89,8 @@ var ew_DDBTreeView = {
                   {label:"Hash Key Type",type:"menulist",list:["S","N"],required:true},
                   {label:"Range Key",type:"column",max:255},
                   {label:"Range Key Type",type:"menulist",list:["S","N"],required:true},
-                  {label:"Read Capacity Units",type:"number",min:10,max:100000,required:true,tooltiptext:"Sets the minimum number of consistent ReadCapacityUnits consumed per second for the specified table before Amazon DynamoDB balances the load with other operations.Eventually consistent read operations require less effort than a consistent read operation, so a setting of 50 consistent ReadCapacityUnits per second provides 100 eventually consistent ReadCapacityUnits per second."},
-                  {label:"Write Capacity Units",type:"number",min:10,max:50000,required:true,tooltiptext:"Sets the minimum number of WriteCapacityUnits consumed per second for the specified table before Amazon DynamoDB balances the load with other operations."} ]);
+                  {label:"Read Capacity Units",type:"number",min:1,max:100000,required:true,tooltiptext:"Sets the minimum number of consistent ReadCapacityUnits consumed per second for the specified table before Amazon DynamoDB balances the load with other operations.Eventually consistent read operations require less effort than a consistent read operation, so a setting of 50 consistent ReadCapacityUnits per second provides 100 eventually consistent ReadCapacityUnits per second."},
+                  {label:"Write Capacity Units",type:"number",min:1,max:50000,required:true,tooltiptext:"Sets the minimum number of WriteCapacityUnits consumed per second for the specified table before Amazon DynamoDB balances the load with other operations."} ]);
         if (!values) return;
         this.core.api.createTable(values[0], values[1], values[2], values[3], values[4], values[5], values[6], function(table) {
             table.name = table.TableName;

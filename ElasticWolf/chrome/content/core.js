@@ -4,7 +4,7 @@
 //
 
 var ew_core = {
-    VERSION: "3.1.1",
+    VERSION: "3.1.2",
     NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
@@ -25,10 +25,12 @@ var ew_core = {
     cmdline: null,
     components : {},
     progress: {},
+    appdir: null,
 
     // Intialize core object with current menu and api implementation
     initialize : function(tabs, api)
     {
+        var me = this;
         if (this.prefs == null) {
             this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
         }
@@ -36,6 +38,16 @@ var ew_core = {
         this.tabs = tabs;
         this.api = api;
         this.api.core = this;
+
+        // Detect actual path where the extension is installed, on Windows we will use it for .exe files
+        Components.utils.import("resource://gre/modules/AddonManager.jsm");
+        AddonManager.getAllAddons(function(addons) {
+            for (var i in addons) {
+                if (addons[i].name == 'ElasticWolf') {
+                    me.appdir = addons[i].getResourceURI("").QueryInterface(Components.interfaces.nsIFileURL).file.path;
+                }
+            }
+        });
 
         // Connect tree tags to tree view controllers
         for (var i in this.tabs) {
@@ -1106,9 +1118,24 @@ var ew_core = {
         return this.getAppName() + "/" + this.VERSION;
     },
 
+    getHome : function()
+    {
+        var home = "";
+        var env = Components.classes["@mozilla.org/process/environment;1"].getService(Components.interfaces.nsIEnvironment);
+        if (isWindows(navigator.platform)) {
+            if (env.exists("HOMEDRIVE") && env.exists("HOMEPATH")) {
+                home = env.get("HOMEDRIVE") + env.get("HOMEPATH");
+            }
+        }
+        if (home == "" && env.exists('HOME')) {
+            home = env.get("HOME");
+        }
+        return home
+    },
+
     getAppPath : function()
     {
-        return DirIO.get("CurProcD").path;
+        return this.appdir || DirIO.get("CurProcD").path;
     },
 
     getUserHome : function()
@@ -1532,21 +1559,6 @@ var ew_core = {
             return false
         }
         return true;
-    },
-
-    getHome : function()
-    {
-        var home = "";
-        var env = Components.classes["@mozilla.org/process/environment;1"].getService(Components.interfaces.nsIEnvironment);
-        if (isWindows(navigator.platform)) {
-            if (env.exists("HOMEDRIVE") && env.exists("HOMEPATH")) {
-                home = env.get("HOMEDRIVE") + env.get("HOMEPATH");
-            }
-        }
-        if (home == "" && env.exists('HOME')) {
-            home = env.get("HOME");
-        }
-        return home
     },
 
     getFileContents: function(path)

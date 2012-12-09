@@ -42,11 +42,11 @@ var ew_api = {
     {
         if (fShow) {
             this.httpCount++;
-            window.setCursor("wait");
+            if (window.setCursor) window.setCursor("wait");
         } else {
             --this.httpCount;
             if (this.httpCount <= 0) {
-                window.setCursor("auto");
+                if (window.setCursor) window.setCursor("auto");
             }
         }
     },

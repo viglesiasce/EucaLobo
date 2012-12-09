@@ -68,7 +68,6 @@
             <toolbarseparator/>
             <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
             <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
-            <toolbarbutton label="Edit" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.putItem();" tooltiptext="Edit Item" />
             <toolbarseparator/>
             Hash Key: <textbox id="ew.ddb.items.key" size="10" />
             Range Key:

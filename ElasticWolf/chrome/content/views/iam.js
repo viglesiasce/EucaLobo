@@ -143,7 +143,6 @@ var ew_UsersTreeView = {
         if (values[1] != values[2]) {
             return alert('New entered passwords mismatch')
         }
-        return
         this.core.api.changePassword(values[0], values[1], function() { alert("AWS Console password has been changed") })
     },
 
@@ -299,7 +298,7 @@ var ew_UsersTreeView = {
 
         this.core.api.createVirtualMFADevice(item.name, null, function(obj) {
             var png = "data:image/png;base64," + obj.qrcode;
-            values = me.core.promptInput('Activate MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
+            var values = me.core.promptInput('Activate MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}, {label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
             if (!values) return;
             me.core.api.enableMFADevice(item.name, obj.id, values[3], values[4], function() {
                 item.mfaDevices = null;
@@ -1114,8 +1113,14 @@ var ew_CredentialsTreeView = {
 
      addCredentials : function()
      {
+         var endpoints = this.core.getEndpoints();
          var user = this.core.getEnv("USER", this.core.getEnv("USERNAME"));
-         var values = this.core.promptInput('Create new access credentials', [{label:"Name:",required:1,size:45,value:user}, {label:"AWS Access Key:",required:1,size:45}, {label:"AWS Secret Access Key:",type:'password',required:1,size:45}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.core.getEndpoints(),key:'url'}, {label:"Security Token:",multiline:true,rows:3,cols:45}]);
+         var values = this.core.promptInput('Create new access credentials', [
+                             {label:"Name:",required:1,size:45,value:user},
+                             {label:"AWS Access Key:",required:1,size:45},
+                             {label:"AWS Secret Access Key:",type:'password',required:1,size:45},
+                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'url'},
+                             {label:"Security Token:",multiline:true,rows:3,cols:45}]);
          if (!values) return;
          var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
          this.core.saveCredentials(cred);
@@ -1126,7 +1131,13 @@ var ew_CredentialsTreeView = {
      {
          var cred = this.getSelected();
          if (!cred) return;
-         var values = this.core.promptInput('Credentials', [{label:"Credentials Name:",required:1,value:cred.name,size:45}, {label:"AWS Access Key:",required:1,value:cred.accessKey,size:45}, {label:"AWS Secret Access Key:",type:'password',required:1,value:cred.secretKey,size:45}, {label:"Default Endpoint:",type:'menulist',empty:1,list:this.core.getEndpoints(),key:'url',value:cred.url}, {label:"Security Token:",multiline:true,rows:3,cols:45,value:cred.securityToken}]);
+         var endpoints = this.core.getEndpoints();
+         var values = this.core.promptInput('Credentials', [
+                             {label:"Credentials Name:",required:1,value:cred.name,size:45},
+                             {label:"AWS Access Key:",required:1,value:cred.accessKey,size:45},
+                             {label:"AWS Secret Access Key:",type:'password',required:1,value:cred.secretKey,size:45},
+                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'url',value:cred.url},
+                             {label:"Security Token:",multiline:true,rows:3,cols:45,value:cred.securityToken}]);
          if (!values) return;
          this.core.removeCredentials(cred);
          var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
