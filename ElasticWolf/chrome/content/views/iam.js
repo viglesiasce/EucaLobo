@@ -79,9 +79,11 @@ var ew_UsersTreeView = {
         var me = this;
         var values = this.core.promptInput('Create User', [{ label: "User Name",required:1},
                                                            { label: "Path"},
-                                                           { label: 'Console access password', type: 'section' },
-                                                           { label: "New Password", type: "password" },
-                                                           { label: "Retype Password", type: "password" }]);
+                                                           { label: 'Access settings', type: 'section' },
+                                                           { label: "Console Password", type: "password", tooltiptext: "Set password to be used to access Web console" },
+                                                           { label: "Retype Password", type: "password" },
+                                                           { label: "Create Access Key", type: "checkbox", tooltiptext: "Create new access key for new user"},
+                                                           { label: "Create Credentials", type: "checkbox", tooltiptext: "Create credentials for EW using new user access key" }]);
         if (!values) return;
         if (values[1] && values[1] != values[2]) {
             return alert('New entered passwords mismatch')
@@ -90,7 +92,19 @@ var ew_UsersTreeView = {
             me.core.addModel('users', user);
             me.invalidate();
             me.select(user);
-            me.core.api.createLoginProfile(values[0], values[1], function() { user.loginProfileDate = new Date(); })
+            if (values[1]) {
+                me.core.api.createLoginProfile(values[0], values[1], function() {
+                    user.loginProfileDate = new Date();
+                })
+            }
+            if (values[5] || values[6]) {
+                me.core.api.createAccessKey(values[0], function(key) {
+                    me.updateUser(user);
+                    if (values[5]) {
+                        me.core.createCredentials(values[0], key);
+                    }
+                });
+            }
         })
     },
 
