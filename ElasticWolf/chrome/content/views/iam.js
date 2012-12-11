@@ -29,9 +29,24 @@ var ew_UsersTreeView = {
         ew_KeypairsTreeView.makeKeypair(uploadCert, item.name);
     },
 
+    isRefreshable: function()
+    {
+        return true;
+    },
+
+    // Update tables that are in progress of something
+    onRefreshTimer: function()
+    {
+        for (var i in this.treeList) {
+            var item = this.treeList[i];
+            if (!item.refreshed) {
+                this.updateUser(this.treeList[i]);
+            }
+        }
+    },
+
     selectionChanged: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         this.updateUser(item);
@@ -40,6 +55,7 @@ var ew_UsersTreeView = {
     updateUser: function(item)
     {
         var me = this;
+        item.refreshed = true;
         // GovCloud does not support this yet
         if (!item.loginProfileDate) {
             this.core.api.getLoginProfile(item.name, function(date) { me.menuChanged() })
@@ -61,14 +77,21 @@ var ew_UsersTreeView = {
     addUser: function()
     {
         var me = this;
-        var values = this.core.promptInput('Create User', [{ label: "User Name",required:1}, { label: "Path"} ]);
-        if (values) {
-            this.core.api.createUser(values[0], values[1], function(user) {
-                me.core.addModel('users', user);
-                me.invalidate();
-                me.select(user)
-            })
+        var values = this.core.promptInput('Create User', [{ label: "User Name",required:1},
+                                                           { label: "Path"},
+                                                           { label: 'Console access password', type: 'section' },
+                                                           { label: "New Password", type: "password" },
+                                                           { label: "Retype Password", type: "password" }]);
+        if (!values) return;
+        if (values[1] && values[1] != values[2]) {
+            return alert('New entered passwords mismatch')
         }
+        this.core.api.createUser(values[0], values[1], function(user) {
+            me.core.addModel('users', user);
+            me.invalidate();
+            me.select(user);
+            me.core.api.createLoginProfile(values[0], values[1], function() { user.loginProfileDate = new Date(); })
+        })
     },
 
     deleteUser: function()

@@ -13,7 +13,7 @@ dev:	clean_osx
 	ln -sf `pwd`/$(NAME)/application.ini $(OSX)/Resources/application.ini
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
-build:	clean build_osx build_win build_linux
+build:	clean build_osx build_win build_linux xpi
 	make dev
 
 prepare: clean prepare_osx
@@ -34,7 +34,7 @@ xpi:
 	(cd $(NAME) && zip -rq ../../$(NAME)-$(VER).xpi . -x 'xulrunner/**')
 
 clean: clean_osx
-	rm -rf *.zip *.xpi ../$(NAME)-*.zip
+	rm -rf *.zip *.xpi ../$(NAME)-*.zip ../*.xpi
 
 clean_osx:
 	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest

@@ -4,8 +4,6 @@
 //
 
 var ew_core = {
-    VERSION: "3.1.2",
-    NAME: 'ElasticWolf',
     URL: 'http://www.elasticwolf.com/',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
     REALM : 'chrome://ew/',
@@ -79,7 +77,7 @@ var ew_core = {
         this.getEndpoints();
 
         document.title = this.getAppName();
-        document.getElementById("ew.header").label = this.NAME + " version " + this.VERSION;
+        document.getElementById("ew.header").label = this.getAppName() + " version " + this.getAppVersion();
         document.getElementById("ew.url").value = this.URL;
 
         // Use last used credentials
@@ -939,8 +937,8 @@ var ew_core = {
         if (!this.isEnabled()) return null;
 
         // File naming convention
-        var rx = new RegExp(this.NAME + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
-        var ver = this.versionNum(me.VERSION);
+        var rx = new RegExp(this.getAppName() + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
+        var ver = this.versionNum(this.getAppVersion());
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
@@ -1110,12 +1108,19 @@ var ew_core = {
 
     getAppName : function()
     {
-        return this.NAME;
+        var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+        return info.name;
+    },
+
+    getAppVersion: function()
+    {
+        var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+        return info.version;
     },
 
     getUserAgent: function ()
     {
-        return this.getAppName() + "/" + this.VERSION;
+        return this.getAppName() + "/" + this.getAppVersion();
     },
 
     getHome : function()

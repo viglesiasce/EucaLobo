@@ -22,11 +22,11 @@
             </columns>
             <rows>
                 <row>
-                    <label control="ew.home" value="AWS Account:" />
+                    <label control="ew.home" value="AWS User:" />
                     <textbox id="ew.account" readonly="true" size="80" />
                 </row>
                 <row>
-                    <label control="ew.home" value="AWS User:" />
+                    <label control="ew.home" value="AWS Account:" />
                     <textbox id="ew.user" readonly="true" size="80" />
                 </row>
                 <row>

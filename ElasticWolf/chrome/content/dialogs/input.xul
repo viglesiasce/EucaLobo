@@ -22,13 +22,7 @@
       var parent = document.getElementById('main');
       var rows = null;
       for (var i = 0; i < rc.items.length; i++) {
-          var row = createItem(rc.items[i], i);
-          if (!row) continue;
-          // First time, create the title
-          if (!rows) {
-              rows = createSection(parent, rc.title, rc.help);
-          }
-          rows.appendChild(row);
+          rows = createItem(parent, rows, rc.items[i], i);
       }
       // Buttons labels
       for (var b in rc.buttons) {
@@ -90,7 +84,7 @@
         }
     }
 
-    function createItem(obj, i)
+    function createItem(parent, rows, obj, i)
     {
         var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
         var title = obj.label || '';
@@ -104,7 +98,7 @@
         switch (type) {
         case 'section':
              rows = createSection(parent, title, obj.help, obj);
-             return null;
+             return rows;
 
         case 'dir':
         case 'file':
@@ -296,7 +290,13 @@
            box.appendChild(help);
         }
         row.appendChild(box);
-        return row;
+
+        // First time, create the title
+        if (!rows) {
+            rows = createSection(parent, rc.title, rc.help);
+        }
+        rows.appendChild(row);
+        return rows;
     }
 
     function createHeader(parent, title, help)
