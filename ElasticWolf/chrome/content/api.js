@@ -713,7 +713,6 @@ var ew_api = {
     {
         log(xmlhttp.responseText);
 
-        var now = (new Date()).getTime();
         var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
                  this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
                  this.createResponseError(xmlhttp, url, isSync, action, handlerMethod, callback, params);
@@ -756,10 +755,16 @@ var ew_api = {
         rc.requestId = "";
         rc.hasErrors = true;
 
-        if (rc.responseText.indexOf('<?xml') > -1) {
-            var xml = new DOMParser().parseFromString(rc.responseText, "text/xml");
-
+        if (rc.contentType == 'application/x-amz-json-1.0') {
+            var json = {};
+            try { json = JSON.parse(rc.responseText) } catch(e) { json.message = e; debug(rc.responseText) }
+            rc.errString = action + ' [' + rc.status + ']: ' + (json.message || json['__type']);
+        } else {
+            var xml = rc.responseXML;
             // EC2 common error reponse format
+            if (!getNodeValue(xml, "Message")) {
+                try { xml = new DOMParser().parseFromString(rc.responseText, "text/xml"); } catch(e) { debug(e) }
+            }
             rc.errCode = getNodeValue(xml, "Code");
             rc.errString = getNodeValue(xml, "Message");
             rc.requestId = getNodeValue(xml, "RequestID");
@@ -769,11 +774,6 @@ var ew_api = {
                 rc.errString = this.getItems(rc.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
                 if (rc.errString.length) rc.errCode = "InvalidChangeBatch";
             }
-        } else
-        if (rc.contentType == 'application/x-amz-json-1.0') {
-            var json = {};
-            try { json = JSON.parse(rc.responseText) } catch(e) { json.message = e; debug(rc.responseText) }
-            rc.errString = action + ' [' + rc.status + ']: ' + (json.message || json['__type']);
         }
         debug('response error: ' +  action + ", " + rc.responseText + ", " + rc.errString + ", " + url);
         return rc;
@@ -782,7 +782,7 @@ var ew_api = {
     createResponse : function(xmlhttp, url, isSync, action, handlerMethod, callback, params)
     {
         var type = xmlhttp ? xmlhttp.getResponseHeader('Content-Type') : "";
-        var xmldoc = xmlhttp && (type || "").indexOf('/xml') > -1 ? xmlhttp.responseXML : null;
+        var xmldoc = xmlhttp ? xmlhttp.responseXML : null;
 
         var response = {
             xmlhttp: xmlhttp,
