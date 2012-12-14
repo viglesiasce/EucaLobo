@@ -4274,7 +4274,7 @@ var ew_api = {
     onCompleteGetPolicy : function(response)
     {
         var xmlDoc = response.responseXML;
-        response.result = decodeURIComponent(getNodeValue(xmlDoc, "PolicyDocument"));
+        response.result = unescape(getNodeValue(xmlDoc, "PolicyDocument"));
     },
 
     createUser : function(name, path, callback)
@@ -4894,6 +4894,7 @@ var ew_api = {
                 debug("Exception while processing XSLT: "+e)
             }
         }
+        return response.result;
     },
 
     listQueues : function(callback)

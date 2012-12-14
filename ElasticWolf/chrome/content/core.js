@@ -276,6 +276,17 @@ var ew_core = {
         this.selectTab(id);
     },
 
+    menuPressed: function(event)
+    {
+        if (event.keyCode == 13) {
+            this.menuSelected(event);
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    },
+
     getMenu: function(id)
     {
         var tree = $('ew.menu');

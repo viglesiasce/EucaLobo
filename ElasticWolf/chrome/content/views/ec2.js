@@ -1917,7 +1917,7 @@ var ew_ConversionTasksTreeView = {
 
    createVolumeTask: function()
    {
-
+       alert('not implemeted')
    },
 
    createInstanceTask: function()
@@ -1928,6 +1928,7 @@ var ew_ConversionTasksTreeView = {
                                    [{label:"Instance Description"},
                                     {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
+                                    {label:"Platform",type:"menulist",list:['Windows']},
                                     {label:"Disk Description"},
                                     {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
                                     {label:"Disk Image Size (bytes)",type:"number",required:1},

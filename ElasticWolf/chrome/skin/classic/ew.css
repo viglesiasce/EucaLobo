@@ -88,10 +88,6 @@ treechildren::-moz-tree-row(selected,focus) {
     background-color: #ADCAEB;
 }
 
-#menuchildren::-moz-tree-row(selected) {
-    background-color: #ADCAEB;
-}
-
 treechildren::-moz-tree-cell(credentials_active) {
     background-color: #C3DDC3;
 }
@@ -176,3 +172,12 @@ menupopup > menuitem, menupopup > menulist {
     background-color:#fafafa;
     border:1px solid black;
 }
+
+toolbar {
+    -moz-user-focus: normal;
+}
+
+toolbarbutton {
+    -moz-user-focus: normal;
+}
+

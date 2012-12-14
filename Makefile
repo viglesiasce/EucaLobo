@@ -1,5 +1,5 @@
 NAME=ElasticWolf
-VER=$(shell awk '{if($$1=="VERSION:"){gsub(/[\"\",;]+/,"",$$2);print $$2;}}' $(NAME)/chrome/content/core.js)
+VER=$(shell awk -F= '{if($$1=="Version"){gsub(/[\"\",;]+/,"",$$2);print $$2;}}' $(NAME)/application.ini)
 OSX=$(NAME).app/Contents
 
 all:

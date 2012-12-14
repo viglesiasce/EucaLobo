@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://ew/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
 <!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
 
 <?xul-overlay href="chrome://ew/content/views/instances.xul"?>
@@ -293,7 +293,10 @@
    </toolbox>
 
   <hbox flex="1">
-    <tree id="ew.menu" seltype="single" style="min-width:180px;" onclick="ew_core.menuSelected(event)" ondblclick="ew_core.menuOpenClose(event)" hidecolumnpicker="true" flex="1">
+    <tree id="ew.menu" seltype="single" style="min-width:180px;" hidecolumnpicker="true" flex="1"
+          onkeydown="ew_core.menuPressed(event)"
+          onclick="ew_core.menuSelected(event)"
+          ondblclick="ew_core.menuOpenClose(event)">
     <treecols>
       <treecol id="name" label="Navigation" primary="true" flex="1" persist="width ordinal hidden" />
     </treecols>
