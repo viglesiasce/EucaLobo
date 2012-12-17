@@ -479,7 +479,7 @@ var ew_DBInstancesTreeView = {
 
             options.EngineVersion = values[2];
             for (var i = 0; i < inputs.length; i++) {
-                if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
+                if (values[i]) options[inputs[i].label.replace(/ /g, "")] = values[i];
             }
             if (edit) {
                 me.core.api.modifyDBInstance(values[0],options,function() {
@@ -540,14 +540,14 @@ var ew_DBInstancesTreeView = {
                       {label:"Auto Minor Version Upgrade", type:"checkbox",tooltiptext:"Indicates that minor engine upgrades will be applied automatically to the DB Instance during the maintenance window."},
                       {label:"DB Security Groups",type:"listview",list:dbgroups,flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."},
                       {label:"License Model",type:"menulist",list:['license-included','bring-your-own-license','general-public-license']},
-                      {label:"DB Subnet Group Name",type:"menulist",list:dbsubnets,key:'name',tooltiptext:"A DB Subnet Group to associate with this DB Instance.If there is no DB Subnet Group, then it is a non-VPC DB instance."},
+                      {label:"DB Subnet Group Name",type:"menulist",list:dbsubnets,key:'name',style:"max-width:350px;",tooltiptext:"A DB Subnet Group to associate with this DB Instance.If there is no DB Subnet Group, then it is a non-VPC DB instance."},
                       {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."},
                       {label:"DB Parameter Group Name",type:"menulist",list:dbparams,key:'name',tooltiptext:"The name of the DB Parameter Group to associate with this DB instance. If this argument is omitted, the default DBParameterGroup for the specified engine will be used.Constraints:Must be 1 to 255 alphanumeric characters,First character must be a letter,Cannot end with a hyphen or contain two consecutive hyphens"},
                       {label:"Character Set Name",type:"menulist"},
                       {label:"Backup Retention Period",type:"number",value:1,max:8,tooltiptext:"The number of days for which automated backups are retained. Setting this parameter to a positive number enables backups. Setting this parameter to 0 disables automated backups. Cannot be set to 0 if the DB Instance is a master instance with read replicas."},
                       {label:"Preferred Backup Window",tooltiptext:"The daily time range during which automated backups are created if automated backups are enabled, using the BackupRetentionPeriod parameter.Constraints: Must be in the format hh24:mi-hh24:mi. Times should be Universal Time Coordinated (UTC). Must not conflict with the preferred maintenance window. Must be at least 30 minutes."},
                       {label:"Preferred Maintenance Window",tooltiptext:"The weekly time range (in UTC) during which system maintenance can occur. Format: ddd:hh24:mi-ddd:hh24:mi Default: A 30-minute window selected at random from an 8-hour block of time per region, occurring on a random day of the week. The following list shows the time blocks for each region from which the default maintenance windows are assigned. US-East (Northern Virginia) Region: 03:00-11:00 UTC,  US-West (Northern California) Region: 06:00-14:00 UTC, EU (Ireland) Region: 22:00-06:00 UTC, Asia Pacific (Singapore) Region: 14:00-22:00, UTC,  AsiaPacific(Tokyo)Region:17:00-03:00UTC, Valid Days: Mon, Tue, Wed, Thu, Fri, Sat, Sun, Constraints: Minimum 30-minute window."},
-                      {label:"IOPS",type:"number",min:1000,max:10000,tooltiptext:"The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB Instance."},
+                      {label:"IOPS",type:"number",min:0,max:10000,tooltiptext:"The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB Instance."},
                       ];
 
         if (edit) {

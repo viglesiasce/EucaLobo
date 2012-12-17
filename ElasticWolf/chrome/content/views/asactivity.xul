@@ -6,7 +6,7 @@
         <groupbox flex="1" orient="vertical">
             <caption label="AutoScaling Activities" />
             <popupset>
-                <menupopup id="ew.asactivities.tree.contextmenu">
+                <menupopup id="ew.asactivities.contextmenu">
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
@@ -26,7 +26,7 @@
                     <treecol id="cfg.start" label="Start" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="ew.asconfig.tree.children" context="ew.asactivities.tree.contextmenu" />
+                <treechildren id="ew.asconfig.tree.children" context="ew.asactivities.contextmenu" />
             </tree>
         </groupbox>
     </tabpanel>

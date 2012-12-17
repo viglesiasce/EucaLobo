@@ -7,7 +7,7 @@
         <groupbox flex="1" orient="vertical">
             <caption label="&ew.captions.certs.label;" />
             <popupset>
-                <menupopup id="certs.tree.contextmenu">
+                <menupopup id="ew.certs.contextmenu">
                     <menuitem oncommand="ew_CertsTreeView.createCert()" label="&ew.certs.create.tip;" />
                     <menuitem oncommand="ew_CertsTreeView.deleteCert();" label="&ew.certs.delete.tip;" />
                     <menuitem oncommand="ew_CertsTreeView.saveCert();" label="&ew.certs.save.tip;" />
@@ -28,7 +28,7 @@
                   <splitter class="tree-splitter" />
                   <treecol id="certs.userName" label="User" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                 </treecols>
-                <treechildren id="certs.tree.children" context="certs.tree.contextmenu" />
+                <treechildren id="certs.tree.children" context="ew.certs.contextmenu" />
             </tree>
         </groupbox>
 
@@ -39,7 +39,7 @@
         <groupbox flex="1" orient="vertical">
             <caption label="Server Certificates" />
             <popupset>
-                <menupopup id="serverCerts.tree.contextmenu">
+                <menupopup id="ew.serverCerts.contextmenu">
                     <menuitem oncommand="ew_ServerCertsTreeView.createCert()" label="&ew.certs.create.tip;" />
                     <menuitem oncommand="ew_ServerCertsTreeView.deleteCert();" label="&ew.certs.delete.tip;" />
                     <menuitem oncommand="ew_ServerCertsTreeView.saveCert();" label="&ew.certs.save.tip;" />
@@ -64,7 +64,7 @@
                   <treecol id="certs.date" label="Date" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                   <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="serverSerts.tree.children" context="certs.tree.contextmenu" />
+                <treechildren id="serverSerts.tree.children" context="ew.serverCerts.contextmenu" />
             </tree>
         </groupbox>
     </vbox>

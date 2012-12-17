@@ -7,7 +7,7 @@
         <groupbox flex="1" orient="vertical">
             <caption label="&ew.captions.keypairs.label;" />
             <popupset>
-                <menupopup id="keypair.tree.contextmenu">
+                <menupopup id="keypair.contextmenu">
                     <menuitem oncommand="ew_KeypairsTreeView.displayDetails()" label="&ew.keypairs.details.tip;" />
                     <menuitem oncommand="ew_KeypairsTreeView.createKeypair()" label="&ew.keypairs.create.tip;" />
                     <menuitem oncommand="ew_KeypairsTreeView.deleteSelected();" label="&ew.keypairs.delete.tip;" />
@@ -31,7 +31,7 @@
                     <treecol id="keypair.fingerprint" label="&ew.keypairs.fingerprint.label;" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="keypair.tree.children" context="keypair.tree.contextmenu" />
+                <treechildren id="ew.keypairs.tree.children" context="ew.keypairs.contextmenu" />
             </tree>
         </groupbox>
     </vbox>

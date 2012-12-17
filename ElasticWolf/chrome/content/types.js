@@ -358,6 +358,13 @@ var TreeView = {
     {
         this.menuActive = false;
     },
+    menuSelected: function()
+    {
+        var popup = $("ew." + this.getName() + ".contextmenu");
+        if (popup && this.treeList.length) {
+            popup.openPopup(this.tree, "overlap", 48, 16, true, false);
+        }
+    },
     selectionChanged: function(event)
     {
     },
@@ -448,6 +455,16 @@ var TreeView = {
         if (this.core.winDetails && event) {
             this.displayDetails();
         }
+    },
+    onKeydown: function(event)
+    {
+        if (event.keyCode == 13) {
+            this.menuSelected(event);
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+        }
+        return true;
     },
     displayDetails : function(event)
     {
@@ -543,6 +560,7 @@ var TreeView = {
             (function(v) { var me = v; tree.addEventListener('dblclick', function(e) { e.stopPropagation();me.displayDetails(e); }, false); }(this));
             (function(v) { var me = v; tree.addEventListener('select', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
             (function(v) { var me = v; tree.addEventListener('click', function(e) { e.stopPropagation();me.clicked(e); }, false); }(this));
+            (function(v) { var me = v; tree.addEventListener('keydown', function(e) { return me.onKeydown(e); }, false); }(this));
 
             // Install hanlders for search textbox
             if (this.searchElement) {

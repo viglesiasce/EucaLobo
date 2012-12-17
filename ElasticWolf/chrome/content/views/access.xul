@@ -8,7 +8,7 @@
     <groupbox flex="1" orient="vertical">
         <caption label="&ew.captions.accesskeys.label;" />
         <popupset>
-            <menupopup id="accesskey.tree.contextmenu">
+            <menupopup id="ew.accesskey.contextmenu">
                 <menuitem oncommand="ew_AccessKeysTreeView.displayDetails()" label="View Details" />
                 <menuitem oncommand="ew_AccessKeysTreeView.createAccessKey()" label="&ew.accesskeys.create.tip;" />
                 <menuitem oncommand="ew_AccessKeysTreeView.deleteSelected();" label="&ew.accesskeys.delete.tip;" />
@@ -36,7 +36,7 @@
                 <splitter class="tree-splitter" />
                 <treecol id="accesskey.expire" label="Expire" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
             </treecols>
-            <treechildren id="accesskey.tree.children" context="accesskey.tree.contextmenu" />
+            <treechildren id="ew.accesskey.children" context="ew.accesskey.contextmenu" />
         </tree>
     </groupbox>
     </vbox>

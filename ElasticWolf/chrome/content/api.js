@@ -5250,11 +5250,13 @@ var ew_api = {
         params.push([ "MasterUsername", MasterUserName])
         params.push([ "MasterUserPassword", MasterUserPassword])
 
+        debug(JSON.stringify(options))
+
         if (options.AutoMinorVersionUpgrade) {
             params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
         }
-        if (options.availabilityZone) {
-            params.push([ "AvailabilityZone", options.availabilityZone ]);
+        if (options.AvailabilityZone) {
+            params.push([ "AvailabilityZone", options.AvailabilityZone ]);
         }
         if (options.BackupRetentionPeriod) {
             params.push([ "BackupRetentionPeriod", options.BackupRetentionPeriod ]);
@@ -5265,14 +5267,16 @@ var ew_api = {
         if (options.DBName) {
             params.push(["DBName", options.DBName])
         }
-        if (options.iops) {
-            params.push(["Iops", options.iops])
+        if (options.IOPS) {
+            params.push(["Iops", options.IOPS])
         }
         if (options.DBParameterGroupName) {
             params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
         }
-        for (var i in options.DBSecurityGroups) {
-            params.push([ "DBSecurityGroups." + parseInt(i), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].id : options.DBSecurityGroups[i] ]);
+        if (options.DBSecurityGroups) {
+            for (var i = 0; i < options.DBSecurityGroups.length; i++) {
+                params.push([ "DBSecurityGroups.member." + (i+1), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].name : options.DBSecurityGroups[i] ]);
+            }
         }
         if (options.DBSubnetGroupName) {
             params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])

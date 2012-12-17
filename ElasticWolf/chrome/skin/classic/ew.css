@@ -66,6 +66,22 @@ treechildren::-moz-tree-cell(alarms_alarm) {
     background-color: #FFCCCC;
 }
 
+treechildren::-moz-tree-cell(credentials_active) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(endpoints_active) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(accesskeys_current) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(accesskeys_expired) {
+    background-color: #FFCCCC;
+}
+
 treechildren::-moz-tree-checkbox {
     list-style-image: url("chrome://ew/skin/unchecked.png");
 }
@@ -86,22 +102,6 @@ treechildren::-moz-tree-row(selected) {
 
 treechildren::-moz-tree-row(selected,focus) {
     background-color: #ADCAEB;
-}
-
-treechildren::-moz-tree-cell(credentials_active) {
-    background-color: #C3DDC3;
-}
-
-treechildren::-moz-tree-cell(endpoints_active) {
-    background-color: #C3DDC3;
-}
-
-treechildren::-moz-tree-cell(accesskeys_current) {
-    background-color: #C3DDC3;
-}
-
-treechildren::-moz-tree-cell(accesskeys_expired) {
-    background-color: #FFCCCC;
 }
 
 treechildren::-moz-tree-cell-text(selected) {
