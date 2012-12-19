@@ -458,8 +458,21 @@ var TreeView = {
     },
     onKeydown: function(event)
     {
-        if (event.keyCode == 13) {
+        debug(event.keyCode + " " + event.shiftKey)
+        switch (event.keyCode) {
+        case 121:
+            if (!event.shiftKey) {
+                break;
+            }
+
+        case 13:
             this.menuSelected(event);
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+
+        case 32:
+            this.displayDetails(event);
             event.stopPropagation();
             event.preventDefault();
             return false;
