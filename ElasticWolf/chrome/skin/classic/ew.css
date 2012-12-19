@@ -92,8 +92,6 @@ treechildren::-moz-tree-checkbox(checked) {
 
 treechildren::-moz-tree-row {
     border-top: 1px solid transparent;
-    background-color: #FFFFFF;
-    color: #000000;
 }
 
 treechildren::-moz-tree-row(selected) {
@@ -125,10 +123,6 @@ treechildren::-moz-tree-twisty {
     -moz-appearance: none;
     -moz-padding-end: 0px;
     width: 0px;
-}
-
-#ew_menu {
-    list-style-image: url('menuicon.png');
 }
 
 tabpanels, tabpanel {
