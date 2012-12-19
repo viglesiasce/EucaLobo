@@ -250,10 +250,16 @@ var ew_VpcsTreeView = {
 
     attachToVpnGateway : function()
     {
+        var me = this;
         var vpc = this.getSelected();
         if (vpc == null) return;
 
-        ew_VpnAttachmentTreeView.attachToVpc(vpc.id, null);
+        var vgws = this.core.queryModel('vpnGateways');
+
+        var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPC",type:"label",value:vpc.id,required:1},
+                                                                  {label:"VPN Gateway",type:"menulist",list:vgws,required:1}, ])
+        if (!values) return;
+        this.core.api.attachVpnGatewayToVpc(values[1], values[0], function() { me.refresh() });
     },
 
     attachToInternetGateway : function()
@@ -515,7 +521,7 @@ var ew_SubnetAclRulesTreeView = {
 };
 
 var ew_RouteTablesTreeView = {
-    model : [ "routeTables", "vpcs", "subnets","instances","internetGateways","networkInterfaces" ],
+    model : [ "routeTables", "vpcs", "subnets","instances",'vpnGateways',"internetGateways","networkInterfaces" ],
 
     selectionChanged : function()
     {
@@ -551,6 +557,29 @@ var ew_RouteTablesTreeView = {
         var me = this;
         this.core.api.deleteRouteTable(table.id, function() { me.refresh() });
     },
+
+    enablePropagation: function() {
+        var me = this;
+        var table = this.getSelected();
+        if (!table) return;
+
+        var vgws = this.core.queryModel('vpnGateways');
+        var idx = this.core.promptList("Enable Propagation to VPG Gateway", "Select VPN gateway:", vgws);
+        if (idx >= 0) {
+            this.core.api.enableVgwRoutePropagation(vgws[idx], table.id, function() { me.refersh() });
+        }
+    },
+
+    disablePropagation: function() {
+        var me = this;
+        var table = this.getSelected();
+        if (!table || !table.propagations.length) return;
+        var idx = this.core.promptList("Disable Propagation to VPG Gateway", "Select VPN gateway:", table.propagations);
+        if (idx >= 0) {
+            this.core.api.disableVgwRoutePropagation(table.propagations[idx].gatewayId, table.id, function() { me.refresh() });
+        }
+    },
+
 };
 
 var ew_RoutesTreeView = {
@@ -560,15 +589,18 @@ var ew_RoutesTreeView = {
         if (!table) table = ew_RouteTablesTreeView.getSelected();
         if (!table) return;
         var gws = this.core.queryModel('internetGateways', 'vpcId', table.vpcId);
+        gws = gws.concat(this.core.queryModel('vpnGateways', 'vpcId', table.vpcId));
+
         var instances = this.core.queryModel('instances', 'vpcId', table.vpcId);
         var enis = this.core.queryModel('networkInterfaces', 'vpcId', table.vpcId);
 
-        var values = this.core.promptInput("Create Route", [{label:"Route Table",type:"label",value:table.toString()},
-                                                            {label:"CIDR",type:"cidr",required:1},
-                                                            {type:"label",value:"Please, choose only one from the following resources below:",notitle:1},
-                                                            {label:"Internet Gateway",type:"menulist",list:gws,oncommand:"rc.items[4].obj.value=null,rc.items[5].obj.value=null;"},
-                                                            {label:"Instance",type:"menulist",list:instances,oncommand:"rc.items[3].obj.value=null,rc.items[5].obj.value=null;"},
-                                                            {label:"Network Interface",type:"menulist",list:enis,oncommand:"rc.items[3].obj.value=null,rc.items[4].obj.value=null;"}]);
+        var values = this.core.promptInput("Create Route",
+                                    [{label:"Route Table",type:"description",value:table.toString(),style:"max-width:350px;"},
+                                     {label:"CIDR",type:"cidr",required:1},
+                                     {type:"label",value:"Please, choose only one from the following resources below:",notitle:0},
+                                     {label:"Internet/VPN Gateway",type:"menulist",list:gws,style:"max-width:350px;",oncommand:"rc.items[4].obj.value=null,rc.items[5].obj.value=null;"},
+                                     {label:"Instance",type:"menulist",list:instances,style:"max-width:350px;",oncommand:"rc.items[3].obj.value=null,rc.items[5].obj.value=null;"},
+                                     {label:"Network Interface",type:"menulist",list:enis,style:"max-width:350px;",oncommand:"rc.items[3].obj.value=null,rc.items[4].obj.value=null;"}]);
         if (!values) return;
         this.core.api.createRoute(table.id, values[1], values[3], values[4], values[5], function() {
             ew_RouteTablesTreeView.refresh();
@@ -1021,18 +1053,12 @@ var ew_CustomerGatewayTreeView = {
 
 
 var ew_VpnGatewayTreeView = {
-    model: ['vpnGateways', 'vpcs', 'availabilityZones'],
+    model: ['vpnGateways', 'vpcs', 'routeTables', 'availabilityZones'],
 
     menuChanged : function() {
         var image = this.getSelected();
         $("ew.vpnGateways.contextmenu").disabled = (image == null);
         TreeView.menuChanged.call(this);
-    },
-
-    selectionChanged : function(event) {
-        var list = [];
-        var vgw = this.getSelected();
-        ew_VpnAttachmentTreeView.display(vgw ? vgw.attachments : []);
     },
 
     createVpnGateway : function () {
@@ -1060,46 +1086,39 @@ var ew_VpnGatewayTreeView = {
         ew_VpnConnectionTreeView.createVpnConnection(null, vgw.id);
     },
 
-    attachToVpc : function() {
+    enablePropagation: function() {
         var vgw = this.getSelected();
         if (vgw == null) return;
 
-        ew_VpnAttachmentTreeView.attachToVpc(null, vgw.id);
-    },
-};
-
-
-var ew_VpnAttachmentTreeView = {
-    name: "vpnattachments",
-
-    menuChanged : function()
-    {
-        var image = this.getSelected();
-        $("ew.vpnattachments.contextmenu").disabled = (image == null);
-        TreeView.menuChanged.call(this);
+        var routes = this.core.queryModel('routeTables');
+        var idx = this.core.promptList("Enable Propagation to route table", "Select route table:", routes);
+        if (idx >= 0) {
+            this.core.api.enableVgwRoutePropagation(vgw.id, routes[idx], function() {});
+        }
     },
 
-    deleteVpnAttachment : function()
+    detachVpc : function()
     {
-        var att = this.getSelected();
-        if (att == null) return;
+        var vgw = this.getSelected();
+        if (!vgw || !vgw.vpcId) return;
 
-        var confirmed = confirm("Delete attachment of " + att.vgwId + " to " + att.vpcId + "?");
+        var confirmed = confirm("Detach VPC " + vgw.vpcId + "?");
         if (!confirmed) return;
 
         var me = this;
-        this.core.api.detachVpnGatewayFromVpc(att.vgwId, att.vpcId, function() { me.refresh() });
+        this.core.api.detachVpnGatewayFromVpc(vgw.id, vgw.vpcId, function() { me.refresh() });
     },
 
-    attachToVpc : function(vpcid, vgwid)
+    attachVpc : function(vpcid, vgwid)
     {
-        var vgws = this.core.queryModel('vpnGateways');
+        var me = this;
+        var vgw = this.getSelected();
+        if (!vgw) return;
         var vpcs = this.core.queryModel('vpcs');
 
-        var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1},
+        var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPN Gateway",type:"label",value:vgw.id,required:1},
                                                                   {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},])
         if (!values) return;
-        var me = this;
         this.core.api.attachVpnGatewayToVpc(values[0], values[1], function() { me.refresh() });
     },
 };

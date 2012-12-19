@@ -17,6 +17,7 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
+                        <label control="ew.offerings.search" value="Search:"/>
                         <textbox id="ew.offerings.search" size="15"  />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedInstancesOfferingsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                         <toolbarbutton image="images/cash.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedInstancesOfferingsTreeView.purchaseOffering();" tooltiptext="PurchaseOffering" />
@@ -64,6 +65,7 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
+                        <label control="ew.rservedInstances.search" value="Search:"/>
                         <textbox id="ew.reservedInstances.search" size="15"  />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedInstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     </hbox>

@@ -191,8 +191,7 @@
 
             { name: "ew.tabs.eni",           views: [ { id: "ew.enis.view", view: ew_NetworkInterfacesTreeView },] },
 
-            { name: "ew.tabs.vgw",           views: [ { id: "ew.vpnGateways.view", view: ew_VpnGatewayTreeView },
-                                                     { id: "ew.vpnattachments.view", view: ew_VpnAttachmentTreeView } ], },
+            { name: "ew.tabs.vgw",           views: [ { id: "ew.vpnGateways.view", view: ew_VpnGatewayTreeView }, ], },
 
             { name: "ew.tabs.vpn",           views: [ { id: "ew.vpnconnections.view", view: ew_VpnConnectionTreeView } ] },
 

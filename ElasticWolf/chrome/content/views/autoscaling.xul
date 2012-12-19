@@ -22,6 +22,7 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.asgroups.search" value="Search:"/>
                 <textbox id="ew.asgroups.search" size="15"  />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_ASGroupsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" oncommand="ew_ASGroupsTreeView.putGroup();" tooltiptext="Add Group" />
@@ -58,7 +59,7 @@
         </groupbox>
 
         <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-        
+
          </splitter>
 
         <groupbox flex="1" orient="vertical">

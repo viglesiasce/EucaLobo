@@ -17,7 +17,8 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
-                        <textbox id="ew.subnets.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" />
+                        <label control="ew.subnets.search" value="Search:"/>
+                        <textbox id="ew.subnets.search" size="15" />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SubnetsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                         <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SubnetsTreeView.createSubnet()" tooltiptext="&ew.createsubnet.tip;" />
                         <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SubnetsTreeView.deleteSubnet()" tooltiptext="&ew.deletesubnet.tip;" />
@@ -57,7 +58,7 @@
             </groupbox>
 
             <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-                
+
             </splitter>
 
             <groupbox orient="vertical" flex="1">
@@ -87,7 +88,7 @@
             </groupbox>
 
             <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-                
+
             </splitter>
 
             <groupbox orient="vertical" flex="1">

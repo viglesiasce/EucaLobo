@@ -122,6 +122,7 @@
         case 'image':
            item = document.createElement(type);
            item.setAttribute('src', value);
+           item.setAttribute('alt', title);
            break;
 
         case 'link':
@@ -260,6 +261,7 @@
             var label = document.createElement('label');
             label.setAttribute('value', title + (obj.required ? "*" : ""));
             label.setAttribute('class', 'header');
+            label.setAttribute('control', 'item' + i);
             row.appendChild(label);
         }
 

@@ -16,6 +16,7 @@
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <label control="ew.accesskeys.search" value="Search:"/>
             <textbox id="ew.accesskeys.search" size="15" />
             <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeysTreeView.refresh()" />
             <toolbarbutton image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeysTreeView.createAccessKey();" />

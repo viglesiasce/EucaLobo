@@ -14,6 +14,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.asactions.search" value="Search:"/>
                 <textbox id="ew.asactions.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASActionsTreeView.refresh()" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add Action" oncommand="ew_ASActionsTreeView.putAction();" />

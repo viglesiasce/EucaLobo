@@ -18,7 +18,8 @@
       </popupset>
       <toolbar style="padding: 0px 3px; -moz-box-align: center">
         <hbox flex="10">
-          <textbox id="ew.spotInstanceRequests.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" />
+          <label control="ew.spotInstanceRequests.search" value="Search:"/>
+          <textbox id="ew.spotInstanceRequests.search" size="15" />
           <toolbarbutton image="images/refresh.png" oncommand="ew_SpotInstanceRequestsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarseparator />
           <toolbarbutton image="images/chart.png" oncommand="ew_SpotInstanceRequestsTreeView.showHistory();" tooltiptext="Show price history" />

@@ -17,6 +17,7 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.alarms.search" value="Search:"/>
                 <textbox id="ew.alarms.search" size="15"  />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_MetricAlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" oncommand="ew_MetricAlarmsTreeView.putAlarm();" tooltiptext="Add Alarm" />
@@ -24,7 +25,7 @@
                 <toolbarbutton image="images/delete.png" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" tooltiptext="Delete Alarm" />
                 <toolbarbutton image="images/attach.png" oncommand="ew_MetricAlarmsTreeView.setState();" tooltiptext="Set Alarm State" />
                 <toolbarbutton image="images/details.png" oncommand="ew_MetricAlarmsTreeView.displayHistory();" tooltiptext="Display Alarm History" />
-                <label value=" | " />
+                <toolbarseparator/>
                 <menulist id="ew.alarms.statistics" >
                 <menupopup>
                     <menuitem label="Average" value="Average" selected="true" />

@@ -32,7 +32,7 @@
                     </hbox>
                 </row>
                 <row>
-                    <label control="ew.RequireNumber" value="Require Numbers:" />
+                    <label control="ew.RequireNumbers" value="Require Numbers:" />
                     <hbox>
                         <checkbox id="ew.RequireNumbers" />
                     </hbox>

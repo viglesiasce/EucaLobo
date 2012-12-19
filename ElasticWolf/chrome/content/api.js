@@ -4,7 +4,7 @@
 //
 
 var ew_api = {
-    EC2_API_VERSION: '2012-10-01',
+    EC2_API_VERSION: '2012-12-01',
     ELB_API_VERSION: '2012-06-01',
     IAM_API_VERSION: '2010-05-08',
     CW_API_VERSION: '2010-08-01',
@@ -924,7 +924,7 @@ var ew_api = {
                 if (columns != null) {
                     if (columns instanceof Array) {
                         var obj = new Element();
-                        // Return objecty with given set of properties
+                        // Return object with given set of properties
                         if (columns.length) {
                             for (var j in columns) {
                                 var val = getNodeValue(items[i], columns[j]);
@@ -936,7 +936,7 @@ var ew_api = {
                             var props = items[i].childNodes;
                             for (var j = 0; j < props.length; j++) {
                                 var val = props[j].firstChild ? props[j].firstChild.nodeValue : props[j].nodeValue;
-                                if (val) obj[props[j].tagName] = val;
+                                if (val && props[j].tagName) obj[props[j].tagName] = val;
                             }
                         }
                         if (Object.keys(obj).length) list.push(callback ? callback(obj) : obj);
@@ -1459,20 +1459,26 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "vpnGatewaySet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var id = getNodeValue(item, "vpnGatewayId");
-            var availabilityZone = getNodeValue(item, "availabilityZone");
-            var type = getNodeValue(item, "type");
-            var state = getNodeValue(item, "state");
-            var attachments = new Array();
-
-            var atttags = item.getElementsByTagName("attachments")[0].getElementsByTagName("item");
-            for ( var j = 0; j < atttags.length; j++) {
-                var vpcId = getNodeValue(atttags[j], "vpcId");
-                var attstate = getNodeValue(atttags[j], "state");
-                var att = new VpnGatewayAttachment(vpcId, id, attstate);
-                attachments.push(att);
+            var vgw = new Element();
+            vgw.toString = function() {
+                var text = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state
+                for (var i in this.attachments) {
+                    text += ", " + this.attachments[i].toString();
+                }
+                return text;
             }
-            list.push(new VpnGateway(id, availabilityZone, state, type, attachments));
+
+            vgw.id = getNodeValue(item, "vpnGatewayId");
+            vgw.availabilityZone = getNodeValue(item, "availabilityZone");
+            vgw.type = getNodeValue(item, "type");
+            vgw.state = getNodeValue(item, "state");
+            vgw.attachments = this.getItems(item, "attachments", "item", []);
+            if (vgw.attachments.length) {
+                vgw.vpcId = vgw.attachments[0].vpcId;
+            }
+            vgw.tags = this.getTags(item);
+            ew_core.processTags(vgw)
+            list.push(vgw);
         }
         this.core.setModel('vpnGateways', list);
         response.result = list;
@@ -1498,6 +1504,16 @@ var ew_api = {
         this.queryEC2("DeleteVpnGateway", [ [ "VpnGatewayId", id ] ], this, false, "onComplete", callback);
     },
 
+    enableVgwRoutePropagation: function(vgwid, route, callback)
+    {
+        this.queryEC2("EnableVgwRoutePropagation", [ [ "GatewayId", vgwid ], ["RouteTableId", route] ], this, false, "onComplete", callback);
+    },
+
+    disableVgwRoutePropagation: function(vgwid, route, callback)
+    {
+        this.queryEC2("DisableVgwRoutePropagation", [ [ "GatewayId", vgwid ], ["RouteTableId", route] ], this, false, "onComplete", callback);
+    },
+
     describeCustomerGateways : function(callback)
     {
         this.queryEC2("DescribeCustomerGateways", [], this, false, "onCompleteDescribeCustomerGateways", callback);
@@ -1510,13 +1526,18 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "customerGatewaySet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var id = getNodeValue(item, "customerGatewayId");
-            var type = getNodeValue(item, "type");
-            var state = getNodeValue(item, "state");
-            var ipAddress = getNodeValue(item, "ipAddress");
-            var bgpAsn = getNodeValue(item, "bgpAsn");
-            var tags = this.getTags(item);
-            list.push(new CustomerGateway(id, ipAddress, bgpAsn, state, type, tags));
+            var cgw = new Element();
+            cgw.toString = function() {
+                return this.ipAddress + fieldSeparator + this.bgpAsn + (this.name ? fieldSeparator + this.name : "");
+            }
+            cgw.id = getNodeValue(item, "customerGatewayId");
+            cgw.type = getNodeValue(item, "type");
+            cgw.state = getNodeValue(item, "state");
+            cgw.ipAddress = getNodeValue(item, "ipAddress");
+            cgw.bgpAsn = getNodeValue(item, "bgpAsn");
+            cgw.tags = this.getTags(item);
+            ew_core.processTags(cgw)
+            list.push(cgw);
         }
         this.core.setModel('customerGateways', list);
         response.result = list;
@@ -1544,15 +1565,16 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "internetGatewaySet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var vpcId = null, tags = []
-            var id = getNodeValue(item, "internetGatewayId");
-
-            var etags = item.getElementsByTagName("attachmentSet")[0].getElementsByTagName("item");
-            for ( var j = 0; j < etags.length; j++) {
-                vpcId = getNodeValue(etags[j], "vpcId");
+            var igw = new Element();
+            igw.toString = function() {
+                return this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
             }
-            var tags = this.getTags(item);
-            list.push(new InternetGateway(id, vpcId, tags));
+
+            igw.id = getNodeValue(item, "internetGatewayId");
+            igw.vpcId = getNodeValue(item, "vpcId");
+            igw.tags = this.getTags(item);
+            ew_core.processTags(igw)
+            list.push(igw);
         }
         this.core.setModel('internetGateways', list);
         response.result = list;
@@ -2979,35 +3001,43 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "routeTableSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var routes = [], associations = []
-            var id = getNodeValue(item, "routeTableId");
-            var vpcId = getNodeValue(item, "vpcId");
-            var main = getNodeValue(item, "main");
-
-            var routeItems = item.getElementsByTagName("routeSet")[0].childNodes;
-            for ( var j = 0; routeItems && j < routeItems.length; j++) {
-                if (routeItems.item(j).nodeName == '#text') continue;
-                var cidr = getNodeValue(routeItems.item(j), "destinationCidrBlock");
-                var gateway = getNodeValue(routeItems.item(j), "gatewayId");
-                var instance = getNodeValue(routeItems.item(j), "instanceId");
-                var owner = getNodeValue(routeItems.item(j), "instanceOwnerId");
-                var eni = getNodeValue(routeItems.item(j), "networkInterfaceId");
-                var state = getNodeValue(routeItems.item(j), "state");
-                routes.push(new Route(id, cidr, state, gateway, eni, instance, owner));
-            }
-            var assocSet = item.getElementsByTagName("associationSet")[0];
-            var assocItems = assocSet.childNodes;
-            if (assocItems) {
-                for ( var j = 0; j < assocItems.length; j++) {
-                    if (assocItems.item(j).nodeName == '#text') continue;
-                    var aid = getNodeValue(assocItems.item(j), "routeTableAssociationId");
-                    var table = getNodeValue(assocItems.item(j), "routeTableId");
-                    var subnet = getNodeValue(assocItems.item(j), "subnetId");
-                    associations.push(new RouteAssociation(aid, table, subnet));
+            var table = new Element();
+            table.toString = function() {
+                var str = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
+                if (this.routes && this.routes.length > 0) {
+                    str += " ("
+                    for (var i in this.routes) {
+                        str += (i > 0 ? ", " : "") + this.routes[i].cidr + "/" + this.routes[i].gatewayId;
+                    }
+                    str += ")"
                 }
+                return str;
             }
-            var tags = this.getTags(item);
-            list.push(new RouteTable(id, vpcId, main, routes, associations, tags));
+
+            table.id = getNodeValue(item, "routeTableId");
+            table.vpcId = getNodeValue(item, "vpcId");
+            table.main = getNodeValue(item, "main");
+            table.routes = [];
+            var routes = this.getItems(item, "routeSet", "item");
+            for ( var j = 0; j < routes.length; j++) {
+                var route = new Element();
+                route.toString = function() {
+                    return this.cidr + fieldSeparator + ew_core.modelValue("gatewayId", this.gatewayId);
+                }
+                route.tableId = table.id;
+                route.cidr = getNodeValue(routes[j], "destinationCidrBlock");
+                route.gatewayId = getNodeValue(routes[j], "gatewayId");
+                route.instanceId = getNodeValue(routes[j], "instanceId");
+                route.instanceOwnerId = getNodeValue(routes[j], "instanceOwnerId");
+                route.eniId = getNodeValue(routes[j], "networkInterfaceId");
+                route.state = getNodeValue(routes[j], "state");
+                table.routes.push(route);
+            }
+            table.associations = this.getItems(item, "associationSet", "item", []);
+            table.propagations = this.getItems(item, "propagatingVgwSet", "item", []);
+            table.tags = this.getTags(item);
+            ew_core.processTags(table);
+            list.push(table);
         }
         this.core.setModel('routeTables', list);
         response.result = list;
@@ -6590,6 +6620,15 @@ var ew_api = {
         }
         this.core.setModel('jobflows', list);
         response.result = list;
+    },
+
+    runJobFlow: function(name, count, options, callback)
+    {
+        var params = [ [ "Name", name ]];
+        params.push(["Instances.InstanceCount", count]);
+        for (var i in options) params.push([i, options[i]]);
+
+        this.queryEMR("RunJobFlow", params, this, false, "onComplete", callback);
     },
 
     terminateJobFlows: function(id, callback)

@@ -1446,6 +1446,8 @@ function Graph(title, element, type)
     this.draw = function()
     {
         var canvas = document.getElementById(this.options.canvasName);
+        canvas.setAttribute("alt", this.options.title);
+        canvas.setAttribute("tooltiptext", this.options.title);
         var ctx = canvas.getContext('2d');
 
         // Clear the canvas
@@ -1846,7 +1848,7 @@ function Element()
         return Object.keys(this).filter(function(x) {
             return typeof self[x] != "function" && !empty(self[x]);
         }).map(function(x) {
-            return ew_core.modelValue(x, self[x]);
+            return ew_core.modelValue(x, self[x], self._showNames);
         }).join(fieldSeparator);
     }
 }
@@ -2310,53 +2312,6 @@ function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
     }
 }
 
-function Route(tableId, cidr, state, gatewayId, eniId, instanceId, instanceOwner)
-{
-    this.tableId = tableId
-    this.cidr = cidr
-    this.gatewayId = gatewayId
-    this.instanceId = instanceId
-    this.instanceOwnerId = instanceOwner
-    this.networkInterfaceId = eniId
-    this.state = state;
-    this.toString = function() {
-        return this.cidr + fieldSeparator + ew_core.modelValue("gatewayId", this.gatewayId);
-    }
-}
-
-function RouteAssociation(id, tableId, subnetId)
-{
-    this.id = id
-    this.tableId = tableId || ""
-    this.subnetId = subnetId || ""
-    this.toString = function() {
-        return this.id;
-    }
-}
-
-function RouteTable(id, vpcId, main, routes, associations, tags)
-{
-    this.id = id
-    this.vpcId = vpcId
-    this.routes = routes || [];
-    this.associations = associations || [];
-    this.main = main;
-    this.tags = tags
-    ew_core.processTags(this);
-
-    this.toString = function() {
-        var str = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
-        if (this.routes && this.routes.length > 0) {
-            str += " ("
-            for (var i in this.routes) {
-                str += (i > 0 ? ", " : "") + this.routes[i].cidr + "/" + this.routes[i].gatewayId;
-            }
-            str += ")"
-        }
-        return str;
-    }
-}
-
 function AvailabilityZone(name, state, msg)
 {
     this.id = name;
@@ -2492,62 +2447,6 @@ function DhcpOptions(id, options, tags)
 
     this.toString = function() {
         return this.options + fieldSeparator + this.id;
-    }
-}
-
-function InternetGateway(id, vpcId, tags)
-{
-    this.id = id
-    this.vpcId = vpcId || "";
-    this.tags = tags
-    ew_core.processTags(this)
-
-    this.toString = function() {
-        return this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
-    }
-}
-
-function VpnGateway(id, availabilityZone, state, type, attachments, tags)
-{
-    this.id = id;
-    this.availabilityZone = availabilityZone;
-    this.state = state;
-    this.type = type;
-    this.attachments = attachments || [];
-    this.tags = tags;
-    ew_core.processTags(this)
-
-    this.toString = function() {
-        var text = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state
-        for (var i in this.attachments) {
-            text += ", " + this.attachments[i].toString();
-        }
-        return text;
-    }
-}
-
-function VpnGatewayAttachment(vpcId, vgwId, state)
-{
-    this.vpcId = vpcId;
-    this.vgwId = vgwId;
-    this.state = state;
-    this.toString = function() {
-        return this.state + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
-    }
-}
-
-function CustomerGateway(id, ipAddress, bgpAsn, state, type, tags)
-{
-    this.id = id;
-    this.ipAddress = ipAddress;
-    this.bgpAsn = bgpAsn;
-    this.state = state;
-    this.type = type;
-    this.tags = tags;
-    ew_core.processTags(this)
-
-    this.toString = function() {
-        return this.ipAddress + fieldSeparator + this.bgpAsn + (this.name ? fieldSeparator + this.name : "");
     }
 }
 

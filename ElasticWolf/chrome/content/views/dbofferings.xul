@@ -17,6 +17,7 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
+                        <label control="ew.dbofferings.search" value="Search:"/>
                         <textbox id="ew.dbofferings.search" size="15"  />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_DBOfferingsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                         <toolbarbutton image="images/cash.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_DBOfferingsTreeView.purchaseOffering();" tooltiptext="PurchaseOffering" />
@@ -47,7 +48,7 @@
                 </tree>
             </groupbox>
             <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-                
+
             </splitter>
             <groupbox orient="vertical" flex="1">
                 <caption label="Reserved DB Instances" />
@@ -60,6 +61,7 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
+                        <label control="ew.dbreserved.search" value="Search:"/>
                         <textbox id="ew.dbreserved.search" size="15"  />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_ReservedDBInstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     </hbox>

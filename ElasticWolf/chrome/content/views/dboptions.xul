@@ -15,6 +15,7 @@
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <label control="ew.dboptions.search" value="Search:"/>
             <textbox id="ew.dboptions.search" size="15" />
             <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupsTreeView.refresh()" />
             <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBOptionGroupsTreeView.addItem()" />
@@ -50,6 +51,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.dboptions.options.search" value="Search:"/>
                 <textbox id="ew.dboptions.options.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBOptionGroupOptionsTreeView.refresh()" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBOptionGroupOptionsTreeView.addItem()" />

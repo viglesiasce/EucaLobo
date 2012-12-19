@@ -15,6 +15,7 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.ddb.search" value="Search:"/>
                 <textbox id="ew.ddb.search" size="15"  />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_DDBTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" oncommand="ew_DDBTreeView.addItem();" tooltiptext="Add Table" />
@@ -69,8 +70,9 @@
             <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
             <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
             <toolbarseparator/>
-            Hash Key: <textbox id="ew.ddb.items.key" size="10" />
-            Range Key:
+            <label control="ew..search" value="Hash Key:"/>
+            <textbox id="ew.ddb.items.key" size="10" />
+            <label control="ew.ddb.items.op" value="Range Key:"/>
             <menulist id="ew.ddb.items.op">
             <menupopup>
               <menuitem label="EQ" value="eq" selected="true"/>
@@ -82,7 +84,10 @@
               <menuitem label="BETWEEN" value="between"/>
             </menupopup>
             </menulist>
-            <textbox id="ew.ddb.items.range1" size="10" /> : <textbox id="ew.ddb.items.range2" size="10" />
+            <label control="ew.ddb.items.range1" value=""/>
+            <textbox id="ew.ddb.items.range1" size="10" /> :
+            <label control="ew.ddb.items.range2" value=""/>
+            <textbox id="ew.ddb.items.range2" size="10" />
             <toolbarbutton label="Query" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.query();" tooltiptext="Query Table" />
             <toolbarseparator/>
             Limit:

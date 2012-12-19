@@ -186,7 +186,8 @@
 
 <!ENTITY ew.captions.vpnGateways.label "Your VPN Gateways">
 <!ENTITY ew.vpnGateway.contextmenu.createvpnconnection.label "Create a VPN Connection">
-<!ENTITY ew.vpnGateway.contextmenu.attachvpc.label "Attach a VPC to this VPN Gateway">
+<!ENTITY ew.vpnGateway.contextmenu.attachvpc.label "Attach VPC">
+<!ENTITY ew.vpnGateway.contextmenu.detachvpc.label "Detach VPC">
 <!ENTITY ew.vpnGateway.contextmenu.delete.label "Delete this VPN Gateway">
 <!ENTITY ew.vpnGateway.contextmenu.copyvgwid.label "Copy VPN Gateway ID to the Clipboard">
 <!ENTITY ew.vpnGateways.id.label "ID">
@@ -214,12 +215,6 @@
 <!ENTITY ew.vpnconnections.state.label "State">
 <!ENTITY ew.vpnconnections.cgwid.label "Customer Gateway ID">
 <!ENTITY ew.vpnconnections.vgwid.label "VPN Gateway ID">
-
-<!ENTITY ew.captions.vpnGateways.attachments.label "Attachments for Selected VPN Gateway">
-<!ENTITY ew.vpnattachment.contextmenu.delete.label "Detach">
-<!ENTITY ew.vpnattachments.vgwId.label "VPN Gateway ID">
-<!ENTITY ew.vpnattachments.vpcId.label "VPC ID">
-<!ENTITY ew.vpnattachments.state.label "State">
 
 <!ENTITY ew.bundleTasks.id.label "Bundle ID">
 <!ENTITY ew.bundleTasks.state.label "Bundle State">

@@ -18,6 +18,7 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.queues.search" value="Search:"/>
                 <textbox id="ew.queues.search" size="15" />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_SQSTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" tooltiptext="Add Queue" oncommand="ew_SQSTreeView.addQueue();" />
@@ -52,8 +53,10 @@
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                <hbox>
+                 <label control="ew.messages.search" value="Search:"/>
                  <textbox id="ew.messages.search" size="15" />
-                 Timeout: <textbox id="ew.messages.timeout" type="number" min="0" max="20" size="2" />
+                 <label control="ew.messages.timeout" value="Timeout:"/>
+                 <textbox id="ew.messages.timeout" type="number" min="0" max="20" size="2" />
                </hbox>
                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
                <toolbarbutton image="images/download.png" oncommand="ew_SQSMsgTreeView.append();" tooltiptext="Read and add new messages the list" />

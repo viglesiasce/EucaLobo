@@ -27,7 +27,8 @@
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                    <hbox flex="10">
+                    <hbox flex="10" align="center">
+                        <label control="ew.volumes.search" value="Search:"/>
                         <textbox id="ew.volumes.search" size="15"  />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                         <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createVolume()" tooltiptext="&ew.createvol.tip;" />
@@ -39,7 +40,8 @@
                         <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
                         <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.showMetrics();" tooltiptext="Show Metrics" />
                         <toolbarseparator />
-                        <checkbox id="ew.volumes.norootdev" label="Hide /dev/sda1" checked="false" oncommand="ew_VolumeTreeView.invalidate();" />
+                        <label control="ew.volumes.norootdev" value="Hide /dev/sda1:"/>
+                        <checkbox id="ew.volumes.norootdev" checked="false" oncommand="ew_VolumeTreeView.invalidate();" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.volumes.view" seltype="single" enableColumnDrag="true" flex="1">

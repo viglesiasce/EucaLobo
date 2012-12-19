@@ -34,7 +34,7 @@
 
     <groupbox flex="1">
       <caption id="title" />
-      <label id="msg" value="" flex="1" />
+      <label control="listbox" id="msg" value="" flex="1" />
       <listbox id="listbox" flex="1" />
     </groupbox>
 </dialog>

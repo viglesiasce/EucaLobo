@@ -16,6 +16,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.keypairs.search" value="Search:"/>
                 <textbox id="ew.keypairs.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_KeypairsTreeView.refresh()" />
                 <toolbarbutton image="images/add.png" tooltiptext="&ew.keypairs.create.tip;" oncommand="ew_KeypairsTreeView.createKeypair();" />

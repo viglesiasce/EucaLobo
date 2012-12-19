@@ -5,7 +5,7 @@
 
 
 var ew_JobFlowsTreeView = {
-    model: "jobflows",
+    model: ["jobflows", "availabilityZones", "subnets", "keypairs"],
 
     menuChanged: function()
     {
@@ -20,12 +20,48 @@ var ew_JobFlowsTreeView = {
     addItem: function(instance)
     {
         var me = this;
+        var inputs = [{label:"Name",tooltiptext:"Friendly name given to the job flow",required:true},
+                      {label:"Instance Count",type:"number",min:1,tooltiptext:"Number of instances for the job flow."},
+                      {label:"Master Instance Type",type:"menulist",prefix:"Instances.",list:this.core.getInstanceTypes(),required:true,style:"max-width:350px;",tooltiptext:"The Amazon EC2 instance type for master nodes"},
+                      {label:"Slave Instance Type",type:"menulist",prefix:"Instances.",list:this.core.getInstanceTypes(),required:true,style:"max-width:350px;",tooltiptext:"The Amazon EC2 instance type for slave nodes"},
+                      {label:"Termination Protection", type:"checkbox",prefix:"Instances.",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."},
+                      {label:"Availability Zone",type:"menulist",prefix:"Instances.Placement.",list:this.core.queryModel('availabilityZones'),tooltiptext:"Specifies the Availability Zone the job flow will run in."},
+                      {label:"Keep Job Flow Alive When No Steps",type:"checkbox",prefix:"Instances.",tooltiptext:"Specifies whether the job flow should terminate after completing all steps."},
+                      {label:"Ec2 Key Name",type:"menulist",prefix:"Instances.",list:this.core.queryModel("keypairs"),tooltiptext:"Specifies the name of the Amazon EC2 key pair that can be used to ssh to the master node as the user called hadoop."},
+                      {label:"Ec2 Subnet Id",type:"menulist",prefix:"Instances.",list:this.core.queryModel("subnets"),style:"max-width:350px;",tooltiptext:"To launch the job flow in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the job flow to launch. If you do not specify this value, the job flow is launched in the normal Amazon Web Services cloud, outside of an Amazon VPC. Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus you cannot specify the cc1.4xlarge instance type for nodes of a job flow launched in a Amazon VPC."},
+                      {label:"Hadoop Version",type:"menulist",prefix:"Instances.",list:["0.18", "0.20", "0.20.205"],required:true},
+                      {label:"Ami Version",type:"menulist",list:["1.0", "2.0", "latest"],tooltiptext:"The version of the Amazon Machine Image (AMI) to use when launching Amazon EC2 instances in the job flow. The following values ane valid: latest (latest AMI version; currently AMI 2.0, Hadoop 0.20.205), 2.0 (AMI 2.0, Hadoop 0.20.205), 1.0 (AMI 1.0, Hadoop 0.18), If this value is not specified, the job flow uses the default of (AMI 1.0, Hadoop 0.18)."},
+                      {label:"Log Uri",tooltiptext:"Specifies the location in Amazon S3 to write the log files of the job flow. If a value is not provided, logs are not created."},
+                      {label:"Supported Products",type:"listview",rows:3,headers:["","Product"],list:["karmasphere-enterprise-utility","mapr-m3","mapr-m5"],toltiptext:"A list of strings that indicates third-party software to use with the job flow."},
+                      {label:"Bootstrap",type:"section"},
+                      {label:"Name",prefix:"BootstrapActions.member.1.",tooltiptext:"Name for the bootstrap action"},
+                      {label:"Path",prefix:"BootstrapActions.member.1.",tooltiptext:"Location of the script to run during a bootstrap action. Can be either a location in Amazon S3 or on a local file system."},
+                      {label:"Args",prefix:"BootstrapActions.member.1.",multiline:true,rows:3,cols:60,tooltiptext:"A list of command line arguments to pass to the bootstrap action script."},
+                      ];
+        var values = this.core.promptInput("Create Job Flow", inputs);
+        if (!values) return;
+        var opts = {}
+        for (var i = 2; i < inputs.length; i++) {
+            if (!values[i]) continue;
+            var label = (inputs[i].prefix || "") + inputs[i].label.replace(/ /g, "");
+            switch (inputs[i].type) {
+            case "listview":
+                for (var j = 0; j < values[i].length; j++) {
+                    opts[label + ".member." + (j + 1)] = values[i][j];
+                }
+                break;
+
+            default:
+                opts[label] = values[i];
+            }
+        }
+        this.core.api.runJobFlow(values[0], values[1], opts, function() { me.refresh() });
     },
 
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.terminateJobFlows(item.id, function() { me.refresh() });
     },
@@ -33,9 +69,10 @@ var ew_JobFlowsTreeView = {
     setTerminationProtection: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput("Set Termination Protection", [{label:"Termination Protection", type:"checkbox",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."}]);
+        var values = this.core.promptInput("Set Termination Protection",
+                        [{label:"Termination Protection", type:"checkbox",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."}]);
         this.core.api.setTerminationProtection(item.id, values[0], function() { me.refresh() });
     },
 

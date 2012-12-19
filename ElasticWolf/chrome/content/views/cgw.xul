@@ -18,7 +18,8 @@
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10">
-                        <textbox id="ew.customergateways.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" oninput="ew_CustomerGatewayTreeView.searchChanged(event);" />
+                        <label control="ew.customergateways.search" value="Search:"/>
+                        <textbox id="ew.customergateways.search" size="15" />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_CustomerGatewayTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                         <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_CustomerGatewayTreeView.createCustomerGateway();" tooltiptext="&ew.createcustomergateway.tip;" />
                         <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_CustomerGatewayTreeView.deleteCustomerGateway()" tooltiptext="&ew.deletecustomergateway.tip;" />

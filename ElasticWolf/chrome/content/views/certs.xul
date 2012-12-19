@@ -14,6 +14,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.certs.search" value="Search:"/>
                 <textbox id="ew.certs.search" size="15" />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_CertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_CertsTreeView.createCert();" />
@@ -46,6 +47,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.serverCerts.search" value="Search:"/>
                 <textbox id="ew.serverCerts.search" size="15" />
                 <toolbarbutton image="images/refresh.png" oncommand="ew_ServerCertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                 <toolbarbutton image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_ServerCertsTreeView.createCert();" />

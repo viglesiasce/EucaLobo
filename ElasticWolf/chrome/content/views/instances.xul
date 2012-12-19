@@ -70,8 +70,9 @@
         </menupopup>
       </popupset>
       <toolbar style="padding: 0px 3px; -moz-box-align: center">
-        <hbox flex="10">
-          <textbox id="ew.instances.search" size="15" value="" type="autocomplete" autocompletesearch="form-history" />
+        <hbox flex="10" align="center">
+          <label control="ew.instances.search" value="Search:"/>
+          <textbox id="ew.instances.search" size="15" />
           <toolbarbutton image="images/refresh.png" oncommand="ew_InstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarseparator />
           <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.instances.launch.tip;" />
@@ -86,9 +87,12 @@
           <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
           <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showMetrics();" tooltiptext="Show Metrics" />
           <toolbarseparator />
-          <checkbox id="ew.instances.noterminated" label="Hide Terminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
-          <checkbox id="ew.instances.nostopped" label="Hide Stopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
-          <checkbox id="ew.instances.onlyspot" label="Spot Only" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <label control="ew.instances.noterminated" value="Hide Terminated:"/>
+          <checkbox id="ew.instances.noterminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <label control="ew.instances.nostopped" value="Hide Stopped:"/>
+          <checkbox id="ew.instances.nostopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <label control="ew.instances.onlyspot" value="Spot Only:"/>
+          <checkbox id="ew.instances.onlyspot" oncommand="ew_InstancesTreeView.filterChanged();"/>
         </hbox>
       </toolbar>
 

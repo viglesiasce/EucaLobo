@@ -13,7 +13,8 @@
             </menupopup>
         </popupset>
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
-            <textbox id="ew.accesskeys.search" size="15" />
+            <label control="ew.exportTasks.search" value="Search:"/>
+            <textbox id="ew.exportTasks.search" size="15" />
             <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ExportTasksTreeView.refresh()" />
             <toolbarbutton image="images/add.png" tooltiptext="Create Instance Export Task" oncommand="ew_ExportTasksTreeView.createInstanceExport();" />
             <toolbarbutton image="images/delete.png" tooltiptext="Cancel Task" oncommand="ew_ExportTasksTreeView.deleteSelected();" />
@@ -37,7 +38,7 @@
     </groupbox>
 
      <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-        
+
      </splitter>
 
         <groupbox flex="1" orient="vertical">
@@ -49,6 +50,7 @@
                 </menupopup>
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.conversionTasks.search" value="Search:"/>
                 <textbox id="ew.conversionTasks.search" size="15" />
                 <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ConversionTasksTreeView.refresh()" />
                 <toolbarbutton image="images/ec2.png" tooltiptext="Create Instance Import Task" oncommand="ew_ConversionTasksTreeView.createInstanceTask();" />

@@ -6,6 +6,16 @@
     <vbox flex="1">
        <groupbox orient="vertical" flex="1">
            <caption label="&ew.captions.routetables.label;" />
+           <popupset>
+             <menupopup id="ew.routetables.contextmenu" >
+                <menuitem oncommand="ew_RouteTablesTreeView.createTable();" label="&ew.routetable.create.tip;" />
+                <menuitem oncommand="ew_RouteTablesTreeView.deleteSelected();" label="&ew.routetable.delete.tip;" />
+                <menuseparator />
+                <menuitem oncommand="ew_RoutesTreeView.createRoute();" label="Create Route" />
+                <menuitem oncommand="ew_RouteTablesTreeView.enablePropagation();" label="Enable VGW Propagation" />
+                <menuitem oncommand="ew_RouteTablesTreeView.disablePropagation();" label="Disable VGW Propagation" />
+             </menupopup>
+           </popupset>
            <toolbar style="padding: 0px 3px; -moz-box-align: center">
                <hbox flex="1">
                    <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_RouteTablesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
@@ -24,13 +34,15 @@
                    <splitter class="tree-splitter" />
                    <treecol id="route.main" label="Main" flex="1" persist="width ordinal hidden sortDirection" />
                    <splitter class="tree-splitter" />
+                   <treecol id="route.propagations" label="Propagations" flex="1" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
                </treecols>
                <treechildren context="ew.routetables.contextmenu" />
           </tree>
        </groupbox>
 
        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-           
+
        </splitter>
 
        <groupbox orient="vertical" flex="1">
@@ -59,7 +71,7 @@
        </groupbox>
 
        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-           
+
        </splitter>
 
        <groupbox orient="vertical" flex="1">
