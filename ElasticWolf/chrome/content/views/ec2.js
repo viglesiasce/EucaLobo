@@ -1928,7 +1928,6 @@ var ew_ConversionTasksTreeView = {
                                    [{label:"Instance Description"},
                                     {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
-                                    {label:"Platform",type:"menulist",list:['Windows']},
                                     {label:"Disk Description"},
                                     {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
                                     {label:"Disk Image Size (bytes)",type:"number",required:1},
@@ -1943,6 +1942,7 @@ var ew_ConversionTasksTreeView = {
                                     {label:"Detailed Monitoring",type:"checkbox",tooltiptext:"Specifies whether to enable detailed monitoring for the instance."},
                                     {label:"Instance Initiated Shutdown Behavior",type:"menulist",list:['stop','terminate'],tooltiptext:"Specifies whether the instance stops or terminates on instance-initiated shutdown."},
                                     {label:"User Data",multiline:true,cols:40,rows:3,tooltiptext:"User data to be made available to the instance."},
+                                    {label:"Platform",type:"menulist",list:['Windows']},
                                     ]);
        if (!values) return;
        var options = {};
@@ -1955,6 +1955,7 @@ var ew_ConversionTasksTreeView = {
        options.monitoringEnabled = values[14];
        options.instanceInitiatedShutdownBehaviour = values[15];
        options.userData = values[16];
+       options.platform = values[17];
        var s3 = this.core.api.queryS3Prepare('GET', values[6], values[7], "", {}, "", Math.round((new Date()).getTime()/1000) + 60);
        this.core.api.importInstance(values[1], values[2], values[4], values[5], s3.authUrl, values[8], options, function() { me.refresh(); });
    },

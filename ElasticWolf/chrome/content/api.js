@@ -2271,6 +2271,7 @@ var ew_api = {
         params.push(["DiskImage.1.Image.Bytes", diskBytes]);
         params.push(["DiskImage.1.Image.ImportManifestUrl", diskUrl]);
         params.push(["DiskImage.1.Volume.Size", diskSize]);
+        if (options.platform) params.push(["Platform", options.platform]);
         if (options.description) params.push(["Description", options.description]);
         if (options.diskDescription) params.push(["DiskImage.1.Image.Description", options.diskDescription]);
 
