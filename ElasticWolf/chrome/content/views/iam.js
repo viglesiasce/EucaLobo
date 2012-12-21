@@ -85,22 +85,22 @@ var ew_UsersTreeView = {
                                                            { label: "Create Access Key", type: "checkbox", tooltiptext: "Create new access key for new user"},
                                                            { label: "Create Credentials", type: "checkbox", tooltiptext: "Create credentials for EW using new user access key" }]);
         if (!values) return;
-        if (values[1] && values[1] != values[2]) {
+        if (values[3] && values[3] != values[4]) {
             return alert('New entered passwords mismatch')
         }
         this.core.api.createUser(values[0], values[1], function(user) {
             me.core.addModel('users', user);
             me.invalidate();
             me.select(user);
-            if (values[1]) {
-                me.core.api.createLoginProfile(values[0], values[1], function() {
+            if (values[3]) {
+                me.core.api.createLoginProfile(values[0], values[3], function() {
                     user.loginProfileDate = new Date();
                 })
             }
             if (values[5] || values[6]) {
                 me.core.api.createAccessKey(values[0], function(key) {
                     me.updateUser(user);
-                    if (values[5]) {
+                    if (values[6]) {
                         me.core.createCredentials(values[0], key);
                     }
                 });

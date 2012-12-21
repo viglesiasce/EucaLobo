@@ -22,6 +22,7 @@
             this.rc = window.arguments[0]
             this.msg = document.getElementById("msg");
             this.list = document.getElementById('list');
+            this.values = [];
             setup(this.rc)
         }
         function setup(rc) {
@@ -36,6 +37,14 @@
                 cell.setAttribute('style', 'font-weight:bold');
                 row.appendChild(cell);
                 cell = document.createElement('listcell');
+                // Replace visible contents
+                this.values.push(val);
+                switch (p) {
+                case "secret":
+                case "secretKey":
+                   val = "********";
+                   break;
+                }
                 cell.setAttribute('label', val);
                 row.setAttribute('value', val);
                 row.setAttribute('tooltiptext', val);
@@ -45,7 +54,8 @@
             window.focus();
         }
         function clicked() {
-            this.rc.core.copyToClipboard(list.value);
+            var val = this.values[list.selectedIndex];
+            this.rc.core.copyToClipboard(val);
         }
     ]]>
     </script>
