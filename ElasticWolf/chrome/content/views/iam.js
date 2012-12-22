@@ -6,9 +6,9 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         $("ew.users.contextmenu.delete").disabled = !item;
         $("ew.users.contextmenu.addGroup").disabled = !item;
-        $("ew.users.contextmenu.addPassword").disabled = !item || (item.loginProfileDate && !this.core.isGovCloud());
-        $("ew.users.contextmenu.changePassword").disabled = !item || (!item.loginProfileDate && !this.core.isGovCloud());
-        $("ew.users.contextmenu.deletePassword").disabled = !item || (!item.loginProfileDate && !this.core.isGovCloud());
+        $("ew.users.contextmenu.addPassword").disabled = !item || item.loginProfileDate;
+        $("ew.users.contextmenu.changePassword").disabled = !item || !item.loginProfileDate;
+        $("ew.users.contextmenu.deletePassword").disabled = !item || !item.loginProfileDate;
         $("ew.users.contextmenu.createKey").disabled = !item;
         $("ew.users.contextmenu.genKey").disabled = !item;
         $("ew.users.contextmenu.createTemp").disabled = !item;
@@ -1063,7 +1063,11 @@ var ew_AccountSummaryView = {
             $('ew.iam.alias.create').label = alias == "" ? "Create Alias" : "Change Alias";
             $('ew.iam.alias.create').hidden = false;
             $('ew.iam.alias.delete').hidden = alias == "";
-            $('ew.iam.console').value = alias != "" ? "https://" + alias + ".signin.aws.amazon.com/console" : "Not Set";
+            if (me.core.isGovCloud()) {
+                $('ew.iam.console').value = "https://console.amazonaws-us-gov.com/";
+            } else {
+                $('ew.iam.console').value = alias != "" ? "https://" + alias + ".signin.aws.amazon.com/console" : "Not Set";
+            }
             $('ew.iam.console').setAttribute("style", alias != "" ? "color:blue" : "color:black");
         });
         this.core.api.getAccountSummary(function(list) {
