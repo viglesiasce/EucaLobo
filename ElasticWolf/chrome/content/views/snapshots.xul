@@ -11,11 +11,12 @@
                         <menuitem oncommand="ew_SnapshotTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
                         <menuitem oncommand="ew_SnapshotTreeView.tag(event);" label="Edit EC2 Tag" />
                         <menuseparator />
-                        <menuitem oncommand="ew_SnapshotTreeView.createImageFromSnapshot();" label="Register AMI from snapshot" />
-                        <menuitem oncommand="ew_SnapshotTreeView.viewPermissions();" label="Manage Permissions" />
-                        <menuseparator />
                         <menuitem oncommand="ew_SnapshotTreeView.createVolume();" label="&ew.snapshot.contextmenu.createvol.label;" />
+                        <menuitem oncommand="ew_SnapshotTreeView.createImageFromSnapshot();" label="Register AMI from snapshot" />
+                        <menuitem oncommand="ew_SnapshotTreeView.copySnapshot();" label="Copy Snapshot" />
+                        <menuseparator />
                         <menuitem oncommand="ew_SnapshotTreeView.deleteSnapshot();" label="&ew.snapshot.contextmenu.delete.label;" />
+                        <menuitem oncommand="ew_SnapshotTreeView.viewPermissions();" label="Manage Permissions" />
                         <menuseparator />
                         <menuitem oncommand="ew_SnapshotTreeView.copyToClipboard('id');" label="&ew.snapshot.contextmenu.copysnapid.label;" />
                     </menupopup>

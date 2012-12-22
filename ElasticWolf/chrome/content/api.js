@@ -1014,6 +1014,20 @@ var ew_api = {
         this.queryEC2("CreateSnapshot", params, this, false, "onComplete:snapshotId", callback);
     },
 
+    deleteSnapshot : function(snapshotId, callback)
+    {
+        this.queryEC2("DeleteSnapshot", [ [ "SnapshotId", snapshotId ] ], this, false, "onComplete", callback);
+    },
+
+    copySnapshot : function(region, snapshotId, descr, callback)
+    {
+        var params = [];
+        params.push(["SourceRegion", region]);
+        params.push([ "SourceSnapshotId", snapshotId ]);
+        if (descr) params.push(["Description", descr])
+        this.queryEC2("CopySnapshot", params, this, false, "onComplete", callback);
+    },
+
     attachVolume : function(volumeId, instanceId, device, callback)
     {
         var params = []
@@ -1030,11 +1044,6 @@ var ew_api = {
         if (snapshotId != null) params.push([ "SnapshotId", snapshotId ]);
         if (zone != null) params.push([ "AvailabilityZone", zone ]);
         this.queryEC2("CreateVolume", params, this, false, "onComplete:volumeId", callback);
-    },
-
-    deleteSnapshot : function(snapshotId, callback)
-    {
-        this.queryEC2("DeleteSnapshot", [ [ "SnapshotId", snapshotId ] ], this, false, "onComplete", callback);
     },
 
     deleteVolume : function(volumeId, callback)

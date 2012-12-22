@@ -1436,6 +1436,27 @@ var ew_SnapshotTreeView = {
         });
     },
 
+    copySnapshot : function ()
+    {
+        var me = this;
+        var image = this.getSelected();
+        var snapshots = this.treeList;
+        var regions = this.core.api.getEC2Regions().filter(function(x) { return x.name != me.core.api.region });
+
+        var values = this.core.promptInput('Copy Snapshot',
+                [{label:"Same region",type:"section"},
+                 {label:"Local Snapshot",type:"menulist",list:snapshots,value:image ? image.id : "",style:"max-width:300px;",oncommand:"rc.items[2].obj.value='';",tooltiptext:"Copy snapshot within the current region"},
+                 {label:"Outside region",type:"section"},
+                 {label:"Source Region",type:"menulist",list:regions,key:'name',oncommand:"rc.items[0].obj.value='';"},
+                 {label:"Source Snapshot",tooltiptext:"Please provide snapshot id from the source region"},
+                 {label:"Description",type:"section"},
+                 {label:" "}]);
+        if (!values || (!values[1] && !values[4])) return;
+        region = values[1] ? this.core.api.region : values[3];
+        id = values[1] || values[4];
+        this.core.api.copySnapshot(region, id, values[5], function() { me.refresh(); });
+    },
+
 };
 
 var ew_ElasticIPTreeView = {
