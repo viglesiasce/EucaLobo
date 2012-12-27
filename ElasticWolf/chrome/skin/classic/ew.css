@@ -115,10 +115,6 @@ treechildren::-moz-tree-cell-text(bold) {
      font-weight: bold;
 }
 
-treechildren::-moz-tree-indentation {
-    width: 24px;
-}
-
 treechildren::-moz-tree-twisty {
     -moz-appearance: none;
     -moz-padding-end: 0px;
@@ -175,3 +171,20 @@ toolbarbutton {
     -moz-user-focus: normal;
 }
 
+.menu {
+    min-width: 180px;
+}
+
+.menu treechildren::-moz-tree-row {
+    border-top: 1px solid transparent;
+    height: 20px;
+}
+
+.menu treechildren::-moz-tree-image {
+    height: 20px;
+    width: 20px;
+}
+
+.menu treechildren::-moz-tree-indentation {
+    width: 1px;
+}
