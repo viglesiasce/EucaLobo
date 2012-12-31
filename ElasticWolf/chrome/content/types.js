@@ -458,7 +458,7 @@ var TreeView = {
     },
     onKeydown: function(event)
     {
-        debug(event.keyCode + " " + event.shiftKey)
+        debug(this.getName() + " " + event.keyCode + " " + event.shiftKey)
         switch (event.keyCode) {
         case 121:
             if (!event.shiftKey) {

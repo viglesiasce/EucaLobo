@@ -540,7 +540,7 @@
                     <label id="ew.amiName" />
                 </row>
                 <row>
-                    <label control="ew.tag" value="Instance Name:" />
+                    <label control="ew.name" value="Instance Name:" />
                     <textbox id="ew.name" size="30" value="" tooltiptext="Name to distinguish it from other running instances" />
                 </row>
                 <row>
@@ -612,13 +612,14 @@
         </groupbox>
 
         <groupbox flex="1" id="ew.groups.box">
-            <caption label="&ew.captions.images.launchsecgroups.label;" />
+          <caption label="&ew.captions.images.launchsecgroups.label;" />
         </groupbox>
         </vbox>
         </tabpanel>
 
         <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
          <vbox flex="1">
+            <label control="ew.userdata" value="User Data:" />
             <textbox id="ew.userdata" multiline="true" cols="70" rows="25" wrap="false" style="font-family: monospace;" />
             <hbox>
             <button label="Open Text File" oncommand="loadUserDataFromFile(false);" style="min-width:25px" />
@@ -768,11 +769,11 @@
                     <textbox id="ew.tag" size="30" value="" />
                 </row>
                 <row>
-                    <label control="ew.properties" value="Client Token (Ensuring Idempotency):" />
+                    <label control="ew.token" value="Client Token (Ensuring Idempotency):" />
                     <textbox id="ew.token" size="40" />
                 </row>
                 <row>
-                    <label control="ew.monitor" value="Instance Initiated Shutdown Behaviour:" />
+                    <label control="ew.shutdown" value="Instance Initiated Shutdown Behaviour:" />
                     <menulist id="ew.shutdown">
                          <menupopup>
                             <menuitem label="Stop" value="stop"/>
@@ -785,7 +786,7 @@
                     <checkbox id="ew.monitor" />
                 </row>
                 <row>
-                    <label control="ew.monitor" value="Disable API Termination:" />
+                    <label control="ew.disableApiTermination" value="Disable API Termination:" />
                     <checkbox id="ew.disableApiTermination" tooltiptext="Whether you can terminate the instance using the EC2 API. A value of true means you cannot terminate the instance using the API (i.e., the instance is locked); a value of false means you can. If you set this to true, and you later want to terminate the instance, you must first change the disableApiTermination attributes value to false using ModifyInstanceAttribute."/>
                 </row>
                 <row>
@@ -799,9 +800,12 @@
         <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
          <vbox flex="1">
            <hbox>
+             <label control="ew.images.search" value="Filter:" />
              <textbox id="ew.images.search" size="15" type="autocomplete" autocompletesearch="form-history" onkeypress="imagesFilterChanged()" />
+             <label control="ew.images.type" value="Category:" />
              <menulist id="ew.images.type" oncommand="imagesFilterChanged()" />
            </hbox>
+           <label control="ew.images" value="Images:" />
            <listbox id="ew.images" flex="1" />
           </vbox>
         </tabpanel>

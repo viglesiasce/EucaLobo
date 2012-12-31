@@ -67,7 +67,7 @@ var ew_KeypairsTreeView = {
             alert("This function is disabled in GovCloud region, Please use Import keypair functions instead");
             return
         }
-        var name = prompt("Please provide a new keypair name");
+        var name = this.core.prompt("Please provide a new keypair name");
         if (name == null) return;
         name = name.trim();
         var me = this;
@@ -83,7 +83,7 @@ var ew_KeypairsTreeView = {
 
     importKeypair : function ()
     {
-        var name = prompt("Please provide a new keypair name");
+        var name = this.core.prompt("Please provide a new keypair name");
         if (name == null) return;
         name = name.trim();
         var me = this;
@@ -102,7 +102,7 @@ var ew_KeypairsTreeView = {
     // they go by name but for ceetificate we need valid user name
     makeKeypair: function(uploadCert, user)
     {
-        var name = prompt("Please provide a new keypair name:", user || "");
+        var name = this.core.prompt("Please provide a new keypair name:", user || "");
         if (name == null) return;
         name = name.trim();
         var me = this;
@@ -254,7 +254,7 @@ var ew_AMIsTreeView = {
     registerNewImage : function()
     {
         var me = this;
-        var value = prompt('AMI Manifest Path:');
+        var value = this.core.prompt('AMI Manifest Path:');
         if (value) {
             var oldextre = new RegExp("\\.manifest$");
             var newextre = new RegExp("\\.manifest\\.xml$");
@@ -730,7 +730,7 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
 
-        var count = prompt("How many more instances of "+instance.id+"?", "1");
+        var count = this.core.prompt("How many more instances of "+instance.id+"?", "1");
         if (!count) return;
         count = parseInt(count.trim());
         if (isNan(count) || count < 0 || count > this.max) {
@@ -797,9 +797,10 @@ var ew_InstancesTreeView = {
         if (!instance) return;
 
         this.core.api.describeInstanceAttribute(instance.id, "userData", function(value) {
-            var text = me.core.promptForText('Instance User Data:', (value ? Base64.decode(value) : ''));
-            if (!text) return;
-            me.core.api.modifyInstanceAttribute(instance.id, 'UserData', Base64.encode(text));
+            var values = me.core.promptInput('View/Change Instance User Data:',
+                                    [{label:'User Data',value:(value ? Base64.decode(value) : ''),multiline:true,rows:10,cols:60}]);
+            if (!values || !values[0]) return;
+            me.core.api.modifyInstanceAttribute(instance.id, 'UserData', Base64.encode(values[0]));
         });
     },
 
@@ -1066,7 +1067,7 @@ var ew_InstancesTreeView = {
         }
 
         if (args.indexOf("${login}") >= 0 && this.core.getStrPrefs("ew.ssh.user") == "") {
-            var login = prompt("Please provide SSH user name:");
+            var login = this.core.prompt("Please provide SSH user name:");
             if (login && login != "") {
                 params.push(["login", login])
             }
@@ -1163,7 +1164,7 @@ var ew_VolumeTreeView = {
         var me = this;
         var image = this.getSelected();
         if (image == null) return;
-        var descr = prompt('Snapshot description (optional):');
+        var descr = this.core.prompt('Snapshot description (optional):');
         this.core.api.createSnapshot(image.id, descr, function() { me.core.refreshModel('snapshots'); });
     },
 

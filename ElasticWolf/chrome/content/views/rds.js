@@ -182,7 +182,7 @@ var ew_DBSecurityGroupsTreeView = {
         var me = this;
         item = this.getSelected();
         if (!item) return;
-        var cidr = prompt("Please enter CIDR:")
+        var cidr = this.core.prompt("Please enter CIDR:")
         if (!cidr) return;
         this.core.api.authorizeDBSecurityGroupIngress(item.name, null, cidr, function() { me.refresh() });
     },
@@ -601,7 +601,7 @@ var ew_DBInstancesTreeView = {
         var check = {value: false};
         var snapshot = null;
         if (!this.core.promptConfirm("Delete DB instance", "Delete " + item.id + "?", "Create final snapshot", check)) return;
-        if (check.value) snapshot = prompt('Please provide name for the final DB snapshot:');
+        if (check.value) snapshot = this.core.prompt('Please provide name for the final DB snapshot:');
         this.core.api.deleteDBInstance(item.id, snapshot, function() { me.refresh(); });
     },
 

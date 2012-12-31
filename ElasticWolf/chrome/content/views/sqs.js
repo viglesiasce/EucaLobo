@@ -38,7 +38,7 @@ var ew_SQSTreeView = {
     {
         var me = this;
 
-        var name = prompt('Create Queue');
+        var name = this.core.prompt('Create Queue');
         if (!name) return;
         this.core.api.createQueue(name, [], function(url) {
             me.core.addModel("queues", new Queue(url));

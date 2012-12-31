@@ -257,13 +257,13 @@
         }
 
         // Optional title
+        var label = document.createElement('label');
+        label.setAttribute('class', 'header');
+        label.setAttribute('control', 'item' + i);
         if (!obj.notitle) {
-            var label = document.createElement('label');
             label.setAttribute('value', title + (obj.required ? "*" : ""));
-            label.setAttribute('class', 'header');
-            label.setAttribute('control', 'item' + i);
-            row.appendChild(label);
         }
+        row.appendChild(label);
 
         // Embed inside the box
         if (!obj.custombox) {

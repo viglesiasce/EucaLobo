@@ -109,7 +109,7 @@
     },
 
     addUser: function(type) {
-        var user = prompt("Please specify user " + type + ":");
+        var user = this.core.prompt("Please specify user " + type + ":");
         if (!user) return;
         switch (type) {
         case "email":

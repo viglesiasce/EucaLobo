@@ -35,7 +35,7 @@
 
     function add(name)
     {
-        if (!name) name = prompt("Please provide an EC2 user ID");
+        if (!name) name = this.core.prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
         this.core.api.addLaunchPermission(image.id, name, function() { me.refresh(); });

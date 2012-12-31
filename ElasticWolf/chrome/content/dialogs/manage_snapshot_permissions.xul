@@ -35,7 +35,7 @@
 
     function add()
     {
-        var name = prompt("Please provide an EC2 user ID");
+        var name = this.core.prompt("Please provide an EC2 user ID");
         if (!name) return;
         var me = this;
         this.core.api.modifySnapshotAttribute(this.image.id, [ [ "UserId", name ]], null, function() { me.refresh(); });

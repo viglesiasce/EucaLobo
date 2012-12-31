@@ -26,7 +26,7 @@
                     </hbox>
                 </row>
                 <row>
-                    <label control="ew.RequireLowerCharacters" value="Require Lowercase Characters:" />
+                    <label control="ew.RequireLowercaseCharacters" value="Require Lowercase Characters:" />
                     <hbox>
                         <checkbox id="ew.RequireLowercaseCharacters" />
                     </hbox>

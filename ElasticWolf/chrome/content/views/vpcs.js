@@ -986,7 +986,7 @@ var ew_VpnConnectionTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var cidr = prompt("Please, provide static between VPN gateway and Customer gateway:")
+        var cidr = this.core.prompt("Please, provide static between VPN gateway and Customer gateway:")
         if (!cidr) return;
         this.core.api.createVpnConnectionRoute(item.id, cidr, function() { me.refresh(); });
     },

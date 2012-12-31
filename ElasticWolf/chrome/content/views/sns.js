@@ -28,7 +28,7 @@ var ew_SNSTopicsTreeView = {
     {
         var me = this;
 
-        var name = prompt('Create Topic');
+        var name = this.core.prompt('Create Topic');
         if (!name) return;
         this.core.api.createTopic(name, function(arn) {
             me.refresh();

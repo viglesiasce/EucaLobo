@@ -176,7 +176,7 @@ var ew_LoadbalancerTreeView = {
     {
         var elb = this.getSelected();
         if (elb == null) return;
-        var name = prompt("Please provide your application cookie name:");
+        var name = this.core.prompt("Please provide your application cookie name:");
         if (!name) return;
         var me = this;
         this.core.api.createAppCookieStickinessPolicy(elb.name, elb.name + "-" + name + "-AppStickinessPolicy", name,function() { me.refresh() });
@@ -186,7 +186,7 @@ var ew_LoadbalancerTreeView = {
     {
         var elb = this.getSelected();
         if (elb == null) return;
-        var period = prompt("Please provide your Cookie Expiration Period in seconds:");
+        var period = this.core.prompt("Please provide your Cookie Expiration Period in seconds:");
         if (!period) return;
         if (!/^[0-9]+$/.test(period)) {
             alert('Cookie expiration period must be long integer.');

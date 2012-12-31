@@ -1101,7 +1101,7 @@ var ew_AccountSummaryView = {
 
     createAlias: function()
     {
-        var name = prompt('Account alias:');
+        var name = this.core.prompt('Account alias:');
         if (!name) return;
         this.core.api.createAccountAlias(name, function() { me.refresh() });
     },
@@ -1270,7 +1270,7 @@ var ew_EndpointsTreeView = {
      },
 
      addEndpoint: function(name, url) {
-         var url = prompt("Enter endpoint URL:");
+         var url = this.core.prompt("Enter endpoint URL:");
          if (!url) return;
          var endpoint = new Endpoint(null, url)
          this.core.addEndpoint(endpoint.name, endpoint);

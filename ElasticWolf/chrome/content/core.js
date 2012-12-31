@@ -455,7 +455,7 @@ var ew_core = {
         }
 
         var me = this;
-        var values = this.promptInput('Create Temp Credentials', inputs);
+        var values = this.promptInput('Create Temporary Credentials', inputs);
         if (!values) return;
         var cred = this.findCredentials(values[0]);
         if (cred && (!cred.expire || cred.expire > (new Date()).getTime())) {
@@ -621,6 +621,12 @@ var ew_core = {
         if (sound) sound.play(uri);
     },
 
+    prompt: function(title, value)
+    {
+        var values = this.promptInput("", [{label:title,value:value,required:1}]);
+        return values ? values[0] : null;
+    },
+
     // Select from the list
     // items are objects to show
     // multiple: if checkbox can be used to selected items
@@ -753,13 +759,6 @@ var ew_core = {
                    descr: "Predefined tags:\n - Name: for primary name" };
         openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=400,height=250', rc);
         return rc.ok ? (rc.text || '').replace(/(\n|\r)+/g, ' ').trim() : null;
-    },
-
-    promptForText: function(title, text, width, height)
-    {
-        var rc = { ok: false, text: text, title: title };
-        openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=' + (width || 400) + ',height=' + (height || 400), rc);
-        return rc.ok ? rc.text : null;
     },
 
     // Use for updating attributes, fields is list of predefined or well known inputs, it must contain propetry name: to match attributes items,

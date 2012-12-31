@@ -194,7 +194,7 @@ var ew_S3BucketsTreeView = {
 
     addExtBucket: function() {
         var me = this;
-        var name = prompt('Enter bucket name to add to the list:');
+        var name = this.core.prompt('Enter bucket name to add to the list:');
         if (!name) return;
         this.core.api.listS3BucketKeys(name, "?max-keys=1", null, {
             success: function(list) {
