@@ -238,6 +238,14 @@
            item.appendChild(document.createTextNode(value));
            break;
 
+        case 'grid':
+        case 'box':
+        case 'hbox':
+        case 'vbox':
+        case 'groupbox':
+           item = document.createElement(type);
+           break;
+
         default:
            item = document.createElement(type);
            item.setAttribute('value', value);

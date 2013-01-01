@@ -7,7 +7,7 @@
     <groupbox orient="vertical" flex="1">
       <caption label="&ew.captions.secgroups.groups.label;" />
       <popupset>
-        <menupopup id="ew.secgroups.contextmenu">
+        <menupopup id="ew.securityGroups.contextmenu">
           <menuitem oncommand="ew_SecurityGroupsTreeView.displayDetails();" label="View Details" />
           <menuitem oncommand="ew_PermissionsTreeView.grantPermission();" label="Grant New Permission" />
           <menuseparator />
@@ -21,7 +21,7 @@
           <toolbarbutton image="images/delete.png" tooltiptext="&ew.secgroups.delete.tip;" oncommand="ew_SecurityGroupsTreeView.deleteSelected();" />
           <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SecurityGroupsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
       </toolbar>
-      <tree id="ew.securitygroups.view" seltype="single" enableColumnDrag="true" flex="1">
+      <tree id="ew.securityGroups.view" seltype="single" enableColumnDrag="true" flex="1">
         <treecols>
           <treecol id="securitygroup.name" label="Name" flex="2" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
@@ -35,12 +35,12 @@
           <splitter class="tree-splitter" />
           <treecol id="securitygroup.description" label="&ew.description.label;" flex="3" persist="width ordinal hidden sortDirection" />
         </treecols>
-        <treechildren context="ew.secgroups.contextmenu" />
+        <treechildren context="ew.securityGroups.contextmenu" />
       </tree>
     </groupbox>
 
     <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
-       
+
      </splitter>
 
     <groupbox orient="vertical" flex="1">

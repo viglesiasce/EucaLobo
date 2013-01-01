@@ -297,9 +297,7 @@ var ew_GraphsView = {
     {
         var me = this;
         var page = $('ew.graphs.page');
-        while (page.firstChild) {
-            page.removeChild(page.firstChild);
-        }
+        clearElement(page)
 
         this.metrics = [];
         this.dimensions = this.core.parseTags(value);

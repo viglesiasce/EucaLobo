@@ -171,6 +171,10 @@ toolbarbutton {
     -moz-user-focus: normal;
 }
 
+listbox {
+    -moz-user-focus: normal;
+}
+
 .menu {
     min-width: 180px;
 }

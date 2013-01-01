@@ -7,7 +7,7 @@
     <groupbox orient="vertical" flex="1" >
       <caption label="&ew.captions.loadbalancer.label;" />
        <popupset >
-          <menupopup id="ew.loadbalancer.contextmenu"  onpopupshowing="ew_LoadbalancerTreeView.menuChanged(event);">
+          <menupopup id="ew.loadBalancers.contextmenu"  onpopupshowing="ew_LoadbalancerTreeView.menuChanged(event);">
               <menuitem oncommand="ew_LoadbalancerTreeView.displayDetails(event);" label="&ew.loadbalancer.contextmenu.viewdetails.label;" />
               <menuitem oncommand="ew_LoadbalancerTreeView.create(event);" label="&ew.create.loadbalancer.tip;" />
               <menuitem oncommand="ew_LoadbalancerTreeView.deleteLoadBalancer(event);" label="&ew.loadbalancer.contextmenu.delete.label;" />
@@ -37,7 +37,7 @@
         <toolbarbutton image="images/delete.png" tooltiptext="&ew.loadbalancer.contextmenu.delete.label;" oncommand="ew_LoadbalancerTreeView.deleteLoadBalancer();" />
         <toolbarbutton image="images/details.png" tooltiptext="&ew.loadbalancer.contextmenu.viewdetails.label;" oncommand="ew_LoadbalancerTreeView.displayDetails();" />
       </toolbar>
-      <tree enableColumnDrag="true" id="ew.loadbalancer.view" flex="1" >
+      <tree enableColumnDrag="true" id="ew.loadBalancers.view" flex="1" >
         <treecols>
           <treecol id="loadbalancer.name" label="&ew.loadbalancer.name.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
@@ -58,13 +58,15 @@
           <treecol id="loadbalancer.securityGroups" label="Groups" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
           <splitter class="tree-splitter" />
          </treecols>
-        <treechildren id="loadbalancer.tree.children" context="ew.loadbalancer.contextmenu" />
+        <treechildren context="ew.loadBalancers.contextmenu" />
       </tree>
     </groupbox>
-      <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest"></splitter>
-      <groupbox orient="vertical" flex="1">
+
+    <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest"></splitter>
+
+    <groupbox orient="vertical" flex="1">
         <caption label="&ew.captions.InstanceHealth.label;" />
-        <tree id="ew.instancehealth.view" seltype="single" enableColumnDrag="true" flex="1">
+        <tree id="ew.instanceHealth.view" seltype="single" enableColumnDrag="true" flex="1">
           <treecols>
             <treecol id="InstanceHealth.InstanceName" label="Instance Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
             <splitter class="tree-splitter" />
@@ -76,7 +78,7 @@
             <splitter class="tree-splitter" />
             <treecol id="InstanceHealth.ReasonCode" label="&ew.InstanceHealth.ReasonCode.label;" flex="1" persist="width ordinal hidden sortDirection" />
           </treecols>
-          <treechildren context="ew.InstanceHealth.contextmenu"/>
+          <treechildren context="ew.instanceHealth.contextmenu"/>
         </tree>
       </groupbox>
     </vbox>

@@ -138,10 +138,10 @@
 
             { name: "ew.tabs.roles",        views: [ { id: "ew.roles.view", view: ew_RolesTreeView, }, ] },
 
-            { name: "ew.tabs.securitygroup", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: true }] },
+            { name: "ew.tabs.securitygroup", views: [ { id: "ew.securityGroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: true }] },
                                                       { id: "ew.permissions.view", view: ew_PermissionsTreeView }], },
 
-            { name: "ew.tabs.securitygroup.vpc", views: [ { id: "ew.securitygroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: false }] },
+            { name: "ew.tabs.securitygroup.vpc", views: [ { id: "ew.securityGroups.view", view: ew_SecurityGroupsTreeView, filterList: [ { name: "vpcId", empty: false }] },
                                                       { id: "ew.permissions.view", view: ew_PermissionsTreeView }],
               owner: "ew.tabs.securitygroup" },
 
@@ -154,11 +154,11 @@
 
             { name: "ew.tabs.snapshot",      views: [ { id: "ew.snapshots.view", view: ew_SnapshotTreeView }], },
 
-            { name: "ew.tabs.loadbalancer",  views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: true }] },
-                                                      { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }], },
+            { name: "ew.tabs.loadbalancer",  views: [ { id: "ew.loadBalancers.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: true }] },
+                                                      { id: "ew.instanceHealth.view", view: ew_InstanceHealthTreeView }], },
 
-            { name: "ew.tabs.loadbalancer.vpc", views: [ { id: "ew.loadbalancer.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: false }] },
-                                                         { id: "ew.instancehealth.view", view: ew_InstanceHealthTreeView }],
+            { name: "ew.tabs.loadbalancer.vpc", views: [ { id: "ew.loadBalancers.view", view: ew_LoadbalancerTreeView, filterList: [ { name: "vpcId", empty: false }] },
+                                                         { id: "ew.instanceHealth.view", view: ew_InstanceHealthTreeView }],
               owner: "ew.tabs.loadbalancer"  },
 
             { name: "ew.tabs.bundletask",    views: [ { id: "ew.bundleTasks.view", view: ew_BundleTasksTreeView } ], },
@@ -183,7 +183,7 @@
                                                      { id: "ew.routes.view", view: ew_RoutesTreeView },
                                                      { id: "ew.route.associations.view", view: ew_RouteAssociationsTreeView }, ], },
 
-            { name: "ew.tabs.igw",           views: [ { id: "ew.internetgateways.view", view : ew_InternetGatewayTreeView } ], },
+            { name: "ew.tabs.igw",           views: [ { id: "ew.internetGateways.view", view : ew_InternetGatewayTreeView } ], },
 
             { name: "ew.tabs.acl",           views: [ { id: "ew.acls.view", view: ew_NetworkAclsTreeView } ,
                                                      { id: "ew.acls.associations.view", view: ew_NetworkAclAssociationsTreeView },

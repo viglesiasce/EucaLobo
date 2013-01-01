@@ -271,6 +271,7 @@ var ew_LoadbalancerTreeView = {
 };
 
 var ew_InstanceHealthTreeView = {
+    name: "instanceHealth",
 };
 
 var ew_AvailZoneTreeView = {

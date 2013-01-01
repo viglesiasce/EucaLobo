@@ -15,7 +15,7 @@
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_PlacementGroupsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_PlacementGroupsTreeView.create();" tooltiptext="Create Group" />
-                    <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_PlacementGroupsTreeView.destroy();" tooltiptext="Deleet Group" />
+                    <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_PlacementGroupsTreeView.destroy();" tooltiptext="Delete Group" />
                 </toolbar>
                 <tree id="ew.placementGroups.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
