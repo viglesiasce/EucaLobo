@@ -1270,10 +1270,10 @@ var ew_EndpointsTreeView = {
      },
 
      addEndpoint: function(name, url) {
-         var url = this.core.prompt("Enter endpoint URL:");
-         if (!url) return;
-         var endpoint = new Endpoint(null, url)
-         this.core.addEndpoint(endpoint.name, endpoint);
+         var values = this.core.promptInput("Endpoint:", [ {label:"URL",type:'url',required:1}, {label:"Name:",type:'name'}]);
+         if (!values) return;
+         var endpoint = new Endpoint(values[1], values[0]);
+         this.core.addEndpoint(endpoint.name, endpoint.url);
          this.refresh();
      },
 

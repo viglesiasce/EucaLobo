@@ -1628,7 +1628,7 @@ function Endpoint(name, url)
     }
 
     this.toString = function() {
-        return this.name;
+        return this.name + fieldSeparator + this.url;
     }
 }
 

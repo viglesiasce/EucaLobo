@@ -205,6 +205,7 @@
 
         case 'cidr':
         case 'ip':
+        case 'url':
         case 'email':
         case 'textbox':
            item = document.createElement('textbox');
@@ -407,6 +408,14 @@
              rc.values[i] = obj.value;
              if (obj.value && !/^[\.0-9a-zA-Z_\(\),\/-]{3,128}$/.test(obj.value)) {
                  alert("The name is not formatted properly; it must be 3-128 characters in length containing alphanumerics, parantheses, commas, slashes, dashes, and underscores.");
+                 return false;
+             }
+             break;
+
+          case 'url':
+             rc.values[i] = obj.value;
+             if (obj.value && !/^https?:\/\/[0-9a-zA-Z-_\.]+$/.test(obj.value)) {
+                 alert("The URL is not formatted properly");
                  return false;
              }
              break;

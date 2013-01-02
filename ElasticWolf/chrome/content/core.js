@@ -535,7 +535,7 @@ var ew_core = {
     {
         if (this.endpoints) {
             if (this.getEndpoint(name)) return;
-            this.endpoints.push(new Endpoint(name, url))
+            this.endpoints.push(new Endpoint(name, url));
             this.setListPrefs("ew.endpoints", this.endpoints);
         }
     },
@@ -567,7 +567,7 @@ var ew_core = {
             // Merge with added endpoints
             var list = this.getListPrefs("ew.endpoints");
             for (var i in list) {
-                if (list[i] && list[i].name && list[i].url && me.getEndpoint(regions[i].name) == null) {
+                if (list[i] && list[i].name && list[i].url && this.getEndpoint(list[i].name) == null) {
                     this.endpoints.push(new Endpoint(list[i].name, list[i].url));
                 }
             }
