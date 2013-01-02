@@ -649,15 +649,14 @@ var ListBox = {
         if (!this.name) return;
         this.listbox = $(this.name);
         if (!this.listbox) return;
-        while (this.listbox.firstChild) {
-            this.listbox.removeChild(this.listbox.firstChild);
-        }
+        clearElement(this.listbox);
         if (this.width) this.listbox.width = this.width;
         this.listbox.setAttribute('rows', this.rows || 10);
         this.listbox.onclick = null;
 
         var list = this.listbox;
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
+        (function(v) { var me = v; list.addEventListener('keydown', function(e) { return me.onKeydown(e); }, false); }(this));
 
         var head = document.createElement('listhead');
         head.setAttribute('flex', '1');
@@ -752,6 +751,18 @@ var ListBox = {
         if (this.onclick) setTimeout(function() {self.onclick.call(self, self.items[self.listbox.currentIndex], checked)}, 10);
     },
 
+    onKeydown: function(event)
+    {
+        switch (event.keyCode) {
+        case 32:
+            this.selectionChanged();
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    },
+
     // Convert object into plain text to be used by list box
     toItem: function(obj)
     {
@@ -759,7 +770,7 @@ var ListBox = {
     },
 };
 
-//Create new instance of the list box
+// Create new instance of the list box
 function ListView(params)
 {
     this.init(params);

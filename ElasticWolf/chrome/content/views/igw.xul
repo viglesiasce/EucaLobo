@@ -7,7 +7,7 @@
             <groupbox flex="1" orient="vertical">
                 <caption label="&ew.captions.internetgateways.label;" />
                 <popupset>
-                    <menupopup id="ew.internetgateways.contextmenu">
+                    <menupopup id="ew.internetGateways.contextmenu">
                         <menuitem oncommand="ew_InternetGatewayTreeView.create();" label="&ew.internetgateways.add.tip;" />
                         <menuitem oncommand="ew_InternetGatewayTreeView.destroy();" label="&ew.internetgateways.remove.tip;" />
                         <menuitem oncommand="ew_InternetGatewayTreeView.attach();" label="&ew.internetgateways.attach.tip;" />
@@ -22,7 +22,7 @@
                     <toolbarbutton image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.detach();" tooltiptext="&ew.internetgateways.detach.tip;" />
                     <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InternetGatewayTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                 </toolbar>
-                <tree id="ew.internetgateways.view" seltype="single" enableColumnDrag="true" flex="1">
+                <tree id="ew.internetGateways.view" seltype="single" enableColumnDrag="true" flex="1">
                     <treecols>
                         <treecol id="igw.Name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
                         <splitter class="tree-splitter" />
@@ -30,7 +30,7 @@
                         <splitter class="tree-splitter" />
                         <treecol id="igw.vpcId" label="VPC" flex="1" persist="width ordinal hidden sortDirection" />
                     </treecols>
-                    <treechildren context="ew.internetgateways.contextmenu" />
+                    <treechildren context="ew.internetGateways.contextmenu" />
                 </tree>
             </groupbox>
     </vbox>

@@ -294,7 +294,7 @@
 
         var subnet = this.core.findModel('subnets', $("ew.eniSubnet").value);
         if (!subnet) return;
-        this.eniListView.init({ core:this.core, name:'ew.eniGroups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId) });
+        this.eniListView.init({ core:this.core, name:'ew.eniGroups', title:'Groups', items:this.core.queryModel('securityGroups', 'vpcId', subnet.vpcId) });
     }
 
     function vpcSelected()
@@ -330,7 +330,7 @@
         groups.setAttribute('flex', '1');
         box.appendChild(groups);
 
-        ListBox.init({ core:this.core, name:'ew.groups', title:'Security Groups', items:this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value) });
+        ListBox.init({ core:this.core, name:'ew.groups', title:'Groups', items:this.core.queryModel('securityGroups', 'vpcId', this.vpcMenu.value) });
     }
 
     function loadUserDataFromFile(fBinary)
@@ -613,6 +613,7 @@
 
         <groupbox flex="1" id="ew.groups.box">
           <caption label="&ew.captions.images.launchsecgroups.label;" />
+          <label control="ew.groups" value="Security Groups:" />
         </groupbox>
         </vbox>
         </tabpanel>

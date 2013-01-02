@@ -531,6 +531,23 @@ function getProperty(key)
     }
 }
 
+function makeElement()
+{
+    var obj = document.createElement(arguments[0]);
+    for (var i = 1; i < arguments.length; i += 2) {
+        obj.setAttribute(arguments[i], arguments[i + 1]);
+    }
+    return obj;
+}
+
+function clearElement(obj)
+{
+    if (!obj) return;;
+    while (obj.firstChild) {
+        obj.removeChild(obj.firstChild);
+    }
+}
+
 function clearListbox(list)
 {
     for (var i = list.itemCount - 1; i >= 0; i--) {

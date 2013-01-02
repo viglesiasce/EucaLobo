@@ -70,10 +70,10 @@
             <toolbarbutton label="Scan" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.scan();" tooltiptext="Scan Table" />
             <toolbarbutton label="Next" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.nextPage();" tooltiptext="Next Page" />
             <toolbarseparator/>
-            <label control="ew..search" value="Hash Key:"/>
+            <label control="ew.ddb.items.key" value="Hash:"/>
             <textbox id="ew.ddb.items.key" size="10" />
-            <label control="ew.ddb.items.op" value="Range Key:"/>
-            <menulist id="ew.ddb.items.op">
+            <label control="ew.ddb.items.op" value="Range:"/>
+            <menulist id="ew.ddb.items.op" style="width:80px" sizetopopup="none" crop="end">
             <menupopup>
               <menuitem label="EQ" value="eq" selected="true"/>
               <menuitem label="LE" value="le" />
@@ -84,16 +84,16 @@
               <menuitem label="BETWEEN" value="between"/>
             </menupopup>
             </menulist>
-            <label control="ew.ddb.items.range1" value=""/>
-            <textbox id="ew.ddb.items.range1" size="10" /> :
-            <label control="ew.ddb.items.range2" value=""/>
+            <label control="ew.ddb.items.range1" value="Start:"/>
+            <textbox id="ew.ddb.items.range1" size="10" />
+            <label control="ew.ddb.items.range2" value="End:"/>
             <textbox id="ew.ddb.items.range2" size="10" />
             <toolbarbutton label="Query" style="-moz-box-pack:center;-moz-appearance:button;" oncommand="ew_DDBItemsTreeView.query();" tooltiptext="Query Table" />
             <toolbarseparator/>
-            Limit:
+            <label control="ew.ddb.items.limit" value="Limit:"/>
             <menulist id="ew.ddb.items.limit">
             <menupopup>
-              <menuitem label="25" value="25"   selected="true"/>
+              <menuitem label="25" value="25" selected="true"/>
               <menuitem label="50" value="50" />
               <menuitem label="100" value="100" />
               <menuitem label="250" value="250"/>
@@ -109,7 +109,7 @@
               <treecol id="ddb._rangeKey" label="Range Key" flex="1" persist="width ordinal hidden sortDirection" />
               <splitter class="tree-splitter" />
             </treecols>
-            <treechildren id="ew.ddb.items.children" context="ew.ddb.items.contextmenu" />
+            <treechildren context="ew.ddb.items.contextmenu" />
           </tree>
         </groupbox>
     </vbox>
