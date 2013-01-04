@@ -62,8 +62,8 @@
                 return false;
             }
             var now = (new Date()).getTime() - 86400000;
-            if (this.retVal.validFrom.getTime() < now) this.retVal.validFrom = null;
-            if (this.retVal.validUntil.getTime() < now) this.retVal.validUntil = null;
+            if (isNaN(this.retVal.validFrom) || this.retVal.validFrom.getTime() < now) this.retVal.validFrom = null;
+            if (isNaN(this.retVal.validUntil) || this.retVal.validUntil.getTime() < now) this.retVal.validUntil = null;
             if (this.retVal.validFrom && this.retVal.validUntil && this.retVal.validUntil.getTime() < this.retVal.validFrom.getTime()) {
                 alert('Invalid date range specified for the Spot Request');
                 $("ew.tabs").selectedIndex = 6;
@@ -828,11 +828,11 @@
                 </row>
                 <row>
                     <label control="ew.validFrom" value="Valid From:" />
-                    <datepicker id="ew.validFrom" type="popup" value="2000-01-01" tooltiptext="The start date of the request. If this is a one-time request, the request becomes active at this date and time and remains active until all instances launch, the request expires, or the request is canceled. If the request is persistent, the request becomes active at this date and time and remains active until it expires or is canceled. Dates from the past are ignored" />
+                    <textbox id="ew.validFrom" type="popup" value="" tooltiptext="The start date of the request in the form: YYYY-MM-DD. If this is a one-time request, the request becomes active at this date and time and remains active until all instances launch, the request expires, or the request is canceled. If the request is persistent, the request becomes active at this date and time and remains active until it expires or is canceled. Dates from the past are ignored" />
                 </row>
                 <row>
                     <label control="ew.validUntil" value="Valid Until:" />
-                    <datepicker id="ew.validUntil" type="popup" value="2000-01-01" tooltiptext="The end date of the request. If this is a one-time request, the request remains active until all instances launch, the request is canceled, or this date is reached. If the request is persistent, it remains active until it is canceled or this date and time is reached. Dates from the past are ignored" />
+                    <textbox id="ew.validUntil" type="popup" value="" tooltiptext="The end date of the request in the form YYYY-MM-DD. If this is a one-time request, the request remains active until all instances launch, the request is canceled, or this date is reached. If the request is persistent, it remains active until it is canceled or this date and time is reached. Dates from the past are ignored" />
                 </row>
                 <row>
                     <label control="ew.launchGroup" value="Launch Group:" />
