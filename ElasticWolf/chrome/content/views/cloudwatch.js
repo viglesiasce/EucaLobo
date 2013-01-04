@@ -312,11 +312,15 @@ var ew_GraphsView = {
                     hbox.setAttribute('style', 'padding:5px;');
                     page.appendChild(hbox);
                 }
+                vbox = document.createElement('vbox');
+                vbox.appendChild(makeElement('label', 'control', 'ew.graphs.' + list[i].name, 'value', list[i].name));
                 var canvas = makeCanvas(me.core);
                 canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
                 canvas.setAttribute('width', '280');
                 canvas.setAttribute('height', '240');
-                hbox.appendChild(canvas);
+                vbox.appendChild(canvas);
+                hbox.appendChild(vbox);
+
                 var spacer = document.createElement('spacer');
                 spacer.setAttribute('width', '25px');
                 hbox.appendChild(spacer);
@@ -346,7 +350,8 @@ var ew_GraphsView = {
 
         this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, this.dimensions, function(list) {
             if (!list) list = [];
-            graph = new Graph(name + " : " + (list.length ? list[0].unit : "None"), id, "line", me.core);
+            graph = new Graph((list.length ? list[0].unit : "None"), id, "line", me.core);
+            graph.options.xlabel = 'Time';
             for (var i = 0; i < list.length; i++) {
                 graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
             }

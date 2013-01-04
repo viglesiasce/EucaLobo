@@ -17,6 +17,8 @@
     $('ew.statistics').value = this.rc.statistics;
     $('ew.period').value = this.rc.period;
     $('ew.interval').value = this.rc.interval;
+    $('box').appendChild(makeElement('label', 'control', 'canvas', 'value', rc.name));
+
     canvas = makeCanvas(this.rc.core);
     canvas.setAttribute('id', 'canvas');
     canvas.setAttribute('width', '600');
@@ -86,6 +88,6 @@
     </menulist>
     <toolbarbutton image="../images/chart.png" oncommand="show(rc);" tooltiptext="Show metric graph" />
  </hbox>
- <box id="box" flex="1"></box>
+ <vbox id="box" flex="1"></vbox>
 </vbox>
 </window>
