@@ -1326,7 +1326,7 @@ function Series(name, color)
     this.points = new Array();
 }
 
-function Graph(title, element, type)
+function Graph(title, element, type, core)
 {
     this.options = { type : "line",
                      barOverlap : false,
@@ -1338,6 +1338,7 @@ function Graph(title, element, type)
                      hfinish : "auto",
                      title : "",
                      xlabel : "",
+                     ylabel: "",
                      fillColor : "",
                      seriesColor: ["blue", "red", "green", "brown"],
                      canvasName : null,
@@ -1355,6 +1356,7 @@ function Graph(title, element, type)
     this.options.title = title;
     this.options.canvasName = element;
     this.options.type = type;
+    this.core = core;
 
     this.reset = function()
     {
@@ -1457,6 +1459,36 @@ function Graph(title, element, type)
     this.draw = function()
     {
         var canvas = document.getElementById(this.options.canvasName);
+        // Default Y axis label for the single series
+        if (this.options.ylabel && this.series.length && !this.series[0].name) this.series[0].name = this.options.ylabel;
+
+        // Show table with data points in accessibility mode
+        if (this.core.getBoolPrefs("ew.accessibility", false)) {
+            clearElement(canvas);
+            if (!this.series.length) return;
+            var series = this.series[0];
+
+            var head = makeElement('listhead');
+            canvas.appendChild(head);
+            var cols = makeElement('listcols');
+            canvas.appendChild(cols);
+            head.appendChild(makeElement('listheader', 'label', this.options.xlabel));
+            head.appendChild(makeElement('listheader', 'label', series.name || this.options.title));
+            cols.appendChild(makeElement('listcol', 'flex', '2'));
+            cols.appendChild(makeElement('listcol', 'flex', '1'));
+
+            for (var i = 0; i < series.points.length; i++) {
+                var p = series.points[i];
+                var row = makeElement('listitem', 'title', p.label + ":" + p.y);
+                var cell = makeElement('listcell', 'label', p.label, 'crop', 'end');
+                row.appendChild(cell);
+                cell = makeElement('listcell', 'label', p.y, 'crop', 'end');
+                row.appendChild(cell);
+                canvas.appendChild(row);
+            }
+            return;
+        }
+
         canvas.setAttribute("alt", this.options.title);
         canvas.setAttribute("tooltiptext", this.options.title);
         var ctx = canvas.getContext('2d');
@@ -2520,25 +2552,6 @@ function LoadBalancerHealthCheck(Target, Interval, Timeout, HealthyThreshold, Un
 
     this.toString = function() {
         return this.Target + fieldSeparator + this.Interval + "/" + this.Timeout + fieldSeparator + this.HealthyThreshold + "/" + this.UnhealthyThreshold;
-    }
-}
-
-function Metric(name, namespace, dims)
-{
-    this.name = name
-    this.namespace = namespace
-    this.dimensions = dims || [];
-    this.info = "";
-
-    this.update = function () {
-        if (this.dimensions.length == 1 && this.info == "") {
-            this.info = ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true);
-            if (this.info == this.dimensions) this.info = "";
-        }
-    }
-
-    this.toString = function() {
-        return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");
     }
 }
 

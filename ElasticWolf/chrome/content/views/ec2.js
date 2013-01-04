@@ -1866,35 +1866,22 @@ var ew_SpotInstanceRequestsTreeView = {
         var me = this;
         function onchange(idx, onstart) {
             var input = this;
-            if (!(onstart && idx == 6 || !onstart) || idx == 5) return;
+            if (!(onstart && idx == 4 || !onstart)) return;
             debug('onchange:' + idx + ":" + onstart);
             var end = this.rc.items[2].obj.value ? new Date() : null;
             var start = this.rc.items[2].obj.value ? new Date(end.getTime() - this.rc.items[2].obj.value * 86400 * 1000) : null;
 
             me.core.api.describeSpotPriceHistory(start ? start.toISOString() : null, end ? end.toISOString() : null, this.rc.items[0].obj.value, this.rc.items[1].obj.value, this.rc.items[3].obj.value, function(list) {
-                if (input.rc.items[4].obj.checked) {
-                    var items = list.map(function(x) { return new Element('name', x.date.strftime('%Y-%m-%d'), 'data', x); });
-                    me.core.sortObjects(items, 'name', true);
-                    input.rc.items[6].obj.height = 1;
-                    input.rc.items[5].obj.height = 350;
-                    clearListbox(input.rc.items[5].obj);
-                    buildListbox(input.rc.items[5].obj, items, 'data');
-                } else {
-                    var items = list.map(function(x) { return new Tag(x.date.strftime('%Y-%m-%d'), x.price); });
-                    me.core.sortObjects(items, 'name', true);
-                    input.rc.items[5].obj.height = 1;
-                    input.rc.items[6].obj.height = 350;
-                    input.graph(6, items);
-                }
+                var items = list.map(function(x) { return new Tag(x.date.strftime('%Y-%m-%d'), x.price); });
+                me.core.sortObjects(items, 'name', true);
+                input.graph(4, items);
             });
         }
         this.core.promptInput('Spot Price History', [{label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",sizetopopup:"none"},
                                                      {label:"Product",type:"menulist",list:['Linux/UNIX', 'SUSE Linux', 'Windows', 'Linux/UNIX (Amazon VPC)', 'SUSE Linux (Amazon VPC)', 'Windows (Amazon VPC)']},
                                                      {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
                                                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
-                                                     {label:"Format",type:"checkbox",tooltiptext:"Show in tabular format"},
-                                                     {label:"History Table",type:"listbox",height:1,width:500,flex:1},
-                                                     {label:"Price History Graph",type:"graph",width:550,height:350,list:[]},
+                                                     {label:"Price History Graph",type:"graph",width:550,height:350,list:[],xlabel:'Date',ylabel:'Price'},
                                                      ], {onchange:onchange})
     },
 

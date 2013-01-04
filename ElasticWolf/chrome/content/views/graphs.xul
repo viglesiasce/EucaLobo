@@ -7,7 +7,9 @@
   <groupbox orient="vertical" flex="1" >
    <caption id="ew.graphs.title" label="Cloud Watch Graphs" />
    <toolbar style="padding: 0px 3px; -moz-box-align: center">
+    <label control="ew.graphs.dimensions" value="Dimensions:"/>
     <menulist id="ew.graphs.dimensions" style="max-width:200px;" crop="end" sizetopopup="none" oncommand="ew_GraphsView.onChange()"/>
+    <label control="ew.graphs.statistics" value="Stats:" />
     <menulist id="ew.graphs.statistics" >
       <menupopup>
         <menuitem label="Average" value="Average" />
@@ -17,6 +19,7 @@
         <menuitem label="Minimum" value="Minimum"/>
       </menupopup>
     </menulist>
+    <label control="ew.graphs.period" value="Period:" />
     <menulist id="ew.graphs.period">
       <menupopup>
         <menuitem label="1 Minute Periods" value="60"/>
@@ -27,6 +30,7 @@
         <menuitem label="1 Day Periods" value="86400"/>
       </menupopup>
     </menulist>
+    <label control="ew.graphs.interval" value="Interval:" />
     <menulist id="ew.graphs.interval">
       <menupopup>
         <menuitem label="15 Minutes ago" value="900" />

@@ -86,6 +86,10 @@
                    <label value=" "/>
                 </row>
                 <row>
+                    <label control="ew.accessibility" value="Accessibility Mode" tooltiptext="Enable accessibility mode to use alternative outputs for graphs" />
+                    <checkbox id="ew.accessibility" />
+                </row>
+                <row>
                     <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will make the console filled with debugging messages" />
                     <checkbox id="ew.debug.enabled" />
                 </row>

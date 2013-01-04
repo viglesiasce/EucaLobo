@@ -849,6 +849,7 @@ var ew_api = {
         if (id && response.responseXML) {
             response.result = getNodeValue(response.responseXML, id);
         }
+        return response.result;
     },
 
     // Common response callback when there is no need to parse result but only to call user callback
@@ -865,11 +866,13 @@ var ew_api = {
         if (response.json) {
             response.result = response.json;
         }
+        return response.result;
     },
 
     onCompleteResponseText : function(response, id)
     {
         response.result = response.responseText.trim();
+        return response.result;
     },
 
     // Iterate through all pages while NextToken is present, collect all items in the model
@@ -930,7 +933,6 @@ var ew_api = {
                                 var val = getNodeValue(items[i], columns[j]);
                                 if (val) obj[columns[j]] = val;
                             }
-                            list.push(callback ? callback(obj) : obj);
                         } else {
                             // Empty columns means take all tags
                             var props = items[i].childNodes;
@@ -4815,10 +4817,22 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "Metrics", "member");
         for ( var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "MetricName");
-            var nm = getNodeValue(items[i], "Namespace");
-            var dims = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
-            list.push(new Metric(name, nm, dims));
+            var metric = new Element("info", "");
+            metric.update = function () {
+                if (this.dimensions.length == 1 && !this.info) {
+                    this.info = ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true);
+                    if (this.info == this.dimensions) this.info = "";
+                }
+            }
+
+            metric.toString = function() {
+                return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");
+            }
+
+            metric.name = getNodeValue(items[i], "MetricName");
+            metric.namespace = getNodeValue(items[i], "Namespace");
+            metric.dimensions = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
+            list.push(metric);
         }
         this.getNext(response, this.queryCloudWatch, list);
     },

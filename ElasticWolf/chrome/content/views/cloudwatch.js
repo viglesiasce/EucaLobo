@@ -8,7 +8,6 @@ var ew_MetricsTreeView = {
 
     menuChanged : function(event)
     {
-        var item = this.getSelected();
     },
 
     activate: function()
@@ -307,16 +306,14 @@ var ew_GraphsView = {
         var page = $('ew.graphs.page');
         this.core.api.listMetrics(null, null, this.dimensions, function(list) {
             me.metrics = list;
-            debug(list)
             for (var i = 0; i < list.length; i++) {
                 if (i % 3 == 0) {
                     hbox = document.createElement('hbox');
                     hbox.setAttribute('style', 'padding:5px;');
                     page.appendChild(hbox);
                 }
-                var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+                var canvas = makeCanvas(me.core);
                 canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
-                canvas.setAttribute('class', 'graph');
                 canvas.setAttribute('width', '280');
                 canvas.setAttribute('height', '240');
                 hbox.appendChild(canvas);
@@ -338,6 +335,7 @@ var ew_GraphsView = {
     // Render graph into canvas by id for specific metric and dimensions
     render: function(name, namespace)
     {
+        var me = this;
         var id = 'ew.graphs.' + name;
         if (!$(id)) return;
         var statistics = $('ew.graphs.statistics').value;
@@ -348,7 +346,7 @@ var ew_GraphsView = {
 
         this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, this.dimensions, function(list) {
             if (!list) list = [];
-            graph = new Graph(name + " : " + (list.length ? list[0].unit : "None"), id, "line");
+            graph = new Graph(name + " : " + (list.length ? list[0].unit : "None"), id, "line", me.core);
             for (var i = 0; i < list.length; i++) {
                 graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
             }

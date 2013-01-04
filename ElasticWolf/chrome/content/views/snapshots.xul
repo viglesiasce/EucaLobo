@@ -22,7 +22,7 @@
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                    <hbox flex="10">
+                    <hbox flex="10" align="center">
                         <label control="ew.snapshots.search" value="Search:"/>
                         <textbox id="ew.snapshots.search" size="15" />
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
@@ -30,6 +30,7 @@
                         <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.deleteSnapshot()" tooltiptext="&ew.deletesnap.tip;" />
                         <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                         <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
+                        <label control="ew.snapshots.type" value="Type:" />
                         <menulist id="ew.snapshots.type" selectedIndex="0" oncommand="ew_SnapshotTreeView.snapshotTypeChanged();">
                             <menupopup>
                                 <menuitem label="My Snapshots" value="my_snapshots" />
@@ -37,7 +38,8 @@
                             </menupopup>
                         </menulist>
                         <toolbarseparator />
-                        <checkbox id="ew.snapshots.noami" label="Hide AMI Snapshot" checked="false" oncommand="ew_SnapshotTreeView.invalidate();" />
+                        <label control="ew.snapshots.noami" value="Hide AMI Snapshot:" />
+                        <checkbox id="ew.snapshots.noami" checked="false" oncommand="ew_SnapshotTreeView.invalidate();" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.snapshots.view" seltype="single" enableColumnDrag="true" flex="1">

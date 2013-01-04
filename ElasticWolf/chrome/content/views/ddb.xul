@@ -62,7 +62,7 @@
           </popupset>
 
           <toolbar style="padding: 0px 3px; -moz-box-align: center">
-           <hbox flex="2">
+           <hbox flex="2" align="center">
             <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.addItem();" tooltiptext="Add Item" />
             <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.putItem();" tooltiptext="Edit Item" />
             <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_DDBItemsTreeView.deleteSelected();" tooltiptext="Delete Item" />

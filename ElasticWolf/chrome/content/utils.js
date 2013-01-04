@@ -540,6 +540,18 @@ function makeElement()
     return obj;
 }
 
+function makeCanvas(core)
+{
+    if (core.getBoolPrefs("ew.accessibility", false)) {
+        var canvas = makeElement('listbox');
+        return canvas;
+    } else {
+        var canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+        canvas.setAttribute('class', 'graph');
+        return canvas;
+    }
+}
+
 function clearElement(obj)
 {
     if (!obj) return;;

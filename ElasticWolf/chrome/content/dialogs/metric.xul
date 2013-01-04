@@ -17,12 +17,17 @@
     $('ew.statistics').value = this.rc.statistics;
     $('ew.period').value = this.rc.period;
     $('ew.interval').value = this.rc.interval;
+    canvas = makeCanvas(this.rc.core);
+    canvas.setAttribute('id', 'canvas');
+    canvas.setAttribute('width', '600');
+    canvas.setAttribute('height', '400');
+    $('box').appendChild(canvas);
     show(this.rc);
   }
 
   function render(rc, list) {
     if (!list || !list.length) return;
-    graph = new Graph(rc.name + " : " + list[0].unit, "canvas", "line");
+    graph = new Graph(rc.name + " : " + list[0].unit, "canvas", "line", rc.core);
     graph.options.xlabel = 'Timeframe: ' + rc.start.strftime('%Y-%m-%d %H:%M') + " to " + rc.end.strftime('%Y-%m-%d %H:%M');
     for (var i = 0; i < list.length; i++) {
         graph.addPoint(i, list[i].value, list[i].timestamp.strftime(rc.interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));
@@ -44,6 +49,7 @@
 </script>
 <vbox flex="1">
  <hbox pack="center">
+    <label control="ew.statistics" value="Stats:" />
     <menulist id="ew.statistics" >
       <menupopup>
         <menuitem label="Average" value="Average" />
@@ -53,6 +59,7 @@
         <menuitem label="Minimum" value="Minimum"/>
       </menupopup>
     </menulist>
+    <label control="ew.period" value="Period:" />
     <menulist id="ew.period">
       <menupopup>
         <menuitem label="1 Minute Periods" value="60"/>
@@ -63,6 +70,7 @@
         <menuitem label="1 Day Periods" value="86400"/>
       </menupopup>
     </menulist>
+    <label control="ew.interval" value="Interval:" />
     <menulist id="ew.interval">
       <menupopup>
         <menuitem label="15 Minutes" value="900" />
@@ -78,8 +86,6 @@
     </menulist>
     <toolbarbutton image="../images/chart.png" oncommand="show(rc);" tooltiptext="Show metric graph" />
  </hbox>
- <box flex="1">
-   <html:canvas id="canvas" width="600" height="400" class="graph"></html:canvas>
- </box>
+ <box id="box" flex="1"></box>
 </vbox>
 </window>
