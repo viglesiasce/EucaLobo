@@ -455,7 +455,7 @@ var ew_api = {
                 rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
             }
         }
-        strSign += (bucket ? "/" + bucket : "").toLowerCase() + (key[0] != "/" ? "/" : "") + key + (rclist.length ? "?" : "") + rclist.sort().join("&");
+        strSign += (bucket ? "/" + bucket : "").toLowerCase() + (key[0] != "/" ? "/" : "") + encodeURI(key) + (rclist.length ? "?" : "") + rclist.sort().join("&");
         var signature = b64_hmac_sha1(this.secretKey, strSign);
 
         params["Authorization"] = "AWS " + this.accessKey + ":" + signature;
@@ -653,7 +653,7 @@ var ew_api = {
 
           var hdrs = "";
           for (var p in headers) {
-              hdrs += p + ":" + headers[p] + "\n";
+              hdrs += p + ":" + headers[p] + "\r\n";
           }
           persist.saveURI(io, null, null, null, hdrs, file);
           return true;

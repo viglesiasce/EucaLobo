@@ -330,12 +330,12 @@ var ew_S3BucketsTreeView = {
         if (this.isFolder(item)) return
         var type = this.core.getMimeType(item.name);
         if (type.indexOf("image") > -1) {
-            var file = DirIO.get("TmpD").path + "/" + DirIO.fileName(item.name);
+            var file = DirIO.get("TmpD").path + DirIO.sep + DirIO.fileName(item.name);
             this.core.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
                 function(f) {
                      me.setStatus(f, 100);
                      try { if (me.win) me.win.close(); } catch(e) { debug(e) }
-                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + file,width:"100%",height:"100%",nobox:1,scale:1} ], true);
+                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + encodeURI(file.replace(/\\/g,'/')),width:"100%",height:"100%",nobox:1,scale:1} ], true);
                 },
                 function(f, p) { me.setStatus(f, p); } )
         }
