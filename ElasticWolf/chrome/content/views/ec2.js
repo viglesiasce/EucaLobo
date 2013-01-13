@@ -1314,7 +1314,7 @@ var ew_VolumeTreeView = {
         // Walk the list of volumes to see whether there is a volume whose state needs to be refreshed
         for (var i in this.treeList) {
             var volume = this.treeList[i];
-            if (volume.status == "creating" || volume.status == 'deleting' || volume.attachStatus == "attaching" || volume.attachStStatus == "detaching") return true;
+            if (volume.status == "creating" || volume.status == 'deleting' || volume.attachStatus == "attaching" || volume.attachStatus == "detaching") return true;
         }
         return false;
     },

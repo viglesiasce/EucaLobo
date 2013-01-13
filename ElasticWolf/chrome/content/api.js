@@ -3663,7 +3663,7 @@ var ew_api = {
         this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
     },
 
-    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, azones, subnets, groups, scheme, callback)
+    createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, cert, azones, subnets, groups, scheme, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -3682,7 +3682,7 @@ var ew_api = {
         }
         params.push([ "Listeners.member.Protocol", protocol ]);
         if (protocol == "HTTPS") {
-            params.push([ "Listeners.member.SSLCertificateId", "arn:aws:iam::322191361670:server-certificate/testCert" ]);
+            params.push([ "Listeners.member.SSLCertificateId", cert || "arn:aws:iam::322191361670:server-certificate/testCert" ]);
         }
         if (scheme) params.push(["Scheme", scheme]);
         params.push([ "Listeners.member.LoadBalancerPort", elbport ]);

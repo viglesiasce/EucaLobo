@@ -25,8 +25,15 @@
     this.core.sortObjects(this.subnets, ['vpcId', 'availabilityZone']);
     this.subnetList = new ListView({ core:this.core, rows:4, width:450, name:'ew.subnets', items:this.subnets, onclick: function(item, checked) { self.refresh_group(item, checked) } });
     this.groupList = new ListView({ core:this.core, rows:5, width:450, name:'ew.groups', items:[] });
-
     this.azoneList = new ListView({ core:this.core, rows:4, width:450, name:'ew.azones', items:this.core.queryModel('availabilityZones') });
+
+    var certs = this.core.queryModel('serverCerts');
+    var certsMenu = $("ew.certs");
+    certsMenu.appendItem("", "");
+    for(var i in certs) {
+       certsMenu.appendItem(certs[i].name, certs[i].arn);
+    }
+    certsMenu.selectedIndex = 0;
 
     var azsn = document.getElementById("ew.azsn").selectedIndex = this.rc.vpc ? 1 : 0;
     onChange();
@@ -42,6 +49,7 @@
     this.rc.Protocol = document.getElementById("ew.Protocol").value.trim();
     this.rc.elbport = document.getElementById("ew.elbport").value.trim();
     this.rc.instanceport = document.getElementById("ew.instanceport").value.trim();
+    this.rc.cert = document.getElementById("ew.certs").value.trim();
 
     this.rc.pingprotocol = document.getElementById("ew.pingprotocol").value.trim();
     this.rc.pingport = document.getElementById("ew.pingport").value.trim();
@@ -229,6 +237,10 @@
           <textbox id="ew.instanceport" size="4" value="80" />
         </row>
         <row>
+          <label control="ew.certs" value="SSL Certificate" />
+          <menulist id="ew.certs" />
+        </row>
+        <row>
           <radio id="ew.azsn" checked="true" value="az" label="Availability Zone" oncommand="onChange()" />
           <listbox id="ew.azones" />
         </row>
@@ -265,7 +277,7 @@
           <menulist id="ew.pingprotocol" style="min-width: 8em" oncommand="document.getElementById('ew.pingpath').disabled = (this.selectedItem.value.substr(0,4) != 'HTTP');">
            <menupopup>
               <menuitem label="HTTP" value="HTTP"/>
-              <menuitem label="HTTP" value="HTTPS"/>
+              <menuitem label="HTTPS" value="HTTPS"/>
               <menuitem label="TCP" value="TCP"/>
               <menuitem label="SSL" value="SSL"/>
            </menupopup>
