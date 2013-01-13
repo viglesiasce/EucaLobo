@@ -372,7 +372,7 @@ var TreeView = {
     {
         this.invalidate();
     },
-    searchChanged : function(event)
+    searchChanged: function(event)
     {
         if (!this.searchElement) return;
         this.core.setStrPrefs(this.searchElement, $(this.searchElement).value);
@@ -381,10 +381,10 @@ var TreeView = {
             clearTimeout(this.searchTimer);
         }
         var me = this;
-        this.searchTimer = setTimeout(function() { me.onSearch; }, 500);
+        this.searchTimer = setTimeout(function() { me.onSearch(); }, 500);
     },
     onSearch: function() {
-        me.invalidate();
+        this.invalidate();
     },
     display : function(list)
     {
