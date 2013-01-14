@@ -342,7 +342,7 @@ var ew_AMIsTreeView = {
 };
 
 var ew_InstancesTreeView = {
-    model: ['instances', 'addresses', 'securityGroups', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'images', 'snapshots', 'volumes', 'instanceProfiles', 'instanceStatus'],
+    model: ['instances', 'addresses', 'securityGroups', 'keypairs', 'networkInterfaces', 'subnets', 'vpcs', 'availabilityZones', 'images', 'snapshots', 'volumes', 'instanceProfiles', 'instanceStatus'],
     properties: [ 'state' ],
     max: 50,
 
@@ -445,7 +445,7 @@ var ew_InstancesTreeView = {
         var values = this.core.promptInput('Attach EBS Volume',
                                                 [{label:"Instance",type:"label",value:instance.toString()},
                                                  {label:"Volume",type:"menulist",list:volumes,required:1},
-                                                 {label:"Device",required:1,value:isWindows(instance.platform) ? "windows_device" : "",readonly: isWindows(instance.platform) ? true : false},
+                                                 {label:"Device",required:1,value:isWindows(instance.platform) ? "windows_device" : ""},
                                                  {type:"label",value:"Linux devices: /dev/sdf through /dev/sdp"},
                                                  {type:"label",value:"Windows devices: xvdf through xvdp"}]);
         if (!values) return;
