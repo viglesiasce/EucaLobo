@@ -92,6 +92,7 @@
         var type = obj.type || 'textbox';
         var value = obj.value || '';
         var item = null;
+        if (obj.ignore) return rows;
 
         var row = document.createElement('row');
         var box = document.createElement('box');

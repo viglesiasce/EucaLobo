@@ -1168,19 +1168,18 @@ var ew_VolumeTreeView = {
         this.core.api.createSnapshot(image.id, descr, function() { me.core.refreshModel('snapshots'); });
     },
 
-    createVolume : function (image)
+    createVolume : function (snapshot)
     {
         var me = this;
-        if (!image) image = this.getSelected();
         var zones = this.core.queryModel('availabilityZones');
-        var snapshots = this.core.queryModel('snapshots', "status", "completed", "owner", this.core.user.accountId);
+        var snapshots = this.core.queryModel('snapshots', "status", "completed");
         this.core.sortObjects(snapshots, ['name','description']);
 
         var values = this.core.promptInput('Create Volume',
-                                    [{label:"Size (GB)",type:"number",min:1,required:1},
+                                    [{label:"Size (GB)",type:"number",min:1,required:1,value:snapshot?snapshot.volumeSize:10},
                                      {label:"Name",required:1},
                                      {label:"Availability Zone",type:"menulist",list:zones,required:1},
-                                     {label:"Snapshot",type:"menulist",list:snapshots,value:image ? image.id : "",style:"max-width:300px;"},
+                                     {label:"Snapshot",type:"menulist",list:snapshot?[snapshot]:snapshots,value:snapshot ? snapshot.id : "",style:"max-width:300px;",required:snapshot?1:0},
                                      {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
                                      {label:"IOPS",type:"number",min:100,max:2000}]);
         if (!values) return;

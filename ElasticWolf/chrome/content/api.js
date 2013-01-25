@@ -1042,9 +1042,9 @@ var ew_api = {
     createVolume : function(size, snapshotId, zone, params, callback)
     {
         if (!params) params = []
-        if (size != null) params.push([ "Size", size ]);
-        if (snapshotId != null) params.push([ "SnapshotId", snapshotId ]);
-        if (zone != null) params.push([ "AvailabilityZone", zone ]);
+        if (size) params.push([ "Size", size ]);
+        if (snapshotId) params.push([ "SnapshotId", snapshotId ]);
+        if (zone) params.push([ "AvailabilityZone", zone ]);
         this.queryEC2("CreateVolume", params, this, false, "onComplete:volumeId", callback);
     },
 
