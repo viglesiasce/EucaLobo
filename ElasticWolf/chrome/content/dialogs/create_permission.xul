@@ -22,10 +22,10 @@
     function authorize() {
         // Get the group's name
         var newPerm = new Object();
+        newPerm.cidrIp = "0.0.0.0/0";
 
         // Need to get the IP etc.
         var radioSel = $("ew.hostnet.group").selectedItem.value;
-        var cidrStr = "";
 
         switch (radioSel) {
         case "host":
@@ -35,11 +35,11 @@
                 textbox.select();
                 return false;
             }
-            cidrStr = textbox.value.trim();
-            if (cidrStr.indexOf('/') == -1) {
-                cidrStr += "/32";
+            newPerm.cidrIp = textbox.value.trim();
+            if (newPerm.cidrIp.indexOf('/') == -1) {
+                newPerm.cidrIp += "/32";
             }
-            if (!this.validateCIDR(cidrStr, textbox)) {
+            if (!this.validateCIDR(newPerm.cidrIp, textbox)) {
                 return false;
             }
             break;
@@ -51,8 +51,8 @@
                 textbox.select();
                 return false;
             }
-            cidrStr = textbox.value.trim();
-            if (!this.validateCIDR(cidrStr, textbox)) {
+            newPerm.cidrIp = textbox.value.trim();
+            if (!this.validateCIDR(newPerm.cidrIp, textbox)) {
                 return false;
             }
             break;
@@ -66,14 +66,12 @@
             }
             newPerm.srcGroup = { id: group.value, name: group.selectedItem.label.split("/")[1], ownerId: user.value };
         }
-        newPerm.cidrIp = cidrStr;
 
         var protocol = $("ew.protocol").value;
         if (protocol == "any") {
             protocol = "-1";
             newPerm.toPort = "0";
             newPerm.fromPort = "65535";
-            newPerm.cidrIp = "0.0.0.0/0";
         } else
 
         if (protocol == "other") {
