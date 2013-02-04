@@ -113,6 +113,7 @@ var ew_api = {
                  { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-southeast-2', url: 'https://ec2.ap-southeast-2.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
                  { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
@@ -134,6 +135,7 @@ var ew_api = {
                  { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
                  { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
                  { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
+                 { name: "Asia Pacific (Sydney)",         url: "s3-ap-southeast-2.amazonaws.com", region: "ap-southeast-1" },
                  { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
                  { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
                  { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
@@ -144,6 +146,7 @@ var ew_api = {
     {
         return [ {name: "Asia Pacific (Tokyo)",          id: "ap-northeast-1", toString: function() { return this.name; } },
                  {name: "Asia Pacific (Singapore)",      id: "ap-southeast-1", toString: function() { return this.name; } },
+                 {name: "Asia Pacific (Sydney)",         id: "ap-southeast-2", toString: function() { return this.name; } },
                  {name: "EU (Ireland)",                  id: "eu-west-1", toString: function() { return this.name; } },
                  {name: "South America (Sao Paulo)",     id: "sa-east-1", toString: function() { return this.name; } },
                  {name: "US East (Northern Virginia)",   id: "us-east-1", toString: function() { return this.name; } },
