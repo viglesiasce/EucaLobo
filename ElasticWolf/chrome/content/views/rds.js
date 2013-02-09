@@ -24,7 +24,7 @@ var ew_DBSnapshotsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBSnapshot(item.id, function() { me.refresh() });
     },

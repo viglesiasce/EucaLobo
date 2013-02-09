@@ -1804,7 +1804,7 @@ var ew_api = {
             var otype = getNodeValue(item, "offeringType");
             var tenancy = getNodeValue(item, "instanceTenancy");
             var market = toBool(getNodeValue(item, "marketplace"));
-            var rPrices = this.getItems(item, "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
+            var rPrices = this.getItems(item, "recurringCharges", "item", []);
             var mPrices = this.getItems(item, "pricingDetailsSet", "item", ["price","count"], function(obj) { return new MarketPrice(obj.price, obj.count)});
             list.push(new ReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype, tenancy, market, mPrices));
         }
@@ -1946,7 +1946,7 @@ var ew_api = {
             var desc = getNodeValue(item, "productDescription");
             var state = getNodeValue(item, "state");
             var tenancy = getNodeValue(item, "instanceTenancy");
-            var rPrices = this.getItems(item, "recurringCharges", "item", ["frequency", "amount"], function(obj) { return new RecurringCharge(obj.frequency, obj.amount)});
+            var rPrices = this.getItems(item, "recurringCharges", "item", []);
             list.push(new ReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, tenancy));
         }
 
@@ -3125,10 +3125,15 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "placementGroupSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var name = getNodeValue(item, "groupName");
-            var strategy = getNodeValue(item, "strategy");
-            var state = getNodeValue(item, "state");
-            list.push(new PlacementGroup(name, strategy, state))
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.strategy + fieldSeparator + this.state;
+            }
+
+            obj.name = getNodeValue(item, "groupName");
+            obj.strategy = getNodeValue(item, "strategy");
+            obj.state = getNodeValue(item, "state");
+            list.push(obj)
         }
         this.core.setModel('placementGroups', list);
         response.result = list;
@@ -5548,13 +5553,18 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "DBEngineVersions", "DBEngineVersion");
         for (var i = 0; i < items.length; i++) {
-            var family = getNodeValue(items[i], "DBParameterGroupFamily");
-            var descr = getNodeValue(items[i], "DBEngineDescription");
-            var vdescr = getNodeValue(items[i], "DBEngineVersionDescription");
-            var engine = getNodeValue(items[i], "Engine");
-            var ver = getNodeValue(items[i], "EngineVersion");
-            var chars = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
-            list.push(new DBEngine(family, engine, ver, descr, vdescr, chars))
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
+            }
+
+            obj.family = getNodeValue(items[i], "DBParameterGroupFamily");
+            obj.descr = getNodeValue(items[i], "DBEngineDescription");
+            obj.versionDescr = getNodeValue(items[i], "DBEngineVersionDescription");
+            obj.engine = getNodeValue(items[i], "Engine");
+            obj.version = getNodeValue(items[i], "EngineVersion");
+            obj.charsets = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
+            list.push(obj)
         }
         return this.getNext(response, this.queryRDS, list);
     },
@@ -5583,7 +5593,11 @@ var ew_api = {
     onCompleteDescribeDBParameterGroups: function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(obj) { return new DBParameterGroup(obj.DBParameterGroupName,obj.Description,obj.DBParameterGroupName)});
+        var list = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(o) {
+            var obj = new Element('name',o.DBParameterGroupName,'descr',o.Description,'family',o.DBParameterGroupFamily)
+            obj.toString = function() { return this.name }
+            return obj;
+        });
         this.core.setModel('dbparameters', list);
         response.result = list;
     },
@@ -5604,17 +5618,22 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "Parameters", "Parameter");
         for (var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "ParameterName")
-            var value = getNodeValue(items[i], "ParameterValue")
-            var type = getNodeValue(items[i], "DataType")
-            var descr = getNodeValue(items[i], "Description")
-            var mver = getNodeValue(items[i], "MinimumEngineVersion")
-            var mod = toBool(getNodeValue(items[i], "IsModifiable"))
-            var atype = getNodeValue(items[i], "ApplyType")
-            var amethod = getNodeValue(items[i], "ApplyMethod")
-            var values = getNodeValue(items[i], "AllowedValues")
-            var src = getNodeValue(items[i], "Source")
-            list.push(new DBParameter(name, value, type, descr, mver, mod, atype, amethod, values, src))
+            var obj = new Element()
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.value + fieldSeparator + this.type
+            }
+
+            obj.name = getNodeValue(items[i], "ParameterName")
+            obj.value = getNodeValue(items[i], "ParameterValue")
+            obj.type = getNodeValue(items[i], "DataType")
+            obj.descr = getNodeValue(items[i], "Description")
+            obj.minVersion = getNodeValue(items[i], "MinimumEngineVersion")
+            obj.isModifiable = toBool(getNodeValue(items[i], "IsModifiable"))
+            obj.applyType = getNodeValue(items[i], "ApplyType")
+            obj.applyMethod = getNodeValue(items[i], "ApplyMethod")
+            obj.allowedValues = getNodeValue(items[i], "AllowedValues")
+            obj.source = getNodeValue(items[i], "Source")
+            list.push(obj)
         }
         return this.getNext(response, this.queryRDS, list);
     },
@@ -5654,7 +5673,9 @@ var ew_api = {
     onCompleteDescribeEvents: function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(obj) { return new DBEvent(obj.SourceIdentifier,obj.SourceType,obj.Date,obj.Message)});
+        var list = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(o) {
+            return new Element('id',o.SourceIdentifier,'type',o.SourceType,'date',o.Date,'msg',o.Message)
+        });
         this.getNext(response, this.queryRDS, list);
     },
 
@@ -5814,15 +5835,23 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "OptionGroupOptions", "OptionGroupOption");
         for (var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "Name");
-            var engine = getNodeValue(items[i], "EngineName");
-            var ver = getNodeValue(items[i], "MajorEngineVersion");
-            var port = getNodeValue(items[i], "DefaultPort");
-            var descr = getNodeValue(items[i], "Description");
-            var isport = toBool(getNodeValue(items[i], "PortRequired"));
-            var minver = getNodeValue(items[i], "MinimumRequiredMinorEngineVersion");
-            var depends = getNodeValue(items[i], "OptionsDependedOns");
-            list.push(new DBOptionGroupOption(name, engine, descr, ver, minver, port, isport, depends));
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.descr + fieldSeparator +
+                        this.majorEngineVersion + "/" + this.minimumRequiredMinorEngineVersion +
+                        (this.portRequired ? fieldSeparator + "Port Required" : "") +
+                        (this.dependsOn ? fieldSeparator + "Depends " + this.dependsOn : "");
+            }
+
+            obj.name = getNodeValue(items[i], "Name");
+            obj.engine = getNodeValue(items[i], "EngineName");
+            obj.majorEngineVersion = getNodeValue(items[i], "MajorEngineVersion");
+            obj.defaultPort = getNodeValue(items[i], "DefaultPort");
+            obj.descr = getNodeValue(items[i], "Description");
+            obj.portRequired = toBool(getNodeValue(items[i], "PortRequired"));
+            obj.minimumRequiredMinorEngineVersion = getNodeValue(items[i], "MinimumRequiredMinorEngineVersion");
+            obj.dependsOn = getNodeValue(items[i], "OptionsDependedOns");
+            list.push(obj);
         }
         this.getNext(response, this.queryRDS, list);
     },
@@ -5878,20 +5907,29 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "OptionGroupsList", "OptionGroup");
         for (var i = 0; i < items.length; i++) {
-            var opts = [];
-            var name = getNodeValue(items[i], "OptionGroupName");
-            var engine = getNodeValue(items[i], "EngineName");
-            var ver = getNodeValue(items[i], "MajorEngineVersion");
-            var descr = getNodeValue(items[i], "OptionGroupDescription");
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.engine + "/" + this.version + " (" + this.options + ")";
+            }
+
+            obj.name = getNodeValue(items[i], "OptionGroupName");
+            obj.engine = getNodeValue(items[i], "EngineName");
+            obj.version = getNodeValue(items[i], "MajorEngineVersion");
+            obj.descr = getNodeValue(items[i], "OptionGroupDescription");
+            obj.options = [];
             var olist = this.getItems(items[i], "Options", "Option");
             for (var j = 0; j < olist.length; j++) {
-                var oname = getNodeValue(olist[j], "OptionName");
-                var odescr = getNodeValue(olist[j], "OptionDescription");
-                var oport = getNodeValue(olist[j], "Port");
-                var ogroups = this.getItems(olist[j], "DBSecurityGroupMemberships", "DBSecurityGroup", ["DBSecurityGroupName","Status"], function(obj) { return new Tag(obj.DBSecurityGroupName,obj.Status)});
-                opts.push(new DBOption(oname, odescr, oport, ogroups));
+                var o = new Element();
+                o.toString = function() {
+                    return this.name + fieldSeparator + this.descr + fieldSeparator + this.groups;
+                }
+                o.oname = getNodeValue(olist[j], "OptionName");
+                o.descr = getNodeValue(olist[j], "OptionDescription");
+                o.port = getNodeValue(olist[j], "Port");
+                o.groups = this.getItems(olist[j], "DBSecurityGroupMemberships", "DBSecurityGroup", []);
+                obj.options.push(o);
             }
-            list.push(new DBOptionGroup(name, engine, ver, descr, opts));
+            list.push(obj);
         }
         this.getNext(response, this.queryRDS, list);
     },
@@ -5907,17 +5945,41 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "OrderableDBInstanceOptions", "OrderableDBInstanceOption");
         for (var i = 0; i < items.length; i++) {
-            var dbclass = getNodeValue(items[i], "DBInstanceClass");
-            var engine = getNodeValue(items[i], "Engine");
-            var ver = getNodeValue(items[i], "EngineVersion");
-            var license = getNodeValue(items[i], "LicenseModel");
-            var maz = toBool(getNodeValue(items[i], "MultiAZCapable"));
-            var replica = toBool(getNodeValue(items[i], "ReadReplicaCapable"));
-            var vpc = toBool(getNodeValue(items[i], "VpcCapable"));
-            var vpcmaz = toBool(getNodeValue(items[i], "VpcMultiAZCapable"));
-            var vpcreplica = toBool(getNodeValue(items[i], "VpcReadReplicaCapable"));
-            var azones = this.getItems(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(obj) {return obj.Name;});
-            list.push(new DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones));
+            var obj = new Element();
+            function DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones)
+            {
+                this.instanceClass = dbclass
+                this.engine = engine
+                this.version = ver
+                this.licenseModel = license
+                this.multiAZCapable = maz
+                this.readReplicaCapable = replica
+                this.vpcCapable = vpc
+                this.vpcMultiAZCapable = vpcmaz
+                this.vpcReadReplicaCapable = vpcreplica
+                this.availabilityZones = azones
+                this.toString = function() {
+                    return this.instanceClass + fieldSeparator + this.engine + "/" + this.version + fieldSeparator +
+                                      (this.vpcCapable ? "VPC" : "") + " " +
+                                      (this.multiAZCapable ? "MultiAZ" : "") + " " +
+                                      (this.vpcMultiAZCapable ? "VPCMultiAZ" : "" ) + " " +
+                                      (this.readReplicaCapable ? " Replica" : "") + " " +
+                                      (this.vpcReadReplicaCapable ? " VPCReplica" : "") + fieldSeparator +
+                                      this.availabilityZones;
+                }
+            }
+
+            obj.instanceClass = getNodeValue(items[i], "DBInstanceClass");
+            obj.engine = getNodeValue(items[i], "Engine");
+            obj.version = getNodeValue(items[i], "EngineVersion");
+            obj.licenseModel = getNodeValue(items[i], "LicenseModel");
+            obj.multiAZCapable = toBool(getNodeValue(items[i], "MultiAZCapable"));
+            obj.readReplicaCapable = toBool(getNodeValue(items[i], "ReadReplicaCapable"));
+            obj.vpcCapable = toBool(getNodeValue(items[i], "VpcCapable"));
+            obj.vpcMultiAZCapable = toBool(getNodeValue(items[i], "VpcMultiAZCapable"));
+            obj.vpcReadReplicaCapable = toBool(getNodeValue(items[i], "VpcReadReplicaCapable"));
+            obj.availabilityZones = this.getItems(items[i], "AvailabilityZones", "AvailabilityZone", ["Name"], function(o) {return o.Name;});
+            list.push(obj);
         }
         return this.getNext(response, this.queryRDS, list);
     },
@@ -5934,18 +5996,21 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "ReservedDBInstancesOfferings", "ReservedDBInstancesOffering");
         for ( var i = 0; i < items.length; i++) {
+            var obj = new Element();
+            obj.toString = function() {
+                return this.id
+            }
             var item = items[i];
-            var id = getNodeValue(item, "ReservedDBInstancesOfferingId");
-            var type = getNodeValue(item, "DBInstanceClass");
-            var az = toBool(getNodeValue(item, "MultiAZ"));
-            var duration = secondsToYears(getNodeValue(item, "Duration"));
-            var fPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
-            var uPrice = getNodeValue(item, "UsagePrice");
-            var desc = getNodeValue(item, "ProductDescription");
-            var otype = getNodeValue(item, "OfferingType");
-            var rPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", ["RecurringChargeFrequency", "RecurringChargeAmount"], function(obj) { return new RecurringCharge(obj.RecurringChargeFrequency, obj.RecurringChargeAmount)});
-
-            list.push(new DBReservedInstancesOffering(id, type, az, duration, fPrice, uPrice, rPrices, desc, otype));
+            obj.id = getNodeValue(item, "ReservedDBInstancesOfferingId");
+            obj.dbInstanceClass = getNodeValue(item, "DBInstanceClass");
+            obj.multiAZ = toBool(getNodeValue(item, "MultiAZ"));
+            obj.duration = secondsToYears(getNodeValue(item, "Duration"));
+            obj.fixedPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
+            obj.usagePrice = getNodeValue(item, "UsagePrice");
+            obj.productDescription = getNodeValue(item, "ProductDescription");
+            obj.offeringType = getNodeValue(item, "OfferingType");
+            obj.recurringPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", []);
+            list.push(obj);
         }
         this.getNext(response, this.queryRDS, list);
     },
@@ -5962,22 +6027,43 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "ReservedDBInstances", "ReservedDBInstance");
         for ( var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var id = getNodeValue(item, "ReservedDBInstanceId");
-            var type = getNodeValue(item, "DBInstanceClass");
-            var az = toBool(getNodeValue(item, "MultiAZ"));
-            var start = new Date(getNodeValue(item, "StartTime"));
-            var duration = secondsToYears(getNodeValue(item, "Duration"));
-            var fPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
-            var uPrice = getNodeValue(item, "UsagePrice");
-            var count = getNodeValue(item, "DBInstanceClass");
-            var desc = getNodeValue(item, "ProductDescription");
-            var state = getNodeValue(item, "State");
-            var otype = getNodeValue(item, "OfferingType");
-            var oid = getNodeValue(item, "ReservedDBInstancesOfferingId");
-            var rPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", ["RecurringChargeFrequency", "RecurringChargeAmount"], function(obj) { return new RecurringCharge(obj.RecurringChargeFrequency, obj.RecurringChargeAmount)});
+            var obj = new Element()
+            function DBReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, otype, oid)
+            {
+                this.id = id;
+                this.dbInstanceClass = type;
+                this.multiAZ = az;
+                this.startTime = start;
+                this.duration = duration;
+                this.fixedPrice = fPrice;
+                this.usagePrice = uPrice;
+                this.recurringCharges = rPrices;
+                this.count = count;
+                this.productDescription = desc;
+                this.state = state;
+                this.offeringType = otype
+                this.offerinfId = oid
 
-            list.push(new DBReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, otype, oid));
+                this.toString = function() {
+                    return this.dbInstanceClass  + fieldSeparator + this.fixedPrice + fieldSeparator +  this.recurringCharges + fieldSeparator + this.id;
+                }
+            }
+
+            var item = items[i];
+            obj.id = getNodeValue(item, "ReservedDBInstanceId");
+            obj.type = getNodeValue(item, "DBInstanceClass");
+            ovj.multiAZ = toBool(getNodeValue(item, "MultiAZ"));
+            obj.startTime = new Date(getNodeValue(item, "StartTime"));
+            obj.duration = secondsToYears(getNodeValue(item, "Duration"));
+            obj.fixedPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
+            obj.usagePrice = getNodeValue(item, "UsagePrice");
+            obj.count = getNodeValue(item, "DBInstanceClass");
+            obj.desc = getNodeValue(item, "ProductDescription");
+            obj.state = getNodeValue(item, "State");
+            obj.offeringType = getNodeValue(item, "OfferingType");
+            obj.offerinfId = getNodeValue(item, "ReservedDBInstancesOfferingId");
+            obj.recurringPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", []);
+            list.push(obj);
         }
         this.getNext(response, this.queryRDS, list);
     },
@@ -5990,12 +6076,17 @@ var ew_api = {
     unpackHostedZone: function(item)
     {
         if (!item) return null;
-        var id = getNodeValue(item, "Id");
-        var name = getNodeValue(item, "Name")
-        var ref = getNodeValue(item, "CallerReference")
-        var count = getNodeValue(item, "ResourceRecordSetCount");
-        var comment = getNodeValue(item, "Config", "Comment");
-        return new HostedZone(id, name, ref, count, comment);
+        var obj = new Element()
+        obj.toString = function() {
+            return this.name + fieldSeparator + this.count;
+        }
+
+        obj.id = getNodeValue(item, "Id");
+        obj.name = getNodeValue(item, "Name")
+        obj.reference = getNodeValue(item, "CallerReference")
+        obj.count = getNodeValue(item, "ResourceRecordSetCount");
+        obj.comment = getNodeValue(item, "Config", "Comment");
+        return obj;
     },
 
     listHostedZones: function(callback)
@@ -6069,17 +6160,21 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "ResourceRecordSets", "ResourceRecordSet");
         for (var i = 0; i < items.length; i++) {
-            var type = getNodeValue(items[i], "Type");
-            var name = getNodeValue(items[i], "Name")
-            var ttl = getNodeValue(items[i], "TTL")
-            var zone = getNodeValue(items[i], "AliasTarget", "HostedZoneId");
-            var dns = getNodeValue(items[i], "AliasTarget", "DNSName");
-            var setid = getNodeValue(items[i], "SetIdentifier");
-            var weight = getNodeValue(items[i], "Weight");
-            var region = getNodeValue(items[i], "Region");
-            var values = this.getItems(items[i], "ResourceRecords", "ResourceRecord", ["Value"], function(obj) { return obj.Value; })
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.type + fieldSeparator + this.values;
+            }
 
-            list.push(new HostedRecord(name, type, ttl, values, zone, dns, setid, weight, region));
+            obj.type = getNodeValue(items[i], "Type");
+            obj.name = getNodeValue(items[i], "Name")
+            obj.ttl = getNodeValue(items[i], "TTL")
+            obj.hostedZone = getNodeValue(items[i], "AliasTarget", "HostedZoneId");
+            obj.dnsName = getNodeValue(items[i], "AliasTarget", "DNSName");
+            obj.setId = getNodeValue(items[i], "SetIdentifier");
+            obj.weight = getNodeValue(items[i], "Weight");
+            obj.region = getNodeValue(items[i], "Region");
+            obj.values = this.getItems(items[i], "ResourceRecords", "ResourceRecord", ["Value"], function(o) { return o.Value; })
+            list.push(obj);
         }
 
         this.core.updateModel('hostedZones', id, 'records', list);
@@ -6248,28 +6343,33 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "AutoScalingGroups", "member");
         for (var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "AutoScalingGroupName");
-            var arn = toArn(getNodeValue(items[i], "AutoScalingGroupARN"));
-            var date = new Date(getNodeValue(items[i], "CreatedTime"));
-            var config = getNodeValue(items[i], "LaunchConfigurationName");
-            var capacity = getNodeValue(items[i], "DesiredCapacity");
-            var min = getNodeValue(items[i], "MinSize");
-            var max = getNodeValue(items[i], "MaxSize");
-            var cooldown = getNodeValue(items[i], "DefaultCooldown");
-            var status = getNodeValue(items[i], "Status");
-            var healthType = getNodeValue(items[i], "HealthCheckType");
-            var healthGrace = getNodeValue(items[i], "HealthCheckGracePeriod");
-            var vpczone = getNodeValue(items[i], "VPCZoneIdentifier");
-            var placement = getNodeValue(items[i], "PlacementGroup");
-            var elbs = this.getItems(items[i], "LoadBalancerNames", "member", "");
-            var azones = this.getItems(items[i], "AvailabilityZones", "member", "");
-            var tpolicies = this.getItems(items[i], "TerminationPolicies", "member", "");
-            var metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(obj) { return new Item(obj.Metric, obj.Granularity); });
-            var granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
-            var instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(obj) { return new AutoScalingInstance(name,obj.HealthStatus,obj.AvailabilityZone,obj.InstanceId,obj.LaunchConfigurationName,obj.LifecycleState)})
-            var suspended = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(obj) { return new Item(obj.ProcessName,obj.SuspensionReason)})
-            var tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(obj) { return new Tag(obj.Key,obj.Value,obj.ResourceId,obj.ResourceType,toBool(obj.PropagateAtLaunch))})
-            list.push(new AutoScalingGroup(name, arn, date, config, capacity, min, max, cooldown, status, healthType, healthGrace, vpczone, placement, elbs, azones, metrics, instances, suspended, tpolicies, tags));
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.capacity + fieldSeparator + this.healthCheckType;
+            }
+
+            obj.name = getNodeValue(items[i], "AutoScalingGroupName");
+            obj.id = toArn(getNodeValue(items[i], "AutoScalingGroupARN"));
+            obj.date = new Date(getNodeValue(items[i], "CreatedTime"));
+            obj.launchConfiguration = getNodeValue(items[i], "LaunchConfigurationName");
+            obj.capacity = getNodeValue(items[i], "DesiredCapacity");
+            obj.minSize = getNodeValue(items[i], "MinSize");
+            obj.maxSize = getNodeValue(items[i], "MaxSize");
+            obj.defaultCooldown = getNodeValue(items[i], "DefaultCooldown");
+            obj.status = getNodeValue(items[i], "Status");
+            obj.healthCheckType = getNodeValue(items[i], "HealthCheckType");
+            obj.healthCheckGracePeriod = getNodeValue(items[i], "HealthCheckGracePeriod");
+            obj.vpcZone = getNodeValue(items[i], "VPCZoneIdentifier");
+            obj.placementGroup = getNodeValue(items[i], "PlacementGroup");
+            obj.loadBalancers = this.getItems(items[i], "LoadBalancerNames", "member", "");
+            obj.availabilityZones = this.getItems(items[i], "AvailabilityZones", "member", "");
+            obj.terminationPolicies = this.getItems(items[i], "TerminationPolicies", "member", "");
+            obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Item(o.Metric, o.Granularity); });
+            obj.granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
+            obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) { return new AutoScalingInstance(name,o.HealthStatus,o.AvailabilityZone,o.InstanceId,o.LaunchConfigurationName,o.LifecycleState)})
+            obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Item(o.ProcessName,o.SuspensionReason)})
+            obj.tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(o) { return new Tag(o.Key,o.Value,o.ResourceId,o.ResourceType,toBool(o.PropagateAtLaunch))})
+            list.push(obj);
         }
         this.core.setModel('asgroups', list);
         response.result = list;
@@ -6312,29 +6412,34 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "LaunchConfigurations", "member");
         for (var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "LaunchConfigurationName");
-            var arn = toArn(getNodeValue(items[i], "LaunchConfigurationARN"));
-            var date = new Date(getNodeValue(items[i], "CreatedTime"));
-            var type = getNodeValue(items[i], "InstanceType");
-            var key = getNodeValue(items[i], "KeyName");
-            var profile = getNodeValue(items[i], "IamInstanceProfile");
-            var image = getNodeValue(items[i], "ImageId");
-            var kernel = getNodeValue(items[i], "KernelId");
-            var ramdisk = getNodeValue(items[i], "RamdiskId");
-            var userdata = getNodeValue(items[i], "UserData");
-            var spotprice = getNodeValue(items[i], "SpotPrice");
-            var monitoring = toBool(getNodeValue(items[i], "InstanceMonitoring", "Enabled"));
-            var groups = this.getItems(items[i], "SecurityGroups", "member", "");
-            var devices = [];
+            var obj = new Element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.instanceType + fieldSeparator + ew_core.modelValue('imageId', this.imageId);
+            }
+
+            obj.name = getNodeValue(items[i], "LaunchConfigurationName");
+            obj.id = toArn(getNodeValue(items[i], "LaunchConfigurationARN"));
+            obj.date = new Date(getNodeValue(items[i], "CreatedTime"));
+            obj.instanceType = getNodeValue(items[i], "InstanceType");
+            obj.keyName = getNodeValue(items[i], "KeyName");
+            obj.profile = getNodeValue(items[i], "IamInstanceProfile");
+            obj.imageId = getNodeValue(items[i], "ImageId");
+            obj.kernelId = getNodeValue(items[i], "KernelId");
+            obj.ramdiskId = getNodeValue(items[i], "RamdiskId");
+            obj.userData = getNodeValue(items[i], "UserData");
+            obj.spotPrice = getNodeValue(items[i], "SpotPrice");
+            obj.monitoring = toBool(getNodeValue(items[i], "InstanceMonitoring", "Enabled"));
+            obj.groups = this.getItems(items[i], "SecurityGroups", "member", "");
+            obj.devices = [];
             var objs = this.getItems(items[i], "BlockDeviceMappings", "member");
             for (var j = 0; j < objs.length; j++) {
                 var vdevice = getNodeValue(objs[j], "DeviceName");
                 var vname = getNodeValue(objs[j], "VirtualName");
                 var vid = getNodeValue(objs[j], "ebs", "SnapshotId");
                 var vsize = getNodeValue(objs[j], "ebs", "VolumeSize");
-                devices.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, 0, 0));
+                obj.devices.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, 0, 0));
             }
-            list.push(new LaunchConfiguration(name, arn, date, type, key, profile, image, kernel, ramdisk, userdata, spotprice, monitoring, groups, devices));
+            list.push(obj);
         }
         this.core.setModel('asconfigs', list);
         response.result = list;
@@ -6409,10 +6514,15 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "NotificationConfigurations", "member");
         for (var i = 0; i < items.length; i++) {
-            var group = getNodeValue(items[i], "AutoScalingGroupName");
-            var type = getNodeValue(items[i], "NotificationType");
-            var topic = getNodeValue(items[i], "TopicARN");
-            list.push(new ScalingNotification(group, type, topic));
+            var obj = new Element();
+            obj.toString = function() {
+                return this.type + fieldSeparator + this.group + fieldSeparator + this.topic;
+            }
+
+            obj.group = getNodeValue(items[i], "AutoScalingGroupName");
+            obj.type = getNodeValue(items[i], "NotificationType");
+            obj.topic = getNodeValue(items[i], "TopicARN");
+            list.push(obj);
         }
         this.getNext(response, this.queryAS, list);
     },
@@ -6480,15 +6590,20 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "ScalingPolicies", "member");
         for (var i = 0; i < items.length; i++) {
-            var group = getNodeValue(items[i], "AutoScalingGroupName");
-            var atype = getNodeValue(items[i], "AdjustmentType");
-            var cooldown = getNodeValue(items[i], "Cooldown");
-            var minadjust = getNodeValue(items[i], "MinAdjustmentStep");
-            var arn = toArn(getNodeValue(items[i], "PolicyARN"));
-            var name = getNodeValue(items[i], "PolicyName");
-            var adjust = getNodeValue(items[i], "ScalingAdjustment");
-            var alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(obj) { return new Item(obj.AlarmName, toArn(obj.AlarmARN));});
-            list.push(new ScalingPolicy(name, arn, group, atype, adjust, minadjust, cooldown, alarms));
+            var obj = new Element();
+            obj.toString = function () {
+                return this.name + fieldSeparator + this.group + fieldSeparator + this.adjustmentType;
+            }
+
+            obj.group = getNodeValue(items[i], "AutoScalingGroupName");
+            obj.adjustmentType = getNodeValue(items[i], "AdjustmentType");
+            obj.cooldown = getNodeValue(items[i], "Cooldown");
+            obj.minAdjustmentStep = getNodeValue(items[i], "MinAdjustmentStep");
+            obj.id = toArn(getNodeValue(items[i], "PolicyARN"));
+            obj.name = getNodeValue(items[i], "PolicyName");
+            obj.scalingAdjustment = getNodeValue(items[i], "ScalingAdjustment");
+            obj.alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(o) { return new Item(o.AlarmName, toArn(o.AlarmARN));});
+            list.push(obj);
         }
         this.core.setModel('aspolicies', list);
         response.result = list;
@@ -6558,17 +6673,22 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "Activities", "member");
         for (var i = 0; i < items.length; i++) {
-            var group = getNodeValue(items[i], "AutoScalingGroupName");
-            var id = getNodeValue(items[i], "ActivityId");
-            var descr = getNodeValue(items[i], "Description");
-            var cause = getNodeValue(items[i], "Cause");
-            var details = getNodeValue(items[i], "Details");
-            var progress = getNodeValue(items[i], "Progress");
-            var start = new Date(getNodeValue(items[i], "StartTime"));
-            var end = new Date(getNodeValue(items[i], "EndTime"));
-            var status = getNodeValue(items[i], "StatusCode");
-            var statusMsg = getNodeValue(items[i], "StatusMessage");
-            list.push(new AutoScalingActivity(id, group, descr, cause, details, status, statusMsg, progress, start, end));
+            var obj = new Element();
+            obj.toString = function() {
+                return this.group + fieldSeparator + this.status
+            }
+
+            obj.group = getNodeValue(items[i], "AutoScalingGroupName");
+            obj.id = getNodeValue(items[i], "ActivityId");
+            obj.descr = getNodeValue(items[i], "Description");
+            obj.cause = getNodeValue(items[i], "Cause");
+            obj.details = getNodeValue(items[i], "Details");
+            obj.progress = getNodeValue(items[i], "Progress");
+            obj.start = new Date(getNodeValue(items[i], "StartTime"));
+            obj.end = new Date(getNodeValue(items[i], "EndTime"));
+            obj.status = getNodeValue(items[i], "StatusCode");
+            obj.statusMsg = getNodeValue(items[i], "StatusMessage");
+            list.push(obj);
         }
         this.getNext(response, this.queryAS, list);
 
