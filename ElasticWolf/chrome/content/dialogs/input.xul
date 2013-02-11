@@ -98,6 +98,33 @@
         var box = document.createElement('box');
 
         switch (type) {
+        case 'tabs':
+             var tabbox = document.createElement('tabbox');
+             tabbox.setAttribute('flex', "1");
+             parent.appendChild(tabbox);
+             var tabs = document.createElement('tabs');
+             tabbox.appendChild(tabs);
+             for (var i in obj.list) {
+                 var tab = document.createElement('tab');
+                 tab.setAttribute('label', obj.list[i]);
+                 tabs.appendChild(tab)
+             }
+             parent.tabpanels = document.createElement('tabpanels');
+             parent.tabpanels.setAttribute('flex', '1');
+             parent.tabpanels.setAttribute('style', 'padding:5px;-moz-appearance:tabpanels');
+             tabbox.appendChild(parent.tabpanels);
+             return rows;
+
+        case 'tabpanel':
+             var tabpanel = document.createElement('tabpanel');
+             tabpanel.setAttribute('flex', '1');
+             tabpanel.setAttribute('orient', 'vertical');
+             tabpanel.setAttribute('style', "padding:5px;-moz-appearance:tabpanel");
+             tabpanel.setAttribute('align', "center");
+             parent.tabpanels.appendChild(tabpanel);
+             rows = createSection(tabpanel, title, obj.help, obj);
+             return rows;
+
         case 'section':
              rows = createSection(parent, title, obj.help, obj);
              return rows;

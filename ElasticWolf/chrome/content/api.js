@@ -4968,7 +4968,15 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var list = this.getItems(xmlDoc, "ListQueuesResult", "QueueUrl", null, function(node) { return new Queue(node.firstChild.nodeValue); });
+        var list = this.getItems(xmlDoc, "ListQueuesResult", "QueueUrl", null, function(node) {
+            var item = new Element('url', node.firstChild.nodeValue);
+            item.name = item.url.split("/").pop();
+            item.messages = null;
+            item.toString = function() {
+                return this.name
+            }
+            return item;
+        });
         this.core.setModel('queues', list);
         response.result = list;
     },
@@ -5029,11 +5037,23 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "ReceiveMessageResult", "Message");
         for (var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "MessageId");
-            var handle = getNodeValue(items[i], "ReceiptHandle");
-            var body = getNodeValue(items[i], "Body");
-            var md5 = getNodeValue(items[i], "MD5OfBody")
-            var msg = new Message(id, body, handle, md5, response.url);
+            var obj = new Element('subject', '')
+            obj.id = getNodeValue(items[i], "MessageId");
+            obj.handle = getNodeValue(items[i], "ReceiptHandle");
+            obj.body = getNodeValue(items[i], "Body");
+            obj.md5 = getNodeValue(items[i], "MD5OfBody")
+            obj.url = response.url;
+            obj.toString = function() {
+                return this.id + (this.subject ? fieldSeparator + this.subject : "");
+            }
+
+            // Try to determine the subject
+            try {
+                var o = JSON.parse(obj.body)
+                obj.subject = o.subject || o.type || '';
+            } catch(e) {
+                obj.subject = obj.body.split("\n")[0];
+            }
 
             var attrs = items[i].getElementsByTagName('Attribute');
             for (var j = 0; j < attrs.length; j++) {
@@ -5044,13 +5064,13 @@ var ew_api = {
                     break;
                 case "SentTimestamp":
                 case "ApproximateFirstReceiveTimestamp":
-                    msg[name] = new Date(value * 1000);
+                    obj[name] = new Date(value * 1000);
                     break;
                 default:
-                    msg[name] = value;
+                    obj[name] = value;
                 }
             }
-            list.push(msg);
+            list.push(obj);
         }
         response.result = list;
     },
@@ -5079,7 +5099,16 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var list = this.getItems(xmlDoc, "Topics", "member", ["TopicArn"], function(obj) { return new Topic(toArn(obj.TopicArn)); });
+        var list = this.getItems(xmlDoc, "Topics", "member", ["TopicArn"], function(obj) {
+            var item = new Element();
+            item.id = toArn(obj.TopicArn);
+            item.name = item.id.split(/[:\/]/).pop();
+            item.subscriptions = [];
+            item.toString = function() {
+                return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions[0] : "");
+            }
+            return item;
+        });
         this.core.setModel('topics', list);
         response.result = list;
     },
@@ -5175,13 +5204,25 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) { return new Subscription(toArn(obj.TopicArn),toArn(obj.SubscriptionArn),obj.Protocol,obj.Endpoint,obj.Owner); });
+        var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) {
+            var item = new Element();
+            item.id = toArn(obj.SubscriptionArn)
+            item.topicArn = toArn(obj.TopicArn)
+            item.topicName = item.topicArn.split(/[:\/]+/).pop()
+            item.protocol = obj.Protocol
+            item.endpoint = obj.Endpoint
+            item.owner = obj.Owner
+            item.toString = function() {
+                return this.protocol + fieldSeparator + this.endpoint;
+            }
+            return item;
+        });
 
         if (response.action == "ListSubscriptions") {
             this.core.setModel('subscriptions', list);
             var topics = this.core.getModel('topics')
             for (var i in topics) {
-                topics[i].subscriptions = this.core.queryModel('subscriptions', 'TopicArn', topics[i].id);
+                topics[i].subscriptions = this.core.queryModel('subscriptions', 'topicArn', topics[i].id);
             }
         }
         response.result = list;

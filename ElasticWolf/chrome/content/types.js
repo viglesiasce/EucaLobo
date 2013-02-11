@@ -2694,64 +2694,6 @@ function ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platfo
     }
 }
 
-function Queue(url)
-{
-    this.url = url;
-    this.name = url.split("/").pop();
-    this.messages = null;
-
-    this.toString = function() {
-        return this.name
-    }
-}
-
-function Message(id, body, handle, md5, url)
-{
-    this.id = id;
-    this.body = body || "";
-    this.handle = handle;
-    this.url = url || "";
-    this.md5 = md5 || "";
-    this.size = this.body.length;
-    this.subject = "";
-
-    // Try to determine the subject
-    try {
-        var o = JSON.parse(this.body)
-        this.subject = o.subject || o.type;
-    } catch(e) {
-        this.subject = this.body.split("\n")[0];
-    }
-    this.toString = function() {
-        return this.id + (this.subject ? fieldSeparator + this.subject : "");
-    }
-}
-
-function Topic(arn)
-{
-    this.id = arn || "";
-    this.name = this.id.split(/[:\/]/).pop();
-    this.subscriptions = [];
-
-    this.toString = function() {
-        return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions[0] : "");
-    }
-}
-
-function Subscription(TopicArn,SubscriptionArn,Protocol,Endpoint,Owner)
-{
-    this.id = SubscriptionArn
-    this.topicArn = TopicArn
-    this.topicName = this.topicArn.split(/[:\/]+/).pop()
-    this.protocol = Protocol
-    this.endpoint = Endpoint
-    this.owner = Owner
-
-    this.toString = function() {
-        return this.protocol + fieldSeparator + this.endpoint;
-    }
-}
-
 function AutoScalingInstance(group, healthStatus, availabilityZone, instanceId, launchConfigurationName, lifecycleState)
 {
     this.group = group
