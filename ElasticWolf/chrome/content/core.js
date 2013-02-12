@@ -753,12 +753,10 @@ var ew_core = {
 
     promptForTag: function(tags)
     {
-        var rc = { ok: false,
-                   text: String(tags),
-                   title: "Tags (Key:Value, Key:Value...) ",
-                   descr: "Predefined tags:\n - Name: for primary name" };
-        openDialog('chrome://ew/content/dialogs/text.xul', null, 'chrome,centerscreen,modal,width=400,height=250', rc);
-        return rc.ok ? (rc.text || '').replace(/(\n|\r)+/g, ' ').trim() : null;
+        var values = this.promptInput("Tags (Key:Value, Key:Value...)",
+                            [{label:"Tags",multiline:true,rows:20,cols:60,value:String(tags)},
+                             {label:"",type:"description",value:"Predefined tags:\n - Name: for primary name"}]);
+        return values ? (values[0] || '').replace(/(\n|\r)+/g, ' ').trim() : null;
     },
 
     // Use for updating attributes, fields is list of predefined or well known inputs, it must contain propetry name: to match attributes items,
