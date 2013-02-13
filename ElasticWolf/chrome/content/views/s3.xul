@@ -22,6 +22,7 @@
                         <menuitem id="ew.s3Buckets.web" oncommand="ew_S3BucketsTreeView.manageWebsite();" label="Manage Website config" />
                         <menuitem id="ew.s3Buckets.policy" oncommand="ew_S3BucketsTreeView.managePolicy();" label="Manage Bucket Policy" />
                         <menuitem id="ew.s3Buckets.proto" oncommand="ew_S3BucketsTreeView.setProto();" label="Set Access Protocol" />
+                        <menuitem id="ew.s3Buckets.policy" oncommand="ew_S3BucketsTreeView.manageCORS();" label="Manage CORS Policy" />
                         <menuseparator />
                         <menuitem id="ew.s3Buckets.download" oncommand="ew_S3BucketsTreeView.download();" label="Download selected file" />
                         <menuitem id="ew.s3Buckets.upload" oncommand="ew_S3BucketsTreeView.upload();" label="Upload file" />

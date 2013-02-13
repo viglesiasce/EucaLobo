@@ -289,7 +289,7 @@ var ew_S3BucketsTreeView = {
     downloadUrl: function()
     {
         var me = this;
-        item = this.getSelected()
+        var item = this.getSelected()
         if (!item || this.isFolder(item) || !item.url) return;
         this.core.displayUrl(item.url);
     },
@@ -402,6 +402,19 @@ var ew_S3BucketsTreeView = {
                                                             {label:"Policy",value:policy || "",multiline:true,rows:15,cols:60}]);
         if (!values) return;
         this.core.api.setS3BucketPolicy(item.name, values[1]);
+    },
+
+    manageCORS: function()
+    {
+        var me = this;
+        var item = this.getSelected()
+        if (item == null) return
+        var name = !this.path.length ? item.name : item.bucket;
+        var policy = this.core.api.getS3BucketCORS(name);
+        var values = me.core.promptInput('CORS Policy', [ {label:"Bucket",type:"label",value:name},
+                                                          {label:"Policy",value:policy || "",multiline:true,rows:15,cols:60}]);
+        if (!values) return;
+        this.core.api.setS3BucketCORS(item.name, values[1]);
     },
 
     manageAcls: function()

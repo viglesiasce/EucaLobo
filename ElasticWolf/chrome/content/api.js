@@ -2724,6 +2724,30 @@ var ew_api = {
         this.queryS3("PUT", bucket, "", "?policy", params, policy, this, false, "onComplete", callback);
     },
 
+    getS3BucketCORS : function(bucket, callback)
+    {
+        return this.queryS3("GET", bucket, "", "?cors", {}, content, this, callback ? false : true, "onCompleteGetS3BucketCORS", callback);
+    },
+
+    onCompleteGetS3BucketCORS : function(response)
+    {
+        if (response.hasErrors) {
+            if (response.errCode == "NoSuchBucketPolicy") {
+                response.hasErrors = false;
+            }
+        } else {
+            response.result = response.responseText;
+        }
+        return response.result;
+    },
+
+    setS3BucketCORS : function(bucket, policy, callback)
+    {
+        var params = {}
+        params["Content-Type"] = "application/xml; charset=UTF-8";
+        this.queryS3("PUT", bucket, "", "?cors", params, policy, this, false, "onComplete", callback);
+    },
+
     getS3BucketAcl : function(bucket, callback)
     {
         this.queryS3("GET", bucket, "", "?acl", {}, content, this, false, "onCompleteGetS3BucketAcl", callback);
