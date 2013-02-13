@@ -1320,8 +1320,13 @@ var ew_api = {
                 }
                 options.push(key + " = " + values.join(","))
             }
-            var tags = this.getTags(item);
-            list.push(new DhcpOptions(id, options.join("; "), tags));
+            var dhcp = new Element('id', id, 'options', options.join("; "))
+            dhcp.toString = function() {
+                return this.options + fieldSeparator + this.id;
+            }
+            dhcp.tags = this.getTags(item);
+            ew_core.processTags(dhcp)
+            list.push(dhcp);
         }
         this.core.setModel('dhcpOptions', list);
         response.result = list;
@@ -1842,17 +1847,23 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "exportTaskSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var id = getNodeValue(item, "exportTaskId");
-            var state = getNodeValue(item, "state");
-            var statusMsg = getNodeValue(item, "statusMessage");
-            var descr = getNodeValue(item, "description");
-            var instance = getNodeValue(item, "instanceExport", "instanceId");
-            var env = getNodeValue(item, "instanceExport", "targetEnvironment");
-            var dfmt = getNodeValue(item, "exportToS3", "diskImageFormat");
-            var cfmt = getNodeValue(item, "exportToS3", "containerFormat");
-            var bucket = getNodeValue(item, "exportToS3", "s3Bucket");
-            var prefix = getNodeValue(item, "exportToS3", "s3Key");
-            list.push(new ExportTask(id, state, statusMsg, descr, instance, env, dfmt, cfmt, bucket, prefix))
+            var obj = new Element();
+            obj.toString = function() {
+                return this.id + fieldSeparator + this.state + fieldSeparator + this.descr + fieldSeparator + ew_core.modelValue('instanceId',this.instanceId) +
+                                 fieldSeparator + this.statusMessage + fieldSeparator + this.bucket + this.prefix;
+            }
+
+            obj.id = getNodeValue(item, "exportTaskId");
+            obj.state = getNodeValue(item, "state");
+            obj.statusMessage = getNodeValue(item, "statusMessage");
+            obj.descr = getNodeValue(item, "description");
+            obj.instanceId = getNodeValue(item, "instanceExport", "instanceId");
+            obj.targetEnvironment = getNodeValue(item, "instanceExport", "targetEnvironment");
+            obj.diskImageFormat = getNodeValue(item, "exportToS3", "diskImageFormat");
+            obj.containerFormat = getNodeValue(item, "exportToS3", "containerFormat");
+            obj.bucket = getNodeValue(item, "exportToS3", "s3Bucket");
+            obj.prefix = getNodeValue(item, "exportToS3", "s3Key");
+            list.push(obj)
         }
         this.core.setModel('exportTasks', list);
         response.result = list;
@@ -1881,42 +1892,55 @@ var ew_api = {
             var statusMsg = getNodeValue(item, "statusMessage");
             var expire = new Date(getNodeValue(item, "expirationTime"));
 
-            var vol = item.getElementsByTagName("importVolume")[0];
-            if (vol) {
-                var bytes = getNodeValue(vol, "bytesConverted");
-                var azone = getNodeValue(vol, "avilabilityZone");
-                var descr = getNodeValue(vol, "description");
-                var fmt = getNodeValue(vol, "image", "format");
-                var isize = getNodeValue(vol, "image", "size");
-                var url = getNodeValue(vol, "image", "importManifestUrl");
-                var cksum = getNodeValue(vol, "image", "checksum");
-                var vsize = getNodeValue(vol, "volume", "size");
-                var vid = getNodeValue(vol, "volume", "id");
-                list.push(new ConversionTaskVolume(id, expire, state, statusMsg, vid, vsize, fmt, isize, url, cksum, desr, azone, bytes))
+            var vols = item.getElementsByTagName("importVolume")[0];
+            if (vols) {
+                var vol = new Element('id', id, 'expire', expire, 'state', state, 'statusMessage', statusMsg);
+                vol.toString = function() {
+                    return this.volumeId + fieldSeparator + this.bytesConverted + "/" + this.volumeSize + fieldSeparator + this.imageFormat + fieldSeparator + this.state;
+                }
+                vol.bytesConverted = getNodeValue(vols, "bytesConverted");
+                vol.availabilityZone = getNodeValue(vols, "avilabilityZone");
+                vol.vdescr = getNodeValue(vols, "description");
+                vol.imageFormat = getNodeValue(vols, "image", "format");
+                vol.imagesize = getNodeValue(vols, "image", "size");
+                vol.imageUrl = getNodeValue(vols, "image", "importManifestUrl");
+                vol.imageChecksum = getNodeValue(vols, "image", "checksum");
+                vol.volumeSize = getNodeValue(vols, "volume", "size");
+                vol.volumeId = getNodeValue(vols, "volume", "id");
+                list.push(vol);
             }
 
             var instance = item.getElementsByTagName("importInstance")[0];
             if (instance) {
-                var instanceId = getNodeValue(instance, "instanceId");
-                var platform = getNodeValue(instance, "platform");
-                var descr = getNodeValue(instance, "description");
-                var volumes = [];
+                var obj = new Element('id', id, 'expire', expire, 'state', state, 'statusMessage', statusMsg);
+                obj.toString = function() {
+                    return this.instanceId + fieldSeparator + this.state + fieldSeparator + this.platform + fieldSeparator + this.volumes;
+                }
+                obj.instanceId = getNodeValue(instance, "instanceId");
+                obj.platform = getNodeValue(instance, "platform");
+                obj.descr = getNodeValue(instance, "description");
+                obj.volumes = [];
                 var vols = this.getItems(instance, "volumes", "item");
                 for (var j = 0; j < vols.length; j++) {
-                    var vstatus = getNodeValue(vols[j], "status");
-                    var vstatusMsg = getNodeValue(vols[j], "statusMessage");
-                    var bytes = getNodeValue(vols[j], "bytesConverted");
-                    var azone = getNodeValue(vols[j], "avilabilityZone");
-                    var vdescr = getNodeValue(vols[j], "description");
-                    var fmt = getNodeValue(vols[j], "image", "format");
-                    var isize = getNodeValue(vols[j], "image", "size");
-                    var url = getNodeValue(vols[j], "image", "importManifestUrl");
-                    var cksum = getNodeValue(vols[j], "image", "checksum");
-                    var vsize = getNodeValue(vols[j], "volume", "size");
-                    var vid = getNodeValue(vols[j], "volume", "id");
-                    volumes.push(new ConversionTaskVolume(id, expire, vstatus, vstatusMsg, vid, vsize, fmt, isize, url, cksum, vdescr, azone, bytes))
+                    var vol = new Element('id', id, 'expire', expire)
+                    vol.toString = function() {
+                        return this.volumeId + fieldSeparator + this.bytesConverted + "/" + this.volumeSize + fieldSeparator + this.imageFormat + fieldSeparator + this.state;
+                    }
+                    vol.state = getNodeValue(vols[j], "status");
+                    vol.statusMessage = getNodeValue(vols[j], "statusMessage");
+                    vol.bytesConverted = getNodeValue(vols[j], "bytesConverted");
+                    vol.availabilityZone = getNodeValue(vols[j], "avilabilityZone");
+                    vol.vdescr = getNodeValue(vols[j], "description");
+                    vol.imageFormat = getNodeValue(vols[j], "image", "format");
+                    vol.imagesize = getNodeValue(vols[j], "image", "size");
+                    vol.imageUrl = getNodeValue(vols[j], "image", "importManifestUrl");
+                    vol.imageChecksum = getNodeValue(vols[j], "image", "checksum");
+                    vol.volumeSize = getNodeValue(vols[j], "volume", "size");
+                    vol.volumeId = getNodeValue(vols[j], "volume", "id");
+                    obj.volumes.push(vol)
                 }
-                list.push(new ConversionTaskInstance(id, expire, state, statusMsg, instanceId, platform, descr, volumes))
+                obj.bytesConverted = obj.volumes.length ? obj.volumes[0].bytesConverted : 0;
+                list.push(obj)
             }
         }
         this.core.setModel('conversionTasks', list);
@@ -2041,12 +2065,16 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "spotPriceHistorySet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var type = getNodeValue(item, "instanceType");
-            var az = getNodeValue(item, "availabilityZone");
-            var date = new Date(getNodeValue(item, "timestamp"));
-            var descr = getNodeValue(item, "productDescription");
-            var price = getNodeValue(item, "spotPrice");
-            list.push(new SpotPrice(type, az, date, descr, price));
+            var obj = new Element()
+            obj.toString = function() {
+                return this.instanceType + fieldSeparator + this.price;
+            }
+            obj.instanceType = getNodeValue(item, "instanceType");
+            obj.availabilityZone = getNodeValue(item, "availabilityZone");
+            obj.date = new Date(getNodeValue(item, "timestamp"));
+            obj.productDescription = getNodeValue(item, "productDescription");
+            obj.price = getNodeValue(item, "spotPrice");
+            list.push(obj);
         }
         this.getNext(response, this.queryEC2, list);
     },
@@ -2094,19 +2122,25 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "spotInstanceRequestSet", "item");
         for ( var k = 0; k < items.length; k++) {
             var item = items[k];
-            var id = getNodeValue(item, "spotInstanceRequestId");
-            var price = getNodeValue(item, "spotPrice");
-            var type = getNodeValue(item, "type");
-            var state = getNodeValue(item, "state");
-            var instanceId = getNodeValue(item, "instanceId");
-            var date = new Date(getNodeValue(item, "createTime"));
-            var product = getNodeValue(item, "productDescription");
-            var az = getNodeValue(item, "launchedAvailabilityZone");
-            var image = getNodeValue(item, "launchSpecification", "imageId");
-            var instanceType = getNodeValue(item, "launchSpecification", "instanceType");
-            var msg = getNodeValue(item, "fault", "message");
-            var tags = this.getTags(item);
-            list.push(new SpotInstanceRequest(id, type, state, price, product, image, instanceType, instanceId, date, az, msg, tags));
+            var obj = new Element()
+            obj.toString = function() {
+                return this.instanceType + fieldSeparator + this.product + fieldSeparator + this.price + fieldSeparator + this.type;
+            }
+
+            obj.id = getNodeValue(item, "spotInstanceRequestId");
+            obj.price = getNodeValue(item, "spotPrice");
+            obj.type = getNodeValue(item, "type");
+            obj.state = getNodeValue(item, "state");
+            obj.instanceId = getNodeValue(item, "instanceId");
+            obj.date = new Date(getNodeValue(item, "createTime"));
+            obj.productDescription = getNodeValue(item, "productDescription");
+            obj.availabilityZone = getNodeValue(item, "launchedAvailabilityZone");
+            obj.imageId = getNodeValue(item, "launchSpecification", "imageId");
+            obj.instanceType = getNodeValue(item, "launchSpecification", "instanceType");
+            obj.faultMessage = getNodeValue(item, "fault", "message");
+            obj.tags = this.getTags(item);
+            ew_core.processTags(obj);
+            list.push(obj);
         }
 
         this.core.setModel('spotInstanceRequests', list);
@@ -4702,28 +4736,32 @@ var ew_api = {
 
     unpackAlarm: function(item)
     {
-        var arn = toArn(getNodeValue(item, "AlarmArn"));
-        var name = getNodeValue(item, "AlarmName");
-        var enabled = getNodeValue(item, "ActionsEnabled");
-        var actions = getNodeValue(item, "AlarmActions");
-        var descr = getNodeValue(item, "AlarmDescription");
-        var stateReason = getNodeValue(item, "StateReason");
-        var stateReasonData = getNodeValue(item, "StateReasonData");
-        var stateValue = getNodeValue(item, "StateValue");
-        var date = new Date(getNodeValue(item, "StateUpdatedTimestamp"));
-        var namespace = getNodeValue(item, "Namespace");
-        var period = getNodeValue(item, "Period");
-        var unit = getNodeValue(item, "Unit");
-        var threshold = getNodeValue(item, "Threshold");
-        var statistic = getNodeValue(item, "Statistic");
-        var oper = getNodeValue(item, "ComparisonOperator");
-        var metricName = getNodeValue(item, "MetricName");
-        var evalPeriods = getNodeValue(item, "EvaluationPeriods");
-        var insufActions = getNodeValue(item, "InsufficientDataActions");
-        var okActions = getNodeValue(item, "OKActions");
-        var dims = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
-        var actions = this.getItems(item, "AlarmActions", "member", "");
-        return new MetricAlarm(name, arn, descr, stateReason, stateReasonData, stateValue, date, namespace, period, unit, threshold, statistic, oper, metricName, evalPeriods, dims, enabled, actions, insufActions, okActions);
+        var obj = new Element();
+        obj.toString = function() {
+            return this.name + fieldSeparator + this.descr;
+        }
+
+        obj.arn = toArn(getNodeValue(item, "AlarmArn"));
+        obj.name = getNodeValue(item, "AlarmName");
+        obj.actionsEnabled = getNodeValue(item, "ActionsEnabled");
+        obj.descr = getNodeValue(item, "AlarmDescription");
+        obj.stateReason = getNodeValue(item, "StateReason");
+        obj.stateReasonData = getNodeValue(item, "StateReasonData");
+        obj.stateValue = getNodeValue(item, "StateValue");
+        obj.stateTimestamp = new Date(getNodeValue(item, "StateUpdatedTimestamp"));
+        obj.namespace = getNodeValue(item, "Namespace");
+        obj.period = getNodeValue(item, "Period");
+        obj.unit = getNodeValue(item, "Unit");
+        obj.threshold = getNodeValue(item, "Threshold");
+        obj.statistic = getNodeValue(item, "Statistic");
+        obj.comparisonOper = getNodeValue(item, "ComparisonOperator");
+        obj.metricName = getNodeValue(item, "MetricName");
+        obj.evaluationPeriods = getNodeValue(item, "EvaluationPeriods");
+        obj.insufficientDataActions = getNodeValue(item, "InsufficientDataActions");
+        obj.okActions = getNodeValue(item, "OKActions");
+        obj.dimensions = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(o) { return new Tag(o.Name, o.Value)});
+        obj.actions = this.getItems(item, "AlarmActions", "member", "");
+        return obj;
     },
 
     describeAlarms : function(callback)
@@ -4759,12 +4797,17 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "AlarmHistoryItems", "member");
         for ( var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "AlarmName");
-            var type = getNodeValue(items[i], "HistoryItemType");
-            var data = getNodeValue(items[i], "HistoryData");
-            var descr = getNodeValue(items[i], "HistorySummary");
-            var date = new Date(getNodeValue(items[i], "Timestamp"));
-            list.push(new AlarmHistory(name, type, data, descr, date));
+            var obj = new element();
+            obj.toString = function() {
+                return this.name + fieldSeparator + this.type + fieldSeparator + this.date + fieldSeparator + this.descr;
+            }
+
+            obj.name = getNodeValue(items[i], "AlarmName");
+            obj.type = getNodeValue(items[i], "HistoryItemType");
+            obj.data = getNodeValue(items[i], "HistoryData");
+            obj.descr = getNodeValue(items[i], "HistorySummary");
+            obj.date = new Date(getNodeValue(items[i], "Timestamp"));
+            list.push(obj);
         }
         response.result = list;
     },
@@ -4875,14 +4918,18 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "Datapoints", "member");
         for ( var i = 0; i < items.length; i++) {
-            var tm = new Date(getNodeValue(items[i], "Timestamp"));
-            var u = getNodeValue(items[i], "Unit");
-            var a = getNodeValue(items[i], "Average");
-            var s = getNodeValue(items[i], "Sum");
-            var c = getNodeValue(items[i], "SampleCount");
-            var x = getNodeValue(items[i], "Maximum");
-            var m = getNodeValue(items[i], "Minimum");
-            list.push(new Datapoint(tm, u, a, s, c, x, m));
+            var obj = new Element();
+            obj.toString = function() {
+                return this.timestamp + fieldSeparator + this.unit + fieldSeparator + this.value;
+            }
+            obj.timestamp = new Date(getNodeValue(items[i], "Timestamp"));
+            obj.unit = getNodeValue(items[i], "Unit");
+            obj.average = getNodeValue(items[i], "Average");
+            obj.sum = getNodeValue(items[i], "Sum");
+            obj.sampleCount = getNodeValue(items[i], "SampleCount");
+            obj.maximum = getNodeValue(items[i], "Maximum");
+            obj.minimum = getNodeValue(items[i], "Minimum");
+            list.push(obj);
         }
         response.result = list;
     },
