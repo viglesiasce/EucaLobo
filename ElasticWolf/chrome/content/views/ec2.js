@@ -1465,6 +1465,7 @@ var ew_ElasticIPTreeView = {
 
     activate: function()
     {
+        TreeView.activate.call(this);
         $("eip.networkInterfaceId").hidden = this.core.isVpcMode() ? false : true;
         $("eip.allocationId").hidden = this.core.isVpcMode() ? false : true;
         $("eip.associationId").hidden = this.core.isVpcMode() ? false : true;
