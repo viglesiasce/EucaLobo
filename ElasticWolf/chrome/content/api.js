@@ -446,7 +446,7 @@ var ew_api = {
 
         // Split query string for subresources, supported are:
         var resources = ["acl", "lifecycle", "location", "logging", "notification", "partNumber", "policy", "requestPayment", "torrent",
-                         "uploadId", "uploads", "versionId", "versioning", "versions", "website",
+                         "uploadId", "uploads", "versionId", "versioning", "versions", "website", "cors",
                          "delete",
                          "response-content-type", "response-content-language", "response-expires",
                          "response-cache-control", "response-content-disposition", "response-content-encoding" ]
@@ -2732,7 +2732,7 @@ var ew_api = {
     onCompleteGetS3BucketCORS : function(response)
     {
         if (response.hasErrors) {
-            if (response.errCode == "NoSuchBucketPolicy") {
+            if (response.errCode == "NoSuchCORSConfiguration") {
                 response.hasErrors = false;
             }
         } else {
@@ -2745,7 +2745,13 @@ var ew_api = {
     {
         var params = {}
         params["Content-Type"] = "application/xml; charset=UTF-8";
+        params['Content-MD5'] = b64_md5(policy);
         this.queryS3("PUT", bucket, "", "?cors", params, policy, this, false, "onComplete", callback);
+    },
+
+    deleteS3BucketCORS : function(bucket, callback)
+    {
+        this.queryS3("DELETE", bucket, "", "?cors", {}, content, this, false, "onComplete", callback);
     },
 
     getS3BucketAcl : function(bucket, callback)

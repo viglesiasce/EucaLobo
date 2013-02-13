@@ -411,10 +411,16 @@ var ew_S3BucketsTreeView = {
         if (item == null) return
         var name = !this.path.length ? item.name : item.bucket;
         var policy = this.core.api.getS3BucketCORS(name);
+        // Example policy
+        if (!policy) policy = "<CORSConfiguration>\n<CORSRule>\n<AllowedOrigin>http://www.example.com</AllowedOrigin>\n<AllowedMethod>GET</AllowedMethod>\n<AllowedMethod>POST</AllowedMethod>\n<AllowedHeader>*</AllowedHeader>\n<MaxAgeSeconds>3000</MaxAgeSeconds>\n<ExposeHeader>x-amz-id-2</ExposeHeader>\n</CORSRule>\n<CORSRule>\n<AllowedOrigin>*</AllowedOrigin>\n<AllowedMethod>GET</AllowedMethod>\n</CORSRule>\n</CORSConfiguration>\n";
         var values = me.core.promptInput('CORS Policy', [ {label:"Bucket",type:"label",value:name},
                                                           {label:"Policy",value:policy || "",multiline:true,rows:15,cols:60}]);
         if (!values) return;
-        this.core.api.setS3BucketCORS(item.name, values[1]);
+        if (values[1]) {
+            this.core.api.setS3BucketCORS(item.name, values[1]);
+        } else {
+            me.core.api.deleteS3BucketCORS(item.name, function() { me.selectionChanged(); })
+        }
     },
 
     manageAcls: function()
