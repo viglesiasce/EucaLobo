@@ -1751,13 +1751,20 @@ var ew_api = {
         obj.volumes = [];
         var objs = this.getItems(item, "blockDeviceMapping", "item");
         for (var i = 0; i < objs.length; i++) {
-            var vdevice = getNodeValue(objs[i], "deviceName");
-            var vname = getNodeValue(objs[i], "virtualName");
-            var vid = getNodeValue(objs[i], "ebs", "snapshotId");
-            var vsize = getNodeValue(objs[i], "ebs", "volumeSize");
-            var vdel = getNodeValue(objs[i], "ebs", "deleteOnTermination");
-            var nodev = objs[i].getElementsByTagName("noDevice");
-            obj.volumes.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, vdel, nodev.length ? true : false));
+            var dev = new Element();
+            dev.toString = function() {
+                return this.deviceName +
+                       (this.virtualName ? fieldSeparator + this.virtualName : "") + (this.volumeSize ? fieldSeparator + this.volumeSize + "GB" : "") +
+                       (this.snapshotId ? fieldSeparator + this.snapshotId : "") + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
+                       (this.noDevice ? fieldSeparator + "noDevice" : "");
+            }
+            dev.deviceNqame = getNodeValue(objs[i], "DeviceName");
+            dev.virtualName = getNodeValue(objs[i], "VirtualName");
+            dev.snapshotId = getNodeValue(objs[i], "ebs", "SnapshotId");
+            dev.volumeSize = getNodeValue(objs[i], "ebs", "VolumeSize");
+            dev.deleteOnTermination = toBool(getNodeValue(objs[i], "ebs", "deleteOnTermination"))
+            dev.noDevice = objs[i].getElementsByTagName("noDevice").length ? true : false;
+            obj.volumes.push(dev);
         }
         obj.virtualizationType = getNodeValue(item, 'virtualizationType');
         obj.hypervisor = getNodeValue(item, 'hypervisor');
@@ -2282,41 +2289,55 @@ var ew_api = {
                 for (var j = 0; j < instanceItems.length; j++) {
                     if (instanceItems[j].nodeName == '#text') continue;
                     var instance = instanceItems[j];
-                    var instanceId = getNodeValue(instance, "instanceId");
-                    var imageId = getNodeValue(instance, "imageId");
-                    var state = getNodeValue(instance, "instanceState", "name");
-                    var productCodes = this.getItems(instance, "productCodes", "item", []);
-                    var securityGroups = groups.concat(this.getGroups(instance));
-                    var dnsName = getNodeValue(instance, "dnsName");
-                    var privateDnsName = getNodeValue(instance, "privateDnsName");
-                    var privateIpAddress = getNodeValue(instance, "privateIpAddress");
-                    var vpcId = getNodeValue(instance, "vpcId");
-                    var subnetId = getNodeValue(instance, "subnetId");
-                    var keyName = getNodeValue(instance, "keyName");
-                    var reason = getNodeValue(instance, "reason");
-                    var amiLaunchIdx = getNodeValue(instance, "amiLaunchIndex");
-                    var instanceType = getNodeValue(instance, "instanceType");
-                    var launchTime = new Date(getNodeValue(instance, "launchTime"));
-                    var availabilityZone = getNodeValue(instance, "placement", "availabilityZone");
-                    var tenancy = getNodeValue(instance, "placement", "tenancy");
-                    var monitoringStatus = toBool(getNodeValue(instance, "monitoring", "state"));
-                    var stateReason = getNodeValue(instance, "stateReason", "code");
-                    var platform = getNodeValue(instance, "platform");
-                    var kernelId = getNodeValue(instance, "kernelId");
-                    var ramdiskId = getNodeValue(instance, "ramdiskId");
-                    var rootDeviceType = getNodeValue(instance, "rootDeviceType");
-                    var rootDeviceName = getNodeValue(instance, "rootDeviceName");
-                    var virtType = getNodeValue(instance, 'virtualizationType');
-                    var hypervisor = getNodeValue(instance, 'hypervisor');
-                    var ip = getNodeValue(instance, "ipAddress");
-                    var srcDstCheck = getNodeValue(instance, 'sourceDestCheck');
-                    var architecture = getNodeValue(instance, "architecture");
-                    var instanceLifecycle = getNodeValue(instance, "instanceLifecycle")
-                    var clientToken = getNodeValue(instance, "clientToken")
-                    var spotId = getNodeValue(instance ,"spotInstanceRequestId");
-                    var role = getNodeValue(instance, "iamInstanceProfile", "id");
-                    var ebsOpt = toBool(getNodeValue(instance, "ebsOptimized"));
-                    var volumes = [];
+                    var iobj = new Element('className', 'Instance', 'name', '');
+                    iobj.toString = function() {
+                        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.instanceType + fieldSeparator + this.state + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
+                    }
+                    iobj.validate = function() {
+                        if (!this.ipAddress && this.dnsName) {
+                            var parts = this.dnsName.split('-');
+                            this.ipAddress = parts[1] + "." + parts[2] + "." + parts[3] + "." + parseInt(parts[4]);
+                        }
+                        if (this.elasticIp == '') {
+                            var eip = ew_core.queryModel('addresses', 'instanceId', this.id);
+                            this.elasticIp = eip && eip.length ? eip[0].publicIp : '';
+                        }
+                    }
+                    iobj.id = getNodeValue(instance, "instanceId");
+                    iobj.imageId = getNodeValue(instance, "imageId");
+                    iobj.state = getNodeValue(instance, "instanceState", "name");
+                    iobj.productCodes = this.getItems(instance, "productCodes", "item", []);
+                    iobj.securityGroups = uniqueList(groups.concat(this.getGroups(instance)), 'id');
+                    iobj.dnsName = getNodeValue(instance, "dnsName");
+                    iobj.privateDnsName = getNodeValue(instance, "privateDnsName");
+                    iobj.privateIpAddress = getNodeValue(instance, "privateIpAddress");
+                    iobj.vpcId = getNodeValue(instance, "vpcId");
+                    iobj.subnetId = getNodeValue(instance, "subnetId");
+                    iobj.keyName = getNodeValue(instance, "keyName");
+                    iobj.reason = getNodeValue(instance, "reason");
+                    iobj.amiLaunchIdx = getNodeValue(instance, "amiLaunchIndex");
+                    iobj.instanceType = getNodeValue(instance, "instanceType");
+                    iobj.launchTime = new Date(getNodeValue(instance, "launchTime"));
+                    iobj.availabilityZone = getNodeValue(instance, "placement", "availabilityZone");
+                    iobj.tenancy = getNodeValue(instance, "placement", "tenancy");
+                    iobj.monitoringEnabled = toBool(getNodeValue(instance, "monitoring", "state"));
+                    iobj.stateReason = getNodeValue(instance, "stateReason", "code");
+                    iobj.platform = getNodeValue(instance, "platform");
+                    iobj.kernelId = getNodeValue(instance, "kernelId");
+                    iobj.ramdiskId = getNodeValue(instance, "ramdiskId");
+                    iobj.rootDeviceType = getNodeValue(instance, "rootDeviceType");
+                    iobj.rootDeviceName = getNodeValue(instance, "rootDeviceName");
+                    iobj.virtualizationType = getNodeValue(instance, 'virtualizationType');
+                    iobj.hypervisor = getNodeValue(instance, 'hypervisor');
+                    iobj.ipAddress = getNodeValue(instance, "ipAddress");
+                    iobj.sourceDestCheck = toBool(getNodeValue(instance, 'sourceDestCheck'));
+                    iobj.architecture = getNodeValue(instance, "architecture");
+                    iobj.instanceLifecycle = getNodeValue(instance, "instanceLifecycle")
+                    iobj.clientToken = getNodeValue(instance, "clientToken")
+                    iobj.spotInstanceRequestId = getNodeValue(instance ,"spotInstanceRequestId");
+                    iobj.instanceProfile = getNodeValue(instance, "iamInstanceProfile", "id");
+                    iobj.ebsOptimized = toBool(getNodeValue(instance, "ebsOptimized"));
+                    iobj.volumes = [];
                     var objs = this.getItems(instance, "blockDeviceMapping", "item");
                     for (var i = 0; i < objs.length; i++) {
                         var dev = new Element();
@@ -2329,9 +2350,9 @@ var ew_api = {
                         dev.status = getNodeValue(objs[i], "ebs", "status");
                         dev.attachTime = new Date(getNodeValue(objs[i], "ebs", "attachTime"));
                         dev.deleteOnTermination = getNodeValue(objs[i], "ebs", "deleteOnTermination");
-                        volumes.push(dev);
+                        iobj.volumes.push(dev);
                     }
-                    var enis = [];
+                    iobj.networkInterfaces = [];
                     var objs = this.getItems(instance, "networkInterfaceSet", "item");
                     for (var i = 0; i < objs.length; i++) {
                         var eni = new Element();
@@ -2357,19 +2378,20 @@ var ew_api = {
                         eni.privateIpAddresses = [];
                         var objs = this.getItems(instance, "privateIpAddressesSet", "item");
                         for (var i = 0; i < objs.length; i++) {
-                            var pIp = getNodeValue(objs[i], "privateIpAddress");
-                            var pPrimary = getNodeValue(objs[i], "primary");
-                            var pPublicIp = getNodeValue(objs[i], "association", "publicIp");
-                            eni.privateIpAddresses.push(new PrivateIpAddress(pIp, pPrimary, pPublicIp))
+                            var pip = new Element();
+                            pip.toString = function() {
+                                return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
+                            }
+                            pip.privateIp = getNodeValue(objs[i], "privateIpAddress");
+                            pip.primary = getNodeValue(objs[i], "primary");
+                            pip.publicIp = getNodeValue(objs[i], "association", "publicIp");
+                            eni.privateIpAddresses.push(pip);
                         }
-                        enis.push(eni);
+                        iobj.networkInterfaces.push(eni);
                     }
-                    var tags = this.getTags(instance);
-
-                    list.push(new Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, securityGroups, dnsName, privateDnsName, privateIpAddress,
-                                           vpcId, subnetId, keyName, reason, amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringStatus != "", stateReason,
-                                           platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName, virtType, hypervisor, ip, srcDstCheck, architecture, instanceLifecycle,
-                                           clientToken, spotId, role, ebsOpt, volumes, enis, tags));
+                    iobj.tags = this.getTags(instance);
+                    ew_core.processTags(iobj);
+                    list.push(iobj);
                 }
             }
         }
@@ -2571,6 +2593,22 @@ var ew_api = {
 
     onCompleteDescribeInstanceStatus : function (response)
     {
+        function InstanceStatusEvent(type, instanceId, availabilityZone, status, code, description, startTime, endTime)
+        {
+            this.type = type;
+            this.instanceId = instanceId;
+            this.availabilityZone = availabilityZone;
+            this.status = status;
+            this.code = code;
+            this.description = description;
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.toString = function() {
+                return this.type + fieldSeparator + this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
+                       this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
+            }
+        }
+
         var xmlDoc = response.responseXML;
         var list = [];
         var items = this.getItems(xmlDoc, "instanceStatusSet", "item");
@@ -3119,9 +3157,11 @@ var ew_api = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("item");
         for ( var i = 0; i < items.length; i++) {
-            var name = getNodeValue(items[i], "keyName");
-            var fp = getNodeValue(items[i], "keyFingerprint");
-            list.push(new KeyPair(name, fp));
+            var key = new Element();
+            key.toString = function() { return this.name; }
+            key.name = getNodeValue(items[i], "keyName");
+            key.fingerprint = getNodeValue(items[i], "keyFingerprint");
+            list.push(key);
         }
 
         this.core.setModel('keypairs', list);
@@ -3137,11 +3177,13 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var name = getNodeValue(xmlDoc, "keyName");
-        var fp = getNodeValue(xmlDoc, "keyFingerprint");
-        var material = getNodeValue(xmlDoc, "keyMaterial");
+        var key = new Element();
+        key.toString = function() { return this.name; }
+        key.name = getNodeValue(xmlDoc, "keyName");
+        key.fingerprint = getNodeValue(xmlDoc, "keyFingerprint");
+        key.material = getNodeValue(xmlDoc, "keyMaterial");
 
-        response.result = new KeyPair(name, fp, material);
+        response.result = key;
     },
 
     deleteKeypair : function(name, callback)
@@ -3350,7 +3392,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "networkInterfaceSet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var intf = new Element();
+            var intf = new Element('className', 'ENI');
             intf.toString = function() {
                 return this.privateIpAddress + fieldSeparator + this.status + fieldSeparator + this.id + fieldSeparator +  this.descr +
                        " (" + ew_core.modelValue("subnetId", this.subnetId) + ")";
@@ -3362,7 +3404,7 @@ var ew_api = {
             intf.status = getNodeValue(item, "status");
             intf.macAddress = getNodeValue(item, "macAddress");
             intf.privateIpAddress = getNodeValue(item, "privateIpAddress");
-            intf.sourceDestCheck = getNodeValue(item, "sourceDestCheck");
+            intf.sourceDestCheck = toBool(getNodeValue(item, "sourceDestCheck"));
             intf.availabilityZone = getNodeValue(item, "availabilityZone");
             intf.attachment = null;
             intf.association = null;
@@ -3398,11 +3440,15 @@ var ew_api = {
             intf.privateIpAddresses = [];
             var objs = this.getItems(item, "privateIpAddressesSet", "item");
             for (var j = 0; j < objs.length; j++) {
-                var pIp = getNodeValue(objs[j], "privateIpAddress");
-                var pPrimary = getNodeValue(objs[j], "primary");
-                var pPublicIp = getNodeValue(objs[j], "association", "publicIp");
-                var pAssoc = getNodeValue(objs[j], "association", "associationId");
-                intf.privateIpAddresses.push(new PrivateIpAddress(pIp, pPrimary, pPublicIp, pAssoc))
+                var ip = new Element();
+                ip.toString = function() {
+                    return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
+                }
+                ip.privateIp = getNodeValue(objs[i], "privateIpAddress");
+                ip.primary = getNodeValue(objs[i], "primary");
+                ip.publicIp = getNodeValue(objs[i], "association", "publicIp");
+                ip.associationId = getNodeValue(objs[j], "association", "associationId");
+                intf.privateIpAddresses.push(ip)
             }
             intf.groups = this.getGroups(item);
             intf.tags = this.getTags(item);
@@ -3451,6 +3497,22 @@ var ew_api = {
 
     parsePermissions: function(type, list, items)
     {
+        function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
+        {
+            this.type = type
+            this.protocol = protocol;
+            this.fromPort = fromPort;
+            this.toPort = toPort;
+            this.srcGroup = srcGroup;
+            if (srcGroup) {
+                this.srcGroup.toString = function() { return ew_core.modelValue('groupId', srcGroup.id); }
+            }
+            this.cidrIp = cidrIp;
+            this.toString = function() {
+                return this.type + fieldSeparator + this.protocol + fieldSeparator + this.fromPort + ":" + this.toPort + fieldSeparator + (this.cidrIp ? this.cidrIp : this.srcGroup ? this.srcGroup.toString() : "");
+            }
+        }
+
         if (items) {
             for ( var j = 0; j < items.length; j++) {
                 if (items.item(j).nodeName == '#text') continue;
@@ -4167,13 +4229,14 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
 
-        var user = getNodeValue(xmlDoc, "UserName");
-        var key = getNodeValue(xmlDoc, "AccessKeyId");
-        var secret = getNodeValue(xmlDoc, "SecretAccessKey");
-        var status = getNodeValue(xmlDoc, "Status");
+        var obj = new Element();
+        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
+        obj.userName = getNodeValue(xmlDoc, "UserName");
+        obj.id = getNodeValue(xmlDoc, "AccessKeyId");
+        obj.secret = getNodeValue(xmlDoc, "SecretAccessKey");
+        obj.status = getNodeValue(xmlDoc, "Status");
         debug("Access key = " + key + ", secret = " + secret)
-
-        response.result = new AccessKey(key, secret, status, user);
+        response.result = obj;
     },
 
     deleteAccessKey : function(id, user, callback)
@@ -4199,10 +4262,12 @@ var ew_api = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
         for (var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "AccessKeyId");
-            var status = getNodeValue(items[i], "Status");
-            var date = getNodeValue(items[i], "CreateDate");
-            list.push(new AccessKey(id, "", status, user, date));
+            var obj = new Element('userName', user);
+            obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
+            obj.id = getNodeValue(items[i], "AccessKeyId");
+            obj.status = getNodeValue(items[i], "Status");
+            obj.date = new Date(getNodeValue(items[i], "CreateDate"));
+            list.push(obj);
         }
 
         this.core.updateModel('users', getParam(params, 'UserName'), 'accessKeys', list)
@@ -4223,12 +4288,15 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "VirtualMFADevices", "member");
         for ( var i = 0; i < items.length; i++) {
-            var serial = getNodeValue(items[i], "SerialNumber");
-            var arn = toArn(getNodeValue(items[i], "Arn"));
-            var date = getNodeValue(items[i], "EnableDate");
-            var user = getNodeValue(items[i], "UserName");
-            list.push(new MFADevice(serial, date, arn.split(/[:\/]+/).pop(), user));
-            debug(i + " " + serial)
+            var dev = new Element();
+            dev.toString = function() { return this.name }
+            dev.id = getNodeValue(items[i], "SerialNumber");
+            dev.date = getNodeValue(items[i], "EnableDate");
+            dev.userName = getNodeValue(items[i], "UserName");
+            dev.arn = toArn(getNodeValue(items[i], "Arn"));
+            // arn:aws:iam::123456:mfa/name
+            dev.name = dev.id.indexOf('arn:aws') == 0 ? dev.id.split(/[:\/]+/).pop() : dev.id;
+            list.push(dev);
         }
         this.core.setModel('vmfas', list);
         response.result = list;
@@ -4268,7 +4336,13 @@ var ew_api = {
         var xmlDoc = response.responseXML;
         var params = response.params;
 
-        var list = this.getItems(xmlDoc, "MFADevices", "member", ["SerialNumber", "EnableDate"], function(obj) { return new MFADevice(obj.SerialNumber, obj.EnableDate)});
+        var list = this.getItems(xmlDoc, "MFADevices", "member", ["SerialNumber", "EnableDate"], function(obj) {
+            var dev = new Element('id', obj.SerialNumber, 'date', obj.EnableDate);
+            dev.toString = function() { return this.name }
+            // arn:aws:iam::123456:mfa/name
+            dev.name = dev.id.indexOf('arn:aws') == 0 ? dev.id.split(/[:\/]+/).pop() : dev.id;
+            return dev;
+        });
 
         var user = getNodeValue(xmlDoc, "UserName");
         if (!user) user = getParam(params, 'UserName');
@@ -4461,11 +4535,15 @@ var ew_api = {
 
     unpackUser: function(item)
     {
-        var id = getNodeValue(item, "UserId");
-        var name = getNodeValue(item, "UserName");
-        var path = getNodeValue(item, "Path");
-        var arn = toArn(getNodeValue(item, "Arn"));
-        return new User(id, name, path, arn)
+        var o = new Element();
+        o.toString = function() { return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : ""); }
+        o.id = getNodeValue(item, "UserId");
+        o.name = getNodeValue(item, "UserName");
+        o.path = getNodeValue(item, "Path");
+        o.arn = toArn(getNodeValue(item, "Arn"));
+        // arn:aws:iam::123456:user/name
+        o.accountId = o.arn ? o.arn.split(":")[4] : "";
+        return o;
     },
 
     onCompleteListUsers : function(response)
@@ -4709,7 +4787,15 @@ var ew_api = {
         var obj = this.core.findModel('groups', group.id);
         if (!obj) obj = group;
 
-        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(o) { return new User(o.UserId, o.UserName, o.Path, toArn(o.Arn)); });
+        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(o) {
+            var o = new Element('id', o.UserId, 'name', o.UserName, 'path', o.Path, 'arn', toArn(o.Arn));
+            o.toString = function() {
+                return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : "");
+            }
+            // arn:aws:iam::123456:user/name
+            o.accountId = o.arn ? o.arn.split(":")[4] : "";
+            return o;
+        });
 
         // Update with real users from the model so we can share between users and groups screens
         for (var i in users) {
@@ -4788,10 +4874,12 @@ var ew_api = {
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
-            var id = getNodeValue(items[i], "CertificateId");
-            var body = getNodeValue(items[i], "CertificateBody");
-            var user = getNodeValue(items[i], "UserName");
-            list.push(new Certificate(id, user, body));
+            var obj = new Element();
+            obj.toString = function() {return this.id;}
+            obj.id = getNodeValue(items[i], "CertificateId");
+            obj.body = getNodeValue(items[i], "CertificateBody");
+            obj.userName = getNodeValue(items[i], "UserName");
+            list.push(obj);
         }
         response.result = list;
     },
@@ -4843,13 +4931,15 @@ var ew_api = {
 
     unpackServerCertificate: function(item)
     {
-        var id = getNodeValue(item, "ServerCertificateId");
-        var name = getNodeValue(item, "ServerCertificateName");
-        var arn = toArn(getNodeValue(item, "Arn"));
-        var path = getNodeValue(item, "Path");
-        var date = getNodeValue(item, "UploadDate");
-        var body = getNodeValue(item, "CertificateBody");
-        return new ServerCertificate(id, name, arn, path, date, body);
+        var obj = new Element()
+        obj.toString = function() { return this.name; }
+        obj.id = getNodeValue(item, "ServerCertificateId");
+        obj.name = getNodeValue(item, "ServerCertificateName");
+        obj.arn = toArn(getNodeValue(item, "Arn"));
+        obj.path = getNodeValue(item, "Path");
+        obj.date = getNodeValue(item, "UploadDate");
+        obj.body = getNodeValue(item, "CertificateBody");
+        return obj;
     },
 
     onCompleteGetServerCertificate : function(response)
@@ -6611,7 +6701,13 @@ var ew_api = {
             obj.terminationPolicies = this.getItems(items[i], "TerminationPolicies", "member", "");
             obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Item(o.Metric, o.Granularity); });
             obj.granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
-            obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) { return new AutoScalingInstance(name,o.HealthStatus,o.AvailabilityZone,o.InstanceId,o.LaunchConfigurationName,o.LifecycleState)})
+            obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) {
+                var g = new Element('group',name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState)
+                g.toString = function() {
+                    return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
+                }
+                return g
+            })
             obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Item(o.ProcessName,o.SuspensionReason)})
             obj.tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(o) { return new Tag(o.Key,o.Value,o.ResourceId,o.ResourceType,toBool(o.PropagateAtLaunch))})
             list.push(obj);
@@ -6678,11 +6774,20 @@ var ew_api = {
             obj.devices = [];
             var objs = this.getItems(items[i], "BlockDeviceMappings", "member");
             for (var j = 0; j < objs.length; j++) {
-                var vdevice = getNodeValue(objs[j], "DeviceName");
-                var vname = getNodeValue(objs[j], "VirtualName");
-                var vid = getNodeValue(objs[j], "ebs", "SnapshotId");
-                var vsize = getNodeValue(objs[j], "ebs", "VolumeSize");
-                obj.devices.push(new BlockDeviceMapping(vdevice, vname, vid, vsize, 0, 0));
+                var dev = new Element();
+                dev.toString = function() {
+                    return this.deviceName +
+                           (this.virtualName ? fieldSeparator + this.virtualName : "") + (this.volumeSize ? fieldSeparator + this.volumeSize + "GB" : "") +
+                           (this.snapshotId ? fieldSeparator + this.snapshotId : "") + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
+                           (this.noDevice ? fieldSeparator + "noDevice" : "");
+                }
+                dev.deviceNqame = getNodeValue(objs[j], "DeviceName");
+                dev.virtualName = getNodeValue(objs[j], "VirtualName");
+                dev.snapshotId = getNodeValue(objs[j], "ebs", "SnapshotId");
+                dev.volumeSize = getNodeValue(objs[j], "ebs", "VolumeSize");
+                this.deleteOnTermination = 0;
+                this.noDevice = 0;
+                obj.devices.push(dev);
             }
             list.push(obj);
         }
@@ -6895,13 +7000,17 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "AutoScalingInstances", "member");
         for (var i = 0; i < items.length; i++) {
-            var group = getNodeValue(items[i], "AutoScalingGroupName");
-            var azone = getNodeValue(items[i], "AvailabilityZone");
-            var status = getNodeValue(items[i], "HealthStatus");
-            var id = getNodeValue(items[i], "InstanceId");
-            var cfg = getNodeValue(items[i], "LaunchConfigurationName");
-            var life = getNodeValue(items[i], "LifecycleState");
-            list.push(new AutoScalingInstance(group, status, azone, id, cfg, life));
+            var obj = new Element()
+            obj.toString = function() {
+                return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
+            }
+            obj.group = getNodeValue(items[i], "AutoScalingGroupName");
+            obj.availabilityZone = getNodeValue(items[i], "AvailabilityZone");
+            obj.healthStatus = getNodeValue(items[i], "HealthStatus");
+            obj.instanceId = getNodeValue(items[i], "InstanceId");
+            obj.launchConfigurationName = getNodeValue(items[i], "LaunchConfigurationName");
+            obj.state = getNodeValue(items[i], "LifecycleState");
+            list.push(obj);
         }
         this.core.setModel('asinstances', list);
         response.result = list;

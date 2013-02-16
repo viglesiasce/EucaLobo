@@ -1530,9 +1530,9 @@ var ew_ElasticIPTreeView = {
             }
 
             var list = this.getUnassociatedInstances();
-            list = list.concat(this.core.queryModel('networkInterfaces'))
+            list = list.concat(this.core.queryModel('networkInterfaces'));
 
-            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, { columns: ['__class__', 'toString'], width: 550 });
+            var idx = this.core.promptList("Associate Elastic IP", "Which Instance/ENI would you like to associate "+ eip.publicIp +" with?", list, { columns: ['className', 'toString'], width: 550 });
             if (idx < 0) return;
             // Determine what type we selected
             if (list[idx].imageId) {

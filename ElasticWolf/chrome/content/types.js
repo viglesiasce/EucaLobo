@@ -649,7 +649,6 @@ var ListBox = {
         if (!this.name) return;
         this.listbox = $(this.name);
         if (!this.listbox) return;
-        clearElement(this.listbox);
         if (this.width) this.listbox.width = this.width;
         this.listbox.setAttribute('rows', this.rows || 10);
         this.listbox.onclick = null;
@@ -657,7 +656,18 @@ var ListBox = {
         var list = this.listbox;
         (function(v) { var me = v; list.addEventListener('click', function(e) { e.stopPropagation();me.selectionChanged(e); }, false); }(this));
         (function(v) { var me = v; list.addEventListener('keydown', function(e) { return me.onKeydown(e); }, false); }(this));
+        this.create();
+    },
 
+    create: function()
+    {
+        clearElement(this.listbox);
+        this.createHeader();
+        this.createData();
+    },
+
+    createHeader: function()
+    {
         var head = document.createElement('listhead');
         head.setAttribute('flex', '1');
         this.listbox.appendChild(head);
@@ -693,7 +703,10 @@ var ListBox = {
                 cols.appendChild(col);
             }
         }
+    },
 
+    createData: function()
+    {
         for (var i = 0; i < this.items.length; i++) {
             if (this.items[i] == null) continue;
             var val = this.toItem(this.items[i]);
@@ -1675,55 +1688,6 @@ function Endpoint(name, url)
     }
 }
 
-function Certificate(id, user, body)
-{
-    this.id = id
-    this.userName = user
-    this.body = body
-    this.toString = function() {
-        return this.id;
-    }
-}
-
-function ServerCertificate(id, name, arn, path, date, body)
-{
-    this.id = id;
-    this.name = name;
-    this.arn = arn;
-    this.path = path;
-    this.date = date || "";
-    this.body = body || "";
-
-    this.toString = function() {
-        return this.name;
-    }
-}
-
-function KeyPair(name, fingerprint, material)
-{
-    this.name = name;
-    this.fingerprint = fingerprint;
-    this.material = material;
-    this.toString = function() {
-        return this.name;
-    }
-}
-
-function AccessKey(id, secret, status, user, date)
-{
-    this.id = id;
-    this.status = status;
-    this.userName = user || "";
-    this.secret = secret || "";
-    this.date = date ? new Date(date) : "";
-    this.state = "";
-    this.securityToken = "";
-
-    this.toString = function() {
-        return this.id + (this.state ? fieldSeparator + this.state : "");
-    }
-}
-
 function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
 {
     this.id = id;
@@ -1754,38 +1718,6 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
 
     this.toString = function() {
         return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken + ";;" + this.expire;
-    }
-}
-
-function User(id, name, path, arn)
-{
-    this.id = id
-    this.name = name;
-    this.path = path;
-    this.arn = arn;
-    this.groups = null;
-    this.policies = null;
-    this.accessKeys = null;
-    this.mfaDevices = null;
-    this.loginProfileDate = null;
-    // arn:aws:iam::123456:user/name
-    this.accountId = arn ? arn.split(":")[4] : "";
-
-    this.toString = function() {
-        return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : "");
-    }
-}
-
-function MFADevice(id, date, user)
-{
-    this.id = id
-    this.date = date
-    this.userName = user || "";
-    // arn:aws:iam::123456:mfa/name
-    this.name = this.id.indexOf('arn:aws') == 0 ? this.id.split(/[:\/]+/).pop() : this.id;
-
-    this.toString = function() {
-        return this.name
     }
 }
 
@@ -1856,148 +1788,5 @@ function Tag(name, value, id, type, propagate)
     }
 }
 
-function PrivateIpAddress(privateIp, primary, publicIp, assocId)
-{
-    this.privateIp = privateIp;
-    this.publicIp = publicIp
-    this.primary = toBool(primary)
-    this.associationId = assocId || "";
-    this.toString = function() {
-        return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
-    }
-}
 
-function BlockDeviceMapping(deviceName, virtualName, snapshotId, volumeSize, deleteOnTermination, noDevice)
-{
-    this.snapshotId = snapshotId;
-    this.deviceName = deviceName;
-    this.virtualName = virtualName;
-    this.volumeSize = volumeSize
-    this.deleteOnTermination = toBool(deleteOnTermination);
-    this.noDevice = noDevice;
-
-    this.toString = function() {
-        return this.deviceName +
-               (this.virtualName ? fieldSeparator + this.virtualName : "") +
-               (this.volumeSize ? fieldSeparator + this.volumeSize + "GB" : "") +
-               (this.snapshotId ? fieldSeparator + this.snapshotId : "") +
-               (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
-               (this.noDevice ? fieldSeparator + "noDevice" : "");
-    }
-}
-
-function Instance(reservationId, ownerId, requesterId, instanceId, imageId, state, productCodes, groups, dnsName, privateDnsName, privateIpAddress, vpcId, subnetId, keyName, reason,
-                  amiLaunchIdx, instanceType, launchTime, availabilityZone, tenancy, monitoringEnabled, stateReason, platform, kernelId, ramdiskId, rootDeviceType, rootDeviceName,
-                  virtualizationType, hypervisor, ipAddress, sourceDestCheck, architecture, instanceLifecycle, clientToken, spotId, role, ebsOptimized, volumes, enis, tags)
-{
-    this.id = instanceId;
-    this.reservationId = reservationId;
-    this.ownerId = ownerId;
-    this.requesterId = requesterId;
-    this.elasticIp = '';
-    this.imageId = imageId;
-    this.state = state;
-    this.productCodes = productCodes;
-    this.securityGroups = uniqueList(groups, 'id');
-    this.dnsName = dnsName;
-    this.privateDnsName = privateDnsName;
-    this.privateIpAddress = privateIpAddress;
-    this.vpcId = vpcId;
-    this.subnetId = subnetId;
-    this.keyName = keyName;
-    this.reason = reason;
-    this.amiLaunchIdx = amiLaunchIdx;
-    this.instanceType = instanceType;
-    this.launchTime = launchTime;
-    this.availabilityZone = availabilityZone;
-    this.tenancy = tenancy;
-    this.monitoringEnabled = toBool(monitoringEnabled);
-    this.stateReason = stateReason;
-    this.platform = platform;
-    this.kernelId = kernelId;
-    this.ramdiskId = ramdiskId;
-    this.rootDeviceType = rootDeviceType;
-    this.rootDeviceName = rootDeviceName;
-    this.virtualizationType = virtualizationType;
-    this.hypervisor = hypervisor;
-    this.ipAddress = ipAddress;
-    this.sourceDestCheck = toBool(sourceDestCheck);
-    this.architecture = architecture;
-    this.instanceLifecycle = instanceLifecycle;
-    this.clientToken = clientToken;
-    this.spotInstanceRequestId = spotId;
-    this.instanceProfile = role;
-    this.ebsOptimized = ebsOptimized;
-    this.volumes = volumes;
-    this.networkInterfaces = enis;
-    this.tags = tags;
-    this.name = '';
-    ew_core.processTags(this);
-
-    this.toString = function() {
-        return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.instanceType + fieldSeparator + this.state + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
-    }
-
-    this.validate = function() {
-        if (!this.ipAddress && this.dnsName) {
-            var parts = this.dnsName.split('-');
-            this.ipAddress = parts[1] + "." + parts[2] + "." + parts[3] + "." + parseInt(parts[4]);
-        }
-        if (this.elasticIp == '') {
-            var eip = ew_core.queryModel('addresses', 'instanceId', this.id);
-            this.elasticIp = eip && eip.length ? eip[0].publicIp : '';
-        }
-    }
-}
-
-function InstanceStatusEvent(type, instanceId, availabilityZone, status, code, description, startTime, endTime)
-{
-    this.type = type;
-    this.instanceId = instanceId;
-    this.availabilityZone = availabilityZone;
-    this.status = status;
-    this.code = code;
-    this.description = description;
-    this.startTime = startTime;
-    this.endTime = endTime;
-
-    this.toString = function() {
-        return this.type + fieldSeparator +
-               this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
-               this.description + fieldSeparator +
-               this.code + (this.startTime ? fieldSeparator + this.startTime : "");
-    }
-}
-
-function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
-{
-    this.type = type
-    this.protocol = protocol;
-    this.fromPort = fromPort;
-    this.toPort = toPort;
-    this.srcGroup = srcGroup;
-    if (srcGroup) {
-        this.srcGroup.toString = function() {
-            return ew_core.modelValue('groupId', srcGroup.id);
-        }
-    }
-    this.cidrIp = cidrIp;
-    this.toString = function() {
-        return this.type + fieldSeparator + this.protocol + fieldSeparator + this.fromPort + ":" + this.toPort + fieldSeparator + (this.cidrIp ? this.cidrIp : this.srcGroup ? this.srcGroup.toString() : "");
-    }
-}
-
-function AutoScalingInstance(group, healthStatus, availabilityZone, instanceId, launchConfigurationName, lifecycleState)
-{
-    this.group = group
-    this.healthStatus = healthStatus
-    this.availabilityZone = availabilityZone
-    this.instanceId = instanceId
-    this.launchConfigurationName = launchConfigurationName
-    this.state = lifecycleState
-
-    this.toString = function() {
-        return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
-    }
-}
 

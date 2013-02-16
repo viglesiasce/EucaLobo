@@ -801,39 +801,47 @@ var ew_NetworkInterfacesTreeView = {
 
     edit : function(event)
     {
+        var me = this;
         var eni = this.getSelected();
         if (eni == null) return;
-        var rc = { ok: false, title: "Update ENI, press OK to update ENI attributes" };
-        for (var p in eni) {
-            rc[p] = eni[p];
+
+        var groups = me.core.queryModel('securityGroups', 'vpcId', eni.vpcId);
+        var checked = groups.filter(function(x){ return eni.groups.some(function(y) { return y.id == x.id }) });
+        var values = this.core.promptInput("Update ENI", [{label:"ENI",type:"description",style:"max-width:350px;",value:eni},
+                                                          {label:"Description",value:eni.descr},
+                                                          {label:"Source Dest Check",type:"checkbox",checked:eni.sourceDestCheck},
+                                                          {label:"Security Groups",type:"listview",rows:10,list:groups,checkedItems:checked}])
+        if (!values) return;
+        if (eni.sourceDestCheck != values[2]) {
+            this.core.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", values[2], function() { me.refresh(); });
         }
-        window.openDialog("chrome://ew/content/dialogs/edit_eni.xul", null, "chrome,centerscreen,modal,resizable", this.core, rc);
-        if (rc.ok) {
-            var me = this;
-            if (eni.sourceDestCheck != rc.sourceDestCheck) {
-                this.core.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", rc.SourceDestCheck, function() { me.refresh(); });
+        if (eni.descr != values[1]) {
+            this.core.api.modifyNetworkInterfaceAttribute(eni.id, "Description", values[1], function() { me.refresh(); });
+        }
+        if (values[3] && checked.toString() != values[3].toString()) {
+            var attrs = [];
+            for (var i = 0; i < values[3].length;i++) {
+                attrs.push(['SecurityGroupId.' + (i + 1), values[3][i].id]);
             }
-            if (eni.descr != rc.descr) {
-                this.core.api.modifyNetworkInterfaceAttribute(eni.id, "Description", rc.descr, function() { me.refresh(); });
-            }
-            if (eni.securityGroups.toString() != rc.securityGroups.toString()) {
-                var attrs = [];
-                for (var i in rc.securityGroups) {
-                    attrs.push(['SecurityGroupId.' + (i + 1), rc.securityGroups[i]]);
-                }
-                this.core.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
-            }
+            this.core.api.modifyNetworkInterfaceAttributes(eni.id, attrs, function() { me.refresh(); });
         }
     },
 
     createInterface : function()
     {
-        var rc = { ok: false, title: "Create ENI" };
-        window.openDialog('chrome://ew/content/dialogs/edit_eni.xul',null,'chrome,centerscreen,modal,resizable', this.core, rc);
-        if (rc.ok) {
-            var me = this;
-            this.core.api.createNetworkInterface(rc.subnetId, rc.privateIpAddress, rc.descr, rc.securityGroups, function() { me.refresh(); });
+        var me = this;
+        function callback(item,idx, onstart) {
+            if (onstart && idx != 3) return;
+            this.rc.items[3].view.items = me.core.queryModel('securityGroups', 'vpcId', this.rc.items[0].list[this.rc.items[0].obj.selectedIndex].vpcId);
+            this.rc.items[3].view.create();
         }
+        var subnets = this.core.queryModel('subnets');
+        var values = this.core.promptInput("Create ENI", [{label:"Subnet",type:"menulist",list:subnets,required:1,callback:callback},
+                                                          {label:"Private Ip Address",type:"ip",required:1},
+                                                          {label:"Description"},
+                                                          {label:"Security Groups",type:"listview",rows:10,callback:callback}])
+        if (!values) return;
+        this.core.api.createNetworkInterface(values[0], values[1], values[2], values[3], function() { me.refresh(); });
     },
 
     deleteInterface : function()
@@ -1093,7 +1101,7 @@ var ew_VpnGatewayTreeView = {
         var routes = this.core.queryModel('routeTables');
         var idx = this.core.promptList("Enable Propagation to route table", "Select route table:", routes);
         if (idx >= 0) {
-            this.core.api.enableVgwRoutePropagation(vgw.id, routes[idx], function() {});
+            this.core.api.enableVgwRoutePropagation(vgw.id, routes[idx].id, function() {});
         }
     },
 
