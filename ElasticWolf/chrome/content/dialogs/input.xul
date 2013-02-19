@@ -20,7 +20,7 @@
       document.title = rc.title;
       var parent = document.getElementById('main');
       var rows = null;
-      for (var i = 0; i < rc.items.length; i++) {
+      for (var i = 0; i < this.rc.items.length; i++) {
           rows = createItem(parent, rows, rc.items[i], i);
       }
       // Buttons labels
@@ -483,9 +483,12 @@
              rc.values[i] = obj.value;
           }
           // Custom validator
-          if (rc.items[i].validate && !rc.items[i].validate(obj.value)) {
-              alert(rc.items[i].label + " has invalid data");
-              return false;
+          if (rc.items[i].validate) {
+              var msg =  rc.items[i].validate(rc.values[i], rc.items[i]);
+              if (msg) {
+                  alert(msg);
+                  return false;
+              }
           }
           // Make sure required fields are not empty
           if (rc.items[i].required && !rc.values[i] && !(type == 'number' && rc.values[i] == '')) {

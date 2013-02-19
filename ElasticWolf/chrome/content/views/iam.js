@@ -172,7 +172,7 @@ var ew_UsersTreeView = {
 
     changePassword: function()
     {
-        var values = this.core.promptInput('Change AWS Console Password',
+        var values = this.core.promptInput('Change AWS Console Password' + (this.core.user ? " for " + this.core.user.name : ""),
                                 [{ label: "Old Password", type: "password" },
                                  { label: "New Password", type: "password" },
                                  { label: "Retype Password", type: "password" }]);
@@ -313,14 +313,14 @@ var ew_UsersTreeView = {
         if (!values) return;
 
         me.core.api.createAccessKey(item.name, function(key) {
-            me.core.createCredentials(values[0], key);
+            me.core.createCredentials(values[0], key, null, true);
         });
     },
 
     createTempCredentials: function()
     {
         var item = this.getSelected();
-        this.core.createTempCredentials(item);
+        this.core.createTempCredentials(item, true);
     },
 
     createVMFA: function()
@@ -1154,10 +1154,11 @@ var ew_CredentialsTreeView = {
 
      addCredentials : function()
      {
+         var me = this;
          var endpoints = this.core.getEndpoints();
          var user = this.core.getEnv("USER", this.core.getEnv("USERNAME"));
          var values = this.core.promptInput('Create new access credentials', [
-                             {label:"Name:",required:1,size:45,value:user},
+                             {label:"Name:",required:1,size:45,value:user,validate: function(v, o) { if (me.core.findCredentials(v)) return "Credentials with such name already exists" }},
                              {label:"AWS Access Key:",required:1,size:45},
                              {label:"AWS Secret Access Key:",type:'password',required:1,size:45},
                              {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'url'},

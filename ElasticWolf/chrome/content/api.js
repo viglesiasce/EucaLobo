@@ -120,10 +120,7 @@ var ew_api = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
-                   actionVersion: { "DescribeReservedInstancesOfferings": "2012-06-15",
-                                    "DescribeReservedInstances": "2012-06-15",
-                                    "PurchaseReservedInstancesOffering": "2012-08-15" },
-                   actionIgnore: [ "hostedzone" ],
+                   actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
                  },
             ];
     },
@@ -451,7 +448,7 @@ var ew_api = {
                          "response-content-type", "response-content-language", "response-expires",
                          "response-cache-control", "response-content-disposition", "response-content-encoding" ]
         var rclist = []
-        var query = parseQuery(path)
+        var query = parseQuery(path);
         for (var p in query) {
             p = p.toLowerCase();
             if (resources.indexOf(p) != -1) {
@@ -539,6 +536,7 @@ var ew_api = {
     {
         if (!this.isEnabled()) return null;
 
+        var opts = cloneObject(params);
         var req = this.queryS3Prepare(method, bucket, key, path, params, content);
 
         var xmlhttp = this.getXmlHttp();
@@ -552,7 +550,7 @@ var ew_api = {
             xmlhttp.setRequestHeader(p, req.headers[p]);
         }
 
-        return this.sendRequest(xmlhttp, req.url, content, isSync, method, this.versions.S3, handlerMethod, handlerObj, callback, [bucket, key, path]);
+        return this.sendRequest(xmlhttp, req.url, content, isSync, method, this.versions.S3, handlerMethod, handlerObj, callback, { bucket: bucket, key: key, path: path, params: opts });
     },
 
     updateS3Acl: function(item, callback)
@@ -1872,7 +1870,7 @@ var ew_api = {
             });
             list.push(obj);
         }
-        this.getNext(response, this.QueryEC2, list);
+        return this.getNext(response, this.QueryEC2, list);
     },
 
     createInstanceExportTask: function(id, targetEnv, bucket, descr, prefix, diskFormat, containerFormat, callback)
@@ -2158,7 +2156,7 @@ var ew_api = {
             obj.price = getNodeValue(item, "spotPrice");
             list.push(obj);
         }
-        this.getNext(response, this.queryEC2, list);
+        return this.getNext(response, this.queryEC2, list);
     },
 
     createSpotDatafeedSubscription : function(bucket, prefix, callback)
@@ -2380,7 +2378,7 @@ var ew_api = {
                         for (var i = 0; i < objs.length; i++) {
                             var pip = new Element();
                             pip.toString = function() {
-                                return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
+                                return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary");
                             }
                             pip.privateIp = getNodeValue(objs[i], "privateIpAddress");
                             pip.primary = getNodeValue(objs[i], "primary");
@@ -2525,8 +2523,8 @@ var ew_api = {
                 params.push([ prefix + "NetworkInterface.0.Description", options.networkInterface.description])
             }
             if (options.networkInterface.privateIpAddress) {
-                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"])
-                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"]);
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress]);
             }
             for (var i in options.networkInterface.secondaryIpAddresses) {
                 params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"])
@@ -2747,7 +2745,7 @@ var ew_api = {
     unpackBundleTask : function(item)
     {
         var obj = new Element();
-        obj.toString = function() { return this.id }
+        obj.toString = function() { return this.id };
         obj.instanceId = getNodeValue(item, "instanceId");
         obj.id = getNodeValue(item, "bundleId");
         obj.state = getNodeValue(item, "state");
@@ -2880,7 +2878,7 @@ var ew_api = {
     onCompleteGetS3BucketAcl : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
+        var bucket = response.params.bucket;
 
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("Grant");
@@ -2923,7 +2921,7 @@ var ew_api = {
     onCompleteSetS3BucketAcl : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
+        var bucket = response.params.bucket;
         var obj = this.core.getS3Bucket(bucket);
         if (obj) obj.acls = null; else obj = { acls: list };
 
@@ -2939,7 +2937,7 @@ var ew_api = {
     onCompleteGetS3BucketLocation : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
+        var bucket = response.params.bucket;
 
         var region = getNodeValue(xmlDoc, "LocationConstraint");
         var obj = this.core.getS3Bucket(bucket)
@@ -2956,12 +2954,14 @@ var ew_api = {
 
     onCompleteListS3BucketKeys : function(response)
     {
+        var me = this;
         var xmlDoc = response.responseXML;
 
         var list = new Array();
         var bucket = getNodeValue(xmlDoc, "Name");
+        var trunc = getNodeValue(xmlDoc, "IsTruncated");
         var items = xmlDoc.getElementsByTagName("Contents");
-        for ( var i = 0; i < items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var key = new Element('bucket', bucket);
             key.toString = function() { return this.bucket + "/" + this.name; }
             key.name = getNodeValue(items[i], "Key");
@@ -2974,10 +2974,26 @@ var ew_api = {
         }
         var obj = this.core.getS3Bucket(bucket);
         if (obj) {
-            obj.keys = list;
+            obj.keys = obj.keys.concat(list);
+            this.core.notifyComponents('s3buckets');
         } else {
             obj = new S3Bucket(bucket);
             obj.keys = list;
+            this.core.appendModel('s3buckets', [ obj ]);
+        }
+        // Continue to retrieve records in the background
+        if (trunc == "true") {
+            var path = "?marker=" + encodeURIComponent(list[list.length - 1].name);
+            // In sync mode keep spinning until we collect evrything
+            if (response.isSync) {
+                response.skipCallback = true;
+                return this.queryS3("GET", bucket, "", path, response.params.params, null, this, true, "onCompleteListS3BucketKeys", response.callback);
+            }
+
+            // Schedule another request
+            setTimeout(function() {
+                me.queryS3("GET", bucket, "", path, response.params.params, null, me, false, "onCompleteListS3BucketKeys", response.callback);
+            }, 100);
         }
         response.result = obj;
         return response.result;
@@ -3045,8 +3061,8 @@ var ew_api = {
     onCompleteGetS3BucketKeyAcl : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
-        var key = response.params[1];
+        var bucket = response.params.bucket;
+        var key = response.params.key;
 
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("Grant");
@@ -3090,8 +3106,8 @@ var ew_api = {
     onCompleteSetS3BucketKeyAcl : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
-        var key = response.params[1];
+        var bucket = response.params.bucket;
+        var key = response.params.key;
 
         var obj = this.core.getS3BucketKey(bucket, key)
         if (obj) obj.acls = null;
@@ -3108,7 +3124,7 @@ var ew_api = {
     onCompleteGetS3BucketWebsite : function(response)
     {
         var xmlDoc = response.responseXML;
-        var bucket = response.params[0];
+        var bucket = response.params.bucket;
         var obj = this.core.getS3Bucket(bucket);
         if (!obj) obj = {};
 
@@ -5132,7 +5148,7 @@ var ew_api = {
             metric.dimensions = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
             list.push(metric);
         }
-        this.getNext(response, this.queryCloudWatch, list);
+        return this.getNext(response, this.queryCloudWatch, list);
     },
 
     getMetricStatistics : function(name, namespace, start, end, period, statistics, unit, dimensions, callback)
@@ -5621,7 +5637,7 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             list.push(this.unpackDBInstance(items[i]));
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     deleteDBInstance : function(id, snapshotId, callback)
@@ -6011,7 +6027,7 @@ var ew_api = {
         var list = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(o) {
             return new Element('id',o.SourceIdentifier,'type',o.SourceType,'date',o.Date,'msg',o.Message)
         });
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     describeDBSnapshots: function(callback)
@@ -6098,7 +6114,7 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             list.push(this.unpackDBSubnetGroup(items[i]));
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     describeDBSecurityGroups: function(callback)
@@ -6114,7 +6130,7 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             list.push(this.unpackDBSecurityGroup(items[i]));
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     createDBSecurityGroup: function(name, descr, vpc, callback)
@@ -6188,7 +6204,7 @@ var ew_api = {
             obj.dependsOn = getNodeValue(items[i], "OptionsDependedOns");
             list.push(obj);
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     createOptionGroup: function(name, descr, engine, version, callback)
@@ -6266,7 +6282,7 @@ var ew_api = {
             }
             list.push(obj);
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     describeOrderableDBInstanceOptions: function(engine, callback)
@@ -6347,7 +6363,7 @@ var ew_api = {
             obj.recurringPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", []);
             list.push(obj);
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     describeReservedDBInstances : function(callback)
@@ -6400,7 +6416,7 @@ var ew_api = {
             obj.recurringPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", []);
             list.push(obj);
         }
-        this.getNext(response, this.queryRDS, list);
+        return this.getNext(response, this.queryRDS, list);
     },
 
     purchaseReservedDBInstancesOffering : function(id, count, callback)
@@ -6874,7 +6890,7 @@ var ew_api = {
             obj.topic = getNodeValue(items[i], "TopicARN");
             list.push(obj);
         }
-        this.getNext(response, this.queryAS, list);
+        return this.getNext(response, this.queryAS, list);
     },
 
     deleteScheduledAction: function(name, action, callback)
@@ -7044,7 +7060,7 @@ var ew_api = {
             obj.statusMsg = getNodeValue(items[i], "StatusMessage");
             list.push(obj);
         }
-        this.getNext(response, this.queryAS, list);
+        return this.getNext(response, this.queryAS, list);
 
     },
 

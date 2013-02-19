@@ -431,18 +431,19 @@ var ew_core = {
         return false;
     },
 
-    createCredentials: function(name, key, url)
+    createCredentials: function(name, key, url, active)
     {
         var cred = this.getActiveCredentials();
         cred = new Credential(name, key.id, key.secret, url || cred.url, key.securityToken, key.expire);
         this.saveCredentials(cred);
+        if (active) this.switchCredentials(cred);
         this.selectTab('ew.tabs.credential');
     },
 
-    createTempCredentials: function(item)
+    createTempCredentials: function(item, active)
     {
         if (!item) return;
-        if (item.accessKeys && item.accessKeys.length >= 2) {
+        if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary" }).length >= 2) {
             return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
         }
 
@@ -467,7 +468,7 @@ var ew_core = {
             setTimeout(function() {
                 me.api.getSessionToken(values[1], values[2], values[3], key, {
                     success: function(tempkey) {
-                        me.createCredentials(values[0], tempkey);
+                        me.createCredentials(values[0], tempkey, null, active);
                         me.api.deleteAccessKey(key.id, item.name);
                         me.api.showBusy(false);
                     },

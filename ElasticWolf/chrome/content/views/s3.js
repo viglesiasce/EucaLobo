@@ -119,6 +119,7 @@ var ew_S3BucketsTreeView = {
             } else {
                 this.core.api.listS3BucketKeys(item.name, "", null, {
                     success: function(obj) {
+                        debug('callback:' + obj.name);
                         // By the time we got the whole list a user may click on back or another sub folder so we have to be sure we still want on this level
                         if (item.name != obj.name) return;
                         me.display(obj.keys);
@@ -335,7 +336,7 @@ var ew_S3BucketsTreeView = {
                 function(f) {
                      me.setStatus(f, 100);
                      try { if (me.win) me.win.close(); } catch(e) { debug(e) }
-                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + encodeURI(file.replace(/\\/g,'/')),width:"100%",height:"100%",nobox:1,scale:1} ], true);
+                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + encodeURI(file.replace(/\\/g,'/')),width:"100%",height:"100%",nobox:1,scale:1} ]);
                 },
                 function(f, p) { me.setStatus(f, p); } )
         }

@@ -335,9 +335,7 @@ function parseQuery(str)
 // Return true if given object represent empty value
 function empty(obj)
 {
-    if (!obj) return true;
-    if (obj instanceof Array && !obj.length) return true;
-    return false;
+    return !obj || (obj instanceof Array && !obj.length) ? true : false;
 }
 
 function trim(s)
