@@ -70,6 +70,7 @@ var ew_api = {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.securityToken = typeof securityToken == "string" ? securityToken : "";
+        this.sessionkey = null;
         debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
     },
 
@@ -307,24 +308,27 @@ var ew_api = {
         var curTime = new Date();
         var utcTime = curTime.toUTCString();
         var target = 'DynamoDB_' + version.replace(/\-/g,'') + '.' + action;
-        var host = url.replace("http://", "");
+        var host = url.replace(/https?:\/\//, "");
         url += '/';
 
         // Generate new session key
-        if (!this.sessionkey || this.sessionkey.expires < curTime) {
-            this.sessionkey = null;
-            var keys = this.core.getTempKeys();
-            if (keys.length) this.sessionkey = keys[0];
+        if (!me.sessionkey || me.sessionkey.expires <= curTime) {
+            me.sessionkey = null;
+            var keys = me.core.getTempKeys();
+            keys.forEach(function(x) {
+                if (!me.sessionkey && x.userName == me.core.user.name && x.region == me.region) me.sessionkey = x;
+            });
 
-            if (!this.sessionkey) {
+            if (!me.sessionkey) {
                 debug('requesting new session token...')
-                this.getSessionToken(null, null, null, null, function(key) {
+                me.getSessionToken(null, null, null, null, function(key) {
                     me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                     me.sessionkey = key;
                     me.queryDDB(action, params, handlerObj, isSync, handlerMethod, callback);
                 });
                 return;
             }
+            debug('using session token: ' + me.sessionkey.id)
         }
 
         var key = this.sessionkey;
@@ -5228,10 +5232,15 @@ var ew_api = {
         var token = getNodeValue(item, "SessionToken");
         var key = getNodeValue(item, "AccessKeyId");
         var secret = getNodeValue(item, "SecretAccessKey");
-        var expire = getNodeValue(item, "Expiration");
+        var expire = new Date(getNodeValue(item, "Expiration"));
         var name = getParam(params, "Name");
-        var obj = new TempAccessKey(key, secret, token, expire, name || this.core.user.name, id || this.core.user.id, arn || this.core.user.arn);
-
+        var obj = new Element('region', this.region, 'status', 'Temporary', 'state', '',
+                              'id', key, 'secret', secret, 'securityToken', token,
+                              'expire', expire,
+                              'userName', name || this.core.user.name,
+                              'userId', id || this.core.user.id,
+                              'arn', arn || this.core.user.arn);
+        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
         response.result = obj;
     },
 
@@ -5299,7 +5308,7 @@ var ew_api = {
     onCompleteGetQueueAttributes : function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Item(obj.Name,obj.Value)});
+        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Element('name',obj.Name,'value',obj.Value)});
         response.result = list;
     },
 
@@ -5554,7 +5563,7 @@ var ew_api = {
         var name = getNodeValue(item, "DBSubnetGroupName");
         if (name == "") return null;
 
-        var grp = new Item(name);
+        var grp = new Element('name', name);
         grp.descr = getNodeValue(item,"DBSubnetGroupDescription");
         grp.status = getNodeValue(item, "SubnetGroupStatus");
         grp.vpcId = getNodeValue(item, "VpcId");
@@ -5587,7 +5596,7 @@ var ew_api = {
 
     unpackDBInstance: function(item)
     {
-        var obj = new Item();
+        var obj = new Element();
         obj.toString = function() {
             return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
         }
@@ -5617,9 +5626,9 @@ var ew_api = {
         setNodeValue(obj, item, "ReadReplicaSourceDBInstanceIdentifier");
         setNodeValue(obj, item, "OptionGroupMembership", "Status");
         setNodeValue(obj, item, "OptionGroupMembership", "OptionGroupName");
-        obj.pendingModifiedValues = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Item(obj.tagName, obj.firstChild.nodeValue) : null; });
+        obj.pendingModifiedValues = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Element('name',obj.tagName, 'value',obj.firstChild.nodeValue) : null; });
         obj.securityGroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
-        obj.parameterGroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Item(obj.DBParameterGroupName,obj.ParameterApplyStatus)});
+        obj.parameterGroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Element('name',obj.DBParameterGroupName,'value',obj.ParameterApplyStatus)});
         obj.subnetGroupName = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
         return obj;
     },
@@ -6715,7 +6724,7 @@ var ew_api = {
             obj.loadBalancers = this.getItems(items[i], "LoadBalancerNames", "member", "");
             obj.availabilityZones = this.getItems(items[i], "AvailabilityZones", "member", "");
             obj.terminationPolicies = this.getItems(items[i], "TerminationPolicies", "member", "");
-            obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Item(o.Metric, o.Granularity); });
+            obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Element('name',o.Metric, 'value',o.Granularity); });
             obj.granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
             obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) {
                 var g = new Element('group',name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState)
@@ -6724,7 +6733,7 @@ var ew_api = {
                 }
                 return g
             })
-            obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Item(o.ProcessName,o.SuspensionReason)})
+            obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Element('name',o.ProcessName,'value',o.SuspensionReason)})
             obj.tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(o) { return new Tag(o.Key,o.Value,o.ResourceId,o.ResourceType,toBool(o.PropagateAtLaunch))})
             list.push(obj);
         }
@@ -6968,7 +6977,7 @@ var ew_api = {
             obj.id = toArn(getNodeValue(items[i], "PolicyARN"));
             obj.name = getNodeValue(items[i], "PolicyName");
             obj.scalingAdjustment = getNodeValue(items[i], "ScalingAdjustment");
-            obj.alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(o) { return new Item(o.AlarmName, toArn(o.AlarmARN));});
+            obj.alarms = this.getItems(items[i], "Alarms", "member", ["AlarmName", "AlarmARN"], function(o) { return new Element('name',o.AlarmName, 'value',toArn(o.AlarmARN));});
             list.push(obj);
         }
         this.core.setModel('aspolicies', list);

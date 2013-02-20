@@ -882,17 +882,15 @@ var ew_core = {
     getTempKeys: function()
     {
         var list = [];
+        var now = new Date();
         var keys = this.getPassword("ew.temp.keys");
         try { list = JSON.parse(keys); } catch(e) {};
-        for (var i in list) {
-            list[i] = new TempAccessKey(list[i].id, list[i].secret, list[i].securityToken, list[i].expire, list[i].userName, list[i].userId, list[i].arn);
-        }
         // Remove expired keys
-        var rc = [];
-        var now = new Date();
-        for (var i = 0; i < list.length; i++) {
-            if (list[i].expire > now) rc.push(list[i]);
-        }
+        var rc = list.filter(function(x) {
+            if (x.expire) x.expire = new Date(x.expire);
+            if (x.expire <= now) return false;
+            return true;
+        });
         return rc;
     },
 

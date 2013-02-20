@@ -1688,22 +1688,6 @@ function Endpoint(name, url)
     }
 }
 
-function TempAccessKey(id, secret, securityToken, expire, userName, userId, arn)
-{
-    this.id = id;
-    this.status = "Temporary";
-    this.secret = secret || "";
-    this.state = "";
-    this.securityToken = typeof securityToken == "string" ? securityToken : "";
-    this.expire = typeof expire == "string" ? new Date(expire) : "";
-    this.userName = userName || "";
-    this.userId = userId || "";
-    this.arn = arn || "";
-
-    this.toString = function() {
-        return this.id + (this.state ? fieldSeparator + this.state : "");
-    }
-}
 function Credential(name, accessKey, secretKey, url, securityToken, expire)
 {
     this.name = name;
@@ -1745,16 +1729,6 @@ function S3BucketAcl(id, type, name, permission)
     this.permission = permission
     this.toString = function() {
        return (this.name ? this.name : this.id ? this.id : "ALL") + "=" + this.permission;
-    }
-}
-
-function Item(name, value)
-{
-    this.name = name || "";
-    this.value = value || "";
-
-    this.toString = function() {
-        return (this.name || "") + (this.value ? fieldSeparator + this.value : "");
     }
 }
 

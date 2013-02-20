@@ -739,11 +739,15 @@ var ew_AccessKeysTreeView = {
         var now = new Date();
         for (var i in list) {
             list[i].state = this.core.api.accessKey == list[i].id ? "Current" : "";
-            if (list[i].status == "Temporary" && list[i].expire < now) {
-                list[i].state = "Expired";
-                if (now.getTime() - list[i].expire.getTime() > 86400 * 1000) {
-                    this.core.deleteTempKey(list[i]);
-                    continue;
+            if (list[i].status == "Temporary") {
+                if (list[i].region != this.core.api.region) continue;
+                if (list[i].userName != this.core.user.name) continue;
+                if (list[i].expire < now) {
+                    list[i].state = "Expired";
+                    if (now.getTime() - list[i].expire.getTime() > 86400 * 1000) {
+                        this.core.deleteTempKey(list[i]);
+                        continue;
+                    }
                 }
             }
             nlist.push(list[i]);
