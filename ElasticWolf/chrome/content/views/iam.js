@@ -238,7 +238,7 @@ var ew_UsersTreeView = {
         }
 
         this.core.api.getUserPolicy(item.name, item.policies[idx], function(doc) {
-            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.name},
+            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.policies[idx]},
                                                              {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:doc},
                                                              {label:"Policy Types",type:"menulist",list:me.core.getPolicyTypes(),onselect:"if(rc.items[2].obj.value)rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
              if (!values) return;
@@ -535,7 +535,7 @@ var ew_GroupsTreeView = {
         }
 
         this.core.api.getGroupPolicy(item.name, item.policies[idx], function(doc) {
-            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.name},
+            var values = me.core.promptInput('Edit Policy', [{label:"Policy name",type:"label",required:1,value:item.policies[idx]},
                                                              {label:"Policy Permissions",multiline:true,cols:50,rows:20,required:1,value:doc},
                                                              {label:"Policy Types",type:"menulist",list:me.core.getPolicyTypes(),onselect:"if(rc.items[2].obj.value)rc.items[1].obj.value=formatJSON(rc.items[2].obj.value)"}]);
              if (!values) return;
