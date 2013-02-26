@@ -3357,8 +3357,8 @@ var ew_api = {
             params.push([ "Description", descr])
         }
         if (groups) {
-            for (var i in groups) {
-                params.push(["SecurityGroupId."+(i+1), groups[i]]);
+            for (var i = 0; i < groups.length; i++) {
+                params.push(["SecurityGroupId."+(i+1), typeof groups[i] == "object" ? groups[i].id : groups[i]]);
             }
         }
         this.queryEC2("CreateNetworkInterface", params, this, false, "onComplete:networkInterfaceId", callback);

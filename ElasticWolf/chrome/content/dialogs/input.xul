@@ -482,6 +482,7 @@
           default:
              rc.values[i] = obj.value;
           }
+
           // Custom validator
           if (rc.items[i].validate) {
               var msg =  rc.items[i].validate(rc.values[i], rc.items[i]);
