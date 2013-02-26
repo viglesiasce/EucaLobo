@@ -895,15 +895,10 @@ var ew_NetworkInterfacesTreeView = {
             return;
         }
 
-        var instance = this.core.findModel('instances', eni.attachment.instanceId);
-        if (!instance) {
-            alert('Could not find attached instance');
-            return;
-        }
         if (force) {
-            if (!confirm("Force detach interface " + eni.id + " (" + eni.descr + ") from " + instance.toString() +  "?")) return;
+            if (!confirm("Force detach interface " + eni.id + " (" + eni.descr + ") ?")) return;
         } else {
-            if (!confirm("Detach interface " + eni.id + " (" + eni.descr + ") from " + instance.toString() +  "?")) return;
+            if (!confirm("Detach interface " + eni.id + " (" + eni.descr + ") ?")) return;
         }
         var me = this;
         this.core.api.detachNetworkInterface(eni.attachment.id, force, function() { me.refresh(); });

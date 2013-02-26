@@ -22,19 +22,19 @@ prepare_osx: clean_osx
 	cp -a $(NAME)/application.ini $(NAME)/chrome $(NAME)/chrome.manifest $(NAME)/defaults $(OSX)/Resources
 
 build_osx: prepare_osx
-	zip -rqy ../$(NAME)-osx-$(VER).zip $(NAME).app
+	zip -rqy ../$(NAME)-osx-$(VER).zip $(NAME).app -x '**/.DS_Store'
 
 build_win:
-	zip -rq ../$(NAME)-win-$(VER).zip $(NAME)
+	zip -rq ../$(NAME)-win-$(VER).zip $(NAME) -x '**/.DS_Store'
 
 build_linux:
-	zip -rq ../$(NAME)-linux-$(VER).zip $(NAME) -x '*/xulrunner/**' '*.exe' '*.dll'
+	zip -rq ../$(NAME)-linux-$(VER).zip $(NAME) -x '*/xulrunner/**' '*.exe' '*.dll' '**/.DS_Store'
 	
 xpi:
-	(cd $(NAME) && zip -rq ../../$(NAME)-$(VER).xpi . -x 'xulrunner/**')
+	(cd $(NAME) && zip -rq ../../$(NAME)-$(VER).xpi . -x 'xulrunner/**' '**.DS_Store')
 
 clean: clean_osx
-	rm -rf *.zip *.xpi ../$(NAME)-*.zip ../*.xpi
+	rm -rf *.zip *.xpi ../$(NAME)-*.zip ../*.xpi -x '**.DS_Store'
 
 clean_osx:
 	rm -rf $(OSX)/Resources/chrome $(OSX)/Resources/application.ini $(OSX)/Resources/defaults $(OSX)/Resources/chrome.manifest

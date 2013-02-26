@@ -3431,31 +3431,31 @@ var ew_api = {
 
             var aitem = item.getElementsByTagName("attachment")[0];
             if (aitem) {
-                attachment = new Element();
-                attachment.toString = function() {
+                intf.attachment = new Element();
+                intf.attachment.toString = function() {
                     return this.deviceIndex + fieldSeparator + this.status + fieldSeparator + this.id + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                            (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
                 }
-                attachment.id = getNodeValue(aitem, "attachmentId");
-                attachment.instanceId = getNodeValue(aitem, "instanceId");
-                attachment.instanceOwnerId = getNodeValue(aitem, "instanceOwnerId");
-                attachment.deviceIndex = getNodeValue(aitem, "deviceIndex");
-                attachment.status = getNodeValue(aitem, "status");
-                attachmentattachTime = getNodeValue(aitem, "attachTime");
-                attachment.deleteOnTermination = getNodeValue(aitem, "deleteOnTermination");
+                intf.attachment.id = getNodeValue(aitem, "attachmentId");
+                intf.attachment.instanceId = getNodeValue(aitem, "instanceId");
+                intf.attachment.instanceOwnerId = getNodeValue(aitem, "instanceOwnerId");
+                intf.attachment.deviceIndex = getNodeValue(aitem, "deviceIndex");
+                intf.attachment.status = getNodeValue(aitem, "status");
+                intf.attachmentattachTime = getNodeValue(aitem, "attachTime");
+                intf.attachment.deleteOnTermination = getNodeValue(aitem, "deleteOnTermination");
             }
 
             aitem = item.getElementsByTagName("association")[0];
             if (aitem) {
-                association = new Element();
-                association.toString = function() {
+                intf.association = new Element();
+                intf.association.toString = function() {
                     return this.publicIp + fieldSeparator + this.id + (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
                 }
-                association.id = getNodeValue(aitem, "associationId");
-                association.publicIp = getNodeValue(aitem, "publicIp");
-                association.ipOwnerId = getNodeValue(aitem, "ipOwnerId");
-                association.instanceId = getNodeValue(aitem, "instanceID");
-                association.attachmentId = getNodeValue(aitem, "attachmentID");
+                intf.association.id = getNodeValue(aitem, "associationId");
+                intf.association.publicIp = getNodeValue(aitem, "publicIp");
+                intf.association.ipOwnerId = getNodeValue(aitem, "ipOwnerId");
+                intf.association.instanceId = getNodeValue(aitem, "instanceID");
+                intf.association.attachmentId = getNodeValue(aitem, "attachmentID");
             }
             intf.privateIpAddresses = [];
             var objs = this.getItems(item, "privateIpAddressesSet", "item");
@@ -3464,9 +3464,9 @@ var ew_api = {
                 ip.toString = function() {
                     return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
                 }
-                ip.privateIp = getNodeValue(objs[i], "privateIpAddress");
-                ip.primary = getNodeValue(objs[i], "primary");
-                ip.publicIp = getNodeValue(objs[i], "association", "publicIp");
+                ip.privateIp = getNodeValue(objs[j], "privateIpAddress");
+                ip.primary = getNodeValue(objs[j], "primary");
+                ip.publicIp = getNodeValue(objs[j], "association", "publicIp");
                 ip.associationId = getNodeValue(objs[j], "association", "associationId");
                 intf.privateIpAddresses.push(ip)
             }

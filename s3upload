@@ -41,7 +41,16 @@ if (dir == "index.html") {
 
 } else {
     // Upload file into S3 bucket
-    var type = path.extname(file) == '.xpi' ? "application/x-xpinstall" : 'application/zip';
+    var type = 'application/zip';
+    switch (path.extname(file)) {
+    case '.xpi': 
+        type = "application/x-xpinstall";
+        break;
+    case ".html":
+    case ".htm":
+        type = "text/html";
+        break;
+    }
     s3.putFile(dir, file, 'public-read', {'content-type':type}, function (err, res) {
        if (err) console.log(err);
        process.exit(0);
