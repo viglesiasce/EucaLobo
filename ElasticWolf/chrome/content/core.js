@@ -2314,7 +2314,7 @@ var ew_core = {
             if (rx && !list[i].id.match(rx)) continue;
             if (root && root != list[i].rootDeviceType) continue;
             if (alias && alias != list[i].ownerAlias) continue;
-            if (owner && owner != list[i].owner) continue;
+            if (owner && owner != list[i].ownerId) continue;
             nlist.push(list[i])
         }
         return nlist;

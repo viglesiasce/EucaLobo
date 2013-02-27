@@ -1738,7 +1738,7 @@ var ew_api = {
         obj.id = getNodeValue(item, "imageId");
         obj.location = getNodeValue(item, "imageLocation");
         obj.state = getNodeValue(item, "imageState");
-        obj.owner = getNodeValue(item, "imageOwnerId");
+        obj.ownerId = getNodeValue(item, "imageOwnerId");
         obj.status = getNodeValue(item, "isPublic") == "true" ? "public" : "private";
         obj.platform = getNodeValue(item, "platform");
         obj.aki = getNodeValue(item, "kernelId");
@@ -4255,7 +4255,7 @@ var ew_api = {
         obj.id = getNodeValue(xmlDoc, "AccessKeyId");
         obj.secret = getNodeValue(xmlDoc, "SecretAccessKey");
         obj.status = getNodeValue(xmlDoc, "Status");
-        debug("Access key = " + key + ", secret = " + secret)
+        debug(obj)
         response.result = obj;
     },
 

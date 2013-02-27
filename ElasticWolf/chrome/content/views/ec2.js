@@ -24,8 +24,8 @@ var ew_EC2TreeView = {
         var enis = this.core.queryModel('networkInterfaces','vpcId', null);
         var instances = this.core.queryModel('instances','vpcId', null, 'state', 'running');
         var groups = this.core.queryModel('securityGroups','vpcId', null);
-        var snapshots = this.core.queryModel('snapshots','owner', this.core.user.accountId);
-        var images = this.core.queryModel('images','owner', this.core.user.accountId);
+        var snapshots = this.core.queryModel('snapshots','ownerId', this.core.user.accountId);
+        var images = this.core.queryModel('images','ownerId', this.core.user.accountId);
         var rsrvd = this.core.queryModel('reservedInstances');
         var elbs = this.core.queryModel("loadBalancers", 'vpcId', null);
 
@@ -1362,7 +1362,7 @@ var ew_SnapshotTreeView = {
         if (type == "my_snapshots") {
             var nlist = [];
             for (var i = 0; i < list.length; i++) {
-                if (list[i].owner == this.core.user.accountId) {
+                if (list[i].ownerId == this.core.user.accountId) {
                     nlist.push(list[i]);
                 }
             }
