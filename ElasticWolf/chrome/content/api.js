@@ -104,6 +104,7 @@ var ew_api = {
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.actionIgnore = endpoint.actionIgnore || [];
         this.actionVersion = endpoint.actionVersion || {};
+        this.version4 = endpoint.version4;
         debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore + ", " + JSON.stringify(this.actionVersion));
     },
 
@@ -122,6 +123,7 @@ var ew_api = {
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
+                   version4: true,
                  },
             ];
     },
@@ -232,6 +234,40 @@ var ew_api = {
         return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS);
     },
 
+    signatureV4: function(host, method, path, body, headers, accessKey)
+    {
+        var now = new Date();
+        var date = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
+        var datetime = date.substr(0, 8);
+        if (!accessKey) {
+            accessKey = { id: this.accessKey, secret: this.secretKey, securityToken: this.securityToken || "" };
+        }
+        var d = host.match(/^([^\.]+)\.?([^\.]*)\.amazonaws\.com$/);
+        var hostParts = (d || []).slice(1, 3);
+        var service = hostParts[0] || '';
+        var region = hostParts[1] || 'us-east-1';
+
+        headers['Host'] = host;
+        headers['X-Amz-Date'] = date;
+        if (body && !headers['content-type']) headers['content-type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+        if (body && !headers['content-length']) headers['content-length'] = body.length;
+        if (accessKey.securityToken != "") headers['X-Amz-Security-Token'] = accessKey.securityToken;
+
+        var credString = [ datetime, region, service, 'aws4_request' ].join('/');
+        var pathParts = path.split('?', 2);
+        var signedHeaders = Object.keys(headers).map(function(key) { return key.toLowerCase() }).sort().join(';');
+        var canonHeaders = Object.keys(headers).sort(function(a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1 }).map(function(key) { return key.toLowerCase() + ':' + String(headers[key]).trimAll() }).join('\n');
+        var canonString = [ method, pathParts[0] || '/', pathParts[1] || '', canonHeaders + '\n', signedHeaders, hex_sha256(body || '')].join('\n');
+
+        var strToSign = [ 'AWS4-HMAC-SHA256', date, credString, hex_sha256(canonString) ].join('\n');
+        var kDate = str_hmac_sha256('AWS4' + accessKey.secret, datetime);
+        var kRegion = str_hmac_sha256(kDate, region);
+        var kService = str_hmac_sha256(kRegion, service);
+        var kCredentials = str_hmac_sha256(kService, 'aws4_request');
+        var sig = hex_hmac_sha256(kCredentials, strToSign);
+        headers['Authorization'] = [ 'AWS4-HMAC-SHA256 Credential=' + accessKey.id + '/' + credString, 'SignedHeaders=' + signedHeaders, 'Signature=' + sig ].join(', ');
+    },
+
     queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, accessKey)
     {
         if (!this.isEnabled()) return null;
@@ -311,45 +347,46 @@ var ew_api = {
         var host = url.replace(/https?:\/\//, "");
         url += '/';
 
-        // Generate new session key
-        if (!me.sessionkey || me.sessionkey.expires <= curTime) {
-            me.sessionkey = null;
-            var keys = me.core.getTempKeys();
-            keys.forEach(function(x) {
-                if (!me.sessionkey && x.userName == me.core.user.name && x.region == me.region) me.sessionkey = x;
-            });
-
-            if (!me.sessionkey) {
-                debug('requesting new session token...')
-                me.getSessionToken(null, null, null, null, function(key) {
-                    me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
-                    me.sessionkey = key;
-                    me.queryDDB(action, params, handlerObj, isSync, handlerMethod, callback);
-                });
-                return;
-            }
-            debug('using session token: ' + me.sessionkey.id)
-        }
-
-        var key = this.sessionkey;
         var json = JSON.stringify(params);
-        var strSign = "POST\n/\n\nhost:" + host + "\nx-amz-date:" + utcTime + "\nx-amz-security-token:" + key.securityToken + "\nx-amz-target:" + target + "\n\n" + json;
-        var sig = b64_hmac_sha256(key.secret, str_sha256(strSign));
-        var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-security-token;x-amz-target,Signature=' + sig;
-        var headers = { 'user-agent': this.core.getUserAgent(),
+        var headers = { 'content-type': 'application/x-amz-json-1.0; charset=utf-8',
+                        'x-amz-target': target };
+
+        if (this.version4) {
+            this.signatureV4(host, "POST", "/", json, headers);
+        } else {
+            // Generate new session key
+            if (!me.sessionkey || me.sessionkey.expires <= curTime) {
+                me.sessionkey = null;
+                var keys = me.core.getTempKeys();
+                keys.forEach(function(x) {
+                    if (!me.sessionkey && x.userName == me.core.user.name && x.region == me.region) me.sessionkey = x;
+                });
+
+                if (!me.sessionkey) {
+                    debug('requesting new session token...')
+                    me.getSessionToken(null, null, null, null, function(key) {
+                        me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
+                        me.sessionkey = key;
+                        me.queryDDB(action, params, handlerObj, isSync, handlerMethod, callback);
+                    });
+                    return;
+                }
+                debug('using session token: ' + me.sessionkey.id)
+            }
+
+            var key = this.sessionkey;
+            var strSign = "POST\n/\n\nhost:" + host + "\nx-amz-date:" + utcTime + "\nx-amz-security-token:" + key.securityToken + "\nx-amz-target:" + target + "\n\n" + json;
+            var sig = b64_hmac_sha256(key.secret, str_sha256(strSign));
+            var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-security-token;x-amz-target,Signature=' + sig;
+            headers = { 'user-agent': this.core.getUserAgent(),
                         'host': host,
                         'x-amzn-authorization': auth,
                         'x-amz-date': utcTime,
                         'x-amz-security-token': key.securityToken,
                         'x-amz-target': target,
                         'content-type': 'application/x-amz-json-1.0; charset=UTF-8',
-                        'content-length': json.length,
-                        'accept': '',
-                        'accept-language': '',
-                        'accept-encoding': '',
-                        'pragma': '',
-                        'cache-control': '',
-                        'connection': 'close' };
+                        'content-length': json.length };
+        }
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {

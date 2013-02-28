@@ -45,10 +45,7 @@ function b64_md5(s) { return binl2b64(core_md5(str2binl(s), s.length * chrsz)); 
 function str_md5(s) { return binl2str(core_md5(str2binl(s), s.length * chrsz)); }
 function hex_hmac_md5(key, data) { return binl2hex(core_hmac_md5(key, data)); }
 function b64_hmac_md5(key, data) { return binl2b64(core_hmac_md5(key, data)); }
-
-function str_hmac_md5(key, data) {
-    return binl2str(core_hmac_md5(key, data));
-}
+function str_hmac_md5(key, data) { return binl2str(core_hmac_md5(key, data)); }
 
 /*
  * Main sha256 function, with its support functions

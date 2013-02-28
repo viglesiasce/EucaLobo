@@ -50,6 +50,11 @@ String.prototype.trim = function()
     return this.replace(/^\s+|\s+$/g, "");
 }
 
+String.prototype.trimAll = function()
+{
+    return this.trim().replace(/\s+/g, ' ');
+}
+
 Date.prototype.strftime = function(fmt, utc)
 {
     /* With due thanks to http://whytheluckystiff.net */

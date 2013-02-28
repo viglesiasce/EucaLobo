@@ -69,7 +69,7 @@
         </row>
         <row id="ew.errString.row">
           <label id="ew.errString.label" />
-          <textbox id="ew.errString" multiline="true" cols="50" rows="3" wrap="true" style="font-family:monospace;-moz-appearance:none;border:0px;background-color:transparent;" readonly="true"/>
+          <textbox id="ew.errString" multiline="true" cols="50" rows="7" wrap="true" style="font-family:monospace;-moz-appearance:none;border:0px;background-color:transparent;" readonly="true"/>
         </row>
       </rows>
     </grid>
