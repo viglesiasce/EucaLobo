@@ -16,13 +16,13 @@ var ew_api = {
     AS_API_VERSION: '2011-01-01',
     EMR_API_VERSION: '2009-03-31',
     DDB_API_VERSION: '2011-12-05',
-    SIG_VERSION: '2',
 
     core: null,
     timers: {},
     cache: {},
     urls: {},
     versions: {},
+    signatures: {},
     region: "",
     accessKey: "",
     secretKey: "",
@@ -80,32 +80,44 @@ var ew_api = {
         this.region = endpoint.name;
         this.urls.EC2 = endpoint.url;
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
+        this.signatures.EC2 = endpoint.signature;
         this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
+        this.signatures.ELB = endpoint.signatureELB;
         this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
         this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
-        this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
+        this.signatures.CW = endpoint.signatureCW;
         this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
         this.versions.SQS = endpoint.versionSQS || this.SQS_API_VERSION;
+        this.signatures.SQS = endpoint.signatureSQS;
         this.urls.SNS = endpoint.urlSNS || 'https://sns.' + this.region + '.amazonaws.com';
         this.versions.SNS = endpoint.versionSNS || this.SNS_API_VERSION;
+        this.signatures.SNS = endpoint.signatureSNS;
         this.urls.RDS = endpoint.urlRDS || 'https://rds.' + this.region + '.amazonaws.com';
         this.versions.RDS = endpoint.versionRDS || this.RDS_API_VERSION;
+        this.signatures.RDS = endpoint.signatureRDS;
         this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
+        this.signatures.R53 = endpoint.signatureR53;
         this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
+        this.signatures.AS = endpoint.signatureAS;
         this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
+        this.signatures.IAM = endpoint.signatureIAM;
         this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
         this.versions.EMR = endpoint.versionEMR || this.EMR_API_VERSION;
+        this.signatures.EMR = endpoint.signatureEMR;
         this.urls.DDB = endpoint.urlDDB || 'http://dynamodb.' + this.region + '.amazonaws.com';
         this.versions.DDB = endpoint.versionDDB || this.DDB_API_VERSION;
+        this.signatures.DDB = endpoint.signatureDDB;
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
+        this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
+        this.signatures.STS = endpoint.signatureSTS;
         this.actionIgnore = endpoint.actionIgnore || [];
         this.actionVersion = endpoint.actionVersion || {};
-        this.version4 = endpoint.version4;
-        debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore + ", " + JSON.stringify(this.actionVersion));
+
+        debug('setEndpoint: ' + this.region + ", " + JSON.stringify(this.urls) + ", " + JSON.stringify(this.versions) + ", " + this.actionIgnore + ", " + JSON.stringify(this.actionVersion) + ", " + JSON.stringify(this.signatures));
     },
 
     getEC2Regions: function()
@@ -123,7 +135,7 @@ var ew_api = {
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
-                   version4: true,
+                   signatureDDB: 4,
                  },
             ];
     },
@@ -191,47 +203,47 @@ var ew_api = {
 
     queryELB : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.ELB, this.versions.ELB, this.signatures.ELB);
     },
 
     queryAS : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.AS, this.versions.AS);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.AS, this.versions.AS, this.signatures.AS);
     },
 
     queryIAM : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.IAM, this.versions.IAM);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.IAM, this.versions.IAM, this.signatures.IAM);
     },
 
     queryCloudWatch : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.CW, this.versions.CW, this.signatures.CW);
     },
 
     querySTS : function (action, params, handlerObj, isSync, handlerMethod, callback, accessKey)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS, accessKey);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.STS, this.versions.STS, this.signatures.STS, accessKey);
     },
 
     querySQS : function (url, action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, url || this.urls.SQS, this.versions.SQS, this.signatures.SQS);
     },
 
     queryEMR : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.EMR, this.versions.EMR);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.EMR, this.versions.EMR, this.signatures.EMR);
     },
 
     querySNS : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.SNS, this.versions.SNS);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.SNS, this.versions.SNS, this.signatures.SNS);
     },
 
     queryRDS : function (action, params, handlerObj, isSync, handlerMethod, callback)
     {
-        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS);
+        return this.queryEC2(action, params, handlerObj, isSync, handlerMethod, callback, this.urls.RDS, this.versions.RDS, this.signatures.RDS);
     },
 
     signatureV4: function(host, method, path, body, headers, accessKey)
@@ -246,6 +258,8 @@ var ew_api = {
         var hostParts = (d || []).slice(1, 3);
         var service = hostParts[0] || '';
         var region = hostParts[1] || 'us-east-1';
+        // IAM at least is not consistent
+        if (region == "us-gov") region = "us-gov-west-1";
 
         headers['Host'] = host;
         headers['X-Amz-Date'] = date;
@@ -268,9 +282,15 @@ var ew_api = {
         headers['Authorization'] = [ 'AWS4-HMAC-SHA256 Credential=' + accessKey.id + '/' + credString, 'SignedHeaders=' + signedHeaders, 'Signature=' + sig ].join(', ');
     },
 
-    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, accessKey)
+    queryEC2 : function (action, params, handlerObj, isSync, handlerMethod, callback, apiURL, apiVersion, sigVersion, accessKey)
     {
         if (!this.isEnabled()) return null;
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) {
+            debug("Could not create xmlhttp object");
+            return null;
+        }
 
         var curTime = new Date();
         var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
@@ -280,28 +300,23 @@ var ew_api = {
 
         var url = apiURL ? apiURL : this.urls.EC2;
         var version = this.actionVersion[action] || apiVersion || this.versions.EC2;
+        var sig = sigVersion || this.signatures.EC2;
+
+        // Parse the url
+        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
+        var uri = io.newURI(url, null, null);
+        var queryParams = "";
+
+        // Required request parameters
         var sigValues = new Array();
         sigValues.push(new Array("Action", action));
-        sigValues.push(new Array("AWSAccessKeyId", accessKey.id));
-        sigValues.push(new Array("SignatureVersion", this.SIG_VERSION));
-        sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
         sigValues.push(new Array("Version", version));
-        sigValues.push(new Array("Timestamp", formattedTime));
-        if (accessKey.securityToken != "") {
-            sigValues.push(new Array("SecurityToken", accessKey.securityToken));
-        }
 
         // Mix in the additional parameters. params must be an Array of tuples as for sigValues above
         for (var i = 0; i < params.length; i++) {
             sigValues.push(params[i]);
         }
-
-        // Parse the url
-        var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
-        var uri = io.newURI(url, null, null);
-
-        var strSign = "";
-        var queryParams = "";
+        xmlhttp.open("POST", url, !isSync);
 
         function encode(str) {
             str = encodeURIComponent(str);
@@ -309,28 +324,42 @@ var ew_api = {
             return str.replace(/[!'()*~]/g, efunc);
         }
 
-        sigValues.sort();
-        strSign = "POST\n" + uri.host + "\n" + uri.path + "\n";
-        for (var i = 0; i < sigValues.length; i++) {
-            var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
-            strSign += item;
-            queryParams += item;
+        // Signature version 4
+        switch (String(sig)) {
+        case '4':
+            var headers = {};
+            sigValues.sort();
+            for (var i = 0; i < sigValues.length; i++) {
+                queryParams += (i ? "&" : "") + encode(sigValues[i][0]) + "=" + encode(sigValues[i][1]);
+            }
+            this.signatureV4(uri.host, "POST", uri.path, queryParams, headers);
+            for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
+            break;
+
+        default:
+            sigValues.push(new Array("AWSAccessKeyId", accessKey.id));
+            sigValues.push(new Array("SignatureVersion", "2"));
+            sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
+            sigValues.push(new Array("Timestamp", formattedTime));
+            if (accessKey.securityToken != "") {
+                sigValues.push(new Array("SecurityToken", accessKey.securityToken));
+            }
+
+            sigValues.sort();
+            var strSign = "POST\n" + uri.host + "\n" + uri.path + "\n";
+            for (var i = 0; i < sigValues.length; i++) {
+                var item = (i ? "&" : "") + sigValues[i][0] + "=" + encode(sigValues[i][1]);
+                strSign += item;
+                queryParams += item;
+            }
+            queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSign));
+            log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
+
+            xmlhttp.setRequestHeader("Content-Length", queryParams.length);
+            xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
+            xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+            xmlhttp.setRequestHeader("Connection", "close");
         }
-        queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSign));
-
-        log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
-
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return null;
-        }
-        xmlhttp.open("POST", url, !isSync);
-        xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
-        xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xmlhttp.setRequestHeader("Content-Length", queryParams.length);
-        xmlhttp.setRequestHeader("Connection", "close");
-
         return this.sendRequest(xmlhttp, url, queryParams, isSync, action, version, handlerMethod, handlerObj, callback, params);
     },
 
@@ -351,7 +380,7 @@ var ew_api = {
         var headers = { 'content-type': 'application/x-amz-json-1.0; charset=utf-8',
                         'x-amz-target': target };
 
-        if (this.version4) {
+        if (this.signatures.DDB == 4) {
             this.signatureV4(host, "POST", "/", json, headers);
         } else {
             // Generate new session key
