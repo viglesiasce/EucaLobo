@@ -323,7 +323,9 @@ var ew_AMIsTreeView = {
         if (confirm("Are you sure you want to delete this AMI (" + image.id + ") " + "and the accompanying snapshots (" + image.volumes + ")?")) {
             this.core.api.deregisterImage(image.id, function() {
                 for (var i in image.volumes) {
-                    me.core.api.deleteSnapshot(image.volumes[i].snapshotId, function() { ew_SnapshotTreeView.refresh() });
+                    if (image.volumes[i].snapshotId) {
+                        me.core.api.deleteSnapshot(image.volumes[i].snapshotId, function() { ew_SnapshotTreeView.refresh() });
+                    }
                 }
                 me.refresh();
             });

@@ -1826,10 +1826,11 @@ var ew_api = {
                        (this.snapshotId ? fieldSeparator + this.snapshotId : "") + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                        (this.noDevice ? fieldSeparator + "noDevice" : "");
             }
-            dev.deviceNqame = getNodeValue(objs[i], "DeviceName");
-            dev.virtualName = getNodeValue(objs[i], "VirtualName");
-            dev.snapshotId = getNodeValue(objs[i], "ebs", "SnapshotId");
-            dev.volumeSize = getNodeValue(objs[i], "ebs", "VolumeSize");
+            dev.deviceName = getNodeValue(objs[i], "deviceName");
+            dev.virtualName = getNodeValue(objs[i], "virtualName");
+            dev.snapshotId = getNodeValue(objs[i], "ebs", "snapshotId");
+            dev.volumeSize = getNodeValue(objs[i], "ebs", "volumeSize");
+            dev.volumeType = getNodeValue(objs[i], "ebs", "volumeType");
             dev.deleteOnTermination = toBool(getNodeValue(objs[i], "ebs", "deleteOnTermination"))
             dev.noDevice = objs[i].getElementsByTagName("noDevice").length ? true : false;
             obj.volumes.push(dev);
