@@ -108,7 +108,7 @@ var ew_api = {
         this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
         this.versions.EMR = endpoint.versionEMR || this.EMR_API_VERSION;
         this.signatures.EMR = endpoint.signatureEMR;
-        this.urls.DDB = endpoint.urlDDB || 'http://dynamodb.' + this.region + '.amazonaws.com';
+        this.urls.DDB = endpoint.urlDDB || 'https://dynamodb.' + this.region + '.amazonaws.com';
         this.versions.DDB = endpoint.versionDDB || this.DDB_API_VERSION;
         this.signatures.DDB = endpoint.signatureDDB;
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
@@ -737,8 +737,8 @@ var ew_api = {
 
     sendRequest: function(xmlhttp, url, content, isSync, action, version, handlerMethod, handlerObj, callback, params)
     {
-        debug('sendRequest: ' + url + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
         var me = this;
+        this.core.writeAccessLog('sendRequest: ' + url + ', key=' + this.accessKey + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
 
         var xhr = xmlhttp;
         // Generate random timer
@@ -1518,7 +1518,7 @@ var ew_api = {
             var item = items[i];
             var obj = new Element();
             obj.toString = function() {
-                return this.id + fieldSeparator + (dflt ? "default" : "") + " (" + ew_core.modelValue("vpcId", this.vpcId) + ")";
+                return this.id + fieldSeparator + (this.dflt ? "default" : "") + " (" + ew_core.modelValue("vpcId", this.vpcId) + ")";
             }
             obj.rules = [];
             obj.associations = [];
@@ -3321,9 +3321,10 @@ var ew_api = {
                 route.instanceOwnerId = getNodeValue(routes[j], "instanceOwnerId");
                 route.eniId = getNodeValue(routes[j], "networkInterfaceId");
                 route.state = getNodeValue(routes[j], "state");
+                route.origin = getNodeValue(routes[j], "origin");
                 table.routes.push(route);
             }
-            table.associations = this.getItems(item, "associationSet", "item", []);
+            table.associations = this.getItems(item, "associationSet", "item", [], function(obj) { return new Element('id', obj.routeTableAssociationId, 'tableId', obj.routeTableId, 'subnetId', obj.subnetId) } );
             table.propagations = this.getItems(item, "propagatingVgwSet", "item", []);
             table.tags = this.getTags(item);
             ew_core.processTags(table);

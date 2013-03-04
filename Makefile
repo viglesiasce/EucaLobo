@@ -13,8 +13,11 @@ dev:	clean_osx
 	ln -sf `pwd`/$(NAME)/application.ini $(OSX)/Resources/application.ini
 	ln -sf `pwd`/$(NAME)/chrome.manifest $(OSX)/Resources/chrome.manifest
 
-build:	clean build_osx build_win build_linux xpi
+build:	clean build_osx build_win build_linux xpi md5
 	make dev
+
+md5:
+	for f in ../*.zip ../*.xpi; do md5sum $$f > $$f.md5;done
 
 prepare: clean prepare_osx
 
@@ -41,9 +44,13 @@ clean_osx:
 
 put:	build
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-osx-$(VER).zip ../ElasticWolf-osx-$(VER).zip 
+	./s3upload www.elasticwolf.com/Releases/ElasticWolf-osx-$(VER).zip.md5 ../ElasticWolf-osx-$(VER).zip.md5
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-win-$(VER).zip ../ElasticWolf-win-$(VER).zip 
+	./s3upload www.elasticwolf.com/Releases/ElasticWolf-win-$(VER).zip.md5 ../ElasticWolf-win-$(VER).zip.md5
 	./s3upload www.elasticwolf.com/Releases/ElasticWolf-linux-$(VER).zip ../ElasticWolf-linux-$(VER).zip 
+	./s3upload www.elasticwolf.com/Releases/ElasticWolf-linux-$(VER).zip.md5 ../ElasticWolf-linux-$(VER).zip.md5
 	[ -f ../ElasticWolf-$(VER).xpi ] && ./s3upload www.elasticwolf.com/Releases/ElasticWolf-$(VER).xpi ../ElasticWolf-$(VER).xpi
+	[ -f ../ElasticWolf-$(VER).xpi ] && ./s3upload www.elasticwolf.com/Releases/ElasticWolf-$(VER).xpi.md5 ../ElasticWolf-$(VER).xpi.md5
 	./s3upload www.elasticwolf.com/index.html $(VER)
 
 .PHONY: clean_osx dev

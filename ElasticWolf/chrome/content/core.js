@@ -810,6 +810,16 @@ var ew_core = {
         return updated;
     },
 
+    writeAccessLog: function(line)
+    {
+        debug(line);
+        if (!this.accessLog) {
+            this.accessLog = FileIO.open(this.getProfileHome() + DirIO.slash + 'access.log');
+            if (!this.accessLog) return;
+        }
+        FileIO.write(this.accessLog, line + "\n");
+    },
+
     saveAccessKey: function(file, accessKey)
     {
         if (!file || !accessKey) return false;

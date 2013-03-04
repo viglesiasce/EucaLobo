@@ -475,9 +475,9 @@ var ew_SubnetsTreeView = {
     disassociateRoute: function()
     {
         var subnet = this.getSelected();
-        if (!subnet) return;
+        if (!subnet || !subnet.routeAssocId) return;
 
-        if (!confirm("Delete route association " + subnet.routeId + "?")) return;
+        if (!confirm("Delete route association " + subnet.routeTable + "?")) return;
         this.core.api.disassociateRouteTable(subnet.routeAssocId, function () { ew_SubnetsTreeView.refresh(); });
 
     },
@@ -640,9 +640,13 @@ var ew_RouteAssociationsTreeView = {
 
     deleteAssociation : function()
     {
+        var me = this;
         var item = this.getSelected();
-        if (!item || !confirm("Delete route association " + item.id + ":" + item.subnetId + "?")) return;
-        this.core.api.disassociateRouteTable(item.id, function() { ew_RouteTablesTreeView.refresh(); });
+        if (!item || !item.subnetId || !confirm("Delete route association " + item.id + ":" + item.subnetId + "?")) return;
+        this.core.api.disassociateRouteTable(item.id, function() {
+            ew_RouteTablesTreeView.refresh();
+            me.core.refreshModel('subnets');
+        });
     },
 };
 
