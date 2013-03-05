@@ -279,6 +279,7 @@
        <menuitem label="Check For Updates" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.checkForUpdates(true);"/>
        <menuitem label="Submit an Issue" image="images/web.png" class="menuitem-iconic" oncommand="ew_core.submitIssue();"/>
        <menuitem label="Show Error Log" image="images/revoke.png" class="menuitem-iconic" oncommand="ew_core.displayErrors();"/>
+       <menuitem label="Show Access Log" image="images/start.png" class="menuitem-iconic" oncommand="ew_core.displayAccessLog();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
        <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
       </menupopup>

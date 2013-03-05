@@ -815,6 +815,18 @@ var FileIO = {
         }
     },
 
+    rename: function(path, newname)
+    {
+        try {
+            var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
+            file.initWithPath(path);
+            return file.moveTo(null, newname);
+        }
+        catch (e) {
+            return false;
+        }
+    },
+
     open : function(path)
     {
         try {
@@ -901,7 +913,7 @@ var FileIO = {
             }
             var flags = 0x02 | 0x08 | 0x20; // wronly | create | truncate
             if (mode == 'a') {
-                flags = 0x02 | 0x10; // wronly | append
+                flags = 0x02 | 0x08 | 0x10; // wronly | create | append
             }
             fStream.init(file, flags, 0600, 0);
             fStream.write(data, data.length);

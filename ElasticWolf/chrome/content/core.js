@@ -72,7 +72,7 @@ var ew_core = {
             }
         }
         this.restoreMenu();
-
+        this.checkAccessLog();
         this.credentials = this.getCredentials();
         this.getEndpoints();
 
@@ -116,7 +116,6 @@ var ew_core = {
         this.promptForPin();
         this.setIdleTimer();
         this.refreshEndpoints();
-
         // On fresh install offer to enter credentials, need timeout to alow the UI settle in
         if (this.credentials.length == 0) {
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
@@ -810,6 +809,12 @@ var ew_core = {
         return updated;
     },
 
+    displayAccessLog: function()
+    {
+        var data = FileIO.toString(this.getProfileHome() + DirIO.slash + "access.log");
+        this.promptInput("Access Log", [{notitle:1,multiline:true,rows:25,cols:60,flex:1,scale:1,value:data}], {modeless:true});
+    },
+
     writeAccessLog: function(line)
     {
         debug(line);
@@ -817,7 +822,18 @@ var ew_core = {
             this.accessLog = FileIO.open(this.getProfileHome() + DirIO.slash + 'access.log');
             if (!this.accessLog) return;
         }
-        FileIO.write(this.accessLog, line + "\n");
+        FileIO.write(this.accessLog, new Date().toISOString() + ' ' + line + "\n", 'a');
+    },
+
+    checkAccessLog: function()
+    {
+        var log = FileIO.open(this.getProfileHome() + DirIO.slash + 'access.log');
+        if (log && log.exists()) {
+            if (log.fileSize > 1024*1024*10) {
+                log.moveTo(null, "access.log.old");
+            }
+            log = null;
+        }
     },
 
     saveAccessKey: function(file, accessKey)

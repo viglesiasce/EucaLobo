@@ -106,9 +106,9 @@
           <splitter class="tree-splitter" />
           <treecol id="instance.state" label="&ew.instances.state.label;" flex="3" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
-          <treecol id="instance.ipAddress" label="&ew.instances.ipAddress.label;" flex="1" persist="width ordinal hidden sortDirection" />
-          <splitter class="tree-splitter" />
           <treecol id="instance.elasticIp" label="&ew.instances.elasticIp.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.ipAddress" label="&ew.instances.ipAddress.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />
           <treecol id="instance.dnsName" label="&ew.instances.dnsName.label;" flex="1" persist="width ordinal hidden sortDirection" />
           <splitter class="tree-splitter" />

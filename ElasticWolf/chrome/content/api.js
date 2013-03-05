@@ -793,7 +793,7 @@ var ew_api = {
             var res = handlerObj.onResponseComplete(rc);
             if (rc.isSync) rc.result = res;
         }
-        debug('handleResponse: ' + action + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", res=" + (rc.result && rc.result.length ? rc.result.length : 0));
+        this.core.writeAccessLog('handleResponse: ' + action + ', key=' + this.accessKey + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
@@ -2367,7 +2367,7 @@ var ew_api = {
                             var parts = this.dnsName.split('-');
                             this.ipAddress = parts[1] + "." + parts[2] + "." + parts[3] + "." + parseInt(parts[4]);
                         }
-                        if (this.elasticIp == '') {
+                        if (!this.elasticIp) {
                             var eip = ew_core.queryModel('addresses', 'instanceId', this.id);
                             this.elasticIp = eip && eip.length ? eip[0].publicIp : '';
                         }

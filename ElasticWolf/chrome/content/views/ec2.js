@@ -348,12 +348,15 @@ var ew_InstancesTreeView = {
     properties: [ 'state' ],
     max: 50,
 
+    // Always refresh but with different timeout
     isRefreshable : function()
     {
+        this.refreshTimeout = 10000;
         for (var i in this.treeList) {
             if (["pending","shutting-down","stopping","starting"].indexOf(this.treeList[i].state) != -1) return true;
         }
-        return false;
+        this.refreshTimeout = 30000;
+        return true;
     },
 
     filter: function(list)
