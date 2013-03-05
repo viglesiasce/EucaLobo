@@ -5989,7 +5989,7 @@ var ew_api = {
             obj.family = getNodeValue(items[i], "DBParameterGroupFamily");
             obj.descr = getNodeValue(items[i], "DBEngineDescription");
             obj.versionDescr = getNodeValue(items[i], "DBEngineVersionDescription");
-            obj.engine = getNodeValue(items[i], "Engine");
+            obj.name = getNodeValue(items[i], "Engine");
             obj.version = getNodeValue(items[i], "EngineVersion");
             obj.charsets = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
             list.push(obj)

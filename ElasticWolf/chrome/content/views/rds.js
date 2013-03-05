@@ -502,6 +502,7 @@ var ew_DBInstancesTreeView = {
             switch (item.label) {
             case "Engine":
                 var engine = me.core.findModel('dbengines', item.obj.value, 'versionDescr');
+                debug(item.obj.value + ", " + engine);
                 input.rc.items[idx+1].obj.value = engine ? engine.version : '';
                 var list = engine && engine.orderableOptions ? engine.orderableOptions : (engine ? me.core.api.describeOrderableDBInstanceOptions(engine.name) : []);
                 var dbclass = input.rc.items[idx+2].obj.value;
