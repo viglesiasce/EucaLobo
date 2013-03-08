@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.swf.domain" flex="1">
+    <vbox flex="1">
+        <groupbox flex="1" orient="vertical">
+            <caption label="SWF Domains" />
+            <popupset>
+                <menupopup id="ew.swfdomains.contextmenu">
+                    <menuitem oncommand="ew_SWFDomainsTreeView.addItem()" label="Add Domain" />
+                    <menuitem oncommand="ew_SWFDomainsTreeView.deleteSelected();" label="Delete Domain" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.swfdomains.search" value="Search:"/>
+                <textbox id="ew.swfdomains.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_SWFDomainsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Domain" oncommand="ew_SWFDomainsTreeView.addItem();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Domain" oncommand="ew_SWFDomainsTreeView.deleteSelected();" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.swfdomains.view" flex="1">
+                <treecols>
+                    <treecol id="cfg.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.status" label="Status" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.description" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren context="ew.swfdomains.contextmenu" />
+            </tree>
+        </groupbox>
+
+    </vbox>
+    </tabpanel>
+</overlay>

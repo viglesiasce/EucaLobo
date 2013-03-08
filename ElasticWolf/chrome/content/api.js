@@ -16,6 +16,7 @@ var ew_api = {
     AS_API_VERSION: '2011-01-01',
     EMR_API_VERSION: '2009-03-31',
     DDB_API_VERSION: '2011-12-05',
+    SWF_API_VERSION: '2012-01-25',
 
     core: null,
     timers: {},
@@ -114,6 +115,9 @@ var ew_api = {
         this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
         this.signatures.STS = endpoint.signatureSTS;
+        this.urls.SWF = endpoint.urlSWF || 'https://swf.' + this.region + '.amazonaws.com';
+        this.versions.SWF = endpoint.versionSWF || this.SWF_API_VERSION;
+        this.signatures.SWF = endpoint.signatureSWF;
         this.actionIgnore = endpoint.actionIgnore || [];
         this.actionVersion = endpoint.actionVersion || {};
 
@@ -134,6 +138,7 @@ var ew_api = {
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
                    urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
+                   urlSWF: 'https://swf.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
                    signatureDDB: 4,
                  },
@@ -287,10 +292,7 @@ var ew_api = {
         if (!this.isEnabled()) return null;
 
         var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            debug("Could not create xmlhttp object");
-            return null;
-        }
+        if (!xmlhttp) return null;
 
         var curTime = new Date();
         var formattedTime = curTime.strftime("%Y-%m-%dT%H:%M:%SZ", true);
@@ -368,6 +370,9 @@ var ew_api = {
         var me = this;
         if (!this.isEnabled()) return null;
 
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) return null;
+
         var url = this.urls.DDB;
         var version = this.versions.DDB;
         var curTime = new Date();
@@ -417,16 +422,50 @@ var ew_api = {
                         'content-length': json.length };
         }
 
-        var xmlhttp = this.getXmlHttp();
-        if (!xmlhttp) {
-            log("Could not create xmlhttp object");
-            return null;
-        }
         xmlhttp.open("POST", url, !isSync);
         xmlhttp.overrideMimeType('application/x-amz-json-1.0');
         for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
 
         return this.sendRequest(xmlhttp, url, json, isSync, action, version, handlerMethod, handlerObj, callback, params);
+    },
+
+    querySWF : function (target, params, handlerObj, isSync, handlerMethod, callback)
+    {
+        var me = this;
+        if (!this.isEnabled()) return null;
+
+        var xmlhttp = this.getXmlHttp();
+        if (!xmlhttp) return null;
+
+        var key = { id: me.accessKey, secret: me.secretKey, securityToken: me.securityToken || "" };
+        var url = this.urls.SWF;
+        var curTime = (new Date()).toGMTString();
+        var host = url.replace(/https?:\/\//, "");
+        url += '/';
+
+        var json = JSON.stringify(params);
+        var headers = { 'content-type': 'application/x-amz-json-1.0; charset=utf-8',
+                        'content-encoding': 'amz-1.0',
+                        'x-amz-target': target };
+
+        if (this.signatures.SWF == 4) {
+            this.signatureV4(host, "POST", "/", json, headers);
+        } else {
+            var strSign = "POST\n/\n\nhost:" + host + "\nx-amz-date:" + curTime + "\nx-amz-target:" + target + "\n\n" + json;
+            var sig = b64_hmac_sha256(key.secret, str_sha256(strSign));
+            var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-target,Signature=' + sig;
+            headers['user-agent'] = this.core.getUserAgent()
+            headers['host'] = host;
+            headers['x-amzn-authorization'] = auth;
+            headers['x-amz-date'] = curTime;
+            headers['content-length'] = json.length;
+        }
+
+        xmlhttp.open("POST", url, !isSync);
+        xmlhttp.overrideMimeType('application/x-amz-json-1.0');
+        for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
+
+        return this.sendRequest(xmlhttp, url, json, isSync, target, version, handlerMethod, handlerObj, callback, params);
     },
 
     queryRoute53 : function(method, action, content, params, handlerObj, isSync, handlerMethod, callback)
@@ -7487,4 +7526,11 @@ var ew_api = {
         }
         this.queryDDB('Scan', params, this, false, "onCompleteJson", callback);
     },
+
+    listDomains: function(callback)
+    {
+        var params = { registrationStatus: "REGISTERED" };
+        this.querySWF('com.amazonaws.swf.service.model.SimpleWorkflowService.ListDomains', params, this, false, "onCompleteJson:domainInfos", callback);
+    },
+
 };

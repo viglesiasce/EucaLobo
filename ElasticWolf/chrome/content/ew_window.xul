@@ -60,6 +60,7 @@
 <?xul-overlay href="chrome://ew/content/views/placementgroups.xul"?>
 <?xul-overlay href="chrome://ew/content/views/jobflows.xul"?>
 <?xul-overlay href="chrome://ew/content/views/ddb.xul"?>
+<?xul-overlay href="chrome://ew/content/views/swfdomains.xul"?>
 
 <window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical"
@@ -88,6 +89,7 @@
   <script type="application/x-javascript" src="chrome://ew/content/views/s3.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/cloudwatch.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/autoscaling.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/views/swf.js" />
   <script type="application/x-javascript" src="chrome://ew/content/views/prefs.js" />
 
   <script type="application/x-javascript">
@@ -254,6 +256,8 @@
 
             { name: "ew.tabs.ddb",          views: [ { id: "ew.ddb.view", view: ew_DDBTreeView, },
                                                      { id: "ew.ddb.items.view", view: ew_DDBItemsTreeView, }, ] },
+
+            { name: "ew.tabs.swf.domain",   views: [ { id: "ew.swfdomains.view", view: ew_SWFDomainsTreeView, }, ] },
 
     ]
 
@@ -466,6 +470,15 @@
        </treechildren>
       </treeitem>
 
+      <treeitem container="true" open="true">
+       <treerow>
+         <treecell label="SWF: Simple Worflow Services" src="images/swf.png" />
+       </treerow>
+       <treechildren>
+         <treeitem><treerow><treecell label="Domains" value="ew.tabs.swf.domain" /></treerow></treeitem>
+       </treechildren>
+      </treeitem>
+
     </treechildren>
     </tree>
 
@@ -531,6 +544,7 @@
       <tabpanel id="ew.tabs.emr.jobflow"/>
       <tabpanel id="ew.tabs.ddb"/>
       <tabpanel id="ew.tabs.placementgroup"/>
+      <tabpanel id="ew.tabs.swf.domain"/>
 
       <tabpanel id="ew.tabs.ec2.folder">
        <vbox flex="1">

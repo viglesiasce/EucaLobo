@@ -1787,7 +1787,8 @@ var ew_core = {
         spotPriceHistory: null,
         spotInstanceRequests: null,
         jobflows: null,
-        ddb:null,
+        ddb: null,
+        swfdomains: null,
     },
 
     // Refresh model list by name, this is primary interface to use in the lists and trees
@@ -1805,6 +1806,9 @@ var ew_core = {
             this.progress[name] = now;
 
             switch (name) {
+            case 'swfdomains':
+                this.api.listDomains(function(list) { me.setModel("swfdomains", list); });
+                break;
             case 'placementGroups':
                 this.api.describePlacementGroups();
                 break;

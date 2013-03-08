@@ -40,7 +40,7 @@
                     <treecol id="cfg.end" label="End" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
-                <treechildren id="ew.asconfig.tree.children" context="ew.asactions.contextmenu" />
+                <treechildren context="ew.asactions.contextmenu" />
             </tree>
         </groupbox>
 
