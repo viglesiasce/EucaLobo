@@ -43,6 +43,9 @@ if (dir == "index.html") {
     // Upload file into S3 bucket
     var type = 'application/zip';
     switch (path.extname(file)) {
+    case '.md5': 
+        type = "text/plain";
+        break;
     case '.xpi': 
         type = "application/x-xpinstall";
         break;
