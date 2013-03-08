@@ -1652,16 +1652,11 @@ var ew_PermissionsTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_permission.xul", null, "chrome,centerscreen,modal,resizable", group, this.core, retVal);
 
         if (retVal.ok) {
-            var me = this;
-            var wrap = function() {
-                ew_SecurityGroupsTreeView.refresh();
-            }
-
             var newPerm = retVal.newPerm;
-            if (newPerm.cidrIp) {
-                this.core.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, wrap);
+            if (!newPerm.srcGroup) {
+                this.core.api.authorizeSourceCIDR(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.cidrIp, function() { ew_SecurityGroupsTreeView.refresh();});
             } else {
-                this.core.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, wrap);
+                this.core.api.authorizeSourceGroup(retVal.type, group, newPerm.ipProtocol, newPerm.fromPort, newPerm.toPort, newPerm.srcGroup, function() { ew_SecurityGroupsTreeView.refresh();});
             }
         }
     },
@@ -1679,18 +1674,12 @@ var ew_PermissionsTreeView = {
         if (perms.length == 0) return;
         if (!confirm("Revoke selected permission(s) on group "+group.name+"?")) return;
 
-        var me = this;
-        var wrap = function() {
-            ew_SecurityGroupsTreeView.refresh();
-        }
-
-        var permission = null;
         for (i in perms) {
-            permission = perms[i];
-            if (permission.cidrIp) {
-                this.core.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,wrap);
+            var permission = perms[i];
+            if (!permission.srcGroup) {
+                this.core.api.revokeSourceCIDR(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.cidrIp,function() { ew_SecurityGroupsTreeView.refresh(); });
             } else {
-                this.core.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,wrap);
+                this.core.api.revokeSourceGroup(permission.type,group,permission.protocol,permission.fromPort,permission.toPort,permission.srcGroup,function() { ew_SecurityGroupsTreeView.refresh(); });
             }
         }
 

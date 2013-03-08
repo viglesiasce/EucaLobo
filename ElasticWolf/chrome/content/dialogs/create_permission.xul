@@ -367,41 +367,47 @@
             <radiogroup id="ew.hostnet.group" orient="vertical" oncommand="groupChanged()">
                 <grid flex="1">
                     <columns>
-                        <column flex="1"/>
-                        <column flex="1" />
-                        <column flex="1" />
+                        <column align="center" style="min-width:120px;"/>
+                        <column align="center" flex="1" />
                     </columns>
-                    <rows>
-                        <row>
-                            <radio id="host" value="host" />
-                            <label control="host" value="Host:" />
+                    <rows >
+                        <row style="padding-bottom:25px;" >
                             <hbox>
+                               <radio id="host" value="host" />
+                               <label control="host" value="Host" />
+                            </hbox>
+                            <hbox>
+                              <label control="ew.source.host" value="CIDR:" />
                               <textbox id="ew.source.host" />
                               <button id="get-host-button" label="Get My Host Address" default="true" oncommand="getHostAddress();" />
                             </hbox>
                         </row>
-                        <row>
-                            <radio id="range" value="range" />
-                            <label control="range" value="Network:" />
+                        <row style="padding-bottom:25px;" >
+                            <hbox>
+                              <radio id="range" value="range" />
+                              <label control="range" value="Network" />
+                            </hbox>
                             <hbox align="center">
-                              <label control="" label="Range:" />
+                              <label control="ew.source.range" value="Network Range:" />
                               <textbox id="ew.source.range" />
                               <button id="get-network-button" label="Get My Network Range" default="true" oncommand="getHostNetwork();" />
                             </hbox>
                         </row>
-                        <row>
-                            <radio id="group" value="group" selected="true" />
-                            <label control="group" value="Group:" />
-                            <rows>
-                                <row>
-                                    <label control="ew.source.user" value="User ID" />
-                                    <textbox id="ew.source.user" value="" />
-                                </row>
-                                <row>
-                                    <label control="ew.source.group" value="Group" />
+                        <row align="center" style="padding-bottom:25px;" >
+                            <hbox align="center">
+                              <radio id="group" value="group" selected="true" />
+                              <label control="group" value="Group" />
+                            </hbox>
+                            <vbox>
+                                <hbox>
+                                    <label control="ew.source.group" value="Group ID:" />
                                     <menulist id="ew.source.group" />
-                                </row>
-                            </rows>
+                                </hbox>
+                                <hbox>
+                                    <label control="ew.source.user" value="User ID:" />
+                                    <textbox id="ew.source.user" value="" />
+                                </hbox>
+                            </vbox>
                         </row>
                     </rows>
                 </grid>
