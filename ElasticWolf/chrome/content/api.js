@@ -5303,6 +5303,8 @@ var ew_api = {
             obj.sampleCount = getNodeValue(items[i], "SampleCount");
             obj.maximum = getNodeValue(items[i], "Maximum");
             obj.minimum = getNodeValue(items[i], "Minimum");
+            obj.value = parseFloat(parseFloat(obj.average || obj.sum || obj.sampleCount || obj.maximum || obj.minimum || '0').toFixed(2));
+
             list.push(obj);
         }
         response.result = list;
