@@ -1478,9 +1478,10 @@ var ew_ElasticIPTreeView = {
 
     menuChanged : function() {
         var eip = this.getSelected();
+        var instance = eip && eip.instanceId ? this.core.findModel('instances', eip.instanceId) : null;
         $("ew.addresses.contextmenu.release").disabled = !eip || eip.instanceId;
         $("ew.addresses.contextmenu.disassociate").disabled = !eip || (!eip.instanceId && !eip.associationId);
-        $("ew.addresses.contextmenu.copyDns").disabled = !eip || !eip.instanceId;
+        $("ew.addresses.contextmenu.copyDns").disabled = !eip || !instance || !instance.dnsName;
         $("ew.addresses.contextmenu.copyIp").disabled = !eip;
         $("ew.addresses.contextmenu.tag").disabled = !eip;
     },
@@ -1568,9 +1569,7 @@ var ew_ElasticIPTreeView = {
         if (!eip || !eip.instanceId) { return; }
 
         var instance = this.core.findModel('instances', eip.instanceId);
-        if (instance) {
-            this.core.copyToClipboard(instance.dnsName);
-        }
+        if (instance && instance.dnsName) this.core.copyToClipboard(instance.dnsName);
     }
 
 };
