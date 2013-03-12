@@ -5131,8 +5131,8 @@ var ew_api = {
         obj.comparisonOper = getNodeValue(item, "ComparisonOperator");
         obj.metricName = getNodeValue(item, "MetricName");
         obj.evaluationPeriods = getNodeValue(item, "EvaluationPeriods");
-        obj.insufficientDataActions = getNodeValue(item, "InsufficientDataActions");
-        obj.okActions = getNodeValue(item, "OKActions");
+        obj.insufficientDataActions = this.getItems(item, "InsufficientDataActions", "member", "");
+        obj.okActions = this.getItems(item, "OKActions", "member", "");
         obj.dimensions = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(o) { return new Tag(o.Name, o.Value)});
         obj.actions = this.getItems(item, "AlarmActions", "member", "");
         return obj;
@@ -6013,7 +6013,8 @@ var ew_api = {
 
     describeDBEngineVersions: function(callback)
     {
-        this.queryRDS("DescribeDBEngineVersions", [], this, false, "onCompleteDescribeDBEngineVersions", callback);
+        var params = [ ["ListSupportedCharacterSets", "true" ]];
+        this.queryRDS("DescribeDBEngineVersions", params, this, false, "onCompleteDescribeDBEngineVersions", callback);
     },
 
     onCompleteDescribeDBEngineVersions: function(response)

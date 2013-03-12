@@ -509,6 +509,7 @@ var ew_DBInstancesTreeView = {
                 buildListbox(input.rc.items[idx+2].obj, list, 'instanceClass');
                 if (dbclass) input.rc.items[idx+2].obj.value = dbclass;
                 buildListbox(input.rc.items[17].obj, engine ? engine.charsets : []);
+                input.rc.items[17].obj.value = input.rc.items[17].value;
                 if (engine) engine.orderableOptions = list;
                 break;
 
@@ -554,10 +555,13 @@ var ew_DBInstancesTreeView = {
         if (edit) {
             var item = this.getSelected();
             if (!item) return;
+            engines = this.core.queryModel("dbengines", "name", item.engine);
+            var engine = this.core.getObjects(engines, [ "name", item.engine, "version", item.version]);
+            if (engine.length) item.versionDescr = engine[0].versionDescr;
             inputs[0].value = item.id;
             inputs[0].readonly = true;
-            inputs[1].value = item.engine;
-            inputs[1].required = 0;
+            inputs[1].value = item.versionDescr;
+            inputs[1].list = engines;
             inputs[2].value = item.version;
             inputs[3].value = item.instanceClass;
             inputs[3].reuired = 0;

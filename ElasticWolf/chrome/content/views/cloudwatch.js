@@ -142,11 +142,15 @@ var ew_MetricAlarmsTreeView = {
                 this.rc.metrics = this.rc.core.queryModel('metrics', 'namespace', item.obj.value);
                 this.rc.core.sortObjects(this.rc.metrics, 'dimensions');
                 buildListbox(this.rc.items[idx+1].obj, this.rc.metrics, 'name');
-                // Restore initial value for metric
-                if (onstart && edit) this.rc.items[idx+1].obj.value = this.rc.items[idx+1].value;
+                // Preserve existig value
+                if (onstart && edit) {
+                    this.rc.items[idx+1].obj.value = this.rc.items[idx+1].value;
+                    this.rc.items[idx+2].obj.value = this.rc.items[idx+2].value;
+                }
                 break;
 
             case "MetricName":
+                if (onstart) break;
                 var metric = this.rc.metrics[item.obj.selectedIndex];
                 this.rc.items[idx+1].obj.value = '';
                 if (!metric) break;
@@ -158,6 +162,7 @@ var ew_MetricAlarmsTreeView = {
             case "AlarmActions Topics":
             case "InsufficientDataActions Topics":
             case "OKActions Topics":
+                if (onstart) break;
                 if (item.obj.value) {
                     if (this.rc.items[idx-1].obj.value) this.rc.items[idx-1].obj.value += "\n";
                     this.rc.items[idx-1].obj.value += item.obj.value;
@@ -171,7 +176,7 @@ var ew_MetricAlarmsTreeView = {
         var inputs = [{label:"AlarmName",required:1},
                       {label:"AlarmDescription",maxlength:255},
                       {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
-                      {label:"MetricName",type:"menulist",required:1,style:"max-width:300px"},
+                      {label:"MetricName",type:"menulist",required:1,key:'name',style:"max-width:300px"},
                       {label:"Dimensions",multiline:true,cols:30,rows:3,wrap:'off',help:"One name:value pair per line"},
                       {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold","GreaterThanThreshold","LessThanThreshold","LessThanOrEqualToThreshold"],required:1,tooltiptext:"The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand.Type: String.Valid Values:GreaterThanOrEqualToThreshold |GreaterThanThreshold |LessThanThreshold |LessThanOrEqualToThreshold"},
                       {label:"Threshold",type:"number",decimalplaces:2,size:10,required:1,tooltiptext:"The value against which the specified statistic is compared."},
@@ -202,9 +207,9 @@ var ew_MetricAlarmsTreeView = {
             inputs[8].value = item.evaluationPeriods;
             inputs[9].value = item.statistic;
             inputs[10].value = item.unit;
-            inputs[11].value = item.actions;
-            inputs[13].value = item.insufficientDataActions;
-            inputs[15].value = item.okActions;
+            inputs[11].value = item.actions.join("\n");
+            inputs[13].value = item.insufficientDataActions.join("\n");
+            inputs[15].value = item.okActions.join("\n");
         }
 
         var values = this.core.promptInput("Put CloudWatch Alarm", inputs, {onchange:onchange,onaccept:onaccept});
