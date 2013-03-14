@@ -257,7 +257,8 @@
             { name: "ew.tabs.ddb",          views: [ { id: "ew.ddb.view", view: ew_DDBTreeView, },
                                                      { id: "ew.ddb.items.view", view: ew_DDBItemsTreeView, }, ] },
 
-            { name: "ew.tabs.swf.domain",   views: [ { id: "ew.swfdomains.view", view: ew_SWFDomainsTreeView, }, ] },
+            { name: "ew.tabs.swf.domain",   views: [ { id: "ew.swfdomains.view", view: ew_SWFDomainsTreeView, },
+                                                     { id: "ew.swfactivitytypes.view", view: ew_SWFActivityTypesTreeView }] },
 
     ]
 

@@ -1909,7 +1909,7 @@ var ew_core = {
                 this.api.describeBundleTasks();
                 break;
             case "offerings":
-                this.api.describeReservedInstancesOfferings(true, function(list) { me.setModel("offerings", list); });
+                this.api.describeReservedInstancesOfferings(function(list) { me.setModel("offerings", list); });
                 break;
             case "reservedInstances":
                 this.api.describeReservedInstances();

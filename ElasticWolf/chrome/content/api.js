@@ -465,7 +465,7 @@ var ew_api = {
         xmlhttp.overrideMimeType('application/x-amz-json-1.0');
         for (var h in headers) xmlhttp.setRequestHeader(h, headers[h]);
 
-        return this.sendRequest(xmlhttp, url, json, isSync, target, version, handlerMethod, handlerObj, callback, params);
+        return this.sendRequest(xmlhttp, url, json, isSync, target, this.versions.SWF, handlerMethod, handlerObj, callback, params);
     },
 
     queryRoute53 : function(method, action, content, params, handlerObj, isSync, handlerMethod, callback)
@@ -1942,10 +1942,9 @@ var ew_api = {
         response.result = list;
     },
 
-    describeReservedInstancesOfferings : function(market, callback)
+    describeReservedInstancesOfferings : function(callback)
     {
         var params = [];
-        if ((this.actionVersion["DescribeReservedInstancesOfferings"] || this.versions.EC2) > '2012-06-15') params.push(["IncludeMarketplace", market]);
         this.queryEC2("DescribeReservedInstancesOfferings", params, this, false, "onCompleteDescribeReservedInstancesOfferings", callback);
     },
 
@@ -7534,6 +7533,12 @@ var ew_api = {
     {
         var params = { registrationStatus: "REGISTERED" };
         this.querySWF('com.amazonaws.swf.service.model.SimpleWorkflowService.ListDomains', params, this, false, "onCompleteJson:domainInfos", callback);
+    },
+
+    listActivityTypes: function(domain, callback)
+    {
+        var params = { domain: domain, registrationStatus: "REGISTERED" };
+        this.querySWF('com.amazonaws.swf.service.model.SimpleWorkflowService.ListActivityTypes', params, this, false, "onCompleteJson:typeInfos", callback);
     },
 
 };

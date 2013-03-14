@@ -32,6 +32,35 @@
             </tree>
         </groupbox>
 
+        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest"></splitter>
+
+        <groupbox flex="1" orient="vertical">
+            <caption label="SWF Activity Types" />
+            <popupset>
+                <menupopup id="ew.swfactivitytypes.contextmenu">
+                    <menuitem oncommand="ew_SWFActivityTypesTreeView.addItem()" label="Add Domain" />
+                    <menuitem oncommand="ew_SWFActivityTypesTreeView.deleteSelected();" label="Delete Domain" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.swfactivitytypes.search" value="Search:"/>
+                <textbox id="ew.swfactivitytypes.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_SWFActivityTypesTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Domain" oncommand="ew_SWFActivityTypesTreeView.addItem();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Domain" oncommand="ew_SWFActivityTypesTreeView.deleteSelected();" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.swfactivitytypes.view" flex="1">
+                <treecols>
+                    <treecol id="cfg.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.status" label="Status" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.description" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren context="ew.swfactivitytypes.contextmenu" />
+            </tree>
+        </groupbox>
     </vbox>
     </tabpanel>
 </overlay>
