@@ -1000,6 +1000,7 @@ var ew_api = {
         // Collected result will be returned by the last call only
         var marker = getNodeValue(xmlDoc, "Marker");
         var nextToken = getNodeValue(xmlDoc, "NextToken");
+        if (!nextToken) nextToken = getNodeValue(xmlDoc, "nextToken");
 
         log('getNext: ' + model + ", token=" + (marker || nextToken) + ", rc=" + this.cache[model].length);
 
@@ -1942,9 +1943,9 @@ var ew_api = {
         response.result = list;
     },
 
-    describeReservedInstancesOfferings : function(callback)
+    describeReservedInstancesOfferings : function(params, callback)
     {
-        var params = [];
+        if (!params) params = [];
         this.queryEC2("DescribeReservedInstancesOfferings", params, this, false, "onCompleteDescribeReservedInstancesOfferings", callback);
     },
 
@@ -1979,7 +1980,7 @@ var ew_api = {
             });
             list.push(obj);
         }
-        return this.getNext(response, this.QueryEC2, list);
+        return this.getNext(response, this.queryEC2, list);
     },
 
     createInstanceExportTask: function(id, targetEnv, bucket, descr, prefix, diskFormat, containerFormat, callback)
@@ -4361,7 +4362,6 @@ var ew_api = {
         obj.id = getNodeValue(xmlDoc, "AccessKeyId");
         obj.secret = getNodeValue(xmlDoc, "SecretAccessKey");
         obj.status = getNodeValue(xmlDoc, "Status");
-        debug(obj)
         response.result = obj;
     },
 
