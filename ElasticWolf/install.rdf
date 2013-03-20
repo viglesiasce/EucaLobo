@@ -5,7 +5,7 @@
     <em:type>2</em:type>
     <em:unpack>true</em:unpack>
     <em:name>ElasticWolf</em:name>
-    <em:version>4.1.14</em:version>
+    <em:version>4.1.15</em:version>
     <em:description>A graphical interface to Amazon's EC2/VPC/S3 web service.</em:description>
     <em:creator>Vlad Seryakov</em:creator>
     <em:targetApplication>
