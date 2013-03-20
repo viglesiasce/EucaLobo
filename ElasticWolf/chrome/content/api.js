@@ -2491,7 +2491,7 @@ var ew_api = {
                                 return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary");
                             }
                             pip.privateIp = getNodeValue(objs[i], "privateIpAddress");
-                            pip.primary = getNodeValue(objs[i], "primary");
+                            pip.primary = toBool(getNodeValue(objs[i], "primary"));
                             pip.publicIp = getNodeValue(objs[i], "association", "publicIp");
                             eni.privateIpAddresses.push(pip);
                         }
@@ -3572,7 +3572,7 @@ var ew_api = {
                     return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
                 }
                 ip.privateIp = getNodeValue(objs[j], "privateIpAddress");
-                ip.primary = getNodeValue(objs[j], "primary");
+                ip.primary = toBool(getNodeValue(objs[j], "primary"));
                 ip.publicIp = getNodeValue(objs[j], "association", "publicIp");
                 ip.associationId = getNodeValue(objs[j], "association", "associationId");
                 intf.privateIpAddresses.push(ip)
@@ -3861,7 +3861,7 @@ var ew_api = {
         this.queryEC2("ReleaseAddress", params, this, false, "onComplete", callback);
     },
 
-    associateAddress : function(eip, instanceId, networkInterfaceId, callback)
+    associateAddress : function(eip, instanceId, networkInterfaceId, privateIp, force, callback)
     {
         var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]]
         if (instanceId) {
@@ -3869,6 +3869,12 @@ var ew_api = {
         }
         if (networkInterfaceId) {
             params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+        }
+        if (privateIp) {
+            params.push(["PrivateIpAddress", privateIp]);
+        }
+        if (force){
+            params.push(["AllowReassociation", true]);
         }
         this.queryEC2("AssociateAddress", params, this, false, "onComplete:associationId", callback);
     },

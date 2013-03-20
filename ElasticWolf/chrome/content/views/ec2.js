@@ -474,7 +474,7 @@ var ew_InstancesTreeView = {
             return;
         }
 
-        var eips = [];
+        var eips = [], force = false, privateIp = null;
         for (var i in eipList) {
             var eip = eipList[i];
             if ((instance.vpcId != '' && eip.domain != "vpc") || (instance.vpcId == '' && eip.domain == "vpc")) continue;
@@ -485,11 +485,19 @@ var ew_InstancesTreeView = {
         var eip = eips[idx];
 
         if (eip.instanceId) {
-            if (!this.core.promptYesNo("Confirm", "Address " + eip.publicIp + " is already mapped to an instance, continue?")) {
-                return false;
-            }
+            if (!this.core.promptYesNo("Confirm", "Address " + eip.publicIp + " is already mapped to an instance, continue?")) return false;
+            force = true;
         }
-        this.core.api.associateAddress(eip, instance.id, null, function() {
+        var privateIps = [];
+        // More than one interface, ask which one
+        for (var j = 0; j < instance.networkInterfaces.length; j++) {
+            privateIps = privateIps.concat(instance.networkInterfaces[j].privateIpAddresses);
+        }
+        if (privateIps.length > 1) {
+            idx = this.core.promptList("Choose network interface/private IP", "Which private IP to associate with, not choosing will use primary interface", privateIps);
+            if (idx >= 0) privateIp = privateIps[idx].privateIp;
+        }
+        this.core.api.associateAddress(eip, instance.id, null, privateIp, force, function() {
             me.refresh();
             me.core.refreshModel('addresses');
         });
@@ -1501,7 +1509,7 @@ var ew_ElasticIPTreeView = {
     },
 
     getUnassociatedInstances : function() {
-        var instances = this.core.queryModel('instances', 'state', 'running');
+        var instances = this.core.queryModel('instances');
         var unassociated = new Array();
         var eips = {};
 
@@ -1515,15 +1523,15 @@ var ew_ElasticIPTreeView = {
         }
 
         for (var i in instances) {
-            if (eips[instances[i].id]) {
-                continue;
-            }
+            if (instances[i].state == "terminated" || eips[instances[i].id]) continue;
             unassociated.push(instances[i]);
         }
         return unassociated;
     },
 
     associateAddress : function(eip) {
+        var force = false, privateIp = null;
+
         // If an elastic IP hasn't been passed in to be persisted to EC2, create a mapping between the Address and Instance.
         if (eip == null) {
             eip = this.getSelected();
@@ -1531,8 +1539,8 @@ var ew_ElasticIPTreeView = {
 
             if (eip.instanceId != null && eip.instanceId != '') {
                 var confirmed = confirm("Address "+eip.publicIp+" is already mapped to an instance, are you sure?");
-                if (!confirmed)
-                    return;
+                if (!confirmed) return;
+                force = true;
             }
 
             var list = this.getUnassociatedInstances();
@@ -1543,13 +1551,25 @@ var ew_ElasticIPTreeView = {
             // Determine what type we selected
             if (list[idx].imageId) {
                 eip.instanceId = list[idx].id;
+                // Ask if we can attach to secondary IP or not
+                if (eip.allocationId) {
+                    var privateIps = [];
+                    // More than one interface, ask which one
+                    for (var j = 0; j < list[idx].networkInterfaces.length; j++) {
+                        privateIps = privateIps.concat(list[idx].networkInterfaces[j].privateIpAddresses);
+                    }
+                    if (privateIps.length > 1) {
+                        idx = this.core.promptList("Choose network interface/private IP", "Which private IP to associate with, not choosing will use primary interface", privateIps);
+                        if (idx >= 0) privateIp = privateIps[idx].privateIp;
+                    }
+                }
             } else {
                 eip.eniId = list[idx].id;
             }
         }
 
         var me = this;
-        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, function() { me.refresh() });
+        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, privateIp, force, function() { me.refresh() });
         return true;
     },
 
