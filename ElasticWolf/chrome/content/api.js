@@ -3789,7 +3789,7 @@ var ew_api = {
         var instanceId = getNodeValue(xmlDoc, "instanceId");
         var timestamp = getNodeValue(xmlDoc, "timestamp");
         var output = xmlDoc.getElementsByTagName("output")[0];
-        if (output.textContent) {
+        if (output && output.textContent) {
             output = Base64.decode(output.textContent);
             output = output.replace(/\x1b/mg, "\n").replace(/\r/mg, "").replace(/\n+/mg, "\n");
         } else {
