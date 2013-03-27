@@ -811,8 +811,8 @@ var ew_core = {
 
     displayAccessLog: function()
     {
-        var data = FileIO.toString(this.getProfileHome() + DirIO.slash + "access.log");
-        this.promptInput("Access Log", [{notitle:1,multiline:true,rows:25,cols:60,flex:1,scale:1,value:data}], {modeless:true});
+        var data = FileIO.toString(this.getProfileHome() + DirIO.slash + "access.log").split("\n");
+        this.promptInput("Access Log", [{type:'listview',multiple:0,notitle:1,flex:1,scale:1,list:data}], {modeless:true});
     },
 
     writeAccessLog: function(line)
@@ -829,7 +829,7 @@ var ew_core = {
     {
         var log = FileIO.open(this.getProfileHome() + DirIO.slash + 'access.log');
         if (log && log.exists()) {
-            if (log.fileSize > 1024*1024*10) {
+            if (log.fileSize > 1024*1024*2) {
                 log.moveTo(null, "access.log.old");
             }
             log = null;

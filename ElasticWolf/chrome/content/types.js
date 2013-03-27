@@ -861,20 +861,22 @@ var FileIO = {
         try { if (file && file[3]) file[3].close(); } catch(e) {}
     },
 
-    read : function(file, charset)
+    read : function(file)
     {
         try {
             var data = new String();
             var fStream = Components.classes['@mozilla.org/network/file-input-stream;1'].createInstance(Components.interfaces.nsIFileInputStream);
-            var sStream = Components.classes['@mozilla.org/scriptableinputstream;1'].createInstance(Components.interfaces.nsIScriptableInputStream);
+            var sStream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(Components.interfaces.nsIConverterInputStream);
             fStream.init(file, 1, 0, false);
-            sStream.init(fStream);
-            data += sStream.read(-1);
+            sStream.init(fStream, "UTF-8", 0, 0);
+            while (1) {
+                var str = {};
+                var read = sStream.readString(32*1024, str);
+                if (read <= 0) break;
+                data += str.value;
+            }
             sStream.close();
             fStream.close();
-            if (charset) {
-                data = this.toUnicode(charset, data);
-            }
             return data;
         }
         catch (e) {
