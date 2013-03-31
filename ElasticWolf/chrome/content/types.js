@@ -228,6 +228,14 @@ var TreeView = {
             this.treeBox.rowCountChanged(i + 1, -1);
         }
     },
+    replace: function(obj, columns)
+    {
+        var i = this.find(obj, columns)
+        if (i >= 0) {
+            this.treeList.splice(i, 1, obj);
+            this.treeBox.rowCountChanged(i + 1, -1);
+        }
+    },
     find: function(obj, columns)
     {
         if (obj) {

@@ -143,7 +143,6 @@ var ew_DDBItemsTreeView = {
         this.core.api.putItem(table.name, item, {}, function() {
             item._hashKey = item[table._hashKey];
             if (table._rangeKey) item._rangeKey = item[table._rangeKey];
-            me.core.appendModel(item);
         });
     },
 
@@ -167,17 +166,19 @@ var ew_DDBItemsTreeView = {
             item[inputs[i].label] = values[i];
         }
         this.core.api.putItem(table.name, obj, {}, function(item) {
-
+            me.replace(item);
         });
     },
 
     deleteSelected : function ()
     {
         var me = this;
+        var table = ew_DDBTreeView.getSelected();
+        if (!table) return;
         var item = this.getSelected();
-        if (!item || !confirm('Delete ' + item.name + '?')) return;
-        this.core.api.deleteItem(item.name, function(table) {
-            me.remove(item, 'key');
+        if (!item || !confirm('Delete ' + item.id + '?')) return;
+        this.core.api.deleteItem(table.name, item._hashKey, item._rangeKey, {}, function(table) {
+            me.remove(item);
         });
     },
 
