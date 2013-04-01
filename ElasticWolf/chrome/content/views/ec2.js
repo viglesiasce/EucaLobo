@@ -150,6 +150,14 @@ var ew_AMIsTreeView = {
     model : ['images','securityGroups','instances', 'keypairs', 'vpcs', 'subnets', 'availabilityZones', 'instanceProfiles', 'placementGroups' ],
     properties: ['ownerAlias', 'status', 'state'],
 
+    isRefreshable : function()
+    {
+        for (var i in this.treeList) {
+            if (["pending"].indexOf(this.treeList[i].state) != -1) return true;
+        }
+        return false;
+    },
+
     activate: function()
     {
         var menu = $("ew.images.type");
