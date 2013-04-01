@@ -363,16 +363,33 @@ function quotepath(path)
     return path && path.indexOf(' ') > 0 ? '"' + path + '"' : path;
 }
 
+//
+// Public keys comes in a number of formats:
+// - PEM:            (1st line is -----BEGIN RSA PUBLIC KEY-----)
+// - PEM:            (1st line is -----BEGIN PUBLIC KEY-----)
+// - RFC 4716 (SSH): (1st line is ---- BEGIN SSH2 PUBLIC KEY ----)
+//
 function readPublicKey(file)
 {
-    var body = ""
-    var lines = FileIO.toString(file).split("\n");
-    for (var i = 0; i < lines.length; i++) {
-        if (lines[i].indexOf("---") == -1) {
-            body += lines[i].trim()
-        }
-    }
-    return Base64.encode(body.trim())
+   var body = "";
+   var lines = FileIO.toString(file).split("\n");
+
+   // If RFC 4716 (SSH) format then use entire file contents
+   if (lines[0].indexOf("---- BEGIN SSH2") != -1)
+   {
+     body = lines.join("\n");
+   }
+   // Else do not include the BEGIN/END guards
+   else
+   {
+     for (var i = 0; i < lines.length; i++) {
+         if (lines[i].indexOf("---") == -1) {
+             body += lines[i].trim();
+         }
+     }
+   }
+
+   return Base64.encode(body.trim());
 }
 
 function newWindow()
