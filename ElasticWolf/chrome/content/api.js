@@ -880,7 +880,7 @@ var ew_api = {
             // Route53 error messages
             if (!rc.errString) {
                 rc.errString = this.getItems(rc.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
-                if (rc.errString.length) rc.errCode = "InvalidChangeBatch";
+                if (rc.errString.length) rc.errCode = "InvalidChangeBatch"; else rc.errString = "";
             }
         }
         debug('response error: ' +  action + ", " + rc.status + ", " + rc.responseText + ", " + rc.errString + ", " + url);
