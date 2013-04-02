@@ -1007,13 +1007,13 @@ var ew_VpnConnectionTreeView = {
         }
         var idx = 0;
 
-        if (item.policies.length > 0) {
+        if (item.routes.length > 0) {
             idx = this.core.promptList("Routes", "Select route to delete", item.routes);
             if (idx < 0) return;
         } else {
             if (!confirm('Delete route ' + item.routes[idx] + '?')) return;
         }
-        this.core.api.createVpnConnectionRoute(item.id, item.routes[idx].destinationCidrBlock, function() { me.refresh(); });
+        this.core.api.deleteVpnConnectionRoute(item.id, item.routes[idx].destinationCidrBlock, function() { me.refresh(); });
     },
 
 };
