@@ -87,7 +87,7 @@
              device.snapshotId = $("ew.snapshotId").value;
              device.deleteOnTermination = $("ew.deleteOnTermination").checked;
              if (!device.snapshotId) {
-                 alert('Please, specify snapshot for the attaching device ' + device.deviceName);
+                 alert('Please specify snapshot for the attaching device ' + device.deviceName);
                  $("ew.tabs").selectedIndex = 3;
                  return false;
              }
@@ -97,7 +97,7 @@
         case "new":
              device.volumeSize = $("ew.volumeSize").value;
              if (!device.volumeSize) {
-                 alert('Please, specify new volume size in GB for the attaching device ' + device.deviceName);
+                 alert('Please specify new volume size in GB for the attaching device ' + device.deviceName);
                  $("ew.tabs").selectedIndex = 3;
                  return false;
              }
@@ -107,7 +107,7 @@
         case "virtual":
              device.virtualName = $("ew.virtualName").value;
              if (!device.virtualName) {
-                 alert('Please, specify virtual device name for the attaching device ' + device.deviceName);
+                 alert('Please specify virtual device name for the attaching device ' + device.deviceName);
                  $("ew.tabs").selectedIndex = 3;
                  return false;
              }
@@ -133,7 +133,7 @@
         case "eni":
              eni.eniId = $("ew.eniId").value;
              if (!eni.eniId) {
-                 alert('Please, specify existing ENI to attach to the instance');
+                 alert('Please specify existing ENI to attach to the instance');
                  $("ew.tabs").selectedIndex = 4;
                  return false;
              }

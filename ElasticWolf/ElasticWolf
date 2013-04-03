@@ -2,9 +2,9 @@
 
 xulrunner=$(which xulrunner)
 if [ "$xulrunner" = "" ]; then
-   echo "Please install xullrunner"
-   echo 
-   echo "If xulrunner package is not availbale, please, use the following commands below:"
+   echo "Please install xulrunner"
+   echo
+   echo "If xulrunner package is not available, please use the following commands:"
    echo
    echo 'cd /opt'
    echo 'sudo wget -O- https://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/13.0/runtimes/xulrunner-13.0.en-US.linux-`uname -p`.tar.bz2 | tar -xj'

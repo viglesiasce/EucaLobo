@@ -445,14 +445,14 @@ var ew_SubnetsTreeView = {
 
         var acls = this.core.queryModel('networkAcls', 'vpcId', subnet.vpcId);
         if (!acls.length) {
-            alert("No ACLs available, try later")
+            alert("No ACLs available for subnets with VPC ID " + subnet.vpcId + ", please try later")
             return;
         }
         var rc = this.core.promptList("Replace Network ACL", "Select ACL", acls, { columns: [ "id", "vpcId" ] });
         if (rc < 0) {
             return;
         }
-        this.core.api.ReplaceNetworkAclAssociation(subnet.aclAssocId, acl.id, function() { ew_SubnetsTreeView.refresh() });
+        this.core.api.ReplaceNetworkAclAssociation(subnet.aclAssocId.id, acls[rc].id, function() { ew_SubnetsTreeView.refresh() });
     },
 
     associateRoute : function()
@@ -514,9 +514,14 @@ var ew_SubnetAclRulesTreeView = {
 
     deleteRule: function()
     {
-        var item = this.getSelected();
-        if (!item || !confirm("Delete ACL rule " + item.num + "?")) return;
-        this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_SubnetsTreeView.refresh(); });
+        if ((item = this.getSelected()) != null)
+        {
+          if (item.num == 32767) {
+            alert("Implicit ACL rules cannot be deleted");
+          } else if (confirm("Delete ACL rule " + item.num + "?")) {
+            this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh(); ew_SubnetsTreeView.refresh(); });
+          }
+        }
     },
 };
 
@@ -597,7 +602,7 @@ var ew_RoutesTreeView = {
         var values = this.core.promptInput("Create Route",
                                     [{label:"Route Table",type:"description",value:table.toString(),style:"max-width:350px;"},
                                      {label:"CIDR",type:"cidr",required:1},
-                                     {type:"label",value:"Please, choose only one from the following resources below:",notitle:0},
+                                     {type:"label",value:"Please choose one of the following resources:",notitle:0},
                                      {label:"Internet/VPN Gateway",type:"menulist",list:gws,style:"max-width:350px;",oncommand:"rc.items[4].obj.value=null,rc.items[5].obj.value=null;"},
                                      {label:"Instance",type:"menulist",list:instances,style:"max-width:350px;",oncommand:"rc.items[3].obj.value=null,rc.items[5].obj.value=null;"},
                                      {label:"Network Interface",type:"menulist",list:enis,style:"max-width:350px;",oncommand:"rc.items[3].obj.value=null,rc.items[4].obj.value=null;"}]);
@@ -623,7 +628,7 @@ var ew_RouteAssociationsTreeView = {
     {
         var table = ew_RouteTablesTreeView.getSelected();
         if (!table) {
-            alert("Please, select route table");
+            alert("Please select route table");
             return;
         }
         var subnets = this.core.queryModel('subnets');
@@ -696,7 +701,7 @@ var ew_NetworkAclsTreeView = {
             for (var j in acls[i].associations) {
                 if (acls[i].associations[j].subnetId == subnets[rc].id) {
                     this.core.api.ReplaceNetworkAclAssociation(acls[i].associations[j].id, acl.id, function() { ew_NetworkAclsTreeView.refresh() });
-                    break;
+                    return;
                 }
             }
         }
@@ -713,7 +718,7 @@ var ew_NetworkAclRulesTreeView = {
     createRule : function(acl)
     {
         if (!acl) acl = ew_NetworkAclsTreeView.getSelected();
-        if (!acl) return alert("Please, select ACL");
+        if (!acl) return alert("Please select ACL");
         var retVal = {ok:null};
         window.openDialog("chrome://ew/content/dialogs/create_rule.xul", null, "chrome,centerscreen,modal,resizable", acl, this.core, retVal);
         if (retVal.ok) {
@@ -727,9 +732,15 @@ var ew_NetworkAclRulesTreeView = {
 
     deleteRule : function()
     {
-        var item = this.getSelected();
-        if (!item || !confirm("Delete ACL rule " + item.num + "?")) return;
-        this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh(); });
+        if ((item = this.getSelected()) != null)
+        {
+          if (item.num == 32767) {
+            alert("Implicit ACL rules cannot be deleted");
+          } else if (confirm("Delete ACL rule " + item.num + "?")) {
+            this.core.api.deleteNetworkAclEntry(item.aclId, item.num, item.egress, function() { ew_NetworkAclsTreeView.refresh(); });
+          }
+        }
+
     },
 
 };
@@ -993,7 +1004,7 @@ var ew_VpnConnectionTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var cidr = this.core.prompt("Please, provide static between VPN gateway and Customer gateway:")
+        var cidr = this.core.prompt("Please provide static route between VPN gateway and Customer gateway:")
         if (!cidr) return;
         this.core.api.createVpnConnectionRoute(item.id, cidr, function() { me.refresh(); });
     },

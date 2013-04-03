@@ -507,7 +507,7 @@ var ew_core = {
             this.updateMenu();
             return true;
         }
-        return false;2
+        return false;
     },
 
     switchEndpoints : function(name)
@@ -1210,7 +1210,6 @@ var ew_core = {
             if (!path) return 0;
             this.setStrPrefs("ew.key.home", path);
         }
-        return 1
     },
 
     getAccountName : function()

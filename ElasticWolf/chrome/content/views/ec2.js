@@ -1923,7 +1923,7 @@ var ew_SpotInstanceRequestsTreeView = {
 
     deleteDatafeed: function()
     {
-        if (!confirm('Delete Spot Instances Data Feed subscription?')) retrn;
+        if (!confirm('Delete Spot Instances Data Feed subscription?')) return;
         this.core.api.deleteSpotDatafeedSubscription(function() { me.datafeedChanged({}); });
     },
 };
