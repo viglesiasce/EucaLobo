@@ -22,12 +22,16 @@
             </columns>
             <rows>
                 <row>
-                    <label control="ew.account" value="AWS User:" />
+                    <label control="ew.user" value="AWS User:" />
+                    <textbox id="ew.user" readonly="true" size="80" />
+                </row>
+                <row>
+                    <label control="ew.account" value="AWS Account Number:" />
                     <textbox id="ew.account" readonly="true" size="80" />
                 </row>
                 <row>
-                    <label control="ew.user" value="AWS Account:" />
-                    <textbox id="ew.user" readonly="true" size="80" />
+                    <label control="ew.account_arn" value="AWS Account ARN:" />
+                    <textbox id="ew.account_arn" readonly="true" size="80" />
                 </row>
                 <row>
                    <label control="ew.platforms" value="Platforms Supported:" />
@@ -42,7 +46,7 @@
                    <label id="ew.sys" />
                 </row>
                 <row>
-                   <label control="ew.version" value="Version:" />
+                   <label control="ew.version" value="ElasticWolf Version:" />
                    <label id="ew.version" />
                 </row>
                 <row>
@@ -86,7 +90,7 @@
                    <label value=" "/>
                 </row>
                 <row>
-                    <label control="ew.accessibility" value="Accessibility Mode" tooltiptext="Enable accessibility mode to use alternative outputs for graphs" />
+                    <label control="ew.accessibility" value="Accessibility mode" tooltiptext="Enable accessibility mode to use alternative outputs for graphs" />
                     <checkbox id="ew.accessibility" />
                 </row>
                 <row>
@@ -102,15 +106,15 @@
                     <checkbox id="ew.prompt.open.port" />
                 </row>
                 <row>
-                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enabled more advanced and not often used features" />
+                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enables some advanced features that are not typically needed" />
                     <checkbox id="ew.advanced.mode" />
                 </row>
                 <row>
-                    <label control="ew.errors.show" value="Show errors in popups" tooltiptext="On error display it in popup or in the status line at the bottom" />
+                    <label control="ew.errors.show" value="Show errors in popups" tooltiptext="Check for errors to be be displayed in a popup, uncheck to appear in status bar" />
                     <checkbox id="ew.errors.show" />
                 </row>
                 <row>
-                    <label control="ew.http.timeout" value="HTTP timeout(ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
+                    <label control="ew.http.timeout" value="HTTP timeout (ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
                     <textbox id="ew.http.timeout" type="number" size="5" maxlength="5" style="max-width:100px;" />
                 </row>
                 <row>
@@ -120,7 +124,7 @@
                 <row>
                     <label value="" />
                     <hbox>
-                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates()" />
+                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates(true)" />
                     <button id="ew.updates" label="Show Errors" oncommand="ew_core.displayErrors()" />
                     <button id="ew.venkman" label="Run Venkman" oncommand="start_venkman()" />
                     </hbox>

@@ -1244,7 +1244,7 @@ var ew_VolumeTreeView = {
 
         var instances = this.core.queryModel('instances', 'availabilityZone', image.availabilityZone);
         if (!instances.length) {
-            return alert('No instances running this the same availability zone');
+            return alert('No instances running in the same availability zone');
         }
 
         var values = this.core.promptInput('Create EBS Atatchment', [{label:"Volume",type:"label",list:image.toString()},
@@ -1963,7 +1963,7 @@ var ew_ConversionTasksTreeView = {
 
    createVolumeTask: function()
    {
-       alert('not implemeted')
+       alert('The createVolumeTask feature has not been implemented')
    },
 
    createInstanceTask: function()
@@ -2024,7 +2024,7 @@ var ew_PlacementGroupsTreeView = {
        var me = this;
        var values = this.core.promptInput('Placement Group',
                                [{label:"Name",required:1},
-                                {label:"Strategy",required:1}]);
+                                {label:"Strategy",required:1,value:'cluster'}]);
 
        if (!values) return;
        this.core.api.createPlacementGroup(values[0], values[1], function(obj) { me.refresh(); });
@@ -2035,7 +2035,7 @@ var ew_PlacementGroupsTreeView = {
        var me = this;
        var item = this.getSelected();
        if (!item) return;
-       if (!confirm('Delete Group ' + item.name + '?')) return;
+       if (!confirm('Delete Placement Group ' + item.name + '?')) return;
        this.core.api.deletePlacementGroup(item.name, function() { me.refresh(); });
    },
 

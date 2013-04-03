@@ -118,7 +118,7 @@
 <!ENTITY ew.eip.address.label "Address">
 <!ENTITY ew.eips.address.label "IP Address">
 
-<!ENTITY ew.captions.secgroups.groups.label "Your Groups">
+<!ENTITY ew.captions.secgroups.groups.label "Your Security Groups">
 <!ENTITY ew.captions.secgroups.permissions.label "Group Permissions">
 
 <!ENTITY ew.permissions.type.label "Type">

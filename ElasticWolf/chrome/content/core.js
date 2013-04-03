@@ -443,7 +443,7 @@ var ew_core = {
     {
         if (!item) return;
         if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary" }).length >= 2) {
-            return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+            return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys. Please delete one key in order to create new credentials.');
         }
 
         var inputs = [ {label:"Credentials name",type:"name",required:1,value:(item.name || 'Temporary')},
@@ -459,7 +459,7 @@ var ew_core = {
         if (!values) return;
         var cred = this.findCredentials(values[0]);
         if (cred && (!cred.expire || cred.expire > (new Date()).getTime())) {
-            return alert('Credentials with name ' + values[0]  + ' already exist, please, choose another name');
+            return alert('Credentials with name ' + values[0]  + ' already exist, please choose another name');
         }
 
         this.api.createAccessKey(item.name, function(key) {
@@ -527,7 +527,7 @@ var ew_core = {
             this.invalidateModel();
             this.invalidateMenu();
         } else {
-            alert('Endpoint ' + name + ' does not exists?')
+            alert('Endpoint ' + name + ' does not exist.')
         }
     },
 
@@ -590,7 +590,7 @@ var ew_core = {
 
     displayErrors: function()
     {
-        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}], {modeless:true});
+        this.promptInput("Error Log", [{notitle:1,multiline:true,cols:100,rows:30,flex:1,scale:1,style:"font-family:monospace",readonly:true,wrap:false,value:this.api.errorList.join("\n")}], {modeless:true});
     },
 
     displayUrl: function(url, protocol)
@@ -971,7 +971,8 @@ var ew_core = {
 
         // File naming convention
         var rx = new RegExp(this.getAppName() + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
-        var ver = this.versionNum(this.getAppVersion());
+        var verno = this.getAppVersion()
+        var ver = this.versionNum(verno);
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
@@ -985,7 +986,7 @@ var ew_core = {
                         return;
                     }
                 }
-                if (msg) alert("No new version available")
+                if (msg) alert("You are running the latest version: " + verno)
             }
         };
         xmlhttp.open("GET", this.URL, true);
@@ -1436,7 +1437,7 @@ var ew_core = {
 
         // Make sure we do not lose existing private keys
         if (FileIO.exists(keyfile)) {
-            if (!confirm('Private key file ' + keyfile + ' already exists, it will be overwritten, OK continue?')) return null;
+            if (!confirm('Private key file ' + keyfile + ' already exists, it will be overwritten. OK to continue?')) return null;
         }
 
         FileIO.remove(certfile);
@@ -1447,7 +1448,7 @@ var ew_core = {
         // Create openssl config file
         var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n"
         if (!FileIO.write(FileIO.open(conffile), confdata)) {
-            return alert('Unable to create file ' + conffile + ", check permissions, aborting");
+            return alert('Unable to create file ' + conffile + ", please check permissions.");
         }
 
         // Create private and cert files

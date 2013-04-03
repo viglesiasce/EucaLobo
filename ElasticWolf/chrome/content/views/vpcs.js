@@ -159,11 +159,11 @@ var ew_VpcsTreeView = {
                        {label:'IP CIDR block:',type:'cidr',required:1,help:"Example: 10.0.0.0/16"},
                        {label:'Tenancy',type:'menulist',list:["default","dedicated"],required:1},
                        {label:'VPC Name:'},
-                       {label:"Subnets",type:"section",help:"Optonally, create one or both subnets in the new VPC:"},
+                       {label:"Subnets",type:"section",help:"Optionally, create one or both subnets in the new VPC:"},
                        {label:'Public Subnet',help:"Example: 10.1.0.0/24"},
                        {label:'Private Subnet',help:"Example: 10.2.0.0/24"},
                        {label:'Availability Zone',type:'menulist',list: this.core.queryModel('availabilityZones'),key:'name'},
-                       {label:"VPN Connection",type:"section",help:"Optonally, create VPN connection to your VPC:"},
+                       {label:"VPN Connection",type:"section",help:"Optionally, create VPN connection to your VPC:"},
                        {label:'Customer Gateway IP',type:'ip'},
                        {label:'BGP ASN',value:65000},
                        ];
@@ -684,7 +684,7 @@ var ew_NetworkAclsTreeView = {
     associateACL : function()
     {
         var acl = this.getSelected();
-        if (!acl) return alert("Please, select ACL");
+        if (!acl) return alert("Please select an ACL");
         var subnets = this.core.queryModel('subnets', 'vpcId', acl.vpcId);
         if (!subnets.length) return alert("No subnets available, try later")
         var rc = this.core.promptList("Associate with VPC Subnet", "Select subnet", subnets, { columns: [ "id", "cidr" ] });

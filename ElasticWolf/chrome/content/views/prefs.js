@@ -13,8 +13,9 @@ var ew_PrefsView = {
        var os = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULRuntime).OS;
 
        $("ew.sys").value = os + " " + info.name + " " + info.vendor + " "+ info.platformVersion;
-       $("ew.user").value = this.core.user.name + " " + this.core.user.id;
-       $("ew.account").value = this.core.user.arn;
+       $("ew.user").value = this.core.user.name;
+       $("ew.account").value = this.core.user.id;
+       $("ew.account_arn").value = this.core.user.arn;
        $("ew.platforms").value = this.core.platforms + " " + (this.core.vpcId ? "Default VPC/" + this.core.vpcId : "");
        $("ew.version").value = info.version;
        $("ew.ec2_version").value = this.core.api.EC2_API_VERSION;

@@ -5,11 +5,11 @@
     <tabpanel id="ew.tabs.placementgroup" flex="1">
     <vbox flex="1">
             <groupbox flex="1" orient="vertical">
-                <caption label="Cluster Placement Groups" />
+                <caption label="Placement Groups" />
                 <popupset>
                     <menupopup id="ew.placementGroups.contextmenu">
-                      <menuitem oncommand="ew_PlacementGroupsTreeView.create();" label="Create Group" />
-                      <menuitem oncommand="ew_PlacementGroupsTreeView.destroy();" label="Delete Group" />
+                      <menuitem oncommand="ew_PlacementGroupsTreeView.create();" label="Create Placement Group" />
+                      <menuitem oncommand="ew_PlacementGroupsTreeView.destroy();" label="Delete Placement Group" />
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">

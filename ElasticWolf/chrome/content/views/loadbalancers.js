@@ -189,7 +189,7 @@ var ew_LoadbalancerTreeView = {
         var period = this.core.prompt("Please provide your Cookie Expiration Period in seconds:");
         if (!period) return;
         if (!/^[0-9]+$/.test(period)) {
-            alert('Cookie expiration period must be long integer.');
+            alert('Cookie expiration period must be a number of seconds.');
             return;
         }
         var me = this;

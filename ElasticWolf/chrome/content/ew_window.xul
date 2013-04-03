@@ -358,7 +358,7 @@
 
       <treeitem container="true" open="true" class="ec2">
        <treerow>
-         <treecell label="EC2 networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
+         <treecell label="EC2 Networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
@@ -413,13 +413,13 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="SQS: Message Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
+         <treecell label="SQS: Simple Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
        </treerow>
       </treeitem>
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="SNS: Push Notification Service" value="ew.tabs.sns" src="images/sns.png" />
+         <treecell label="SNS: Simple Notification Service" value="ew.tabs.sns" src="images/sns.png" />
        </treerow>
       </treeitem>
 
@@ -437,7 +437,7 @@
 
       <treeitem container="true" empty="true">
        <treerow>
-         <treecell label="Elastic MapReduce" value="ew.tabs.emr.jobflow" src="images/emr.png" />
+         <treecell label="EMR: Elastic MapReduce" value="ew.tabs.emr.jobflow" src="images/emr.png" />
        </treerow>
       </treeitem>
 
@@ -473,7 +473,7 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="SWF: Simple Worflow Services" src="images/swf.png" />
+         <treecell label="SWF: Simple Workflow Services" src="images/swf.png" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Domains" value="ew.tabs.swf.domain" /></treerow></treeitem>
@@ -574,13 +574,13 @@
          <menuseparator />
          <groupbox flex="1">
            <caption label="Quick help and tips:" />
-           <label value="- Current credentials and endpoint is shown all the time in the left bottom corner of the status line" />
+           <label value="- Current credentials and AWS endpoint are shown in the bottom left corner of the status bar" />
            <label value="- Double clicking on menu folders will expand/collapse them" />
-           <label value="- Double clicking on any row in the lists will bring details window with all rows attributes" />
-           <label value="    - Highlighting any attribute and double-click will copy its value into the clipboard" />
-           <label value="    - Details windows is non-modal and may be hidden begind other windows" />
+           <label value="- Double clicking on any row in the lists will pop up a details window showing all row attributes" />
+           <label value="    - Highlight any attribute and double-click it to copy its value into the clipboard" />
+           <label value="    - Details windows is non-modal and may be hidden behind other windows" />
            <label value="- Right click on any selected row for context popup menu" />
-           <label value="- Collected data is cached locally, so for immediate results or for new data always hit Refresh icon" />
+           <label value="- Collected data is cached locally, so for immediate results or for new data always click Refresh" />
          </groupbox>
          <menuseparator />
          <groupbox flex="1">

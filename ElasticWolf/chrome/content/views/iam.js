@@ -158,7 +158,8 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var values = this.core.promptInput('Set Password', [{ label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
+        var title = update ? 'Change Password for ' + item.name : 'Add Password for ' + item.name;
+        var values = this.core.promptInput(title, [{ label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
         if (!values) return;
         if (values[0] != values[1]) {
             return alert('New entered passwords mismatch')
@@ -306,7 +307,7 @@ var ew_UsersTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (item.accessKeys && item.accessKeys.length >= 2) {
-            return alert(item.name + ' already have ' + item.accessKeys.length + ' regular Access Keys, Please delete one key in order to create new credentials.');
+            return alert(item.name + ' already has ' + item.accessKeys.length + ' regular Access Keys. Please delete one key in order to create new credentials.');
         }
         var inputs = [ {label:"Credentials name",type:"name",required:1,value:item.name} ];
         var values = this.core.promptInput('Create Credentials', inputs);
