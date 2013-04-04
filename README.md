@@ -22,93 +22,88 @@ clients for accessing Linux instances.
 
 ## Testing On Mac OS X
 
-   *  Retrieve source code from the repository
+   * To download the ElasticWolf project from the GitHub repository:
 
-       git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
    * Primary development is done on Mac so there is a special dev mode to run it as
-     an OS X application with symlinks to the actual source code
+     an OS X application with symlinks to the actual source code:
 
-       make run
+     make run
 
-   * To get updates just execute inside the source directory
+   * To get updates, execute the following in the source directory:
 
-      git pull
+     git pull
 
-## Testing on On Windows
+## Testing On Windows
 
-   * Download Git for Windows from http://code.google.com/p/msysgit/downloads/list
-     or
-     Explorer integration of Git from http://code.google.com/p/gitextensions/
+   * Download a Git client for Windows.  A number of Git clients are available:
 
-   * Use Git UI to manage repository or
+     * http://git-scm.com/downloads/guis
+     * http://windows.github.com/
+     * http://code.google.com/p/msysgit/downloads/list
+     * http://code.google.com/p/gitextensions/ (Explorer integration)
+     * https://code.google.com/p/tortoisegit/ (Explorer integration)
 
-     * Launch cmd.exe and cd to the directory where you want to keep the source code
+   * To download the ElasticWolf project from the GitHub repository:
 
-     * Retrieve source code from the repository
+     * Use your Git UI, or
+     * Launch cmd.exe, cd to the directory where you want to keep the source code, and
+       run git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
-        "C:\Program Files\Git\cmd\git" clone git://github.com/aws-ew-dev/ElasticWolf.git
+   * To run the ElasticWolf application:
 
-   * To run the application execute with javascript console
+     * ElasticWolf/ElasticWolf.exe -jsconsole (runs with a javascript debug console)
+     * Simply execute ElasticWolf.exe from Windows Explorer
 
-       ElasticWolf/ElasticWolf.exe -jsconsole
+   * To get ElasticWolf updates:
 
-       or
-
-       just execute ElasticWolf.exe from the Windows Explorer without debug console
-
-   * To get updates just execute inside the source directory
-
-      "C:\Program Files\Git\cmd\git" pull
-
-   * To access git command line utilities without full path, go to
-     My computer | Properties | Advanced System Properties | Environment Variables and
-     add path to the git C:\Program Files\Git\cmd to Path system variable.
+     * Use your Git UI and pull from the repository, or
+     * Run git pull in the source directory
 
 ## Testing on Linux
 
-   *  Retrieve source code from the repository
+   * To retrieve source code from the repository:
 
-       git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
-   * Install xulrunner, for example on Ubuntu
+   * To install xulrunner (for example on Ubuntu):
 
      apt-get install xulrunner
 
    * Execute ElasticWolf/ElasticWolf
 
-   * If xullrunner is not availble as a package, use the commands below to install it:
+   * If xulrunner is not available as a package, use the commands below to install it:
 
-     cd /opt
-     sudo wget -O- https://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/13.0/runtimes/xulrunner-13.0.en-US.linux-`uname -p`.tar.bz2 | tar -xj
-     sudo ln -s /opt/xulrunner/xulrunner /usr/bin/xulrunner
+     * cd /opt
+     * sudo wget -O- https://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/13.0/runtimes/xulrunner-13.0.en-US.linux-`uname -p`.tar.bz2 | tar -xj
+     * sudo ln -s /opt/xulrunner/xulrunner /usr/bin/xulrunner
 
-## Building releases
+## Building Releases
 
- To create binary packages for Mac and Windows, just type
+ Releases must be built on a Mac and cannot be built on Windows.  To create binary packages
+ for both Mac and Windows, just type: make build.  This will produce .zip files for each platform.
 
-  make build
-
- it will produce .zip files for each platform in the ../
-
-## Download binary releases
+## Download Binary Releases
 
   Packages for Windows, Linux and Mac OS X are available at http://www.elasticwolf.com
 
-## Passing credentials via command line
+## Passing credentials on the command line
 
  The parameters are:
 
- * -key AWS Access key id
- * -secret - AWS Access Secret
- * -endpoint - URL for the endpoint
- * -name Name for passed credentials
- * -lock - lock the credentials and not allow to change it
+ * -key: AWS access key
+ * -secret: AWS secret access key
+ * -endpoint: URL for the endpoint
+ * -token: security token
+ * -name: name for the passed credentials
+ * -lock: lock the credentials and do not allow user to change them
+ * -jsconsole: load the javascript debug console
 
 ## Developers:
   Vlad Seryakov
 
-## QA and support:
+## QA and Support:
  * Mark Ryland
  * Ben Butler
  * Tim Wilson
