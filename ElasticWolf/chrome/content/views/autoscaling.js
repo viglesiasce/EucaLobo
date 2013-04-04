@@ -56,19 +56,24 @@ var ew_ASGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
 
-        var inputs = [{label:"Name",required:1},
-                      {label:"Availability Zones",type:"listview",rows:3,list:this.core.queryModel('availabilityZones'),required:1},
-                      {label:"Launch Configuration",type:"menulist",list:this.core.queryModel('asconfigs'),key:"name",required:1},
-                      {label:"Min Size",type:"number",required:1},
-                      {label:"Max Size",type:"number",required:1},
+        if (!edit && this.core.queryModel('asconfigs').length < 1) {
+            alert("One or more autoscaling launch configurations must be\navailable before an autoscaling group can be added.");
+            return;
+        }
+
+        var inputs = [{label:"Name",required:1,tooltiptext:"The Auto Scaling group name must be unique within the scope of your AWS account, and under the quota of Auto Scaling groups allowed for your account."},
+                      {label:"Availability Zones",type:"listview",rows:3,list:this.core.queryModel('availabilityZones'),required:1,tooltiptext:"A list of Availability Zones for the Auto Scaling group. This is required unless you have specified subnets."},
+                      {label:"Launch Configuration",type:"menulist",list:this.core.queryModel('asconfigs'),key:"name",required:1,tooltiptext:"The name of the launch configuration to use with the Auto Scaling group."},
+                      {label:"Min Size",type:"number",required:1,tooltiptext:"The minimum size of the Auto Scaling group."},
+                      {label:"Max Size",type:"number",required:1,tooltiptext:"The maximum size of the Auto Scaling group."},
                       {label:"Desired Capacity",type:"number",tooltiptext:"The number of Amazon EC2 instances that should be running in the group."},
                       {label:"Default Cooldown",type:"number",tooltiptext:"The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start."},
-                      {label:"Health Check Type",type:"menulist",list:["EC2","ELB"]},
+                      {label:"Health Check Type",type:"menulist",list:["EC2","ELB"],tooltiptext:"The service you want the health status from, Amazon EC2 or Elastic Load Balancer. Valid values are EC2 or ELB."},
                       {label:"Health Check Grace Period",type:"number",tooltiptext:"Length of time in seconds after a new Amazon EC2 instance comes into service that Auto Scaling starts checking its health."},
                       {label:"VPC Subnets",type:"listview",rows:5,list:this.core.queryModel('subnets')},
-                      {label:"Load Balancers",type:"listview",rows:3,list:this.core.queryModel('loadBalancers')},
-                      {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2. For more information about cluster placement group, see Using Cluster Instances"},
-                      {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5},
+                      {label:"Load Balancers",type:"listview",rows:3,list:this.core.queryModel('loadBalancers'),tooltiptext:"A list of load balancers to use. "},
+                      {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2."},
+                      {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5,tooltiptext:"A standalone termination policy or a list of termination policies used to select the instance to terminate. The policies are executed in the order that they are listed."},
                       {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"}
                       ];
 
@@ -93,7 +98,7 @@ var ew_ASGroupsTreeView = {
             inputs[13].value = item.tags.join("\n");
         }
 
-        var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AustoScaling Group', inputs);
+        var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AutoScaling Group', inputs);
         if (!values) return;
 
         var tags = this.core.parseTags(values[13]);
@@ -180,20 +185,21 @@ var ew_ASConfigsTreeView = {
 
         var values = this.core.promptInput("Create Launch Configuration",
                 [{label:"Name",required:1},
-                 {label:"InstanceType",type:"menulist",list:this.core.getInstanceTypes(),required:1,style:"max-width:500px"},
+                 {label:"InstanceType",type:"menulist",list:this.core.getInstanceTypes(),required:1,style:"max-width:500px",tooltiptext:"The instance type of the Amazon EC2 instance."},
                  {label:"Images",type:"menulist",list:this.core.getImageFilters(),key:"value",required:1},
                  {label:"Instance Image",type:"menulist",list:[],required:1,style:"max-width:500px"},
-                 {label:"Kernel"},
-                 {label:"Ramdisk"},
-                 {label:"IAM Profile",type:"menulist",list:this.core.queryModel("instanceProfiles"),key:'name',tooltiptext:"The name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance. "},
+                 {label:"EBS Optimized",type:"checkbox",tooltiptext:"Whether the instance is optimized for EBS I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal EBS I/O performance. This optimization is not available with all instance types. Additional usage charges apply when using an EBS Optimized instance."},
+                 {label:"KernelId",tooltiptext:"The ID of the kernel associated with the Amazon EC2 AMI."},
+                 {label:"RamdiskId",tooltiptext:"The ID of the RAM disk associated with the Amazon EC2 AMI."},
+                 {label:"IAM Instance Profile",type:"menulist",list:this.core.queryModel("instanceProfiles"),key:'name',tooltiptext:"The name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance. "},
                  {label:"Keypair Name",type:"menulist",list:this.core.queryModel("keypairs"),key:'name'},
                  {label:"Spot Instance Price",type:"number",tooltiptext:"The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price."},
-                 {label:"User Data"},
+                 {label:"User Data",tooltiptext:"The user data available to the launched Amazon EC2 instances."},
                  {label:"Monitoring",type:"checkbox",tooltiptext:"Enables detailed monitoring, which is enabled by default. When detailed monitoring is enabled, CloudWatch will generate metrics every minute and your account will be charged a fee. When you disable detailed monitoring, by specifying False, Cloudwatch will generate metrics every 5 minutes."},
                  {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."}
                  ], { onchange: callback });
         if (!values) return;
-        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],function() { me.refresh()});
+        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],values[12],function() { me.refresh()});
     },
 
     deleteSelected : function ()

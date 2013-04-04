@@ -86,6 +86,10 @@
                     <splitter class="tree-splitter" />
                     <treecol id="cfg.keyName" label="KeyName" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
+                    <treecol id="cfg.ebsOptimized" label="EBS Optimized" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="cfg.monitoring" label="Monitoring" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
                     <treecol id="cfg.profile" label="Profile" flex="4" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="cfg.spotPrice" label="Price" flex="4" persist="width ordinal hidden sortDirection" />

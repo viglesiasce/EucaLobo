@@ -6871,7 +6871,7 @@ var ew_api = {
         this.queryAS("DeleteLaunchConfiguration", params, this, false, "onComplete", callback);
     },
 
-    createLaunchConfiguration: function(name, instanceType, imageId, kernelId, ramdiskId, iamProfile, keypair, price, userData, monitoring, groups, callback)
+    createLaunchConfiguration: function(name, instanceType, imageId, ebsOptimized, kernelId, ramdiskId, iamProfile, keypair, price, userData, monitoring, groups, callback)
     {
         var params = [ ["LaunchConfigurationName", name]]
         params.push(["InstanceType", instanceType])
@@ -6883,6 +6883,7 @@ var ew_api = {
         if (keypair) params.push(["KeyName", keypair])
         if (price > 0) params.push(["SpotPrice", price])
         if (userData) params.push(["UserData", userData])
+        if (ebsOptimized) params.push(["EbsOptimized", true])
         if (groups) {
             groups.forEach(function(x, i) {
                 params.push(["SecurityGroups.member." + (i + 1), typeof x == "object" ? (x.vpcId ? x.id : x.name) : x])
@@ -6914,6 +6915,7 @@ var ew_api = {
             obj.keyName = getNodeValue(items[i], "KeyName");
             obj.profile = getNodeValue(items[i], "IamInstanceProfile");
             obj.imageId = getNodeValue(items[i], "ImageId");
+            obj.ebsOptimized = toBool(getNodeValue(items[i], "EbsOptimized"));
             obj.kernelId = getNodeValue(items[i], "KernelId");
             obj.ramdiskId = getNodeValue(items[i], "RamdiskId");
             obj.userData = getNodeValue(items[i], "UserData");
