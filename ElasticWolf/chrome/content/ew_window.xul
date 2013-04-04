@@ -95,7 +95,7 @@
   <script type="application/x-javascript">
   <![CDATA[
 
-     // Mapping between panels and tree views, have to connect them excplicitely
+     // Mapping between panels and tree views, have to connect them explicitly
      var ew_tabs = [
             { name: "ew.tabs.ew.folder",     },
 
@@ -614,9 +614,18 @@
   </hbox>
 
   <statusbar>
-    <statusbarpanel id="ew_status" label="" />
+    <statusbarpanel id="ew_statusimg" class="statusbarpanel-iconic" image="images/credentials.png" tooltip="credstip" onclick="ew_core.selectTab('ew.tabs.credential');" />
+    <statusbarpanel id="ew_status" label="" tooltip="credstip" onclick="ew_core.selectTab('ew.tabs.credential');"/>
     <spacer flex="1" />
-    <statusbarpanel id="ew_message" label="" crop="end" style="color:blue;cursor:pointer" onclick="ew_core.displayErrors();"/>
-    <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" image="images/alert.png" onclick="ew_core.displayErrors();" />
+    <statusbarpanel id="ew_message" label="" crop="end" style="color:blue;cursor:pointer" tooltip="errorstip" onclick="ew_core.displayErrors();"/>
+    <statusbarpanel id="ew_alert" class="statusbarpanel-iconic" hidden="true" image="images/alert.png" tooltip="errorstip" onclick="ew_core.displayErrors();" />
+    <popupset>
+      <tooltip id="credstip" orient="vertical" style="background-color: #33DD00;">
+        <description value="Click to view credentials"/>
+      </tooltip>
+      <tooltip id="errorstip" orient="vertical" style="background-color: #33DD00;">
+        <description value="Click to display errors"/>
+      </tooltip>
+    </popupset>
   </statusbar>
 </window>
