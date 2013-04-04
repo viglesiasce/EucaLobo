@@ -41,7 +41,7 @@ var ew_VpcsTreeView = {
                                 found = true;
                                 list.push({ name: "         Routes", folder: 1})
                             }
-                            for (n in tables[j].routes) {
+                            for (var n in tables[j].routes) {
                                 list.push({ name: "             " + tables[j].routes[n].toString() });
                             }
                             break;
@@ -224,11 +224,11 @@ var ew_VpcsTreeView = {
 
         var instances = this.core.queryModel('instances','vpcId', vpc.id, 'state', 'running');
         if (instances.length) {
-            alert("There is instance " + instances[0].toString() + " in this VPC");
+            alert("There is a running instance (" + instances[0].id + ") in this VPC.\n\nThis VPC cannot be deleted until all instances have been terminated.");
             return;
         }
 
-        if (!confirm("Delete " + vpc.toString() + ", make sure you deleted all Instances, Subnets, Securty Groups, Gateways, VPN Connections, Route Tables, Network ACLs?")) return;
+        if (!confirm("You must delete all Subnets, Security Groups, Network ACLs, DHCP Options Sets, Network Interfaces, Route Tables, Internet Gateways, and VPN Attachments associated with this VPC before you can delete the VPC itself.\n\nContinue to delete " + vpc.toString() + "?")) return;
 
         var me = this;
         this.core.api.deleteVpc(vpc.id, function() { me.refresh()});
@@ -271,7 +271,7 @@ var ew_VpcsTreeView = {
     },
 };
 
-ew_VpcsInfoTreeView = {
+var ew_VpcsInfoTreeView = {
 
     cycleHeader : function(col) {
     },
@@ -302,6 +302,7 @@ var ew_DhcpoptsTreeView = {
     },
 
     createDhcpOptions : function () {
+        var me = this;
         var values = this.core.promptInput('Create DHCP Options', [ {label: "Enter the host's domain name (e.g.: example.com)" },
                                                                     {label: "Enter up to 4 DNS server IP addresses, separated by commas"},
                                                                     {label: "Enter up to 4 NTP server IP addresses, separated by commas"},
@@ -514,7 +515,8 @@ var ew_SubnetAclRulesTreeView = {
 
     deleteRule: function()
     {
-        if ((item = this.getSelected()) != null)
+        var item = this.getSelected();
+        if (item)
         {
           if (item.num == 32767) {
             alert("Implicit ACL rules cannot be deleted");
@@ -732,7 +734,8 @@ var ew_NetworkAclRulesTreeView = {
 
     deleteRule : function()
     {
-        if ((item = this.getSelected()) != null)
+        var item = this.getSelected();
+        if (item)
         {
           if (item.num == 32767) {
             alert("Implicit ACL rules cannot be deleted");
@@ -892,6 +895,7 @@ var ew_NetworkInterfacesTreeView = {
 
     attachInterface : function()
     {
+        var me = this;
         var eni = this.getSelected();
         if (!eni) return;
         var instances = this.core.queryModel('instances','vpcId', eni.vpcId, 'availabilityZone', eni.availabilityZone);

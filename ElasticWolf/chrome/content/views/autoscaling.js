@@ -127,7 +127,7 @@ var ew_ASGroupsTreeView = {
         var check = {value: false};
         var n = this.core.promptData("Set Desired Capacity", "Set new capacity for " + item.name + "?", item.capacity, "Honor Cooldown", check);
         if (!n) return;
-        this.core.api.setDesiredCapacity(item.name, c, check.value, function() { me.refresh(); });
+        this.core.api.setDesiredCapacity(item.name, n, check.value, function() { me.refresh(); });
     },
 
     enableMetrics: function()

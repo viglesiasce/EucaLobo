@@ -613,7 +613,7 @@ function bnpFromInt(x)
         this[0] = x;
     else
         if (x < -1)
-            this[0] = x + DV;
+            this[0] = x + this.DV;
         else this.t = 0;
 }
 

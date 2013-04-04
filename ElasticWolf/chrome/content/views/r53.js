@@ -140,7 +140,7 @@ var ew_HostedRecordsTreeView = {
 
         var values = this.core.promptInput('Create Record', inputs, {onchange:onchange});
         if (!values) return;
-        item = {};
+        var item = {};
         item.comment = this.core.getAccountName();
         item.name = values[0];
         item.type = values[1];

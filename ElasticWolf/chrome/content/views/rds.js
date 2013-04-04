@@ -123,7 +123,7 @@ var ew_DBSubnetGroupsTreeView = {
     editItem: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
         var checked = [];
         item.subnets.forEach(function(x) { checked.push(me.core.findModel('subnets',x)); });
@@ -140,7 +140,7 @@ var ew_DBSubnetGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBSubnetGroup(item.name,function() { me.refresh() });
     },
@@ -172,7 +172,7 @@ var ew_DBSecurityGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBSecurityGroup(item.name,function() { me.refresh() });
     },
@@ -180,7 +180,7 @@ var ew_DBSecurityGroupsTreeView = {
     authorizeCidr: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
         var cidr = this.core.prompt("Please enter CIDR:")
         if (!cidr) return;
@@ -190,7 +190,7 @@ var ew_DBSecurityGroupsTreeView = {
     revokeCidr: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item || !item.ipRanges.length) return;
         var idx = this.core.promptList("CIDR", "Select CIDR to delete", item.ipRanges);
         if (idx < 0) return;
@@ -200,7 +200,7 @@ var ew_DBSecurityGroupsTreeView = {
     authorizeGroup: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item) return;
         var groups = this.core.queryModel('securityGroups').filter(function(x) { return (item.vpcId && item.vpcId == x.vpcId) || (!item.vpcId && !x.vpcId)});
         var idx = this.core.promptList("CIDR", "Select Group to authorize", groups);
@@ -212,7 +212,7 @@ var ew_DBSecurityGroupsTreeView = {
     revokeGroup: function()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!item || !item.groups.length) return;
         var idx = this.core.promptList("Groups", "Select group to delete", item.groups);
         if (idx < 0) return;
@@ -252,7 +252,7 @@ var ew_DBOptionGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteOptionGroup(item.name, function() { me.refresh() });
     },
@@ -284,7 +284,7 @@ var ew_DBOptionGroupOptionsTreeView = {
             inputs[0].list = engine.options;
             var values = me.core.promptInput('Add an option', inputs);
             if (!values) return;
-            opt = { name: values[0], port: values[2], groups: values[3] };
+            var opt = { name: values[0], port: values[2], groups: values[3] };
             me.core.api.modifyOptionGroup(group.name, values[1], [opt], [], function() {
                 group.options = null;
                 ew_DBOptionGroupsTreeView.refresh();
@@ -341,7 +341,7 @@ var ew_DBParameterGroupsTreeView = {
     deleteSelected : function ()
     {
         var me = this;
-        item = this.getSelected();
+        var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
         this.core.api.deleteDBParameterGroup(item.name, function() { me.refresh() });
     },
@@ -396,7 +396,7 @@ var ew_DBParameterGroupParametersTreeView = {
 
 };
 
-ew_DBOfferingsTreeView = {
+var ew_DBOfferingsTreeView = {
     model : ["dbofferings"],
 
     purchaseOffering : function()
@@ -438,7 +438,7 @@ ew_DBOfferingsTreeView = {
     },
 };
 
-ew_ReservedDBInstancesTreeView = {
+var ew_ReservedDBInstancesTreeView = {
     model: ["dbreserved"],
 
     isRefreshable : function()
@@ -715,5 +715,4 @@ var ew_DBInstancesTreeView = {
     },
 
 };
-
 

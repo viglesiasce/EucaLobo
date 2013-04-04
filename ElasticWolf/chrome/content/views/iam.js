@@ -378,25 +378,21 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item || !item.mfaDevices || !item.mfaDevices.length) {
-            return alert('No device to delete');
-        }
-
-        if (item.mfaDevices.length > 0) {
-            idx = this.core.promptList("MFA Device", "Select device to deactivate", item.mfaDevices);
-            if (idx < 0) return;
+            return alert('No MFA device to delete');
         } else {
-            if (!confirm('Deactivate MFA device ' + item.mfaDevices[idx] + '?')) return;
-        }
-        this.core.api.deactivateMFADevice(item.name, item.mfaDevices[idx].id, function() {
-            // Remove Virtual MFA device
-            if (item.mfaDevices[idx].id.indexOf('arn:aws') == 0) {
-                me.core.api.deleteVirtualMFADevice(item.mfaDevices[idx].id);
+            var idx = this.core.promptList("MFA Device", "Select MFA device to deactivate", item.mfaDevices);
+            if (idx >= 0 && confirm('Deactivate MFA device ' + item.mfaDevices[idx] + '?')) {
+                this.core.api.deactivateMFADevice(item.name, item.mfaDevices[idx].id, function() {
+                    // Remove Virtual MFA device
+                    if (item.mfaDevices[idx].id.indexOf('arn:aws') == 0) {
+                        me.core.api.deleteVirtualMFADevice(item.mfaDevices[idx].id);
+                    }
+                    item.mfaDevices = null;
+                    me.selectionChanged();
+               });
             }
-            item.mfaDevices = null;
-            me.selectionChanged();
-        });
-    },
-
+        }
+    }
 };
 
 
@@ -1106,6 +1102,7 @@ var ew_AccountSummaryView = {
 
     createAlias: function()
     {
+        var me = this;
         var name = this.core.prompt('Account alias:');
         if (!name) return;
         this.core.api.createAccountAlias(name, function() { me.refresh() });

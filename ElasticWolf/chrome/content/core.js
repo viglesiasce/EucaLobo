@@ -978,7 +978,7 @@ var ew_core = {
         var xmlhttp = this.api.getXmlHttp();
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4) {
-                var data = xmlhttp.responseText;
+                var d, data = xmlhttp.responseText;
                 while (d = rx.exec(data)) {
                     debug('update:' + d);
                     if (me.versionNum(d[1]) > ver) {
@@ -2157,7 +2157,7 @@ var ew_core = {
             if (!columns && obj.hasOwnProperty('toString')) {
                 item = obj.toString()
             } else {
-               for (p in obj) {
+               for (var p in obj) {
                    if (typeof obj[p] == "function") {
                        if (p != "toString") continue;
                        item += (item != "" ? fieldSeparator : "") + obj.toString();

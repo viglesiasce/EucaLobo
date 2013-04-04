@@ -179,6 +179,7 @@ var ew_PrefsView = {
    },
 
    browse: function(id, forFile) {
+      var path;
       if (forFile) {
          path = this.core.promptForFile("Choose command:");
       } else {

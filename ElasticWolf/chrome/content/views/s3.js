@@ -96,8 +96,9 @@ var ew_S3BucketsTreeView = {
                 nlist.push(list[i]);
             }
             // Select given item
+            // TODO: this code does nothing, fix it
             if (list[i].title == this.folder) {
-                idx = nlist.length - 1;
+                var idx = nlist.length - 1;
             }
         }
         TreeView.display.call(this, nlist);

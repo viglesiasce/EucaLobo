@@ -2537,10 +2537,14 @@ var ew_api = {
         this.queryEC2("ImportInstance", params, this, false, "onComplete", callback);
     },
 
+    //
+    // TODO: This method is not called, plus it has errors (the variables callback
+    // TODO: and params are undeclared) so need to fix, or remove this code.
+    //
     importVolume: function()
     {
-        var params = [];
-        this.queryEC2("ImportVolume", params, this, false, "onComplete", callback);
+        //var params = [];
+        //this.queryEC2("ImportVolume", params, this, false, "onComplete", callback);
     },
 
     createLaunchParams: function(options, prefix)
@@ -2820,7 +2824,7 @@ var ew_api = {
         var validHours = 24;
         var expiry = new Date();
         expiry.setTime(expiry.getTime() + validHours * 60 * 60 * 1000);
-        var s3policy = (policyStr = '{' + '"expiration": "' + expiry.toISOString(5) + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}');
+        var s3policy = '{' + '"expiration": "' + expiry.toISOString(5) + '",' + '"conditions": [' + '{"bucket": "' + bucket + '"},' + '{"acl": "ec2-bundle-read"},' + '["starts-with", "$key", "' + prefix + '"]' + ']}';
         var s3polb64 = Base64.encode(s3policy);
         // Sign the generated policy with the secret key
         var policySig = b64_hmac_sha1(activeCred.secretKey, s3polb64);
@@ -2898,14 +2902,13 @@ var ew_api = {
 
     createS3Bucket : function(bucket, region, params, callback)
     {
-        if (region) {
-            content = "<CreateBucketConstraint><LocationConstraint>" + region + "</LocationConstraint></CreateBucketConstraint>";
-        }
+        var content = (region) ? "<CreateBucketConstraint><LocationConstraint>" + region + "</LocationConstraint></CreateBucketConstraint>" : "";
         this.queryS3("PUT", bucket, "", "", params, content, this, false, "onComplete", callback);
     },
 
     listS3Buckets : function(callback)
     {
+        var content = "";
         this.queryS3("GET", "", "", "", {}, content, this, false, "onCompleteListS3Buckets", callback);
     },
 
@@ -2929,6 +2932,7 @@ var ew_api = {
 
     getS3BucketPolicy : function(bucket, callback)
     {
+        var content = "";
         return this.queryS3("GET", bucket, "", "?policy", {}, content, this, callback ? false : true, "onCompleteGetS3BucketPoilicy", callback);
     },
 
@@ -2953,6 +2957,7 @@ var ew_api = {
 
     getS3BucketCORS : function(bucket, callback)
     {
+        var content = "";
         return this.queryS3("GET", bucket, "", "?cors", {}, content, this, callback ? false : true, "onCompleteGetS3BucketCORS", callback);
     },
 
@@ -2978,11 +2983,13 @@ var ew_api = {
 
     deleteS3BucketCORS : function(bucket, callback)
     {
+        var content = "";
         this.queryS3("DELETE", bucket, "", "?cors", {}, content, this, false, "onComplete", callback);
     },
 
     getS3BucketAcl : function(bucket, callback)
     {
+        var content = "";
         this.queryS3("GET", bucket, "", "?acl", {}, content, this, false, "onCompleteGetS3BucketAcl", callback);
     },
 
@@ -3034,7 +3041,7 @@ var ew_api = {
         var xmlDoc = response.responseXML;
         var bucket = response.params.bucket;
         var obj = this.core.getS3Bucket(bucket);
-        if (obj) obj.acls = null; else obj = { acls: list };
+        if (obj) obj.acls = null;
 
         response.result = obj;
     },
@@ -3269,6 +3276,7 @@ var ew_api = {
 
     deleteS3BucketWebsite : function(bucket, callback)
     {
+        var content = "";
         this.queryS3("DELETE", bucket, "", "?website", {}, content, this, false, "onComplete", callback);
     },
 
@@ -3941,7 +3949,7 @@ var ew_api = {
             for ( var k = 0; k < members.length; k++) {
                 var lst = new Element();
                 lst.toString = function() {
-                    return this.Protocol + ":" + this.Port + "->" + this.InstancePort + (this.policies.length ? fieldSeparator + policies : "");
+                    return this.Protocol + ":" + this.Port + "->" + this.InstancePort + (this.policies.length ? fieldSeparator + this.policies : "");
                 }
                 lst.Protocol = getNodeValue(members[k], "Protocol");
                 lst.Port = getNodeValue(members[k], "LoadBalancerPort");
@@ -4193,7 +4201,7 @@ var ew_api = {
         this.queryELB("SetLoadBalancerListenerSSLCertificate", params, this, false, "onComplete", callback);
     },
 
-    setLoadBalancerPoliciesForBackendServer: function(LoadBalancerName, InstancePort, PolicyNames, callbcak)
+    setLoadBalancerPoliciesForBackendServer: function(LoadBalancerName, InstancePort, PolicyNames, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -4204,7 +4212,7 @@ var ew_api = {
         this.queryELB("SetLoadBalancerPoliciesForBackendServer", params, this, false, "onComplete", callback);
     },
 
-    setLoadBalancerPoliciesOfListener: function(LoadBalancerName, LoadBalancerPort, PolicyNames, callbcak)
+    setLoadBalancerPoliciesOfListener: function(LoadBalancerName, LoadBalancerPort, PolicyNames, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -4227,7 +4235,7 @@ var ew_api = {
         this.queryELB("CreateLoadBalancerListeners", params, this, false, "onComplete", callback);
     },
 
-    createLoadBalancerPolicy: function(LoadBalancerName, PolicyName, PolicyType, PolicyAttributes, callbcak)
+    createLoadBalancerPolicy: function(LoadBalancerName, PolicyName, PolicyType, PolicyAttributes, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -4242,7 +4250,7 @@ var ew_api = {
         this.queryELB("CreateLoadBalancerPolicy", params, this, false, "onComplete", callback);
     },
 
-    deleteLoadBalancerListeners: function(LoadBalancerName, LoadBalancerPorts, callbcak)
+    deleteLoadBalancerListeners: function(LoadBalancerName, LoadBalancerPorts, callback)
     {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
@@ -4578,7 +4586,7 @@ var ew_api = {
 
     getInstanceProfile : function(name, callback)
     {
-        this.queryIAM("GetInstanceProfile", [ ["InstanceProfileName", user] ], this, false, "onCompleteGetInstanceProfile", callback);
+        this.queryIAM("GetInstanceProfile", [ ["InstanceProfileName", name] ], this, false, "onCompleteGetInstanceProfile", callback);
     },
 
     onCompleteGetInstanceProfile : function(response)
@@ -4622,7 +4630,7 @@ var ew_api = {
 
     getRole : function(name, callback)
     {
-        this.queryIAM("GetRole", [ ["RoleName", user] ], this, false, "onCompleteGetRole", callback);
+        this.queryIAM("GetRole", [ ["RoleName", name] ], this, false, "onCompleteGetRole", callback);
     },
 
     onCompleteGetRole : function(response)
@@ -4696,7 +4704,7 @@ var ew_api = {
     getUser : function(name, callback)
     {
         var params = [];
-        if (name) params.push(["UserName", user])
+        if (name) params.push(["UserName", name])
         this.queryIAM("GetUser", params, this, false, "onCompleteGetUser", callback);
     },
 
@@ -5039,7 +5047,7 @@ var ew_api = {
         var params = [ ["ServerCertificateName", name]];
         params.push([ "CertificateBody", body ]);
         params.push(["PrivateKey", privateKey ]);
-        if (path) params.push([["Path", user]])
+        if (path) params.push([["Path", path]])
         if (chain) params.push(["CertificateChain", chain])
         this.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
     },
@@ -5177,7 +5185,7 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "AlarmHistoryItems", "member");
         for ( var i = 0; i < items.length; i++) {
-            var obj = new element();
+            var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.type + fieldSeparator + this.date + fieldSeparator + this.descr;
             }
@@ -5381,7 +5389,7 @@ var ew_api = {
 
         default:
             try {
-                configXml = new DOMParser().parseFromString(params, "text/xml");
+                var configXml = new DOMParser().parseFromString(params, "text/xml");
                 var proc = new XSLTProcessor;
                 proc.importStylesheet(xmlDoc);
                 var resultXml = proc.transformToDocument(configXml);
@@ -6518,7 +6526,7 @@ var ew_api = {
                 this.productDescription = desc;
                 this.state = state;
                 this.offeringType = otype
-                this.offerinfId = oid
+                this.offeringId = oid
 
                 this.toString = function() {
                     return this.dbInstanceClass  + fieldSeparator + this.fixedPrice + fieldSeparator +  this.recurringCharges + fieldSeparator + this.id;
@@ -6528,7 +6536,7 @@ var ew_api = {
             var item = items[i];
             obj.id = getNodeValue(item, "ReservedDBInstanceId");
             obj.type = getNodeValue(item, "DBInstanceClass");
-            ovj.multiAZ = toBool(getNodeValue(item, "MultiAZ"));
+            obj.multiAZ = toBool(getNodeValue(item, "MultiAZ"));
             obj.startTime = new Date(getNodeValue(item, "StartTime"));
             obj.duration = secondsToYears(getNodeValue(item, "Duration"));
             obj.fixedPrice = parseInt(getNodeValue(item, "FixedPrice")).toString();
@@ -6537,7 +6545,7 @@ var ew_api = {
             obj.desc = getNodeValue(item, "ProductDescription");
             obj.state = getNodeValue(item, "State");
             obj.offeringType = getNodeValue(item, "OfferingType");
-            obj.offerinfId = getNodeValue(item, "ReservedDBInstancesOfferingId");
+            obj.offeringId = getNodeValue(item, "ReservedDBInstancesOfferingId");
             obj.recurringPrices = this.getItems(item, "RecurringCharges", "RecurringCharge", []);
             list.push(obj);
         }
@@ -6752,7 +6760,7 @@ var ew_api = {
         if (cooldown) params.push(["DefaultCooldown", cooldown])
         if (healthType) params.push(["HealthCheckType", healthType])
         if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
-        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ])
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
@@ -6790,7 +6798,7 @@ var ew_api = {
         if (cooldown) params.push(["DefaultCooldown", cooldown])
         if (healthType) params.push(["HealthCheckType", healthType])
         if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
-        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? s.id : x; }).join(",") ])
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ])
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
@@ -6843,7 +6851,7 @@ var ew_api = {
             obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Element('name',o.Metric, 'value',o.Granularity); });
             obj.granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
             obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) {
-                var g = new Element('group',name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState)
+                var g = new Element('group',this.name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState)
                 g.toString = function() {
                     return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
                 }
@@ -7388,7 +7396,7 @@ var ew_api = {
 
     getItem: function(name, key, range, options, callback)
     {
-        var params = { TableName: table, Key: { HashKeyElement: toDynamoDB(key) } };
+        var params = { TableName: name, Key: { HashKeyElement: toDynamoDB(key) } };
         if (range) params.Key.RangeKeyElement = toDynamoDB(range);
         if (options.attributesToGet) {
             params.AttributesToGet = options.attributesToGet;

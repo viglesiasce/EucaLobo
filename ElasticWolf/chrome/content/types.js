@@ -1127,7 +1127,7 @@ var DirIO = {
                 var list2 = new Array();
                 for ( var i = 0; i < list.length; ++i) {
                     if (list[i].isDirectory()) {
-                        files = list[i].directoryEntries;
+                        var files = list[i].directoryEntries;
                         list2 = this._read(files, recursive);
                     }
                 }
@@ -1313,7 +1313,7 @@ var Base64 = {
     {
         var string = "";
         var i = 0;
-        var c = c1 = c2 = 0;
+        var c = 0, c1 = 0, c2 = 0, c3 = 0;
 
         while (i < utftext.length) {
             c = utftext.charCodeAt(i);
@@ -1586,6 +1586,7 @@ function Graph(title, element, type, core)
         var height = canvas.height - topSpace - bottomSpace;
         var vScale = height / this.vrange();
         var hScale = width / (this.range() + (this.options.type == "bar" ? 1 : 0));
+        var spacing;
 
         // Draw title & Labels
         ctx.textAlign = "center";

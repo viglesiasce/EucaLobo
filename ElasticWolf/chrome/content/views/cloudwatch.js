@@ -65,7 +65,7 @@ var ew_MetricsTreeView = {
         var statistics = $('ew.metrics.statistics').value;
         var period = $('ew.metrics.period').value;
         var interval = parseInt($('ew.metrics.time').value);
-        openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.name, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
+        window.openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.name, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
 };
@@ -86,7 +86,7 @@ var ew_MetricAlarmsTreeView = {
         var statistics = $('ew.alarms.statistics').value;
         var period = $('ew.alarms.period').value;
         var interval = parseInt($('ew.alarms.time').value);
-        openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.metricName, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
+        window.openDialog('chrome://ew/content/dialogs/metric.xul', null, 'chrome,centerscreen,modeless', { core: this.core, name: item.metricName, namespace: item.namespace, dimensions: item.dimensions, statistics: statistics, period: period, interval: interval });
     },
 
     menuChanged : function(event)
@@ -312,12 +312,13 @@ var ew_GraphsView = {
         this.core.api.listMetrics(null, null, this.dimensions, function(list) {
             me.metrics = list;
             for (var i = 0; i < list.length; i++) {
+                var hbox;
                 if (i % 3 == 0) {
                     hbox = document.createElement('hbox');
                     hbox.setAttribute('style', 'padding:5px;');
                     page.appendChild(hbox);
                 }
-                vbox = document.createElement('vbox');
+                var vbox = document.createElement('vbox');
                 vbox.appendChild(makeElement('label', 'control', 'ew.graphs.' + list[i].name, 'value', list[i].name));
                 var canvas = makeCanvas(me.core);
                 canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
@@ -355,7 +356,7 @@ var ew_GraphsView = {
 
         this.core.api.getMetricStatistics(name, namespace, start.toISOString(), end.toISOString(), period, statistics, null, this.dimensions, function(list) {
             if (!list) list = [];
-            graph = new Graph((list.length ? list[0].unit : "None"), id, "line", me.core);
+            var graph = new Graph((list.length ? list[0].unit : "None"), id, "line", me.core);
             graph.options.xlabel = 'Time';
             for (var i = 0; i < list.length; i++) {
                 graph.addPoint(i, list[i].value, list[i].timestamp.strftime(interval < 86400 ? '%H:%M' : '%Y-%m-%d %H:%M'));

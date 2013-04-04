@@ -41,7 +41,7 @@ var ew_SQSTreeView = {
         var name = this.core.prompt('Create Queue');
         if (!name) return;
         this.core.api.createQueue(name, [], function(url) {
-            me.core.addModel("queues", new Queue(url));
+            me.core.addModel("queues", new Element('name', url.split('/').pop(), 'url', url));
             me.invalidate();
         });
     },
@@ -147,7 +147,7 @@ var ew_SQSMsgTreeView = {
     {
         var me = this;
         var queue = ew_SQSTreeView.getSelected();
-        if (!queue) return display([]);
+        if (!queue) return this.display([]);
 
         this.display(queue.messages || []);
         if (!queue.messages) {

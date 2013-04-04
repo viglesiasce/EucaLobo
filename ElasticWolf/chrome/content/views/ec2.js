@@ -177,7 +177,7 @@ var ew_AMIsTreeView = {
         if (!image) return;
 
         // These items apply only to AMIs
-        fDisabled = !(image.id.match(regExs["ami"]));
+        var fDisabled = !(image.id.match(regExs["ami"]));
         $("amis.context.register").disabled = fDisabled;
         $("amis.context.deregister").disabled = fDisabled;
         $("amis.context.launch").disabled = fDisabled;
@@ -282,7 +282,7 @@ var ew_AMIsTreeView = {
             }
             var s3bucket = value.split('/')[0];
             var region = this.core.api.getS3BucketLocation(s3bucket);
-            callRegisterImageInRegion(value, region);
+            this.callRegisterImageInRegion(value, region);
         }
     },
 
@@ -310,11 +310,11 @@ var ew_AMIsTreeView = {
             var sourceB = parts[0];
             var prefix = parts[1];
             // Remove the manifest.xml from the prefix
-            prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
+            var prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
             var obj = this.core.api.getS3BucketKeys(sourceB, {prefix:prefix});
             if (obj) {
                 for (var i = 0; i < obj.keys.length; ++i) {
-                    this.core.api.deleteS3BucketKey(sourceB, bucket.keys[i].name);
+                    this.core.api.deleteS3BucketKey(sourceB, obj.keys[i].name);
                 }
                 // Keys have been deleted. Let's deregister this image
                 this.deregisterImage(true);
@@ -448,7 +448,7 @@ var ew_InstancesTreeView = {
         // A volume can be attached to this instance only if:
         // 1. It is in the same zone as this instance
         // 2. It is not attached to another instance
-        volumes = this.core.queryModel('volumes', 'availabilityZone', instance.availabilityZone, 'instanceId', '');
+        var volumes = this.core.queryModel('volumes', 'availabilityZone', instance.availabilityZone, 'instanceId', '');
         if (volumes.length == 0) {
             if (confirm("No volumes available, would you like to create a new EBS volume to attach to this instance?")) {
                 ew_VolumeTreeView.createVolume();
@@ -754,7 +754,7 @@ var ew_InstancesTreeView = {
         var count = this.core.prompt("How many more instances of "+instance.id+"?", "1");
         if (!count) return;
         count = parseInt(count.trim());
-        if (isNan(count) || count < 0 || count > this.max) {
+        if (isNaN(count) || count < 0 || count > this.max) {
             return alert('Invalid number, must be between 1 and ' + this.max);
         }
 
@@ -1196,13 +1196,17 @@ var ew_VolumeTreeView = {
         var snapshots = this.core.queryModel('snapshots', "status", "completed");
         this.core.sortObjects(snapshots, ['name','description']);
 
+        // Provide more meaningful option names for volume types
+        var voltypes = [new Element('id', 'standard', 'name', 'Standard'),
+                        new Element('id', 'io1', 'name', 'Provisioned IOPS (io1)')];
+
         var values = this.core.promptInput('Create Volume',
                                     [{label:"Size (GB)",type:"number",min:1,required:1,value:snapshot?snapshot.volumeSize:10},
                                      {label:"Name",required:1},
                                      {label:"Availability Zone",type:"menulist",list:zones,required:1},
                                      {label:"Snapshot",type:"menulist",list:snapshot?[snapshot]:snapshots,value:snapshot ? snapshot.id : "",style:"max-width:300px;",required:snapshot?1:0},
-                                     {label:"Volume Type",type:"menulist",list:["standard","io1"],required:1},
-                                     {label:"IOPS",type:"number",min:100,max:2000}]);
+                                     {label:"Volume Type",type:"menulist",list:voltypes,required:1},
+                                     {label:"IOPS (100-2000)",type:"number",min:100,max:2000}]);
         if (!values) return;
         var params = [];
         if (values[4] == "io1") {
@@ -1286,6 +1290,7 @@ var ew_VolumeTreeView = {
 
     enableIO : function ()
     {
+        var me = this;
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Enable IO for volume " + image.id + "?")) return;
@@ -1473,8 +1478,8 @@ var ew_SnapshotTreeView = {
                  {label:"Description",type:"section"},
                  {label:" "}]);
         if (!values || (!values[1] && !values[4])) return;
-        region = values[1] ? this.core.api.region : values[3];
-        id = values[1] || values[4];
+        var region = values[1] ? this.core.api.region : values[3];
+        var id = values[1] || values[4];
         this.core.api.copySnapshot(region, id, values[5], function() { me.refresh(); });
     },
 
@@ -1675,7 +1680,7 @@ var ew_PermissionsTreeView = {
         var group = ew_SecurityGroupsTreeView.getSelected();
         if (group == null) return;
 
-        retVal = {ok:null, type: 'Ingress'};
+        var retVal = {ok:null, type: 'Ingress'};
         window.openDialog("chrome://ew/content/dialogs/create_permission.xul", null, "chrome,centerscreen,modal,resizable", group, this.core, retVal);
 
         if (retVal.ok) {
@@ -1914,6 +1919,7 @@ var ew_SpotInstanceRequestsTreeView = {
 
     createDatafeed: function()
     {
+        var me = this;
         var values = this.core.promptInput('Spot Instances Data Feed',
                                     [{label:"S3 Bucket",type:"name",required:1},
                                      {label:"Prefix",}]);
@@ -1923,6 +1929,7 @@ var ew_SpotInstanceRequestsTreeView = {
 
     deleteDatafeed: function()
     {
+        var me = this;
         if (!confirm('Delete Spot Instances Data Feed subscription?')) return;
         this.core.api.deleteSpotDatafeedSubscription(function() { me.datafeedChanged({}); });
     },
@@ -1934,7 +1941,7 @@ var ew_ExportTasksTreeView = {
    createInstanceExport: function()
    {
        var me = this;
-       instances = this.core.queryModel('instances', 'platform', 'windows', 'rootDeviceType', 'ebs');
+       var instances = this.core.queryModel('instances', 'platform', 'windows', 'rootDeviceType', 'ebs');
        var values = this.core.promptInput('Export Instance to S3',
                [{label:"Instance",type:"menulist",list:instances,required:1},
                 {label:"Description"},

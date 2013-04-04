@@ -173,7 +173,7 @@
 
         if (!isWindows(this.image.platform) &&
             !this.retVal.keyName &&
-            !confirm('No keypair is specified for the instance, access will not be possible without it, do still want to continue?')) {
+            !confirm('No keypair is specified for the instance, access will not be possible without it.  Do you want to continue?')) {
             $("ew.tabs").selectedIndex = 0;
             return false;
         }
