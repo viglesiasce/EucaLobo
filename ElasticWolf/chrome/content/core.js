@@ -95,18 +95,17 @@ var ew_core = {
             var secret = this.cmdLine.handleFlagWithParam('secret', true);
             var endpoint = this.cmdLine.handleFlagWithParam('endpoint', true);
             var token = this.cmdLine.handleFlagWithParam('token', true);
+
             if (key && key != '' && secret && secret != '') {
                 var cred = new Credential(name || 'AWS', key, secret, endpoint, token);
                 this.switchCredentials(cred);
-            } else
-
-            if (endpoint && endpoint != '') {
+            } else if (endpoint && endpoint != '') {
                 var e = new Endpoint("", endpoint);
                 this.switchEndpoints(e);
             }
 
-            // Disable credentials management, this is not true secure bacuse the javascript source code is available and can be installed
-            // alongside in user home and executed directly. This is just simple way to secure already running app when there is no
+            // Disable credentials management.  This is not hardened security because the javascript source code is available and can be installed
+            // alongside in user home and executed directly. This is just a simple way to secure already running app when there is no
             // other access to the machine hard drive, in locked Windows installation for example and EW is used like the only
             // application running
             this.locked = this.cmdLine.handleFlag('lock', true);
@@ -116,7 +115,8 @@ var ew_core = {
         this.promptForPin();
         this.setIdleTimer();
         this.refreshEndpoints();
-        // On fresh install offer to enter credentials, need timeout to alow the UI settle in
+
+        // On fresh install offer to enter credentials, need timeout to allow the UI to settle
         if (this.credentials.length == 0) {
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
         }
@@ -399,7 +399,13 @@ var ew_core = {
 
     switchCredentials : function(cred)
     {
-        if (this.locked || this.disabled) return;
+        if (this.locked)
+        {
+            alert("Credentials are locked and cannot be switched");
+            return;
+        }
+
+        if (this.disabled) return;
 
         var wasGovCloud = this.isGovCloud();
         if (cred) {

@@ -113,7 +113,7 @@ var ew_UsersTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        if (!confirm("Delete user?")) return;
+        if (!confirm("Delete user " + item.name + "?")) return;
         if (item.loginProfileDate) {
             this.core.api.deleteLoginProfile(item.name);
         }

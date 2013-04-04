@@ -12,7 +12,7 @@
   </menupopup>
   <statusbar id="status-bar">
     <statusbarpanel id="ew-statusicon" label="ElasticWolf" onclick="openOverlay();">
-     <image tooltiptext="Open ElastcWolf" id="ew-statusImage"  src="chrome://ew/content/images/logo.png"/>
+     <image tooltiptext="Open ElasticWolf" id="ew-statusImage"  src="chrome://ew/content/images/logo.png"/>
     </statusbarpanel>
   </statusbar>
   <toolbarpalette id="BrowserToolbarPalette">
