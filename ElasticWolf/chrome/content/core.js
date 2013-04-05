@@ -995,8 +995,9 @@ var ew_core = {
                 if (msg) alert("You are running the latest version: " + verno)
             }
         };
-        xmlhttp.open("GET", this.URL, true);
+        xmlhttp.open("GET", this.URL + "?" + new Date().getTime(), true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
+        xmlhttp.setRequestHeader("Cache-Control", "no-cache, must-revalidate");
         xmlhttp.send();
         // Mark when we checked last time
         this.setIntPrefs('ew.updates.time', (new Date()).getTime()/1000);
