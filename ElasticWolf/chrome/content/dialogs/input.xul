@@ -455,10 +455,11 @@
 
           case 'url':
              rc.values[i] = obj.value;
-             if (obj.value && !/^https?:\/\/[0-9a-zA-Z-_\.]+$/.test(obj.value)) {
-                 alert("The URL is not formatted properly");
-                 return false;
-             }
+             //if (obj.value && !/^https?:\/\/[0-9a-zA-Z-_\.]+$/.test(obj.value)) {
+             //    alert("The URL is not formatted properly");
+             //    return false;
+             //}
+	     //return true;
              break;
 
           case 'column':
