@@ -194,7 +194,7 @@ var ew_ASConfigsTreeView = {
                  {label:"IAM Instance Profile",type:"menulist",list:this.core.queryModel("instanceProfiles"),key:'name',tooltiptext:"The name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance. "},
                  {label:"Keypair Name",type:"menulist",list:this.core.queryModel("keypairs"),key:'name'},
                  {label:"Spot Instance Price",type:"number",tooltiptext:"The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price."},
-                 {label:"User Data",tooltiptext:"The user data available to the launched Amazon EC2 instances."},
+                 {label:'User Data',value: '',multiline:true,rows:10,cols:60},
                  {label:"Monitoring",type:"checkbox",tooltiptext:"Enables detailed monitoring, which is enabled by default. When detailed monitoring is enabled, CloudWatch will generate metrics every minute and your account will be charged a fee. When you disable detailed monitoring, by specifying False, Cloudwatch will generate metrics every 5 minutes."},
                  {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."}
                  ], { onchange: callback });
