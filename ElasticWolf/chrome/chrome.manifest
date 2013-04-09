@@ -1,5 +1,0 @@
-content	ew	content/
-overlay chrome://browser/content/browser.xul    chrome://ew/content/ew_overlay.xul
-
-skin	ew	classic/	skin/classic/
-locale	ew	en-US		locale/en-US/

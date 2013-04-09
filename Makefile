@@ -1,4 +1,4 @@
-NAME=ElasticWolf
+NAME=EucaLobo
 VER=$(shell awk -F= '{if($$1=="Version"){gsub(/[\"\",;]+/,"",$$2);print $$2;}}' $(NAME)/application.ini)
 OSX=$(NAME).app/Contents
 
