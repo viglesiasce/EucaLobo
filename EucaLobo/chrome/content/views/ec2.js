@@ -177,7 +177,7 @@ var ew_AMIsTreeView = {
         if (!image) return;
 
         // These items apply only to AMIs
-        var fDisabled = !(image.id.match(regExs["ami"]));
+        var fDisabled = !(image.id.match(regExs["emi"]));
         $("amis.context.register").disabled = fDisabled;
         $("amis.context.deregister").disabled = fDisabled;
         $("amis.context.launch").disabled = fDisabled;
@@ -259,6 +259,15 @@ var ew_AMIsTreeView = {
         });
     },
 
+    callRegisterImage : function(manifest, region)
+    {
+        var me = this;
+        this.core.api.registerImage(region, function() {
+            me.refresh();
+            alert("Image with Manifest: " + manifest + " was registered");
+        });
+    },
+
     registerNewImage : function()
     {
         var me = this;
@@ -282,7 +291,7 @@ var ew_AMIsTreeView = {
             }
             var s3bucket = value.split('/')[0];
             var region = this.core.api.getS3BucketLocation(s3bucket);
-            this.callRegisterImageInRegion(value, region);
+            this.callRegisterImage(value, region);
         }
     },
 
