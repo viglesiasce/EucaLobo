@@ -147,7 +147,7 @@ var ew_api = {
 
     getS3Regions: function()
     {
-        return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
+	 return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
                  { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
                  { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
                  { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
@@ -156,7 +156,8 @@ var ew_api = {
                  { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
                  { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
                  { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
-               ]
+               ];
+
     },
 
     getRoute53Regions: function()
@@ -3697,12 +3698,12 @@ var ew_api = {
             obj.ownerId = getNodeValue(item, "ownerId");
             obj.name = getNodeValue(item, "groupName");
             obj.description = getNodeValue(item, "groupDescription");
-            obj.vpcId = getNodeValue(item, "vpcId");
+            //obj.vpcId = getNodeValue(item, "vpcId");
             var ipPermissions = item.getElementsByTagName("ipPermissions")[0];
-            var ipPermissionsList = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
-	    ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
+            obj.permissions = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
+	        ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
             // Comment out egress rules for Eucalyptus
-	    //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
+	        //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
             obj.tags = this.getTags(item);
             ew_core.processTags(obj)
             list.push(obj);
@@ -3732,30 +3733,33 @@ var ew_api = {
 
     authorizeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
-        params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
+        params.push([ "CidrIp", cidrIp ]);
         this.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     revokeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
-        params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
+        params.push([ "CidrIp", cidrIp ]);
         this.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     authorizeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
         if (group.vpcId && group.vpcId != "") {
             params.push([ "IpPermissions.1.Groups.1.GroupId", srcGroup.id ]);
         } else {
@@ -3767,10 +3771,11 @@ var ew_api = {
 
     revokeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = group.id && group.id != "" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group.name ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
         if (group.vpcId && group.vpcId != "") {
             params.push([ "IpPermissions.1.Groups.1.GroupId", srcGroup.id ]);
         } else {
