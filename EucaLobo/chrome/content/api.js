@@ -148,7 +148,7 @@ var ew_api = {
     getS3Regions: function()
     {
         return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
-                 { name: "Eucalyptus",              	  url: "http://192.168.51.85:8773/services/Walrus",      region: "walrus" },
+                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
                  { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
                  { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
                  { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
