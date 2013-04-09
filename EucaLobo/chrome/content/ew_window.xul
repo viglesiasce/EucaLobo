@@ -309,7 +309,7 @@
     <treechildren id="menuchildren">
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="Elastic Wolf" src="images/logo.png" value="ew.tabs.ew.folder" />
+         <treecell label="EucaLobo" src="images/logo.png" value="ew.tabs.ew.folder" />
        </treerow>
        <treechildren>
          <treeitem><treerow><treecell label="Preferences" value="ew.tabs.prefs" /></treerow></treeitem>
@@ -349,7 +349,6 @@
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.bundletask.label;" value="ew.tabs.bundletask" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.export.label;" value="ew.tabs.export" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.volume.label;" value="ew.tabs.volume" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.snapshot.label;" value="ew.tabs.snapshot" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.availzone.label;" value="ew.tabs.availzone" /></treerow></treeitem>
@@ -365,32 +364,6 @@
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.placementgroup.label;" value="ew.tabs.placementgroup" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.spot.label;" value="ew.tabs.spot" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease" /></treerow></treeitem>
-       </treechildren>
-      </treeitem>
-
-      <treeitem container="true" open="true">
-       <treerow>
-         <treecell label="VPC: Virtual Private Cloud" src="images/vpc.png" />
-       </treerow>
-       <treechildren>
-         <treeitem><treerow><treecell label="&ew.tabs.vpc.label;" value="ew.tabs.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.subnet.label;" value="ew.tabs.subnet" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.eni.label;" value="ew.tabs.eni" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.acl.label;" value="ew.tabs.acl" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.routing.label;" value="ew.tabs.routing" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.dhcp.label;" value="ew.tabs.dhcp" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer.vpc" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.igw.label;" value="ew.tabs.igw" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.vgw.label;" value="ew.tabs.vgw" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.cgw.label;" value="ew.tabs.cgw" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.vpn.label;" value="ew.tabs.vpn" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="&ew.tabs.lease.label;" value="ew.tabs.lease.vpc" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 
@@ -413,53 +386,6 @@
 
       <treeitem container="true" open="true">
        <treerow>
-         <treecell label="SQS: Simple Queue Service" value="ew.tabs.sqs" src="images/sqs.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" open="true">
-       <treerow>
-         <treecell label="SNS: Simple Notification Service" value="ew.tabs.sns" src="images/sns.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" empty="true">
-       <treerow>
-         <treecell label="Route53: Scalable Domain Name System" value="ew.tabs.r53" src="images/53.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" empty="true">
-       <treerow>
-         <treecell label="DynamoDB" value="ew.tabs.ddb" src="images/dynamodb.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" empty="true">
-       <treerow>
-         <treecell label="EMR: Elastic MapReduce" value="ew.tabs.emr.jobflow" src="images/emr.png" />
-       </treerow>
-      </treeitem>
-
-      <treeitem container="true" open="true">
-       <treerow>
-         <treecell label="RDS: Relational Database Service" src="images/rds.png" />
-       </treerow>
-       <treechildren>
-         <treeitem><treerow><treecell label="DB Instances" value="ew.tabs.db.instance" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Engines" value="ew.tabs.db.engine" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Parameter Groups" value="ew.tabs.db.param" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Option Groups" value="ew.tabs.db.option" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Security Groups" value="ew.tabs.db.group" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Subnet Groups" value="ew.tabs.db.subnet" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Snapshots" value="ew.tabs.db.snapshot" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="DB Events" value="ew.tabs.db.event" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Reserved DB Instances" value="ew.tabs.db.lease" /></treerow></treeitem>
-       </treechildren>
-      </treeitem>
-
-      <treeitem container="true" open="true">
-       <treerow>
          <treecell label="Auto Scaling" src="images/autoscaling.png" />
        </treerow>
        <treechildren>
@@ -468,15 +394,6 @@
          <treeitem><treerow><treecell label="Scheduled Actions" value="ew.tabs.as.action" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Instances" value="ew.tabs.as.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Activity" value="ew.tabs.as.activity" /></treerow></treeitem>
-       </treechildren>
-      </treeitem>
-
-      <treeitem container="true" open="true">
-       <treerow>
-         <treecell label="SWF: Simple Workflow Services" src="images/swf.png" />
-       </treerow>
-       <treechildren>
-         <treeitem><treerow><treecell label="Domains" value="ew.tabs.swf.domain" /></treerow></treeitem>
        </treechildren>
       </treeitem>
 

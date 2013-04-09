@@ -3437,7 +3437,8 @@ var ew_api = {
 
     describePlacementGroups : function(callback)
     {
-        this.queryEC2("DescribePlacementGroups", [], this, false, "onCompleteDescribePlacementGroups", callback);
+        //NOT implemented in Euca
+        //this.queryEC2("DescribePlacementGroups", [], this, false, "onCompleteDescribePlacementGroups", callback);
     },
 
     onCompleteDescribePlacementGroups : function(response)
@@ -3516,7 +3517,8 @@ var ew_api = {
 
     describeNetworkInterfaces : function(callback)
     {
-        this.queryEC2("DescribeNetworkInterfaces", [], this, false, "onCompleteDescribeNetworkInterfaces", callback);
+        //Not implemented in Euca
+        //this.queryEC2("DescribeNetworkInterfaces", [], this, false, "onCompleteDescribeNetworkInterfaces", callback);
     },
 
     onCompleteDescribeNetworkInterfaces : function(response)
@@ -4468,8 +4470,9 @@ var ew_api = {
     listMFADevices : function(user, callback)
     {
         var params = [];
-        if (user) params.push(["UserName", user]);
-        this.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
+        // Not implemented in Euca
+        //if (user) params.push(["UserName", user]);
+        //this.queryIAM("ListMFADevices", params, this, false, "onCompleteListMFADevices", callback);
     },
 
     onCompleteListMFADevices : function(response)
@@ -5092,7 +5095,8 @@ var ew_api = {
     listServerCertificates : function(callback)
     {
         var params = [];
-        this.queryIAM("ListServerCertificates", params, this, false, "onCompleteListServerCertificates", callback);
+        //Not implemented in Euca
+        //this.queryIAM("ListServerCertificates", params, this, false, "onCompleteListServerCertificates", callback);
     },
 
     onCompleteListServerCertificates : function(response)
