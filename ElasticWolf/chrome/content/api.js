@@ -79,13 +79,13 @@ var ew_api = {
     {
         if (!endpoint) return;
         this.region = endpoint.name;
-        this.urls.EC2 = endpoint.url;
+        this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
         this.signatures.EC2 = endpoint.signature;
-        this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
+        this.urls.ELB = endpoint.url + "/services/LoadBalancing";//endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.signatures.ELB = endpoint.signatureELB;
-        this.urls.CW = endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
+        this.urls.CW = endpoint.url + "/services/CloudWatch";//endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
         this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
         this.signatures.CW = endpoint.signatureCW;
         this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
@@ -100,10 +100,10 @@ var ew_api = {
         this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
         this.signatures.R53 = endpoint.signatureR53;
-        this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
+        this.urls.AS = endpoint.url + "/services/AutoScaling";//endpoint.urlAS || "https://autoscaling.amazonaws.com";
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
         this.signatures.AS = endpoint.signatureAS;
-        this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
+        this.urls.IAM = endpoint.url + "/services/Euare";//endpoint.urlIAM || 'https://iam.amazonaws.com';
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
         this.signatures.IAM = endpoint.signatureIAM;
         this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
@@ -112,7 +112,7 @@ var ew_api = {
         this.urls.DDB = endpoint.urlDDB || 'https://dynamodb.' + this.region + '.amazonaws.com';
         this.versions.DDB = endpoint.versionDDB || this.DDB_API_VERSION;
         this.signatures.DDB = endpoint.signatureDDB;
-        this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
+        this.urls.STS = endpoint.url + "/services/Tokens";//endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
         this.signatures.STS = endpoint.signatureSTS;
         this.urls.SWF = endpoint.urlSWF || 'https://swf.' + this.region + '.amazonaws.com';
@@ -148,7 +148,7 @@ var ew_api = {
     getS3Regions: function()
     {
         return [ { name: "US Standard",                   url: "s3.amazonaws.com",                region: "" },
-                 { name: "US West (Oregon)",              url: "s3-us-west-2.amazonaws.com",      region: "us-west-2" },
+                 { name: "Eucalyptus",              	  url: "http://192.168.51.85:8773/services/Walrus",      region: "walrus" },
                  { name: "US West (Northern California)", url: "s3-us-west-1.amazonaws.com",      region: "us-west-1" },
                  { name: "EU (Ireland)",                  url: "s3-eu-west-1.amazonaws.com",      region: "EU" },
                  { name: "Asia Pacific (Singapore)",      url: "s3-ap-southeast-1.amazonaws.com", region: "ap-southeast-1" },
@@ -1918,6 +1918,7 @@ var ew_api = {
             } else {
                 params.push(["Owner.1", owners])
             }
+	    debug(owners);
         }
         if (execBy) {
             if (execBy instanceof Array) {
@@ -2564,11 +2565,8 @@ var ew_api = {
         if (options.instanceProfile) {
             params.push([prefix + "IamInstanceProfile.Name", options.instanceProfile])
         }
-        for (var i in options.securityGroups) {
-            params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
-        }
-        for (var i in options.securityGroupNames) {
-            params.push([ prefix + "GroupName." + parseInt(i), typeof options.securityGroupNames[i] == "object" ? options.securityGroupNames[i].name : options.securityGroupNames[i] ]);
+        if (options.securityGroupNames) {
+            params.push([ prefix + "groupId", typeof options.securityGroupNames[0] == "object" ? options.securityGroupNames[0].name : options.securityGroupNames[0] ]);
         }
         if (options.userData) {
             var b64str = "Base64:";
@@ -2601,12 +2599,12 @@ var ew_api = {
         if (options.availabilityZone) {
             params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);
         }
-        if (options.placementGroup) {
-            params.push([ prefix + "Placement.GroupName", options.placementGroup ]);
-        }
-        if (options.tenancy) {
-            params.push([ prefix + "Placement.Tenancy", options.tenancy ]);
-        }
+        //if (options.placementGroup) {
+        //    params.push([ prefix + "Placement.GroupName", options.placementGroup ]);
+        //}
+        //if (options.tenancy) {
+        //    params.push([ prefix + "Placement.Tenancy", options.tenancy ]);
+        //}
         if (options.subnetId) {
             params.push([ prefix + "SubnetId", options.subnetId ]);
             if (options.privateIpAddress) {
@@ -3699,8 +3697,9 @@ var ew_api = {
             obj.vpcId = getNodeValue(item, "vpcId");
             var ipPermissions = item.getElementsByTagName("ipPermissions")[0];
             var ipPermissionsList = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
-            ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
-            obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
+	    ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
+            // Comment out egress rules for Eucalyptus
+	    //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
             obj.tags = this.getTags(item);
             ew_core.processTags(obj)
             list.push(obj);
@@ -3723,7 +3722,8 @@ var ew_api = {
 
     deleteSecurityGroup : function(group, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
+	debug("Delete Group: " + group.name)
+        var params = [ [ "GroupName", group.name ] ];
         this.queryEC2("DeleteSecurityGroup", params, this, false, "onComplete", callback);
     },
 
