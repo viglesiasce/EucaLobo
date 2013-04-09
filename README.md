@@ -1,24 +1,18 @@
-# ElasticWolf
+# EucaLobo
 
-ElasticWolf is an application for managing Amazon Web Services resources with a simple and
+EucaLobo is an application for managing Eucalyptus resources with a simple and
 easy to use client-side UI.
 
-This project started as a fork of ElasticFox but most of the code has been rewritten since then.
-It adds support for the GovCloud region, much better VPC support, and many other enhancements.
-It is also packaged with all necessary tools and utilities to deal with private and public
-keys and SSL certificates. In short, it provides everything for an AWS user to get going
-without using the command line tools.
+This project is a fork of ElasticWolf with URLs replaced to point at a Eucalyptus install.
 
 In addition, it integrates well with the AWS command line tools such that the user can
-easily configure both ElasticWolf and the CLI to work together.
+easily configure both EucaLobo and the CLI to work together.
 
-The project has been supported by the Global Public Sector sales team of AWS to provide a
-better customer experience when using the new GovCloud (ITAR-compliant) AWS region.
-GovCloud is not currently supported by the AWS Console.  However, it is designed to work
-with all regions, so please file bugs if you find problems in any region.
+## Setting up for Eucalyptus
 
-The Windows version of the tool is packaged with openssl for generating keys and ssh
-clients for accessing Linux instances.
+   * To download the ElasticWolf project from the GitHub repository:
+
+     git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
 ## Testing On Mac OS X
 
@@ -84,10 +78,6 @@ clients for accessing Linux instances.
  Releases must be built on a Mac and cannot be built on Windows.  To create binary packages
  for both Mac and Windows, just type: make build.  This will produce .zip files for each platform.
 
-## Download Binary Releases
-
-  Packages for Windows, Linux and Mac OS X are available at http://www.elasticwolf.com
-
 ## Passing credentials on the command line
 
  The parameters are:
@@ -101,6 +91,7 @@ clients for accessing Linux instances.
  * -jsconsole: load the javascript debug console
 
 ## Developers:
+  Victor Iglesias
   Vlad Seryakov
 
 ## QA and Support:
