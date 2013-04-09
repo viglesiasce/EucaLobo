@@ -12,13 +12,13 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To download the ElasticWolf project from the GitHub repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git@github.com:viglesiasce/EucaLobo.git
 
 ## Testing On Mac OS X
 
    * To download the ElasticWolf project from the GitHub repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git@github.com:viglesiasce/EucaLobo.git
 
    * Primary development is done on Mac so there is a special dev mode to run it as
      an OS X application with symlinks to the actual source code:
@@ -43,7 +43,7 @@ easily configure both EucaLobo and the CLI to work together.
 
      * Use your Git UI, or
      * Launch cmd.exe, cd to the directory where you want to keep the source code, and
-       run git clone git://github.com/aws-ew-dev/ElasticWolf.git
+       run git clone git@github.com:viglesiasce/EucaLobo.git
 
    * To run the ElasticWolf application:
 
@@ -59,7 +59,7 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To retrieve source code from the repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git@github.com:viglesiasce/EucaLobo.git
 
    * To install xulrunner (for example on Ubuntu):
 
