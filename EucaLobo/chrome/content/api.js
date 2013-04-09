@@ -2772,7 +2772,7 @@ var ew_api = {
     {
         var params = []
         for ( var i in instances) {
-            params.push([ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         this.queryEC2("TerminateInstances", params, this, false, "onCompleteRunInstances", callback);
     },
