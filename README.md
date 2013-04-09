@@ -12,11 +12,11 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To download the ElasticWolf project from the GitHub repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+         git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
    * Setup an endpoint in the UI with the following URL:
 
-     http://<ip_of_clc>:8773
+         http://<ip_of_clc>:8773
 
 ## Testing On Mac OS X
 
