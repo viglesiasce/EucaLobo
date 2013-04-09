@@ -5638,7 +5638,8 @@ var ew_api = {
 
     listSubscriptions : function(callback)
     {
-        this.querySNS("ListSubscriptions", [], this, false, "onCompleteListSubscriptions", callback);
+        //Not implemented in Euca
+        //this.querySNS("ListSubscriptions", [], this, false, "onCompleteListSubscriptions", callback);
     },
 
     listSubscriptionsByTopic : function(id, callback)
