@@ -516,7 +516,7 @@ var ew_api = {
         }
 
         var curTime = new Date().toUTCString();
-        var url = this.core.getS3Protocol(this.region, bucket) + (bucket ? bucket + "." : "") + getS3Region(this.region || "").url;
+        var url = this.core.getEndpoint("walrus").url + (bucket ? "/" + bucket : "");
 
         if (!params) params = {}
         if (!expires) expires = "";
@@ -564,6 +564,7 @@ var ew_api = {
                 rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
             }
         }
+
         strSign += (bucket ? "/" + bucket : "").toLowerCase() + (key[0] != "/" ? "/" : "") + encodeURI(key) + (rclist.length ? "?" : "") + rclist.sort().join("&");
         var signature = b64_hmac_sha1(this.secretKey, strSign);
 
@@ -658,7 +659,7 @@ var ew_api = {
         for (var p in req.headers) {
             xmlhttp.setRequestHeader(p, req.headers[p]);
         }
-
+        debug("Content: " + content)
         return this.sendRequest(xmlhttp, req.url, content, isSync, method, this.versions.S3, handlerMethod, handlerObj, callback, { bucket: bucket, key: key, path: path, params: opts });
     },
 
@@ -2900,8 +2901,8 @@ var ew_api = {
 
     createS3Bucket : function(bucket, region, params, callback)
     {
-        var content = (region) ? "<CreateBucketConstraint><LocationConstraint>" + region + "</LocationConstraint></CreateBucketConstraint>" : "";
-        this.queryS3("PUT", bucket, "", "", params, content, this, false, "onComplete", callback);
+        //var content = (region) ? "<CreateBucketConstraint><LocationConstraint>" + region + "</LocationConstraint></CreateBucketConstraint>" : "";
+        this.queryS3("PUT", bucket, "", "", params, "", this, false, "onComplete", callback);
     },
 
     listS3Buckets : function(callback)
@@ -3910,7 +3911,7 @@ var ew_api = {
             var item = items[i];
             var name = getNodeValue(item, "regionName");
             var url = getNodeValue(item, "regionEndpoint");
-            if (url.indexOf("https://") != 0) {
+            if (url.indexOf("https://") != 0 && url.indexOf("http://") != 0) {
                 url = "https://" + url;
             }
             list.push(new Endpoint(name, url));
