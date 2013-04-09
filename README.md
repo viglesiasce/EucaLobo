@@ -22,16 +22,16 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To download the ElasticWolf project from the GitHub repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+        git clone git://github.com/aws-ew-dev/ElasticWolf.git
 
    * Primary development is done on Mac so there is a special dev mode to run it as
      an OS X application with symlinks to the actual source code:
 
-     make run
+         make run
 
    * To get updates, execute the following in the source directory:
 
-     git pull
+         git pull
 
 ## Testing On Windows
 
