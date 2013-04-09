@@ -1328,12 +1328,12 @@ var ew_api = {
         // Params are lists in format: [ { "UserId": user} ], [ { "Group": "all" }]
         if (add) {
             for (var i = 0; i < add.length; i++) {
-                params.push(["CreateVolumePermission.Add." + (i + 1) + "." + add[i][0], add[i][1] ])
+                params.push(["CreateVolumePermission.Add." + (parseInt(i) + 1) + "." + add[i][0], add[i][1] ])
             }
         }
         if (remove) {
             for (var i = 0; i < remove.length; i++) {
-                params.push(["CreateVolumePermission.Remove." + (i + 1) + "." + remove[i][0], remove[i][1] ])
+                params.push(["CreateVolumePermission.Remove." + (parseInt(i) + 1) + "." + remove[i][0], remove[i][1] ])
             }
         }
         this.queryEC2("ModifySnapshotAttribute", params, this, false, "onComplete", callback);
@@ -1915,7 +1915,7 @@ var ew_api = {
         var params = [];
         if (owners) {
             if (owners instanceof Array) {
-                owners.forEach(function (x, i) { params.push(["Owner." + (i + 1), x])})
+                owners.forEach(function (x, i) { params.push(["Owner." + (parseInt(i) + 1), x])})
             } else {
                 params.push(["Owner.1", owners])
             }
@@ -1923,7 +1923,7 @@ var ew_api = {
         }
         if (execBy) {
             if (execBy instanceof Array) {
-                execBy.forEach(function (x, i) { params.push(["ExecutableBy." + (i + 1), x])})
+                execBy.forEach(function (x, i) { params.push(["ExecutableBy." + (parseInt(i) + 1), x])})
             } else {
                 params.push(["ExecutableBy.1", execBy])
             }
@@ -2370,7 +2370,7 @@ var ew_api = {
         var params = [];
         if (id instanceof Array) {
             for (var i = 0;i < id.length; i++) {
-                params.push(["SpotInstanceRequestId." + (i + 1), id[i]])
+                params.push(["SpotInstanceRequestId." + (parseInt(i) + 1), id[i]])
             }
         } else {
             params.push(["SpotInstanceRequestId.1", id])
@@ -2589,7 +2589,7 @@ var ew_api = {
             params.push([prefix + "EbsOptimized", "true"]);
         }
         if (options.monitoringEnabled) {
-            params.push([ prefix + "Monitoring.Enabled", "true"]);
+            params.push([ prefix + "Monitoring.Enabled", "enabled"]);
         }
         if (options.disableApiTermination) {
             params.push([ prefix + "DisableApiTermination", "true"]);
@@ -2782,7 +2782,7 @@ var ew_api = {
     {
         var params = []
         for ( var i in instances) {
-            params.push([ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         if (force == true) {
             params.push([ "Force", "true" ]);
@@ -2794,7 +2794,7 @@ var ew_api = {
     {
         var params = []
         for ( var i in instances) {
-            params.push([ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         this.queryEC2("StartInstances", params, this, false, "onCompleteRunInstances", callback);
     },
@@ -2803,7 +2803,7 @@ var ew_api = {
     {
         var params = [];
         for ( var i in instances) {
-            params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push( [ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         this.queryEC2("MonitorInstances", params, this, false, "onComplete", callback);
     },
@@ -2812,7 +2812,7 @@ var ew_api = {
     {
         var params = [];
         for ( var i in instances) {
-            params.push( [ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push( [ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         this.queryEC2("UnmonitorInstances", params, this, false, "onComplete", callback);
     },
@@ -3788,7 +3788,7 @@ var ew_api = {
     {
         var params = []
         for ( var i in instances) {
-            params.push([ "InstanceId." + (i + 1), instances[i].id ]);
+            params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
         this.queryEC2("RebootInstances", params, this, false, "onComplete", callback);
     },
@@ -4069,15 +4069,15 @@ var ew_api = {
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         if (azones) {
             for (var i = 0; i < azones.length; i++) {
-                params.push([ "AvailabilityZones.member." + (i + 1), azones[i] ]);
+                params.push([ "AvailabilityZones.member." + (parseInt(i) + 1), azones[i] ]);
             }
         }
         if (subnets) {
             for (var i = 0; i < subnets.length; i++) {
-                params.push(["Subnets.member." + (i + 1), subnets[i]]);
+                params.push(["Subnets.member." + (parseInt(i) + 1), subnets[i]]);
             }
             for (var i = 0; i < groups.length; i++) {
-                params.push(["SecurityGroups.member." + (i + 1), groups[i]]);
+                params.push(["SecurityGroups.member." + (parseInt(i) + 1), groups[i]]);
             }
         }
         params.push([ "Listeners.member.Protocol", protocol ]);
@@ -4108,7 +4108,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < instances.length; i++) {
-            params.push([ "Instances.member." + (i + 1) + ".InstanceId", instances[i] ]);
+            params.push([ "Instances.member." + (parseInt(i) + 1) + ".InstanceId", instances[i] ]);
         }
         this.queryELB("RegisterInstancesWithLoadBalancer", params, this, false, "onComplete", callback);
     },
@@ -4118,7 +4118,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < instances.length; i++) {
-            params.push([ "Instances.member." + (i + 1) + ".InstanceId", instances[i] ]);
+            params.push([ "Instances.member." + (parseInt(i) + 1) + ".InstanceId", instances[i] ]);
         }
         this.queryELB("DeregisterInstancesFromLoadBalancer", params, this, false, "onComplete", callback);
     },
@@ -4128,7 +4128,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < Zones.length; i++) {
-            params.push([ "AvailabilityZones.member." + (i + 1), Zones[i] ]);
+            params.push([ "AvailabilityZones.member." + (parseInt(i) + 1), Zones[i] ]);
         }
         this.queryELB("EnableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
     },
@@ -4138,7 +4138,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0 ; i < Zones.length; i++) {
-            params.push([ "AvailabilityZones.member." + (i + 1), Zones[i] ]);
+            params.push([ "AvailabilityZones.member." + (parseInt(i) + 1), Zones[i] ]);
         }
         this.queryELB("DisableAvailabilityZonesForLoadBalancer", params, this, false, "onComplete", callback);
     },
@@ -4174,7 +4174,7 @@ var ew_api = {
         var params = [ ["LoadBalancerName", loadBalancerName] ];
         for (var i = 0; i < groups.length; i++) {
             var group = groups[i];
-            params.push(["SecurityGroups.member." + (i + 1), group]);
+            params.push(["SecurityGroups.member." + (parseInt(i) + 1), group]);
         }
         this.queryELB("ApplySecurityGroupsToLoadBalancer", params, this, false, "onComplete", callback);
     },
@@ -4184,7 +4184,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["Subnets.member." + (i + 1), subnets[i]]);
+            params.push(["Subnets.member." + (parseInt(i) + 1), subnets[i]]);
         }
         this.queryELB("AttachLoadBalancerToSubnets", params, this, false, "onComplete", callback);
     },
@@ -4194,7 +4194,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["Subnets.member." + (i + 1), subnets[i]]);
+            params.push(["Subnets.member." + (parseInt(i) + 1), subnets[i]]);
         }
         this.queryELB("DetachLoadBalancerFromSubnets", params, this, false, "onComplete", callback);
     },
@@ -4214,7 +4214,7 @@ var ew_api = {
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "InstancePort", InstancePort ]);
         for (var i = 0; i < PolicyNames.length; i++) {
-            params.push([ "PolicyNames.member." + (i + 1), PolicyNames[i] ]);
+            params.push([ "PolicyNames.member." + (parseInt(i) + 1), PolicyNames[i] ]);
         }
         this.queryELB("SetLoadBalancerPoliciesForBackendServer", params, this, false, "onComplete", callback);
     },
@@ -4225,7 +4225,7 @@ var ew_api = {
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "LoadBalancerPort", LoadBalancerPort ]);
         for (var i = 0; i < PolicyNames.length; i++) {
-            params.push([ "PolicyNames.member." + (i + 1), PolicyNames[i] ]);
+            params.push([ "PolicyNames.member." + (parseInt(i) + 1), PolicyNames[i] ]);
         }
         this.queryELB("SetLoadBalancerPoliciesOfListener", params, this, false, "onComplete", callback);
     },
@@ -4250,8 +4250,8 @@ var ew_api = {
         params.push([ "PolicyTypeName", PolicyType ]);
         if (PolicyAttributes) {
             for (var i = 0; i < PolicyAttributes.length; i++) {
-                params.push([ "PolicyAttributes.member." + (i + 1) + ".AttributeName", PolicyAttributes[i].name ]);
-                params.push([ "PolicyAttributes.member." + (i + 1) + ".AttributeValue", PolicyAttributes[i].value ]);
+                params.push([ "PolicyAttributes.member." + (parseInt(i) + 1) + ".AttributeName", PolicyAttributes[i].name ]);
+                params.push([ "PolicyAttributes.member." + (parseInt(i) + 1) + ".AttributeValue", PolicyAttributes[i].value ]);
             }
         }
         this.queryELB("CreateLoadBalancerPolicy", params, this, false, "onComplete", callback);
@@ -4262,7 +4262,7 @@ var ew_api = {
         var params = []
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < LoadBalancerPorts.length; i++) {
-            params.push([ "LoadBalancerPorts.member." + (i + 1), LoadBalancerPorts[i] ]);
+            params.push([ "LoadBalancerPorts.member." + (parseInt(i) + 1), LoadBalancerPorts[i] ]);
         }
         this.queryELB("DeleteLoadBalancerListeners", params, this, false, "onComplete", callback);
     },
@@ -4282,9 +4282,9 @@ var ew_api = {
         var params = new Array();
 
         for ( var i = 0; i < tags.length; i++) {
-            params.push([ "ResourceId." + (i + 1), tags[i].resourceId ]);
-            params.push([ "Tag." + (i + 1) + ".Key", tags[i].name ]);
-            params.push([ "Tag." + (i + 1) + ".Value", tags[i].value ]);
+            params.push([ "ResourceId." + (parseInt(i) + 1), tags[i].resourceId ]);
+            params.push([ "Tag." + (parseInt(i) + 1) + ".Key", tags[i].name ]);
+            params.push([ "Tag." + (parseInt(i) + 1) + ".Value", tags[i].value ]);
         }
 
         this.queryEC2("CreateTags", params, this, false, "onComplete", callback);
@@ -4295,8 +4295,8 @@ var ew_api = {
         var params = new Array();
 
         for ( var i = 0; i < tags.length; i++) {
-            params.push([ "ResourceId." + (i + 1), tags[i].resourceId ]);
-            params.push([ "Tag." + (i + 1) + ".Key", tags[i].name ]);
+            params.push([ "ResourceId." + (parseInt(i) + 1), tags[i].resourceId ]);
+            params.push([ "Tag." + (parseInt(i) + 1) + ".Key", tags[i].name ]);
         }
 
         this.queryEC2("DeleteTags", params, this, false, "onComplete", callback);
@@ -4308,8 +4308,8 @@ var ew_api = {
 
         var params = new Array();
         for ( var i = 0; i < ids.length; i++) {
-            params.push([ "Filter." + (i + 1) + ".Name", "resource-id" ]);
-            params.push([ "Filter." + (i + 1) + ".Value.1", ids[i] ]);
+            params.push([ "Filter." + (parseInt(i) + 1) + ".Name", "resource-id" ]);
+            params.push([ "Filter." + (parseInt(i) + 1) + ".Value.1", ids[i] ]);
         }
 
         this.queryEC2("DescribeTags", params, this, false, "onCompleteDescribeTags", callback);
@@ -5213,7 +5213,7 @@ var ew_api = {
     {
         var params = [];
         for (var i = 0; i < list.length; i++) {
-            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+            params.push(["AlarmNames.member." + (parseInt(i) + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
         }
         this.queryCloudWatch("DeleteAlarms", params, this, false, "onComplete", callback);
     },
@@ -5222,7 +5222,7 @@ var ew_api = {
     {
         var params = [];
         for (var i = 0; i < list.length; i++) {
-            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+            params.push(["AlarmNames.member." + (parseInt(i) + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
         }
         this.queryCloudWatch("DisableAlarmActions", params, this, false, "onComplete", callback);
     },
@@ -5231,7 +5231,7 @@ var ew_api = {
     {
         var params = [];
         for (var i = 0; i < list.length; i++) {
-            params.push(["AlarmNames.member." + (i + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
+            params.push(["AlarmNames.member." + (parseInt(i) + 1), typeof list[i] == "object" ? list[i].name : list[i] ]);
         }
         this.queryCloudWatch("EnableAlarmActions", params, this, false, "onComplete", callback);
     },
@@ -5252,8 +5252,8 @@ var ew_api = {
         if (namespace) params.push(["Namespace", namespace])
         if (dimensions instanceof Array) {
             for (var i = 0; i < dimensions.length; i++) {
-                params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
-                params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+                params.push(["Dimensions.member." + (parseInt(i) + 1) + ".Name", dimensions[i].name]);
+                params.push(["Dimensions.member." + (parseInt(i) + 1) + ".Value", dimensions[i].value]);
             }
         }
         this.queryCloudWatch("ListMetrics", params, this, false, "onCompleteListMetrics", callback);
@@ -5296,15 +5296,15 @@ var ew_api = {
         if (unit) params.push(["Unit", unit])
         if (statistics instanceof Array) {
             for (var i = 0; i < statistics.length; i++) {
-                params.push(["Statistics.member." + (i + 1), statistics[i]])
+                params.push(["Statistics.member." + (parseInt(i) + 1), statistics[i]])
             }
         } else {
             params.push(["Statistics.member.1", statistics])
         }
         if (dimensions instanceof Array)
         for (var i = 0; i < dimensions.length; i++) {
-            params.push(["Dimensions.member." + (i + 1) + ".Name", dimensions[i].name]);
-            params.push(["Dimensions.member." + (i + 1) + ".Value", dimensions[i].value]);
+            params.push(["Dimensions.member." + (parseInt(i) + 1) + ".Name", dimensions[i].name]);
+            params.push(["Dimensions.member." + (parseInt(i) + 1) + ".Value", dimensions[i].value]);
         }
         this.queryCloudWatch("GetMetricStatistics", params, this, false, "onCompleteGetMetricStatistics", callback);
     },
@@ -5530,8 +5530,8 @@ var ew_api = {
     {
         var params = [ ["Label", label]];
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (i + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+            params.push(["ActionName." + (parseInt(i) + 1), actions[i].name]);
+            params.push(["AWSAccountId." + (parseInt(i) + 1), actions[i].id]);
         }
         this.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
     },
@@ -5581,8 +5581,8 @@ var ew_api = {
         params.push([ "Label", label ]);
         params.push([ "TopicArn", id ])
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (i + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+            params.push(["ActionName." + (parseInt(i) + 1), actions[i].name]);
+            params.push(["AWSAccountId." + (parseInt(i) + 1), actions[i].id]);
         }
         this.querySNS("AddPermission", params, this, false, "onComplete", callback);
     },
@@ -6137,9 +6137,9 @@ var ew_api = {
     {
         var params =  [ [ "DBParameterGroupName", name]];
         for (var i  = 0; i < options.length; i++) {
-            params.push(["Parameters.member." + (i + 1) + ".ParameterName", options[i].name]);
-            params.push(["Parameters.member." + (i + 1) + ".ParameterValue", options[i].value]);
-            params.push(["Parameters.member." + (i + 1) + ".ApplyMethod", options[i].applyMethod]);
+            params.push(["Parameters.member." + (parseInt(i) + 1) + ".ParameterName", options[i].name]);
+            params.push(["Parameters.member." + (parseInt(i) + 1) + ".ParameterValue", options[i].value]);
+            params.push(["Parameters.member." + (parseInt(i) + 1) + ".ApplyMethod", options[i].applyMethod]);
         }
 
         this.queryRDS("ModifyDBParameterGroup", params, this, false, "onComplete", callback);
@@ -6374,19 +6374,19 @@ var ew_api = {
         params.push([ "ApplyImmediately", toBool(now)]);
         for (var i = 0; i < include.length; i++) {
             if (typeof include[i] == "object") {
-                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i].name])
-                if (include[i].port) params.push(["OptionsToInclude.member." + (i + 1) + ".Port", include[i].port])
+                params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".OptionName", include[i].name])
+                if (include[i].port) params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".Port", include[i].port])
                 if (include[i].groups) {
                     for (var j = 0; j < include[i].groups.length; j++) {
-                        params.push(["OptionsToInclude.member." + (i + 1) + ".DBSecurityGroupMemberships.member." + (j + 1), include[i].groups[j]])
+                        params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".DBSecurityGroupMemberships.member." + (j + 1), include[i].groups[j]])
                     }
                 }
             } else {
-                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i]])
+                params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".OptionName", include[i]])
             }
         }
         for (var i = 0; i < remove.length; i++) {
-            params.push(["OptionsToRemove.member." + (i + 1), remove[i]])
+            params.push(["OptionsToRemove.member." + (parseInt(i) + 1), remove[i]])
         }
         this.queryRDS("ModifyOptionGroup", params, this, false, "onComplete", callback);
     },
@@ -6761,7 +6761,7 @@ var ew_api = {
     {
         var params = [ ["AutoScalingGroupName", name]]
         zones.forEach(function(x, i) {
-            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x])
+            params.push(["AvailabilityZones.member." + (parseInt(i) + 1), typeof x == "object" ? x.name : x])
         })
         params.push(["LaunchConfigurationName", config])
         params.push(["MinSize", min])
@@ -6775,7 +6775,7 @@ var ew_api = {
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
-                params.push(["TerminationPolicies.member." + (i + 1), tpolicies[i]]);
+                params.push(["TerminationPolicies.member." + (parseInt(i) + 1), tpolicies[i]]);
             }
         }
 
@@ -6799,7 +6799,7 @@ var ew_api = {
         var params = [ ["AutoScalingGroupName", name]];
 
         (zones || []).forEach(function(x, i) {
-            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x])
+            params.push(["AvailabilityZones.member." + (parseInt(i) + 1), typeof x == "object" ? x.name : x])
         });
         params.push(["LaunchConfigurationName", config])
         params.push(["MinSize", min])
@@ -6813,7 +6813,7 @@ var ew_api = {
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
-                params.push(["TerminationPolicies.member." + (i + 1), tpolicies[i]]);
+                params.push(["TerminationPolicies.member." + (parseInt(i) + 1), tpolicies[i]]);
             }
         }
 
@@ -6897,7 +6897,7 @@ var ew_api = {
         if (ebsOptimized) params.push(["EbsOptimized", true])
         if (groups) {
             groups.forEach(function(x, i) {
-                params.push(["SecurityGroups.member." + (i + 1), typeof x == "object" ? (x.vpcId ? x.id : x.name) : x])
+                params.push(["SecurityGroups.member." + (parseInt(i) + 1), typeof x == "object" ? (x.vpcId ? x.id : x.name) : x])
             })
         }
         this.queryAS("CreateLaunchConfiguration", params, this, false, "onComplete", callback);
@@ -6989,7 +6989,7 @@ var ew_api = {
     {
         var params = ["AutoScalingGroupName", name];
         params.push(["TopicARN", topic]);
-        (events || []).forEach(function(x,i) { params.push(["NotificationTypes.member." + (i + 1), x])})
+        (events || []).forEach(function(x,i) { params.push(["NotificationTypes.member." + (parseInt(i) + 1), x])})
 
         this.queryAS("DeleteNotificationConfiguration", params, this, false, "onComplete", callback);
     },
@@ -6997,7 +6997,7 @@ var ew_api = {
     suspendProcesses: function(name, processes, callback)
     {
         var params = ["AutoScalingGroupName", name];
-        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x])})
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (parseInt(i) + 1), x])})
 
         this.queryAS("SuspendProcesses", params, this, false, "onComplete", callback);
     },
@@ -7005,7 +7005,7 @@ var ew_api = {
     resumeProcesses: function(name, processes, callback)
     {
         var params = ["AutoScalingGroupName", name];
-        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x])})
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (parseInt(i) + 1), x])})
 
         this.queryAS("ResumeProcesses", params, this, false, "onComplete", callback);
     },
@@ -7299,7 +7299,7 @@ var ew_api = {
         var params = [];
         if (!Array.isArray(id)) id = [ id ];
         for (var i = 0; i < id.length; i++) {
-            params.push(["JobFlowIds.member." + (i + 1), id]);
+            params.push(["JobFlowIds.member." + (parseInt(i) + 1), id]);
         }
         this.queryEMR("TerminateJobFlows", params, this, false, "onComplete", callback);
     },
@@ -7309,8 +7309,8 @@ var ew_api = {
         var params = [];
         if (!Array.isArray(groups)) groups = [ groups ];
         for (var i = 0; i < groups.length; i++) {
-            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceGroupId", groups[i].InstanceGroupId]);
-            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceCount", groups[i].InstanceCount]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".InstanceGroupId", groups[i].InstanceGroupId]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".InstanceCount", groups[i].InstanceCount]);
         }
         this.queryEMR("ModifyInstanceGroups", params, this, false, "onComplete", callback);
     },
@@ -7321,12 +7321,12 @@ var ew_api = {
         var params = [ ["JobFlowId", id]];
         if (!Array.isArray(groups)) groups = [ groups ];
         for (var i = 0; i < groups.length; i++) {
-            params.push(["InstanceGroups.member." + (i + 1) + ".Name", groups[i].Name]);
-            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceCount", groups[i].InstanceCount]);
-            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceRole", groups[i].InstanceRole]);
-            params.push(["InstanceGroups.member." + (i + 1) + ".InstanceType", groups[i].InstanceType]);
-            params.push(["InstanceGroups.member." + (i + 1) + ".Market", groups[i].Market]);
-            if (groups[i].BidPrice) params.push(["InstanceGroups.member." + (i + 1) + ".BidPrice", groups[i].BidPrice]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".Name", groups[i].Name]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".InstanceCount", groups[i].InstanceCount]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".InstanceRole", groups[i].InstanceRole]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".InstanceType", groups[i].InstanceType]);
+            params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".Market", groups[i].Market]);
+            if (groups[i].BidPrice) params.push(["InstanceGroups.member." + (parseInt(i) + 1) + ".BidPrice", groups[i].BidPrice]);
         }
         this.queryEMR("AddInstanceGroups", params, this, false, "onComplete", callback);
     },
@@ -7336,16 +7336,16 @@ var ew_api = {
         var params = [ ["JobFlowId", id]];
         if (!Array.isArray(steps)) steps = [ steps ];
         for (var i = 0; i < steps.length; i++) {
-            params.push(["Steps.member." + (i + 1) + ".Name", steps[i].Name]);
-            params.push(["Steps.member." + (i + 1) + ".ActionOnFailure", steps[i].ActionOnFailure]);
-            params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Jar", steps[i].Jar]);
-            if (steps[i].MainClass) params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.MainClass", steps[i].MainClass]);
+            params.push(["Steps.member." + (parseInt(i) + 1) + ".Name", steps[i].Name]);
+            params.push(["Steps.member." + (parseInt(i) + 1) + ".ActionOnFailure", steps[i].ActionOnFailure]);
+            params.push(["Steps.member." + (parseInt(i) + 1) + ".HadoopJarStep.Jar", steps[i].Jar]);
+            if (steps[i].MainClass) params.push(["Steps.member." + (parseInt(i) + 1) + ".HadoopJarStep.MainClass", steps[i].MainClass]);
             for (var j = 0 ; i < steps[i].Args.length; j++) {
-                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Args.member." + (j + 1), steps[i].Args[j]]);
+                params.push(["Steps.member." + (parseInt(i) + 1) + ".HadoopJarStep.Args.member." + (j + 1), steps[i].Args[j]]);
             }
             for (var j = 0; j < steps[i].Properties.length; j++) {
-                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Properties.member.Key" + (j + 1), steps[i].Properties[j].name]);
-                params.push(["Steps.member." + (i + 1) + ".HadoopJarStep.Properties.member.Value" + (j + 1), steps[i].Properties[j].value]);
+                params.push(["Steps.member." + (parseInt(i) + 1) + ".HadoopJarStep.Properties.member.Key" + (j + 1), steps[i].Properties[j].name]);
+                params.push(["Steps.member." + (parseInt(i) + 1) + ".HadoopJarStep.Properties.member.Value" + (j + 1), steps[i].Properties[j].value]);
             }
         }
         this.queryEMR("AddJobFlowSteps", params, this, false, "onComplete", callback);
@@ -7356,7 +7356,7 @@ var ew_api = {
         var params = [["TerminationProtected", toBool(flag)]]
         if (!Array.isArray(id)) id = [ id ];
         for (var i = 0; i < id.length; i++) {
-            params.push(["JobFlowIds.member." + (i + 1), id]);
+            params.push(["JobFlowIds.member." + (parseInt(i) + 1), id]);
         }
         this.queryEMR("SetTerminationProtection", params, this, false, "onComplete", callback);
     },
