@@ -12,7 +12,7 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To download the ElasticWolf project from the GitHub repository:
 
-         git clone git://github.com/aws-ew-dev/ElasticWolf.git
+         git clone https://github.com/viglesiasce/EucaLobo
 
    * Setup an endpoint in the UI with the following URL:
 
@@ -22,7 +22,7 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To download the ElasticWolf project from the GitHub repository:
 
-        git clone git://github.com/aws-ew-dev/ElasticWolf.git
+        git clone https://github.com/viglesiasce/EucaLobo
 
    * Primary development is done on Mac so there is a special dev mode to run it as
      an OS X application with symlinks to the actual source code:
