@@ -3699,10 +3699,10 @@ var ew_api = {
             obj.description = getNodeValue(item, "groupDescription");
             obj.vpcId = getNodeValue(item, "vpcId");
             var ipPermissions = item.getElementsByTagName("ipPermissions")[0];
-            var ipPermissionsList = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
-	    ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
+            obj.permissions = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
+	        ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
             // Comment out egress rules for Eucalyptus
-	    //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
+	        // = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
             obj.tags = this.getTags(item);
             ew_core.processTags(obj)
             list.push(obj);
@@ -3732,30 +3732,33 @@ var ew_api = {
 
     authorizeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
-        params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
+        params.push([ "CidrIp", cidrIp ]);
         this.queryEC2("AuthorizeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     revokeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
-        params.push([ "IpPermissions.1.IpRanges.1.CidrIp", cidrIp ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
+        params.push([ "CidrIp", cidrIp ]);
         this.queryEC2("RevokeSecurityGroup" + type, params, this, false, "onComplete", callback);
     },
 
     authorizeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
         if (group.vpcId && group.vpcId != "") {
             params.push([ "IpPermissions.1.Groups.1.GroupId", srcGroup.id ]);
         } else {
@@ -3767,10 +3770,11 @@ var ew_api = {
 
     revokeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = group.id && group.id != "" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group.name ] ]
-        params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
-        params.push([ "IpPermissions.1.FromPort", fromPort ]);
-        params.push([ "IpPermissions.1.ToPort", toPort ]);
+        var params = [ [ "GroupId", group.id ] ];
+        params.push([ "GroupName", group.name ]);
+        params.push([ "IpProtocol", ipProtocol ]);
+        params.push([ "FromPort", fromPort ]);
+        params.push([ "ToPort", toPort ]);
         if (group.vpcId && group.vpcId != "") {
             params.push([ "IpPermissions.1.Groups.1.GroupId", srcGroup.id ]);
         } else {
