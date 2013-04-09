@@ -1,0 +1,659 @@
+<!ENTITY ew.credentials.manage.label "Credentials">
+<!ENTITY ew.endpoints.manage.label "Regions">
+<!ENTITY ew.tools.manage.label "Tools">
+<!ENTITY ew.accountids.manage.label "Account IDs">
+<!ENTITY ew.about.label "About">
+<!ENTITY ew.quit.label "Quit">
+<!ENTITY ew.description.label "Description">
+<!ENTITY ew.createTag.label "Create Public Tag">
+<!ENTITY ew.deleteTag.label "Delete Public Tag">
+<!ENTITY ew.publictag.label "Public Tag">
+
+<!ENTITY ew.tabs.instance.label "Instances">
+<!ENTITY ew.tabs.image.label "Images">
+<!ENTITY ew.tabs.access.label "Access Keys/Certs">
+<!ENTITY ew.tabs.keypair.label "Keypairs">
+<!ENTITY ew.tabs.securitygroup.label "Security Groups">
+<!ENTITY ew.tabs.availzone.label "Availability Zones">
+<!ENTITY ew.tabs.eip.label "Elastic IPs">
+<!ENTITY ew.tabs.snapshot.label "Snapshots">
+<!ENTITY ew.tabs.volume.label "Volumes">
+<!ENTITY ew.tabs.bundletask.label "Bundle Tasks">
+<!ENTITY ew.tabs.lease.label "Reserved Instances">
+<!ENTITY ew.tabs.placementgroup.label "Placement Groups">
+<!ENTITY ew.tabs.spot.label "Spot Requests">
+<!ENTITY ew.tabs.export.label "VM Import/Export">
+<!ENTITY ew.tabs.loadbalancer.label "Load Balancers">
+<!ENTITY ew.tabs.vpc.label "VPCs">
+<!ENTITY ew.tabs.dhcp.label "DHCP Options">
+<!ENTITY ew.tabs.subnet.label "Subnets">
+<!ENTITY ew.tabs.routing.label "Routing Tables">
+<!ENTITY ew.tabs.igw.label "Internet Gateways">
+<!ENTITY ew.tabs.cgw.label "Customer Gateways">
+<!ENTITY ew.tabs.vgw.label "VPN Gateways">
+<!ENTITY ew.tabs.vpn.label "VPN Connections">
+<!ENTITY ew.tabs.acl.label "Network ACLs">
+<!ENTITY ew.tabs.eni.label "Elastic Network Interfaces">
+<!ENTITY ew.tabs.s3.label "Simple Storage Service">
+
+<!ENTITY ew.captions.images.images.label "Machine Images (AMIs)">
+<!ENTITY ew.captions.images.attribs.label "Launch Permissions">
+<!ENTITY ew.captions.images.instances.label "Your Instances">
+<!ENTITY ew.captions.images.launchsecgroups.label "Security Groups">
+<!ENTITY ew.captions.images.launchparams.label "User Data">
+
+<!ENTITY ew.captions.newinstances.vpc.label "Virtual Private Cloud">
+<!ENTITY ew.captions.newinstances.usevpc.label "Launch in VPC:">
+
+<!ENTITY ew.captions.internetgateways.label "Internet Gateways">
+<!ENTITY ew.internetgateways.add.tip "Add Gateway">
+<!ENTITY ew.internetgateways.remove.tip "Delete Gateway">
+<!ENTITY ew.internetgateways.attach.tip "Attach to VPC">
+<!ENTITY ew.internetgateways.detach.tip "Detach from VPC">
+
+<!ENTITY ew.captions.acls.label "Network ACLs">
+<!ENTITY ew.acls.add.tip "Add ACL">
+<!ENTITY ew.acls.remove.tip "Delete ACL">
+
+<!ENTITY ew.images.id.label "ID">
+<!ENTITY ew.images.manifest.label "Manifest">
+<!ENTITY ew.images.state.label "State">
+<!ENTITY ew.images.owner.label "Owner">
+<!ENTITY ew.images.ownerAlias.label "Owner Alias">
+<!ENTITY ew.images.visibility.label "Visibility">
+<!ENTITY ew.images.architecture.label "Architecture">
+<!ENTITY ew.images.rootDeviceType.label "Root Device Type">
+<!ENTITY ew.images.register.newimage.manifest.label "AMI Manifest Path">
+<!ENTITY ew.images.name.label "Name">
+
+<!ENTITY ew.instances.resid.label "Reservation ID">
+<!ENTITY ew.instances.owner.label "Owner">
+<!ENTITY ew.instances.groups.label "Groups">
+<!ENTITY ew.instances.id.label "Instance ID">
+<!ENTITY ew.instances.imageId.label "AMI">
+<!ENTITY ew.instances.kernelId.label "AKI">
+<!ENTITY ew.instances.ramdiskId.label "ARI">
+<!ENTITY ew.instances.vpcId.label "VPC">
+<!ENTITY ew.instances.subnetId.label "Subnet">
+<!ENTITY ew.instances.state.label "State">
+<!ENTITY ew.instances.dnsName.label "Public DNS">
+<!ENTITY ew.instances.privateDnsName.label "Private DNS">
+<!ENTITY ew.instances.monitoringState.label "Monitoring State">
+<!ENTITY ew.instances.privateIpAddress.label "Private IP">
+<!ENTITY ew.instances.ipAddress.label "IP Address">
+<!ENTITY ew.instances.elasticIp.label "Elastic IP">
+<!ENTITY ew.instances.tenancy.label "Tenancy">
+<!ENTITY ew.instances.keyName.label "Key">
+<!ENTITY ew.instances.reason.label "Reason">
+<!ENTITY ew.instances.amiLaunchIdx.label "Idx">
+<!ENTITY ew.instances.instanceType.label "Type">
+<!ENTITY ew.instances.rootDeviceType.label "Root Device">
+<!ENTITY ew.instances.launchTime.label "Local Launch Time">
+
+<!ENTITY ew.captions.kernels.akis.label "Kernel Images (AKIs)">
+<!ENTITY ew.captions.kernels.aris.label "Ramdisk Images (ARIs)">
+
+<!ENTITY ew.kernels.id.label "AKI ID">
+<!ENTITY ew.ramdisks.id.label "ARI ID">
+<!ENTITY ew.machines.id.label "AMI ID">
+<!ENTITY ew.tag.label "Tag">
+
+<!ENTITY ew.captions.keypairs.label "Your Keypairs">
+<!ENTITY ew.keypairs.name.label "Name">
+<!ENTITY ew.keypairs.fingerprint.label "Fingerprint">
+
+<!ENTITY ew.captions.accesskeys.label "Your Access Keys">
+<!ENTITY ew.accesskeys.name.label "Id">
+<!ENTITY ew.accesskeys.status.label "Status">
+<!ENTITY ew.accesskeys.current.label "Current">
+
+<!ENTITY ew.captions.certs.label "Signing Certificates">
+<!ENTITY ew.certs.name.label "CertId">
+
+<!ENTITY ew.captions.azones.label "Availability Zones">
+<!ENTITY ew.azones.name.label "Name">
+<!ENTITY ew.azones.state.label "State">
+
+<!ENTITY ew.captions.eip.label "Your Elastic IPs">
+<!ENTITY ew.eip.address.label "Address">
+<!ENTITY ew.eips.address.label "IP Address">
+
+<!ENTITY ew.captions.secgroups.groups.label "Your Security Groups">
+<!ENTITY ew.captions.secgroups.permissions.label "Group Permissions">
+
+<!ENTITY ew.permissions.type.label "Type">
+<!ENTITY ew.permissions.protocol.label "Protocol">
+<!ENTITY ew.permissions.fromport.label "From Port/ICMP Type">
+<!ENTITY ew.permissions.toport.label "To Port/ICMP Code">
+<!ENTITY ew.permissions.groups.label "Source User:Group">
+<!ENTITY ew.permissions.cidrs.label "Source CIDR">
+<!ENTITY ew.permissions.details.groups.label "Source (User,Group)">
+
+<!ENTITY ew.captions.volumes.volumes.label "Created Volumes">
+<!ENTITY ew.captions.volumes.snapshots.label "Saved Snapshots">
+
+<!ENTITY ew.volumes.id.label "VOL ID">
+<!ENTITY ew.volumes.size.label "Size (GB)">
+<!ENTITY ew.volumes.status.label "Status">
+<!ENTITY ew.volumes.createTime.label "Local Creation Date">
+<!ENTITY ew.volumes.attachment.device.label "Device">
+<!ENTITY ew.volumes.attachment.status.label "Attachment Status">
+<!ENTITY ew.volumes.attachment.attachTime.label "Attach Time">
+<!ENTITY ew.volumes.attachment.description.device "Linux devices: /dev/sda through /dev/sdp">
+
+<!ENTITY ew.snapshots.id.label "SNAP ID">
+<!ENTITY ew.snapshots.status.label "Status">
+<!ENTITY ew.snapshots.startTime.label "Local Start Time">
+<!ENTITY ew.snapshots.progress.label "Progress">
+<!ENTITY ew.snapshots.volumeSize.label "Volume Size">
+<!ENTITY ew.snapshots.owner.label "Owner">
+<!ENTITY ew.snapshots.ownerAlias.label "Owner Alias">
+
+<!ENTITY ew.captions.bundleTasks.label "Your Bundle Tasks">
+
+<!ENTITY ew.captions.vpcs.vpcs.label "Your Virtual Private Clouds">
+
+<!ENTITY ew.vpcs.id.label "VPC ID">
+<!ENTITY ew.vpcs.cidrblock.label "CIDR">
+<!ENTITY ew.vpcs.state.label "State">
+<!ENTITY ew.vpcs.dhcpoptions.label "DHCP Options">
+
+<!ENTITY ew.vpc.contextmenu.createsubnet.label "Create a Subnet in this VPC">
+<!ENTITY ew.vpc.contextmenu.attachvpngw.label "Attach a VPN Gateway to this VPC">
+<!ENTITY ew.vpc.contextmenu.attachigw.label "Attach a Internet Gateway to this VPC">
+<!ENTITY ew.vpc.contextmenu.setdhcpoptions.label "Set DHCP Options on this VPC">
+<!ENTITY ew.vpc.contextmenu.delete.label "Delete this VPC">
+<!ENTITY ew.vpc.contextmenu.copyvpcid.label "Copy VPC ID to Clipboard">
+
+<!ENTITY ew.captions.subnets.subnets.label "Your Subnets">
+
+<!ENTITY ew.subnets.id.label "Subnet ID">
+<!ENTITY ew.subnets.state.label "State">
+<!ENTITY ew.subnets.cidrblock.label "CIDR">
+<!ENTITY ew.subnets.availableip.label "Available IPs">
+<!ENTITY ew.subnets.availabilityzone.label "Availability Zone">
+
+<!ENTITY ew.subnet.contextmenu.launch.label "Launch instance(s) on this Subnet">
+<!ENTITY ew.subnet.contextmenu.delete.label "Delete this Subnet">
+<!ENTITY ew.subnet.contextmenu.copysubnetid.label "Copy Subnet ID to Clipboard">
+
+<!ENTITY ew.captions.dhcpopts.dhcpopts.label "Your DHCP Options Sets">
+<!ENTITY ew.dhcpopts.contextmenu.delete.label "Delete DHCP Option Set">
+<!ENTITY ew.dhcpopts.contextmenu.copydhcpoptsid.label "Copy DHCP Options Set ID to Clipboard">
+
+<!ENTITY ew.dhcpopts.id.label "DHCP Options Set ID">
+<!ENTITY ew.dhcpopts.options.label "Options">
+
+<!ENTITY ew.captions.vpnGateways.label "Your VPN Gateways">
+<!ENTITY ew.vpnGateway.contextmenu.createvpnconnection.label "Create a VPN Connection">
+<!ENTITY ew.vpnGateway.contextmenu.attachvpc.label "Attach VPC">
+<!ENTITY ew.vpnGateway.contextmenu.detachvpc.label "Detach VPC">
+<!ENTITY ew.vpnGateway.contextmenu.delete.label "Delete this VPN Gateway">
+<!ENTITY ew.vpnGateway.contextmenu.copyvgwid.label "Copy VPN Gateway ID to the Clipboard">
+<!ENTITY ew.vpnGateways.id.label "ID">
+<!ENTITY ew.vpnGateways.availabilityZone.label "Availability Zone">
+<!ENTITY ew.vpnGateways.type.label "Type">
+<!ENTITY ew.vpnGateways.state.label "State">
+
+<!ENTITY ew.captions.customergateways.customergateways.label "Your Customer Gateways">
+<!ENTITY ew.customergateway.contextmenu.createvpnconnection.label "Create a VPN Connection">
+<!ENTITY ew.customergateway.contextmenu.delete.label "Delete this Customer Gateway">
+<!ENTITY ew.customergateway.contextmenu.copycgwid.label "Copy Customer Gateway ID to Clipboard">
+<!ENTITY ew.customergateways.id.label "ID">
+<!ENTITY ew.customergateways.type.label "Type">
+<!ENTITY ew.customergateways.state.label "State">
+<!ENTITY ew.customergateways.ipaddress.label "IP Address">
+<!ENTITY ew.customergateways.bgpasn.label "BGP ASN">
+
+<!ENTITY ew.captions.vpnconnections.vpnconnections.label "Your VPN Connections">
+<!ENTITY ew.vpnconnection.contextmenu.delete.label "Delete this VPN Connection">
+<!ENTITY ew.vpnconnection.contextmenu.config.label "Save Customer Gateway Configuration">
+<!ENTITY ew.vpnconnection.contextmenu.copyvpnconnectionsid.label "Copy VPN Connection ID to Clipboard">
+
+<!ENTITY ew.vpnconnections.id.label "ID">
+<!ENTITY ew.vpnconnections.type.label "Type">
+<!ENTITY ew.vpnconnections.state.label "State">
+<!ENTITY ew.vpnconnections.cgwid.label "Customer Gateway ID">
+<!ENTITY ew.vpnconnections.vgwid.label "VPN Gateway ID">
+
+<!ENTITY ew.bundleTasks.id.label "Bundle ID">
+<!ENTITY ew.bundleTasks.state.label "Bundle State">
+<!ENTITY ew.bundleTasks.startTime.label "Bundle Start Time">
+<!ENTITY ew.bundleTasks.updateTime.label "Last Update Time">
+<!ENTITY ew.bundleTasks.s3.bucket.label "S3 Bucket">
+<!ENTITY ew.bundleTasks.s3.prefix.label "S3 Prefix">
+<!ENTITY ew.bundleTasks.errorMessage.label "Error Message">
+
+<!ENTITY ew.bundleInstance.s3.bucket.label "S3 Bucket Name">
+<!ENTITY ew.bundleInstance.s3.image.label "Image Name">
+
+<!ENTITY ew.captions.offerings.label "Reserved Instances Offerings">
+<!ENTITY ew.captions.reservedInstances.label "Your Reserved Instances">
+
+<!ENTITY ew.offerings.id.label "Offering ID">
+<!ENTITY ew.offerings.instType.label "Instance Type">
+<!ENTITY ew.offerings.duration.label "Duration (years)">
+<!ENTITY ew.offerings.fixedPrice.label "One-time Payment/Instance (US$)">
+<!ENTITY ew.offerings.usagePrice.label "Usage Price/Instance (US$)">
+<!ENTITY ew.offerings.recurringPrice.label "Recurring Charges/Instance (US$)">
+<!ENTITY ew.offerings.description.label "Description">
+<!ENTITY ew.offerings.totalPrice.label "Total One-time Payment (Due Now)">
+<!ENTITY ew.offerings.captions.review.label "Review, Specify Number of Instances, and click Continue">
+<!ENTITY ew.offerings.captions.information.label "Information">
+<!ENTITY ew.offerings.captions.payment.label "One-time Payment Details">
+<!ENTITY ew.offerings.purchaseOffering.tip "PurchaseOffering">
+<!ENTITY ew.offerings.contextmenu.purchase.label "Purchase Reserved Instances Offering">
+<!ENTITY ew.offerings.offering.label "OfferingType">
+<!ENTITY ew.offerings.tenancy.label "Tenancy">
+
+<!ENTITY ew.rsvdInst.id.label "Reserved Instances ID">
+<!ENTITY ew.rsvdInst.instType.label "Instance Type">
+<!ENTITY ew.rsvdInst.duration.label "Duration (years)">
+<!ENTITY ew.rsvdInst.remaining.label "Days Remaining">
+<!ENTITY ew.rsvdInst.fixedPrice.label "One-time Payment/Instance (US$)">
+<!ENTITY ew.rsvdInst.usagePrice.label "Usage Price/Instance (US$)">
+<!ENTITY ew.rsvdInst.recurringPrice.label "Recurring Charges/Instance (US$)">
+<!ENTITY ew.rsvdInst.count.label "Number of Instances">
+<!ENTITY ew.rsvdInst.description.label "Description">
+<!ENTITY ew.rsvdInst.state.label "State">
+<!ENTITY ew.rsvdInst.daysremaining.label "Days Remaining">
+
+<!ENTITY ew.platform.label "Platform">
+<!ENTITY ew.availabilityZone.label "Availability Zone">
+<!ENTITY ew.addTag.label "Add Tag">
+
+<!ENTITY ew.contextmenu.details.label "View Details">
+<!ENTITY ew.contextmenu.copyid.label "Copy ID to clipboard">
+<!ENTITY ew.contextmenu.copyname.label "Copy Name to clipboard">
+
+<!ENTITY ew.images.contextmenu.register.label "Register a new AMI">
+<!ENTITY ew.images.contextmenu.deregister.label "Deregister this AMI">
+<!ENTITY ew.images.contextmenu.migrate.label "Migrate AMI and Register">
+<!ENTITY ew.images.contextmenu.delete.label "Delete AMI Parts and Deregister">
+<!ENTITY ew.images.contextmenu.launch.label "Launch instance(s) of this AMI">
+
+<!ENTITY ew.instances.contextmenu.launchmore.label "Launch More of these">
+<!ENTITY ew.instances.contextmenu.attachebs.label "Attach an EBS Volume">
+<!ENTITY ew.instances.contextmenu.bundle.label "Bundle into an AMI">
+<!ENTITY ew.instances.contextmenu.reboot.label "Reboot">
+<!ENTITY ew.instances.contextmenu.terminate.label "Terminate">
+<!ENTITY ew.instances.contextmenu.stop.label "Stop">
+<!ENTITY ew.instances.contextmenu.forcestop.label "Force Stop">
+<!ENTITY ew.instances.contextmenu.start.label "Start">
+<!ENTITY ew.instances.contextmenu.monitor.label "Monitor">
+<!ENTITY ew.instances.contextmenu.unmonitor.label "Unmonitor">
+<!ENTITY ew.instances.contextmenu.console.label "Show Console Output">
+<!ENTITY ew.instances.contextmenu.password.label "Get Administrator Password">
+<!ENTITY ew.instances.contextmenu.copypublic.label "Copy Public DNS Name to clipboard">
+<!ENTITY ew.instances.contextmenu.copyprivate.label "Copy Private DNS Name to clipboard">
+<!ENTITY ew.instances.contextmenu.connect.label "Connect to Public DNS Name">
+<!ENTITY ew.instances.contextmenu.copyname.label "Name">
+<!ENTITY ew.instances.contextmenu.copyid.label "Instance ID">
+
+<!ENTITY ew.addresses.contextmenu.associate.label "Associate Elastic IP with Instance">
+<!ENTITY ew.addresses.contextmenu.disassociate.label "Disassociate this address">
+<!ENTITY ew.addresses.contextmenu.release.label "Release this address">
+<!ENTITY ew.addresses.contextmenu.copy.label "Copy Elastic IP to Clipboard">
+
+<!ENTITY ew.volume.contextmenu.createsnap.label "Create a new snapshot from this volume">
+<!ENTITY ew.volume.contextmenu.attach.label "Attach this volume">
+<!ENTITY ew.volume.contextmenu.detach.label "Detach this volume">
+<!ENTITY ew.volume.contextmenu.forcedetach.label "Force detach this volume">
+<!ENTITY ew.volume.contextmenu.delete.label "Delete this volume">
+<!ENTITY ew.volume.contextmenu.create.label "Create new volume">
+<!ENTITY ew.volume.contextmenu.copyvolid.label "Copy Volume ID to clipboard">
+
+<!ENTITY ew.snapshot.contextmenu.createvol.label "Create new volume from this snapshot">
+<!ENTITY ew.snapshot.contextmenu.delete.label "Delete this snapshot">
+<!ENTITY ew.snapshot.contextmenu.copysnapid.label "Copy Snapshot ID to clipboard">
+
+
+<!ENTITY ew.bundleTasks.contextmenu.register.label "Register AMI">
+<!ENTITY ew.bundleTasks.contextmenu.cancel.label "Cancel Bundle Task">
+<!ENTITY ew.bundleTasks.contextmenu.copybunid.label "Copy Bundle ID to clipboard">
+
+<!ENTITY ew.credentials.tip "Manage AWS credentials for accessing Amazon EC2">
+<!ENTITY ew.endpoints.tip "Manage Amazon EC2 Regions">
+<!ENTITY ew.tools.tip "Manage local tools">
+<!ENTITY ew.accountids.tip "Configure friendler names for known EC2 account IDs">
+<!ENTITY ew.about.tip "All about this extension">
+<!ENTITY ew.quit.tip "Quit the application">
+
+<!ENTITY ew.refresh.tip "Refresh">
+<!ENTITY ew.createvpc.tip "Create a new VPC">
+<!ENTITY ew.deletevpc.tip "Delete this VPC">
+
+<!ENTITY ew.createsubnet.tip "Create a new Subnet">
+<!ENTITY ew.deletesubnet.tip "Delete this Subnet">
+
+<!ENTITY ew.createdhcpoptions.tip "Create a new DHCP Options Set">
+<!ENTITY ew.deletedhcpoptions.tip "Delete this DHCP Options Set">
+<!ENTITY ew.createvpnGateway.tip "Create a new VPN Gateway">
+<!ENTITY ew.deletevpnGateway.tip "Delete this VPN Gateway">
+<!ENTITY ew.attachvpnGateway.tip "Attach this VPN Gateway to a VPC">
+<!ENTITY ew.createcustomergateway.tip "Create a new Customer Gateway">
+<!ENTITY ew.deletecustomergateway.tip "Delete this Customer Gateway">
+<!ENTITY ew.createvpnconnection.tip "Create a new VPN Connection">
+<!ENTITY ew.deletevpnconnection.tip "Delete this VPN Connection">
+<!ENTITY ew.deletevpnattachment.tip "Detach">
+<!ENTITY ew.getcustomerconfig.tip "Save Customer Gateway Configuration">
+
+<!ENTITY ew.images.powerup.tip "Launch New Instance(s)">
+<!ENTITY ew.images.register.tip "Register AMI">
+<!ENTITY ew.images.deregister.tip "Deregister AMI">
+
+<!ENTITY ew.launchperms.add.tip "Allow new user to launch this AMI">
+<!ENTITY ew.launchperms.remove.tip "Revoke launch permissions for the selected user">
+<!ENTITY ew.launchperms.public.tip "Allow any user to launch this AMI">
+<!ENTITY ew.launchperms.reset.tip "Reset to defaults">
+
+<!ENTITY ew.instances.console.tip "Show Console Output">
+<!ENTITY ew.instances.connect.tip "Connect To Public IP of the Instance">
+<!ENTITY ew.instances.start.tip "Start Selected Instances">
+<!ENTITY ew.instances.launch.tip "Launch Instances of the same AMI as selected">
+<!ENTITY ew.instances.stop.tip "Stop Selected Instances">
+<!ENTITY ew.instances.reboot.tip "Reboot Selected Instances">
+<!ENTITY ew.instances.powerdown.tip "Terminate Selected Instances">
+
+<!ENTITY ew.keypairs.details.tip "Show keypair details">
+<!ENTITY ew.keypairs.create.tip "Create a new keypair">
+<!ENTITY ew.keypairs.delete.tip "Delete selected keypair">
+<!ENTITY ew.keypairs.import.tip "Import existing SSH key into keypair">
+<!ENTITY ew.keypairs.make.tip "Create new SSH keys and import into keypair">
+<!ENTITY ew.keypairs.shell.tip "Run shell with selected keypair and current access key">
+
+<!ENTITY ew.accesskeys.create.tip "Create a new access key">
+<!ENTITY ew.accesskeys.delete.tip "Delete selected access key">
+<!ENTITY ew.accesskeys.switch.tip "Use selected access key for credentials authentication">
+<!ENTITY ew.accesskeys.export.tip "Export into file">
+
+<!ENTITY ew.certs.create.tip "Create a new certificate">
+<!ENTITY ew.certs.delete.tip "Delete certificate">
+<!ENTITY ew.certs.upload.tip "Upload existing certificate from file">
+<!ENTITY ew.certs.save.tip "Export certificate into file">
+
+<!ENTITY ew.eips.allocate.tip "Allocate a new address">
+<!ENTITY ew.eips.associate.tip "Associate selected address">
+<!ENTITY ew.eips.disassociate.tip "Disassociate selected address">
+<!ENTITY ew.eips.release.tip "Release selected address">
+
+<!ENTITY ew.secgroups.create.tip "Create Security Group">
+<!ENTITY ew.secgroups.delete.tip "Delete Selected Group">
+
+<!ENTITY ew.secgroups.ownerId.label "Owner">
+<!ENTITY ew.secgroups.name.label "Name">
+<!ENTITY ew.secgroups.description.label "Description">
+
+<!ENTITY ew.secgroups.contextmenu.authorize.label "Grant New Permission">
+<!ENTITY ew.secgroups.contextmenu.create.label "Create a new security group">
+<!ENTITY ew.secgroups.contextmenu.delete.label "Delete this security group">
+
+<!ENTITY ew.permissions.authorize.tip "Grant Ingress Permission">
+<!ENTITY ew.permissions.authorize.egress.tip "Grant Egress Permission">
+<!ENTITY ew.permissions.revoke.tip "Revoke Permission">
+<!ENTITY ew.permissions.contextmenu.revoke.label "Revoke this permission">
+
+<!ENTITY ew.captions.routetables.label "Route Tables">
+<!ENTITY ew.routetable.create.tip "Create Route Table">
+<!ENTITY ew.routetable.delete.tip "Delete Route Table">
+
+<!ENTITY ew.captions.routes.label "Routes">
+<!ENTITY ew.routes.create.tip "Create Route">
+<!ENTITY ew.routes.delete.tip "Delete Route">
+
+<!ENTITY ew.captions.route.associations.label "Subnet Associations">
+<!ENTITY ew.route.associations.create.tip "Associate Route Table">
+<!ENTITY ew.route.associations.delete.tip "Deassociate Route Table">
+
+<!ENTITY ew.createvolfromsnap.tip "Create new volume from this snapshot">
+<!ENTITY ew.deletesnap.tip "Delete this snapshot">
+<!ENTITY ew.deletevol.tip "Delete this volume">
+<!ENTITY ew.createvol.tip "Create new volume">
+<!ENTITY ew.createsnapfromvol.tip "Create new snapshot from this volume">
+<!ENTITY ew.attachvol.tip "Attach this volume to an instance">
+<!ENTITY ew.detachvol.tip "Detach this volume from its instance">
+
+<!ENTITY ew.cancelBundleTask.tip "Cancel this Bundle Task">
+
+<!ENTITY ew.instance.console.timestamp.label "Timestamp">
+<!ENTITY ew.instance.console.output.label "Console Output">
+<!ENTITY ew.instance.console.encoding.label "Encoding">
+
+<!ENTITY ew.instances.detail.amimanifest.label "AMI Manifest">
+<!ENTITY ew.instances.detail.monitoring.label "Monitoring">
+<!ENTITY ew.instances.detail.keyname.label "Key Name">
+<!ENTITY ew.instances.detail.securitygrouplist.label "Security Groups">
+<!ENTITY ew.instances.detail.reason.label "Last Reason">
+<!ENTITY ew.instances.detail.amiLaunchIdx.label "AMI Launch Index">
+<!ENTITY ew.instances.detail.instanceType.label "Instance Type">
+<!ENTITY ew.instances.detail.eip.label "Elastic IP">
+<!ENTITY ew.instances.detail.volumelist.label "EBS Volumes">
+
+<!ENTITY ew.copyS3.keys.captions.progress.label "AMI Migration Progress">
+<!ENTITY ew.copyS3.keys.currentOperation.label "Current Operation">
+<!ENTITY ew.copyS3.keys.current.label "Initializing...">
+<!ENTITY ew.copyS3.keys.fileTransfer.label "File Transfer Status">
+
+<!ENTITY ew.deleteami.captions.progress.label "AMI Deletion Progress">
+<!ENTITY ew.deleteami.currentOperation.label "Current Operation">
+<!ENTITY ew.deleteami.current.label "Initializing...">
+
+<!ENTITY ew.accountids.accountid.label "Account ID">
+<!ENTITY ew.accountids.displayname.label "Display Name">
+
+<!ENTITY ew.creds.account.label "Account Name">
+<!ENTITY ew.creds.akid.label "AWS Access Key">
+<!ENTITY ew.creds.secretkey.label "AWS Secret Access Key">
+<!ENTITY ew.creds.region.label "Preferred Region">
+
+<!ENTITY ew.endpoints.name.label "Region Name">
+<!ENTITY ew.endpoints.type.label "Type">
+<!ENTITY ew.endpoints.url.label "Endpoint URL">
+<!ENTITY ew.endpoints.version.label "API Version">
+
+<!ENTITY ew.tools.ssh.command.label "SSH Command">
+<!ENTITY ew.tools.ssh.args.label "SSH Arguments">
+<!ENTITY ew.tools.ssh.key.label "SSH Key Template">
+<!ENTITY ew.tools.key.template.label "EC2 Private Key Template">
+<!ENTITY ew.tools.ssh.user.label "SSH User">
+<!ENTITY ew.tools.rdp.command.label "RDP Command">
+<!ENTITY ew.tools.rdp.args.label "RDP Arguments">
+<!ENTITY ew.tools.description.home "${home} - Your home directory.">
+<!ENTITY ew.tools.description.keyname "${keyname} - The EC2 keypair name the instance was launched with.">
+<!ENTITY ew.tools.description.host "${host} - The public DNS name of the EC2 instance.">
+<!ENTITY ew.tools.description.key "${key} - The (interpolated) key template.">
+<!ENTITY ew.tools.description.user "${user} - The configured user name.">
+<!ENTITY ew.tools.description.pass "${pass} - The Administrator password for a Windows instance.">
+
+<!ENTITY ew.migrate.ami.regions.label "To Region">
+<!ENTITY ew.migrate.ami.prefix.label "Prefix">
+<!ENTITY ew.migrate.ami.bucket.source.label "Source Bucket">
+<!ENTITY ew.migrate.ami.bucket.destination.label "Destination Bucket">
+
+<!ENTITY ew.instances.lunch.ami.tag.label "AMI Tag">
+<!ENTITY ew.instances.lunch.instancetypelist.label "Instance Type">
+<!ENTITY ew.instances.lunch.min.label "Minimum number of instances">
+<!ENTITY ew.instances.lunch.max.label "Maximum number of instances">
+<!ENTITY ew.instances.lunch.tag.label "New Instance(s) Tag">
+<!ENTITY ew.instances.lunch.keypairlist.label "KeyPair">
+<!ENTITY ew.instances.lunch.properties.label "Additional Info">
+<!ENTITY ew.instances.lunch.addressingType.label "Public Address">
+<!ENTITY ew.instances.lunch.secgroups.unused.label "Available Groups">
+<!ENTITY ew.instances.lunch.secgroups.used.label "Launch in">
+<!ENTITY ew.instances.lunch.button.userdata.openFile.label "Open File">
+<!ENTITY ew.instances.lunch.button.userdata.openBinaryFile.label "Open Binary File">
+
+<!ENTITY ew.newpermission.captions.new.label "Add New Permission for Security Group">
+<!ENTITY ew.newpermission.captions.protocol.label "Protocol Details">
+<!ENTITY ew.newpermission.captions.hostNetwork.label "Host/Network Details">
+<!ENTITY ew.newpermission.tab.external.label "External">
+<!ENTITY ew.newpermission.tab.group.label "Group">
+<!ENTITY ew.newpermission.port.label "Port">
+<!ENTITY ew.newpermission.fromport.label "Port Range">
+<!ENTITY ew.newpermission.toport.label "to">
+<!ENTITY ew.newpermission.icmptype.label "ICMP Type">
+<!ENTITY ew.newpermission.icmpcode.label "ICMP Code">
+<!ENTITY ew.newpermission.user.label "User ID">
+<!ENTITY ew.newpermission.group.label "Group">
+<!ENTITY ew.newpermission.radio.host.label "Host">
+<!ENTITY ew.newpermission.radio.network.label "Network">
+<!ENTITY ew.newpermission.button.getHost.label "Get My Host Address">
+<!ENTITY ew.newpermission.button.getNetwork.label "Get My Network Range">
+<!ENTITY ew.newpermission.description.external "Select a protocol and specify a host/range">
+<!ENTITY ew.newpermission.description.group "Specify a User and Group you would like to authorize">
+
+<!ENTITY ew.retrycancel.requestId.label "Request ID">
+<!ENTITY ew.retrycancel.faultCode.label "Fault Code">
+<!ENTITY ew.retrycancel.details.label "Details">
+
+<!ENTITY ew.secgroups.new.name.label "Group Name">
+<!ENTITY ew.secgroups.new.description.label "Description">
+<!ENTITY ew.secgroups.new.enableprot.host "Enable SSH and RDP for this Host?">
+<!ENTITY ew.secgroups.new.enableprot.network "Enable SSH and RDP for your Network (includes this Host)?">
+<!ENTITY ew.secgroups.new.enableprot.none "I will authorize protocols for this group as needed.">
+
+<!ENTITY ew.images.menuitem.noFilter.label "No Filter">
+<!ENTITY ew.images.menuitem.allAMIs.label "All AMIs">
+<!ENTITY ew.images.menuitem.allAMIsEBS.label "All AMIs with EBS Root Device">
+<!ENTITY ew.images.menuitem.allAMIsIS.label "All AMIs with Instance Store Root Device">
+<!ENTITY ew.images.menuitem.myAMIs.label "My AMIs">
+<!ENTITY ew.images.menuitem.myAMIsEBS.label "My AMIs with EBS Root Device">
+<!ENTITY ew.images.menuitem.amazonAMIs.label "Amazon AMIs">
+<!ENTITY ew.images.menuitem.amazonAMIsEBS.label "Amazon AMIs with EBS Root Device">
+<!ENTITY ew.images.menuitem.allAKIs.label "All AKIs">
+<!ENTITY ew.images.menuitem.allARIs.label "All ARIs">
+
+<!ENTITY ew.instances.checkbox.terminated.label "Don't show Terminated Instances">
+
+<!ENTITY ew.dialog.title.about "About">
+<!ENTITY ew.dialog.title.ami_details "AMI Details">
+<!ENTITY ew.dialog.title.attach_ebs_volume "Attach EBS Volume to Instance">
+<!ENTITY ew.dialog.title.bundle_instance "Bundle Instance into an AMI">
+<!ENTITY ew.dialog.title.bundle_task_details "Bundle Task Details">
+<!ENTITY ew.dialog.title.console_output "Instance Console Output">
+<!ENTITY ew.dialog.title.copy_S3_keys "Elasticfox AMI Migrator">
+<!ENTITY ew.dialog.title.create_security_group "Create a new security group">
+<!ENTITY ew.dialog.title.delete_ami "Elasticfox AMI Deleter">
+<!ENTITY ew.dialog.title.eip_details "ElasticIP Details">
+<!ENTITY ew.dialog.title.instance_details "Instance Details">
+<!ENTITY ew.dialog.title.keypair_details "Key Pair Details">
+<!ENTITY ew.dialog.title.manage_accountids "Manage Account IDs">
+<!ENTITY ew.dialog.title.manage_credentials "Manage EC2 Credentials">
+<!ENTITY ew.dialog.title.manage_endpoints "Manage EC2 Regions">
+<!ENTITY ew.dialog.title.manage_tools "Manage EC2 Tools">
+<!ENTITY ew.dialog.title.migrate_ami "Migrate AMI to another Region">
+<!ENTITY ew.dialog.title.new_attachment "Attach Volume">
+<!ENTITY ew.dialog.title.new_instances "Launch new instance(s)">
+<!ENTITY ew.dialog.title.new_permission "Grant New Permission">
+<!ENTITY ew.dialog.title.new_volume "Create Volume">
+<!ENTITY ew.dialog.title.offering_details "Reserved Instances Offering Details">
+<!ENTITY ew.dialog.title.permission_details "Security Group Details">
+<!ENTITY ew.dialog.title.purchase_offering "Purchase Reserved Instances">
+<!ENTITY ew.dialog.title.register_image "Register a new AMI">
+<!ENTITY ew.dialog.title.reserved_instances_details "Reserved Instances Details">
+<!ENTITY ew.dialog.title.retry_cancel "Retry or Cancel?">
+<!ENTITY ew.dialog.title.securitygroup_details "Security Group Details">
+<!ENTITY ew.dialog.title.select_eip "Associate Address with Instance">
+<!ENTITY ew.dialog.title.snapshot_details "Snapshot Details">
+<!ENTITY ew.dialog.title.volume_details "Volume Details">
+<!ENTITY ew.dialog.title.register_instances "Register Instances">
+<!ENTITY ew.dialog.title.deregister_instances "Deregister Instances">
+<!ENTITY ew.dialog.title.disable_avalibility_zone "Disable Availability Zones">
+<!ENTITY ew.dialog.title.enable_avalibility_zone "Enable Availability Zones">
+<!ENTITY ew.dialog.title.loadbalancer_details "Loadbalancer Details">
+<!ENTITY ew.dialog.title.Configure_Healthckeck "Configure Healthckeck">
+<!ENTITY ew.dialog.title.Create_Loadbalancer "Create Loadbalancer">
+
+<!ENTITY ew.dialog.description.step1 "Step:1 Loadbalancer Protocols">
+<!ENTITY ew.dialog.description.step2 "Step:2 Configure Healthcheck">
+<!ENTITY ew.dialog.description.step3 "Step:3 Register Instance">
+
+<!ENTITY ew.dialog.button.accept.attach_ebs_volume.label "Attach">
+<!ENTITY ew.dialog.button.accept.create_security_group.label "Create Group">
+<!ENTITY ew.dialog.button.accept.delete_ami.label "Done">
+<!ENTITY ew.dialog.button.cancel.migrate_ami.label "Cancel">
+<!ENTITY ew.dialog.button.accept.migrate_ami.label "Migrate">
+<!ENTITY ew.dialog.button.accept.new_attachment.label "Attach">
+<!ENTITY ew.dialog.button.accept.new_instances.label "Launch">
+<!ENTITY ew.dialog.button.accept.new_permission.label "Add">
+<!ENTITY ew.dialog.button.accept.new_volume.label "Create">
+<!ENTITY ew.dialog.button.accept.purchase_offering.label "Continue">
+<!ENTITY ew.dialog.button.accept.register_image.label "Register AMI">
+<!ENTITY ew.dialog.button.accept.retry_cancel.label "Retry">
+<!ENTITY ew.dialog.button.accept.select_eip.label "Associate">
+<!ENTITY ew.dialog.button.accept.Register.label "Register">
+<!ENTITY ew.dialog.button.accept.deregister.label "Deregister">
+<!ENTITY ew.dialog.button.accept.enable.label "Enable">
+<!ENTITY ew.dialog.button.accept.disable.label "Disable">
+<!ENTITY ew.dialog.button.accept.Configure.label "Configure">
+
+<!ENTITY ew.dialog.button.cancel.manage.label "Close">
+<!ENTITY ew.dialog.button.extra1.manage.label "Add">
+<!ENTITY ew.dialog.button.extra2.manage.label "Remove">
+
+<!ENTITY ew.captions.loadbalancer.label "Loadbalancer">
+<!ENTITY ew.captions.InstanceHealth.label "Instance Health">
+
+<!ENTITY ew.loadbalancer.name.label "Loadbalancer Name">
+<!ENTITY ew.loadbalancer.creationtime.label "Created Time">
+<!ENTITY ew.loadbalancer.dnsname.label "DNS Name">
+<!ENTITY ew.loadbalancer.instances.label "Instances">
+<!ENTITY ew.loadbalancer.zone.label "Availability Zones">
+<!ENTITY ew.loadbalancer.HealthCheck.label "HealthCheck">
+<!ENTITY ew.loadbalancer.Interval.label "Interval">
+<!ENTITY ew.loadbalancer.Timeout.label "Timeout">
+<!ENTITY ew.loadbalancer.HealthyThreshold.label "Healthy">
+<!ENTITY ew.loadbalancer.UnhealthyThreshold.label "Unhealthy">
+<!ENTITY ew.loadbalancer.Target.label "Target">
+<!ENTITY ew.loadbalancer.Protocol.label "Protocol">
+<!ENTITY ew.loadbalancer.LoadBalancerPort.label "Loadbalancer Port">
+<!ENTITY ew.loadbalancer.InstancePort.label "Instance Port">
+<!ENTITY ew.loadbalancer.APolicy.label "Application Policy">
+<!ENTITY ew.loadbalancer.Cookie.label "Cookie">
+<!ENTITY ew.loadbalancer.CPolicy.label "CPolicy">
+<!ENTITY ew.loadbalancer.LBPolicy.label "Loadbalancer Policy">
+
+<!ENTITY ew.loadbalancerview.Name.label "Name:">
+<!ENTITY ew.loadbalancerview.creationtime.label "Creation Time:">
+<!ENTITY ew.loadbalancerview.dnsname.label "DNS Name:">
+<!ENTITY ew.loadbalancerview.protocol.label "Protocol:">
+<!ENTITY ew.loadbalancerview.lbport.label "Loadbalancer Port:">
+<!ENTITY ew.loadbalancerview.iport.label "Instance Port:">
+<!ENTITY ew.loadbalancerview.interval.label "Interval:">
+<!ENTITY ew.loadbalancerview.target.label "Target:">
+<!ENTITY ew.loadbalancerview.HealthyThreshold.label "Healthy Threshold:">
+<!ENTITY ew.loadbalancerview.UnhealthyThreshold.label "Unhealthy Threshold:">
+<!ENTITY ew.loadbalancerview.Timeout.label "Timeout:">
+<!ENTITY ew.loadbalancerview.Instances.label "Instance:">
+<!ENTITY ew.loadbalancerview.AvailabilityZones.label "Availability Zones:">
+<!ENTITY ew.loadbalancerview.PingProtocol.label "Ping Protocol:">
+<!ENTITY ew.loadbalancerview.Port.label "Ping Port:">
+<!ENTITY ew.loadbalancerview.Path.label "Ping Path:">
+
+<!ENTITY ew.loadbalancer.contextmenu.viewdetails.label "View Details">
+<!ENTITY ew.loadbalancer.contextmenu.copydns.label "Copy DNS Name">
+<!ENTITY ew.loadbalancer.contextmenu.registerinstance.label "Register Instances">
+<!ENTITY ew.loadbalancer.contextmenu.deregisterinstance.label "Deregister Instances">
+<!ENTITY ew.loadbalancer.contextmenu.enableavailability.label "Enable Availability Zones">
+<!ENTITY ew.loadbalancer.contextmenu.disableavailability.label "Disable Availability Zones">
+<!ENTITY ew.loadbalancer.contextmenu.disablestickness.label "Disable Stickiness">
+<!ENTITY ew.loadbalancer.contextmenu.appstickness.label "Application Stickiness">
+<!ENTITY ew.loadbalancer.contextmenu.loadbalancerstickness.label "Loadbalancer Stickiness">
+<!ENTITY ew.loadbalancer.contextmenu.configurehealthcheck.label "Configure Healthcheck">
+<!ENTITY ew.loadbalancer.contextmenu.delete.label "Delete Loadbalancer">
+
+
+<!ENTITY ew.registerlb.register.label "Register">
+<!ENTITY ew.registerlb.instanceid.label "Instance Id">
+<!ENTITY ew.registerlb.state.label "State">
+<!ENTITY ew.registerlb.zone.label "Zone">
+
+<!ENTITY ew.endisazone.Select.label "Select">
+<!ENTITY ew.endisazone.AvailabilityZone.label "Availability Zone">
+
+<!ENTITY ew.InstanceHealth.Description.label "Description">
+<!ENTITY ew.InstanceHealth.State.label "State">
+<!ENTITY ew.InstanceHealth.InstanceId.label "Instance ID">
+<!ENTITY ew.InstanceHealth.ReasonCode.label "ReasonCode">
+
+<!ENTITY ew.create.loadbalancer.tip "Create Loadbalancer">

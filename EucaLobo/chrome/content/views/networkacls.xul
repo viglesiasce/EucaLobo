@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.acl" flex="1">
+    <vbox flex="1">
+            <groupbox flex="1" orient="vertical">
+                <caption label="&ew.captions.acls.label;" />
+                <popupset>
+                    <menupopup id="ew.acls.contextmenu">
+                        <menuitem oncommand="ew_NetworkAclsTreeView.createACL();" label="&ew.acls.add.tip;" />
+                        <menuitem oncommand="ew_NetworkAclsTreeView.deleteACL();" label="&ew.acls.remove.tip;" />
+                        <menuitem oncommand="ew_NetworkAclsTreeView.associateACL();" label="Associate with VPC Subnet" />
+                    </menupopup>
+                </popupset>
+                <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                    <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_NetworkAclsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                    <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclsTreeView.createACL();" tooltiptext="&ew.acls.add.tip;" />
+                    <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclsTreeView.deleteACL();" tooltiptext="&ew.acls.remove.tip;" />
+                    <toolbarbutton image="images/attach.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclsTreeView.associateACL();" tooltiptext="Associate with VPC Subnet" />
+                </toolbar>
+                <tree id="ew.acls.view" seltype="single" enableColumnDrag="true" onselect="ew_NetworkAclsTreeView.selectionChanged(event);" flex="1">
+                    <treecols>
+                        <treecol id="acl.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="acl.dflt" label="Default" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="acl.vpcId" label="VPC Id" flex="2" persist="width ordinal hidden sortDirection" />
+                    </treecols>
+                    <treechildren context="ew.acls.contextmenu" />
+                </tree>
+            </groupbox>
+
+            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+            </splitter>
+
+            <groupbox orient="vertical" flex="1">
+                <caption label="ACL Rules" />
+                <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                    <hbox>
+                        <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclRulesTreeView.createRule();" tooltiptext="Add ACL Rule" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_NetworkAclRulesTreeView.deleteRule();" tooltiptext="Delete ACL Rule" />
+                    </hbox>
+                </toolbar>
+                <tree id="ew.acls.rules.view" enableColumnDrag="true" flex="1">
+                    <treecols>
+                        <treecol id="rule.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.proto" label="Protocol" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.action" label="Action" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.egress" label="Egress" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.cidr" label="CIDR" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.ports" label="Ports" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="rule.icmp" label="ICMP" flex="1" persist="width ordinal hidden sortDirection" />
+                    </treecols>
+                    <treechildren />
+                </tree>
+            </groupbox>
+
+            <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+                
+            </splitter>
+
+            <groupbox orient="vertical" flex="1">
+                <caption label="ACL Associations" />
+                <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                    <hbox>
+                    </hbox>
+                </toolbar>
+                <tree id="ew.acls.associations.view" enableColumnDrag="true" flex="1">
+                    <treecols>
+                        <treecol id="assoc.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="assoc.subnetId" label="Subnet Id" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    </treecols>
+                    <treechildren />
+                </tree>
+            </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="ew-browser" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
+        title="" orient="vertical" persist="width height screenX screenY sizemode" onload="init()">
+
+<script type="application/x-javascript">
+function init() {
+    var file = window.arguments[0];
+    window.title = file;
+    document.getElementById("browser").loadURI(file);
+}
+</script>
+<browser id="browser" type="content" flex="1"/>
+</window>

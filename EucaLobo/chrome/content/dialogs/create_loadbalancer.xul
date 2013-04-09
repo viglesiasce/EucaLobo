@@ -1,0 +1,320 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<wizard  id="ew.dialog.createlb" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  onwizardfinish="return launch();"
+  onload="init();"
+  title="&ew.dialog.title.Create_Loadbalancer;"
+  width="700"
+  height="600" >
+
+  <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/types.js" />
+  <script type="application/x-javascript">
+  <![CDATA[
+
+  function init() {
+    var self = this;
+    this.core = window.arguments[0];
+    this.rc = window.arguments[1];
+
+    this.instanceList = new ListView({ core:this.core, rows:10, width:550, headers:["Select","Instance"], name:'ew.instances', items:this.core.queryModel('instances','state', 'running') });
+    this.subnets = this.core.queryModel('subnets');
+    this.core.sortObjects(this.subnets, ['vpcId', 'availabilityZone']);
+    this.subnetList = new ListView({ core:this.core, rows:4, width:450, name:'ew.subnets', items:this.subnets, onclick: function(item, checked) { self.refresh_group(item, checked) } });
+    this.groupList = new ListView({ core:this.core, rows:5, width:450, name:'ew.groups', items:[] });
+    this.azoneList = new ListView({ core:this.core, rows:4, width:450, name:'ew.azones', items:this.core.queryModel('availabilityZones') });
+
+    var certs = this.core.queryModel('serverCerts');
+    var certsMenu = $("ew.certs");
+    certsMenu.appendItem("", "");
+    for(var i in certs) {
+       certsMenu.appendItem(certs[i].name, certs[i].arn);
+    }
+    certsMenu.selectedIndex = 0;
+
+    var azsn = document.getElementById("ew.azsn").selectedIndex = this.rc.vpc ? 1 : 0;
+    onChange();
+  }
+
+  function onChange()
+  {
+     document.getElementById('ew.scheme').disabled = document.getElementById("ew.azsn").value == "az";
+  }
+
+  function launch() {
+    this.rc.name = document.getElementById("ew.Name").value.trim();
+    this.rc.Protocol = document.getElementById("ew.Protocol").value.trim();
+    this.rc.elbport = document.getElementById("ew.elbport").value.trim();
+    this.rc.instanceport = document.getElementById("ew.instanceport").value.trim();
+    this.rc.cert = document.getElementById("ew.certs").value.trim();
+
+    this.rc.pingprotocol = document.getElementById("ew.pingprotocol").value.trim();
+    this.rc.pingport = document.getElementById("ew.pingport").value.trim();
+    this.rc.pingpath = document.getElementById("ew.pingpath").value.trim();
+
+    this.rc.Target = this.rc.pingprotocol + ":" + this.rc.pingport
+    if (this.rc.pingprotocol.substr(0,4) == "HTTP") {
+        this.rc.Target += this.rc.pingpath;
+    }
+    this.rc.Interval = document.getElementById("ew.Interval").value.trim();
+    this.rc.Timeout = document.getElementById("ew.timeout").value.trim();
+    this.rc.HealthyThreshold = document.getElementById("ew.HThreshold").value.trim();
+    this.rc.UnhealthyThreshold = document.getElementById("ew.uThreshold").value.trim();
+    this.rc.securityGroups = [];
+    this.rc.subnets = [];
+    this.rc.azones = [];
+
+    var azsn = document.getElementById("ew.azsn").value;
+    if (azsn == 'az') {
+        this.azoneList.done();
+        for (var i in this.azoneList.selectedItems) {
+            this.rc.azones.push(this.azoneList.selectedItems[i].id);
+        }
+    } else {
+        this.subnetList.done();
+        this.groupList.done();
+        this.rc.scheme = document.getElementById("ew.scheme").value.trim();
+        for (var i in this.subnetList.selectedItems) {
+            this.rc.subnets.push(this.subnetList.selectedItems[i].id);
+        }
+        for (var i in this.groupList.selectedItems) {
+            this.rc.securityGroups.push(this.groupList.selectedItems[i].value);
+        }
+    }
+    instanceList.done();
+
+    this.rc.instances = [];
+    for (var i in this.instanceList.selectedItems) {
+        this.rc.instances.push(this.instanceList.selectedItems[i].id);
+    }
+
+    this.rc.ok = true;
+    return true;
+  }
+
+  function refresh_group(item, checked) {
+    this.subnetList.done();
+    var groups = [];
+    for (var i in this.subnetList.selectedItems) {
+        var list = this.core.queryModel('securityGroups', 'vpcId', this.subnetList.selectedItems[i].vpcId);
+        groups = groups.concat(list);
+    }
+    this.groupList.init({ core:this.core, rows:5, width:450, name:'ew.groups', items:groups });
+  }
+
+  function validate1() {
+    var name = document.getElementById('ew.Name').value;
+    var elbport = document.getElementById('ew.elbport').value;
+    var iElbport = parseInt(elbport);
+    var instanceport = document.getElementById('ew.instanceport').value;
+    var iInstanceport = parseInt(instanceport);
+
+    if (!/^[A-Za-z0-9-]+$/.test(name)) {
+        alert('Domain names must contain only alphanumeric characters or dashes.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(elbport) || !(iElbport == 80 || iElbport == 443 || (1024 <= iElbport && iElbport <= 65535))) {
+        alert('Load Balancer port must be either 80, 443 or 1024-65535 inclusive.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(instanceport) || !(1 <= iInstanceport && iInstanceport <= 65535)) {
+        alert('Instance Balancer port must be 1-65535 inclusive.');
+        return false;
+    }
+
+    var lbs = this.core.queryModel('loadBalancers', 'LoadBalancerName', name);
+    if (lbs && lbs.length > 0) {
+        alert('Duplicate Load Balancer name.');
+        return false;
+    }
+
+    var azsn = document.getElementById("ew.azsn").selectedItem.value;
+    if (azsn == 'az') {
+        this.azoneList.done();
+        if (!this.azoneList.selectedItems.length) {
+            alert('Please choose Availability Zone');
+            return false;
+        }
+    }
+
+    if (azsn == 'sn') {
+        this.subnetList.done();
+        this.groupList.done();
+        if (!this.subnetList.selectedItems.length) {
+            alert('Please choose one or more subnets.');
+            return false;
+        }
+    }
+
+    return true;
+  }
+
+  function validate2() {
+    var pingprotocol = document.getElementById('ew.pingprotocol').selectedItem.value;
+    var pingport = document.getElementById('ew.pingport').value;
+    var iPingport = parseInt(pingport);
+    var pingpath = document.getElementById('ew.pingpath').value;
+    var timeout = document.getElementById('ew.timeout').value;
+    var iTimeout = parseInt(timeout);
+    var interval = document.getElementById('ew.Interval').value;
+    var iInterval = parseInt(interval);
+    var uthreshold = document.getElementById('ew.uThreshold').value;
+    var iUthreshold = parseInt(uthreshold);
+    var hthreshold = document.getElementById('ew.HThreshold').value;
+    var iHthreshold = parseInt(hthreshold);
+
+    if (!/^[0-9]+$/.test(pingport) || !(1 <= iPingport && iPingport <= 65535)) {
+        alert('Ping port must be 1-65535 inclusive.');
+        return false;
+    }
+
+    if (pingprotocol.substr(0,4) == 'HTTP' && !/^[\x21-\x7E]+$/.test(pingpath)) {
+        alert('Ping path may only contain printable ASCII characters, without spaces.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(timeout) || !(2 <= iTimeout && iTimeout <= 60)) {
+        alert('Timeout port must be 2 sec - 60 sec.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(interval) || !(5 <= iInterval && iInterval <= 300)) {
+        alert('Interval port must be 5 sec - 300 sec.');
+        return false;
+    }
+
+    if (iInterval <= iTimeout) {
+        alert('HealthCheck timeout must be less than interval.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(uthreshold) || !(2 <= iUthreshold && iUthreshold <= 10)) {
+        alert('Unhealthy threshold must be 2 times - 10 times.');
+        return false;
+    }
+
+    if (!/^[0-9]+$/.test(hthreshold) || !(2 <= iHthreshold && iHthreshold <= 10)) {
+        alert('Healthy threshold must be 2 times - 10 times.');
+        return false;
+    }
+
+    return true;
+  }
+
+  ]]>
+  </script>
+
+  <wizardpage description="&ew.dialog.description.step1;" onpageadvanced="return validate1();">
+     <radiogroup id="ew.azsn" orient="vertical" >
+     <grid flex="1">
+      <rows>
+        <row>
+          <label control="ew.Name" value="&ew.loadbalancerview.Name.label;" />
+          <textbox id="ew.Name" size="15" />
+        </row>
+        <row>
+        <label control="ew.Protocol" value="&ew.loadbalancerview.protocol.label;" />
+        <menulist id="ew.Protocol" style="min-width: 8em">
+          <menupopup>
+            <menuitem label="HTTP" value="HTTP"/>
+            <menuitem label="HTTPS" value="HTTPS"/>
+            <menuitem label="TCP" value="TCP"/>
+            <menuitem label="SSL" value="SSL"/>
+          </menupopup>
+        </menulist>
+      </row>
+        <row>
+          <label control="ew.elbport" value="&ew.loadbalancerview.lbport.label;" />
+          <textbox id="ew.elbport" size="4" value="80" />
+        </row>
+        <row>
+          <label control="ew.instanceport" value="&ew.loadbalancerview.iport.label;" />
+          <textbox id="ew.instanceport" size="4" value="80" />
+        </row>
+        <row>
+          <label control="ew.certs" value="SSL Certificate" />
+          <menulist id="ew.certs" />
+        </row>
+        <row>
+          <radio id="ew.azsn" checked="true" value="az" label="Availability Zone" oncommand="onChange()" />
+          <listbox id="ew.azones" />
+        </row>
+        <row align="start">
+          <radio id="ew.azsn" value="sn" label="Subnet/Group" oncommand="onChange()" />
+          <vbox flex="1">
+            <listbox id="ew.subnets" />
+            <label control="ew.groups" value="Security Groups" />
+            <listbox id="ew.groups" />
+          </vbox>
+        </row>
+        <row>
+          <label control="ew.scheme" value="Scheme" />
+          <menulist id="ew.scheme" style="min-width: 8em" >
+           <menupopup>
+             <menuitem label="Internet Facing" value=""/>
+             <menuitem label="Internal" value="internal"/>
+           </menupopup>
+        </menulist>
+        </row>
+     </rows>
+    </grid>
+    </radiogroup>
+  </wizardpage >
+
+  <wizardpage description="&ew.dialog.description.step2;" onpageadvanced="return validate2();">
+     <grid flex="1">
+      <rows>
+         <row  height="20px">
+            <description style="font-weight:bold;">Configuration Options:</description>
+         </row>
+         <row>
+          <label control="ew.pingprotocol" value="&ew.loadbalancerview.PingProtocol.label;" />
+          <menulist id="ew.pingprotocol" style="min-width: 8em" oncommand="document.getElementById('ew.pingpath').disabled = (this.selectedItem.value.substr(0,4) != 'HTTP');">
+           <menupopup>
+              <menuitem label="HTTP" value="HTTP"/>
+              <menuitem label="HTTPS" value="HTTPS"/>
+              <menuitem label="TCP" value="TCP"/>
+              <menuitem label="SSL" value="SSL"/>
+           </menupopup>
+        </menulist>
+        </row>
+         <row>
+          <label control="ew.pingport" value="&ew.loadbalancerview.Port.label;" />
+          <textbox id="ew.pingport" size="15" style="min-width: 8em" value="80" />
+        </row>
+         <row>
+          <label control="ew.pingpath" value="&ew.loadbalancerview.Path.label;" />
+          <textbox id="ew.pingpath" size="15" style="min-width: 8em" value="/index.html" />
+        </row>
+         <row height="20px">
+            <description style="font-weight:bold;">Advanced Options:</description>
+         </row>
+        <row>
+          <label control="ew.timeout" value="&ew.loadbalancerview.Timeout.label;" />
+          <textbox id="ew.timeout" size="15" style="min-width: 8em" value="5" />
+        </row>
+        <row>
+          <label control="ew.Interval" value="&ew.loadbalancerview.interval.label;" />
+          <textbox id="ew.Interval" size="15" style="min-width: 8em" value="30" />
+        </row>
+        <row>
+          <label control="ew.uThreshold" value="&ew.loadbalancerview.UnhealthyThreshold.label;" />
+          <textbox id="ew.uThreshold" size="15" style="min-width: 8em" value="2" />
+        </row>
+        <row>
+          <label control="ew.HThreshold" value="&ew.loadbalancerview.HealthyThreshold.label;" />
+          <textbox id="ew.HThreshold" size="15" style="min-width: 8em" value="10" />
+        </row>
+       </rows>
+    </grid>
+  </wizardpage>
+
+  <wizardpage description="&ew.dialog.description.step3;">
+    <listbox id="ew.instances" />
+  </wizardpage>
+</wizard>

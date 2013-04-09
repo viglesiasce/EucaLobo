@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.instance" flex="1">
+    <groupbox flex="1" orient="vertical">
+      <caption label="&ew.captions.images.instances.label;" />
+      <popupset>
+        <menupopup id="ew.instances.contextmenu">
+          <menuitem oncommand="ew_InstancesTreeView.displayDetails(event);" label="&ew.contextmenu.details.label;" />
+          <menuitem oncommand="ew_InstancesTreeView.tag(event);" label="Edit EC2 Tag" />
+          <menuseparator />
+          <menu label="Instance Lifecycle">
+            <menupopup>
+              <menuitem id="instances.context.start" oncommand="ew_InstancesTreeView.startInstance();" label="Start" />
+              <menuitem id="instances.context.reboot" oncommand="ew_InstancesTreeView.rebootInstance();" label="Reboot" />
+              <menuitem id="instances.context.stop" oncommand="ew_InstancesTreeView.stopInstance();" label="Stop" />
+              <menuitem id="instances.context.forceStop" oncommand="ew_InstancesTreeView.stopInstance(true);" label="Force Stop" />
+              <menuitem id="instances.context.terminate" oncommand="ew_InstancesTreeView.terminateInstance();" label="Terminate" style="color:red; font-weight:bold;"/>
+            </menupopup>
+          </menu>
+          <menuseparator />
+          <menuitem id="instances.context.launch" oncommand="ew_InstancesTreeView.launchMore();" label="Launch More of these" />
+          <menuitem id="instances.context.eip" oncommand="ew_InstancesTreeView.associateWithEIP();" label="Associate with Elastic IP" />
+          <menuitem id="instances.context.attach" oncommand="ew_InstancesTreeView.attachEBSVolume();" label="Attach an EBS Volume" />
+          <menuitem id="instances.context.createimage" oncommand="ew_InstancesTreeView.showCreateImageDialog();" label="Create Image (EBS AMI)" />
+          <menuitem id="instances.context.export" oncommand="ew_InstancesTreeView.exportToS3();" label="Export to S3 Bucket" />
+          <menuitem id="instances.context.bundle" oncommand="ew_InstancesTreeView.showBundleDialog();" label="Bundle into an S3 AMI" />
+          <menuseparator />
+          <menuitem id="instances.context.changeUserData" oncommand="ew_InstancesTreeView.changeUserData();" label="View/Change User Data" />
+          <menuitem id="instances.context.changeInstanceType" oncommand="ew_InstancesTreeView.changeInstanceType();" label="Change Instance Type" />
+          <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
+          <menuitem id="instances.context.changeShutdownBehaviour" oncommand="ew_InstancesTreeView.changeShutdownBehaviour();" label="Change Shutdown Behaviour" />
+          <menuitem id="instances.context.changeSourceDestCheck" oncommand="ew_InstancesTreeView.changeSourceDestCheck();" label="Change SourceDest Check" />
+          <menuitem id="instances.context.changeSecurityGroups" oncommand="ew_InstancesTreeView.changeSecurityGroups();" label="Change Security Groups" />
+          <menuitem id="instances.context.changeDeleteOnTermination" oncommand="ew_InstancesTreeView.changeDeleteOnTermination();" label="Change Delete On Termination for Volumes" />
+          <menuseparator />
+          <menuitem oncommand="ew_InstancesTreeView.showConsoleOutput();" label="Show Console Output" />
+          <menuitem id="instances.context.getPassword" oncommand="ew_InstancesTreeView.getAdminPassword();" label="Get Administrator Password" />
+          <menuseparator />
+          <menu label="Copy to clipboard">
+            <menupopup>
+              <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('name');" label="&ew.instances.contextmenu.copyname.label;" />
+              <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('id');" label="&ew.instances.contextmenu.copyid.label;" />
+              <menuitem id="instances.context.copyPublicDns" oncommand="ew_InstancesTreeView.copyToClipboard('dnsName');" label="Public DNS Name" />
+              <menuitem id="instances.context.copyPublic" oncommand="ew_InstancesTreeView.copyToClipboard('ipAddress');" label="Public IP Address" />
+              <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('privateDnsName');" label="Private DNS Name" />
+              <menuitem oncommand="ew_InstancesTreeView.copyToClipboard('privateIpAddress');" label="Private IP Address" />
+              <menuitem id="instances.context.copyElastic" oncommand="ew_InstancesTreeView.copyToClipboard('eip');" label="Elastic IP Address" />
+            </menupopup>
+          </menu>
+          <menuseparator />
+          <menu label="Monitoring">
+            <menupopup>
+            <menuitem id="instances.context.startMonitoring" oncommand="ew_InstancesTreeView.startMonitoring();" label="Start" />
+            <menuitem id="instances.context.stopMonitoring" oncommand="ew_InstancesTreeView.stopMonitoring();" label="Stop" />
+            <menuitem id="instances.context.showMetrics" oncommand="ew_InstancesTreeView.showMetrics();" label="Show Metrics" />
+            <menuitem id="instances.context.events" oncommand="ew_InstancesTreeView.showInstanceStatus();" label="Show Instance Status" />
+            </menupopup>
+          </menu>
+          <menuseparator />
+          <menu label="Connect to Instance">
+            <menupopup>
+                <menuitem id="instances.context.connectPrivate" oncommand="ew_InstancesTreeView.connectTo();" label="Connect to Private IP" />
+                <menuitem id="instances.context.connectPublic" oncommand="ew_InstancesTreeView.connectTo(1);" label="Connect to Public IP" />
+                <menuitem id="instances.context.connectElastic" oncommand="ew_InstancesTreeView.connectTo(2);" label="Connect to Elastic IP" />
+                <menuitem id="instances.context.connectPublicDns" oncommand="ew_InstancesTreeView.connectTo(4);" label="Connect to Public DNS" />
+            </menupopup>
+          </menu>
+        </menupopup>
+      </popupset>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <hbox flex="10" align="center">
+          <label control="ew.instances.search" value="Search:"/>
+          <textbox id="ew.instances.search" size="15" />
+          <toolbarbutton image="images/refresh.png" oncommand="ew_InstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+          <toolbarseparator />
+          <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.instances.launch.tip;" />
+          <toolbarbutton image="images/start.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.startInstance();" id="instances.button.start" tooltiptext="&ew.instances.start.tip;" />
+          <toolbarbutton image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
+          <toolbarbutton image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.stopInstance();" id="instances.button.stop" tooltiptext="&ew.instances.stop.tip;" />
+          <toolbarbutton image="images/reboot.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.rebootInstance();" tooltiptext="&ew.instances.reboot.tip;" />
+          <toolbarseparator />
+          <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
+          <toolbarbutton image="images/connect.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectTo(3);" tooltiptext="&ew.instances.connect.tip;" />
+          <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
+          <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+          <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showMetrics();" tooltiptext="Show Metrics" />
+          <toolbarseparator />
+          <label control="ew.instances.noterminated" value="Hide Terminated:"/>
+          <checkbox id="ew.instances.noterminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <label control="ew.instances.nostopped" value="Hide Stopped:"/>
+          <checkbox id="ew.instances.nostopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
+          <label control="ew.instances.onlyspot" value="Spot Only:"/>
+          <checkbox id="ew.instances.onlyspot" oncommand="ew_InstancesTreeView.filterChanged();"/>
+        </hbox>
+      </toolbar>
+
+      <tree id="ew.instances.view" enableColumnDrag="true" flex="1">
+        <treecols>
+          <treecol id="instance.name" label="Name" flex="2" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.id" label="&ew.instances.id.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.subnetId" label="&ew.instances.subnetId.label;" flex="9" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.state" label="&ew.instances.state.label;" flex="3" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.elasticIp" label="&ew.instances.elasticIp.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.ipAddress" label="&ew.instances.ipAddress.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.dnsName" label="&ew.instances.dnsName.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.privateDnsName" label="&ew.instances.privateDnsName.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.privateIpAddress" label="&ew.instances.privateIpAddress.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.keyName" label="&ew.instances.keyName.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.securityGroups" label="&ew.instances.groups.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.instanceType" label="&ew.instances.instanceType.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.availabilityZone" label="&ew.availabilityZone.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.tenancy" label="&ew.instances.tenancy.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.rootDeviceType" label="&ew.instances.rootDeviceType.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.platform" label="&ew.platform.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.instanceLifecycle" label="Lifecycle" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+        </treecols>
+        <treechildren context="ew.instances.contextmenu" />
+      </tree>
+    </groupbox>
+  </tabpanel>
+</overlay>

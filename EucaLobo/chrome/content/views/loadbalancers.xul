@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.loadbalancer" flex="1">
+    <vbox flex="1">
+    <groupbox orient="vertical" flex="1" >
+      <caption label="&ew.captions.loadbalancer.label;" />
+       <popupset >
+          <menupopup id="ew.loadBalancers.contextmenu"  onpopupshowing="ew_LoadbalancerTreeView.menuChanged(event);">
+              <menuitem oncommand="ew_LoadbalancerTreeView.displayDetails(event);" label="&ew.loadbalancer.contextmenu.viewdetails.label;" />
+              <menuitem oncommand="ew_LoadbalancerTreeView.create(event);" label="&ew.create.loadbalancer.tip;" />
+              <menuitem oncommand="ew_LoadbalancerTreeView.deleteLoadBalancer(event);" label="&ew.loadbalancer.contextmenu.delete.label;" />
+              <menuitem oncommand="ew_LoadbalancerTreeView.copyToClipboard('DNSName');" label="&ew.loadbalancer.contextmenu.copydns.label;" />
+              <menuseparator/>
+              <menuitem oncommand="ew_LoadbalancerTreeView.registerInstances(event);" label="&ew.loadbalancer.contextmenu.registerinstance.label;" />
+              <menuitem id="loadbalancer.context.instances" oncommand="ew_LoadbalancerTreeView.deregisterInstances(event);" label="&ew.loadbalancer.contextmenu.deregisterinstance.label;" />
+              <menuseparator/>
+              <menuitem id="loadbalancer.context.enableezones" oncommand="ew_LoadbalancerTreeView.manageZones(true);" label="&ew.loadbalancer.contextmenu.enableavailability.label;" />
+              <menuitem id="loadbalancer.context.disablezones" oncommand="ew_LoadbalancerTreeView.manageZones(false);" label="&ew.loadbalancer.contextmenu.disableavailability.label;" />
+              <menuseparator/>
+              <menuitem id="loadbalancer.context.disablestickness" oncommand="ew_LoadbalancerTreeView.disableStickness(event);" label="&ew.loadbalancer.contextmenu.disablestickness.label;" />
+              <menuitem id="loadbalancer.context.appstickness" oncommand="ew_LoadbalancerTreeView.applicationSticknesss(event);" label="&ew.loadbalancer.contextmenu.appstickness.label;" />
+              <menuitem id="loadbalancer.context.lbstickness" oncommand="ew_LoadbalancerTreeView.loadbalancerStickness(event);" label="&ew.loadbalancer.contextmenu.loadbalancerstickness.label;" />
+              <menuseparator/>
+              <menuitem id="loadbalancer.context.health" oncommand="ew_LoadbalancerTreeView.configureHealthCheck(event);" label="&ew.loadbalancer.contextmenu.configurehealthcheck.label;" />
+              <menuitem id="loadbalancer.context.cert" oncommand="ew_LoadbalancerTreeView.setSSLCertificate(event);" label="Set SSL Certificate" />
+              <menuitem id="loadbalancer.context.listener" oncommand="ew_LoadbalancerTreeView.createListener(event);" label="Create Listener" />
+              <menuitem id="loadbalancer.context.changegroups" oncommand="ew_LoadbalancerTreeView.changeSecurityGroup(event);" label="Change Security Group" />
+              <menuitem id="loadbalancer.context.addsubnet" oncommand="ew_LoadbalancerTreeView.addSubnet(event);" label="Attach to subnets" />
+              <menuitem id="loadbalancer.context.delsubnet" oncommand="ew_LoadbalancerTreeView.deleteSubnet(event);" label="Detach from subnets" />
+          </menupopup>
+        </popupset>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <toolbarbutton image="images/refresh.png" oncommand="ew_LoadbalancerTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+        <toolbarbutton image="images/add.png" tooltiptext="&ew.create.loadbalancer.tip;" oncommand="ew_LoadbalancerTreeView.create();" />
+        <toolbarbutton image="images/delete.png" tooltiptext="&ew.loadbalancer.contextmenu.delete.label;" oncommand="ew_LoadbalancerTreeView.deleteLoadBalancer();" />
+        <toolbarbutton image="images/details.png" tooltiptext="&ew.loadbalancer.contextmenu.viewdetails.label;" oncommand="ew_LoadbalancerTreeView.displayDetails();" />
+      </toolbar>
+      <tree enableColumnDrag="true" id="ew.loadBalancers.view" flex="1" >
+        <treecols>
+          <treecol id="loadbalancer.name" label="&ew.loadbalancer.name.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.CreatedTime" label="&ew.loadbalancer.creationtime.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.DNSName" label="&ew.loadbalancer.dnsname.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.Instances" label="&ew.loadbalancer.instances.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.zones" label="&ew.loadbalancer.zone.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.HealthCheck" label="&ew.loadbalancer.HealthCheck.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.vpcId" label="VPC" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.subnets" label="Subnets" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
+          <splitter class="tree-splitter" />
+          <treecol id="loadbalancer.securityGroups" label="Groups" flex="1" persist="width ordinal hidden sortDirection" hidden="true" />
+          <splitter class="tree-splitter" />
+         </treecols>
+        <treechildren context="ew.loadBalancers.contextmenu" />
+      </tree>
+    </groupbox>
+
+    <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest"></splitter>
+
+    <groupbox orient="vertical" flex="1">
+        <caption label="&ew.captions.InstanceHealth.label;" />
+        <tree id="ew.instanceHealth.view" seltype="single" enableColumnDrag="true" flex="1">
+          <treecols>
+            <treecol id="InstanceHealth.InstanceName" label="Instance Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+            <splitter class="tree-splitter" />
+            <treecol id="InstanceHealth.Description" label="&ew.InstanceHealth.Description.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+            <splitter class="tree-splitter" />
+            <treecol id="InstanceHealth.State" label="&ew.InstanceHealth.State.label;" flex="1" persist="width ordinal hidden sortDirection" />
+            <splitter class="tree-splitter" />
+            <treecol id="InstanceHealth.InstanceId" label="&ew.InstanceHealth.InstanceId.label;" flex="1" persist="width ordinal hidden sortDirection" />
+            <splitter class="tree-splitter" />
+            <treecol id="InstanceHealth.ReasonCode" label="&ew.InstanceHealth.ReasonCode.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          </treecols>
+          <treechildren context="ew.instanceHealth.contextmenu"/>
+        </tree>
+      </groupbox>
+    </vbox>
+  </tabpanel>
+</overlay>

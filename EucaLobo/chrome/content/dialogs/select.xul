@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<dialog id="ew.dialog.select" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    buttons="accept,cancel"
+    ondialogaccept="return done();"
+    ondialogcancel="return true;"
+    onload="init();"
+    title="Select">
+
+    <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+    <script type="application/x-javascript" src="chrome://ew/content/types.js" />
+
+    <script>
+    <![CDATA[
+        function done() {
+            ListBox.done();
+            params.selectedIndex = ListBox.selectedIndex;
+            params.selectedItems = ListBox.selectedItems;
+            params.selectedIndexes = ListBox.selectedIndexes;
+            return true;
+        }
+        function init() {
+            params = window.arguments[0];
+            document.title = params.title;
+            $("title").label = params.title;
+            $("msg").value = params.msg;
+            ListBox.init(params);
+        }
+    ]]>
+    </script>
+
+    <groupbox flex="1">
+      <caption id="title" />
+      <label control="listbox" id="msg" value="" flex="1" />
+      <listbox id="listbox" flex="1" />
+    </groupbox>
+</dialog>
+

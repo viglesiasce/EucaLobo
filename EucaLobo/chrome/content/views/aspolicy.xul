@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.as.policy" flex="1">
+    <vbox flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="AutoScaling Policies" />
+            <popupset>
+                <menupopup id="ew.aspolicies.contextmenu">
+                  <menuitem id="addPolicy" oncommand="ew_ASPoliciesTreeView.putPolicy();" label="Add Policy" />
+                  <menuitem id="addPolicy" oncommand="ew_ASPoliciesTreeView.putPolicy(true);" label="Edit Policy" />
+                  <menuitem id="deletePolicy" oncommand="ew_ASPoliciesTreeView.deleteSelected();" label="Delete Policy" />
+                  <menuitem id="execPolicy" oncommand="ew_ASPoliciesTreeView.execPolicy();" label="Execute Policy" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.aspolicies.search" value="Search:"/>
+                <textbox id="ew.aspolicies.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_ASPoliciesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" oncommand="ew_ASPoliciesTreeView.putPolicy();" tooltiptext="Add Policy" />
+                <toolbarbutton image="images/edit.png" oncommand="ew_ASPoliciesTreeView.putPolicy(true);" tooltiptext="Edit Policy" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_ASPoliciesTreeView.deleteSelected();" tooltiptext="Delete Policy" />
+                <toolbarbutton image="images/start.png" oncommand="ew_ASPoliciesTreeView.execPolicy();" tooltiptext="Execute Policy" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.aspolicies.view" flex="1">
+                <treecols>
+                    <treecol id="aspolicies.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="aspolicies.group" label="Group" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="aspolicies.adjustmentType" label="Type" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="aspolicies.scalingAdjustment" label="Adjustment" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="aspolicies.cooldown" label="Cooldown" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="aspolicies.alarms" label="Alarms" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.aspolicies.children" context="ew.aspolicies.contextmenu" />
+            </tree>
+        </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

@@ -1,0 +1,194 @@
+treechildren::-moz-tree-cell(instances_pending) {
+    background-color: #FFFFCC;
+}
+
+treechildren::-moz-tree-cell(instances_running) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(instances_shutting_down) {
+    background-color: #FFCC99;
+}
+
+treechildren::-moz-tree-cell(instances_deleting) {
+    background-color: #FFCC99;
+}
+
+treechildren::-moz-tree-cell(instances_terminated) {
+    background-color: #FFCCCC;
+}
+
+treechildren::-moz-tree-cell(instances_deleted) {
+    background-color: #FFCCCC;
+}
+
+treechildren::-moz-tree-cell(instances_detached) {
+    background-color: #FFCCCC;
+}
+
+treechildren::-moz-tree-cell(instances_stopping) {
+    background-color: #DDA0DD;
+}
+
+treechildren::-moz-tree-cell(instances_stopped) {
+    background-color: #BA55D3;
+}
+
+treechildren::-moz-tree-cell(volumes_available) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(images_available) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(images_deregistered) {
+    background-color: #EEEEEE;
+}
+
+treechildren::-moz-tree-cell(images_public) {
+    background-color: #FFFF99;
+}
+
+treechildren::-moz-tree-cell(images_private) {
+    background-color: transparent;
+}
+
+treechildren::-moz-tree-cell(images_amazon) {
+    background-color: #FFFF99;
+}
+
+treechildren::-moz-tree-cell(images_amazon) {
+    background-color: #FFFF99;
+}
+
+treechildren::-moz-tree-cell(alarms_alarm) {
+    background-color: #FFCCCC;
+}
+
+treechildren::-moz-tree-cell(credentials_active) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(endpoints_active) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(accesskeys_current) {
+    background-color: #C3DDC3;
+}
+
+treechildren::-moz-tree-cell(accesskeys_expired) {
+    background-color: #FFCCCC;
+}
+
+treechildren::-moz-tree-checkbox {
+    list-style-image: url("chrome://ew/skin/unchecked.png");
+}
+
+treechildren::-moz-tree-checkbox(checked) {
+    list-style-image: url("chrome://ew/skin/checked.png");
+}
+
+treechildren::-moz-tree-row {
+    border-top: 1px solid transparent;
+}
+
+treechildren::-moz-tree-row(selected) {
+    background-color: #EEEEEE;
+}
+
+treechildren::-moz-tree-row(selected,focus) {
+    background-color: #ADCAEB;
+}
+
+treechildren::-moz-tree-cell-text(selected) {
+    color: #000000;
+}
+
+treechildren::-moz-tree-cell-text(container) {
+     font-weight: bold;
+     padding-left: 2px;
+}
+
+treechildren::-moz-tree-cell-text(bold) {
+     font-weight: bold;
+}
+
+treechildren::-moz-tree-twisty {
+    -moz-appearance: none;
+    -moz-padding-end: 0px;
+    width: 0px;
+}
+
+tabpanels, tabpanel {
+    -moz-appearance: none;
+    border: 0px;
+    outline: 0px;
+    padding: 0px;
+}
+
+tree {
+    margin: 0px;
+}
+
+groupbox {
+    -moz-appearance: none;
+    border: 0px;
+}
+
+groupbox caption {
+    -moz-appearance: none;
+    background-color: transparent;
+    font-weight: bold;
+}
+
+.groupbox-body {
+    -moz-appearance: none;
+    border: 0px;
+}
+
+.line {
+    height:1px;
+    background-color:#000000;
+    width:100%;
+}
+
+menupopup > menuitem, menupopup > menulist {
+    max-width: none;
+}
+
+.graph {
+    background-color:#fafafa;
+    border:1px solid black;
+}
+
+toolbar {
+    -moz-user-focus: normal;
+}
+
+toolbarbutton {
+    -moz-user-focus: normal;
+}
+
+listbox {
+    -moz-user-focus: normal;
+}
+
+.menu {
+    min-width: 180px;
+}
+
+.menu treechildren::-moz-tree-row {
+    border-top: 1px solid transparent;
+    height: 20px;
+}
+
+.menu treechildren::-moz-tree-image {
+    height: 20px;
+    width: 20px;
+}
+
+.menu treechildren::-moz-tree-indentation {
+    width: 1px;
+}

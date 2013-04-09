@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.roles" flex="1">
+        <groupbox orient="vertical" flex="1">
+            <caption label="IAM Roles" />
+            <popupset>
+                <menupopup id="ew.roles.contextmenu" >
+                <menuitem id="ew.roles.contextmenu.add" oncommand="ew_RolesTreeView.addRole();" label="Add role" />
+                <menuitem id="ew.roles.contextmenu.delete" oncommand="ew_RolesTreeView.deleteRole();" label="Delete role" />
+                <menuseparator />
+                <menuitem id="ew.roles.contextmenu.addPolicy" oncommand="ew_RolesTreeView.addPolicy();" label="Add Policy" />
+                <menuitem id="ew.roles.contextmenu.editPolicy" oncommand="ew_RolesTreeView.editPolicy();" label="Edit Policy" />
+                <menuitem id="ew.roles.contextmenu.deletePolicy" oncommand="ew_RolesTreeView.deletePolicy();" label="Delete Policy" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.roles.search" value="Search:"/>
+                <textbox id="ew.roles.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_RolesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add Role" oncommand="ew_RolesTreeView.addRole();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Role" oncommand="ew_RolesTreeView.deleteRole();" />
+                <toolbarbutton image="images/edit.png" tooltiptext="Edit Policy" oncommand="ew_RolesTreeView.editPolicy();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.roles.view" flex="1">
+                <treecols>
+                    <treecol id="role.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="role.path" label="Path" flex="2" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="role.arn" label="ARN" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="role.instanceProfiles" label="Instance Profile" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="role.policies" label="Policies" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.roles.children" context="ew.roles.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

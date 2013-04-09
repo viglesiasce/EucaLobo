@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<dialog id="ew.dialog.networkaclentry" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" title="Network ACL Entry"
+    buttons="accept,cancel" ondialogaccept="return create();" ondialogcancel="return true;" onload="init();" buttonlabelaccept="Create">
+
+    <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+    <script type="application/x-javascript" src="chrome://ew/content/model.js" />
+
+    <script>
+    function init() {
+        this.acl = window.arguments[0];
+        this.core = window.arguments[1];
+        this.retVal = window.arguments[2];
+
+        var protos = [ "Any", "-1", "ICMP","1", "UDP","17", "TCP","6",
+                       "IGMP","2", "EGP","8", "IGP","9", "L2TP","115", "EIGRP","88", "OSPFIGP","89",
+                       "GGP","3", "IPv4","4", "ST","5", "CBT","7", "BBN-RCC-MON","10", "NVP-II","11", "PUP","12",
+                       "ARGUS","13", "EMCON","14", "XNET","15", "CHAOS","16", "MUX","18", "DCN-MEAS","19", "HMP","20", "PRM","21", "XNS-IDP","22", "TRUNK-1","23", "TRUNK-2","24",
+                       "LEAF-1","25", "LEAF-2","26", "RDP","27", "IRTP","28", "ISO-TP4","29", "NETBLT","30", "MFE-NSP","31", "MERIT-INP","32", "DCCP","33", "3PC","34", "IDPR","35",
+                       "XTP","36", "DDP","37", "IDPR-CMTP","38", "TP++","39", "IL","40", "IPv6","41", "SDRP","42", "IPv6-Route","43", "IPv6-Frag","44", "IDRP","45", "RSVP","46",
+                       "GRE","47", "DSR","48", "BNA","49", "ESP","50", "AH","51", "I-NLSP","52", "SWIPE","53", "NARP","54", "MOBILE","55", "TLSP","56", "SKIP","57", "IPv6-ICMP","58",
+                       "IPv6-NoNxt","59", "IPv6-Opts","60", "any","61", "CFTP","62", "any","63", "SAT-EXPAK","64", "KRYPTOLAN","65", "RVD","66", "IPPC","67", "any","68", "SAT-MON","69",
+                       "VISA","70", "IPCV","71", "CPNX","72", "CPHB","73", "WSN","74", "PVP","75", "BR-SAT-MON","76", "SUN-ND","77", "WB-MON","78", "WB-EXPAK","79", "ISO-IP","80",
+                       "VMTP","81", "SECURE-VMTP","82", "VINES","83", "TTP","84", "IPTM","84", "NSFNET-IGP","85", "DGP","86", "TCF","87", "Sprite-RPC","90",
+                       "LARP","91", "MTP","92", "AX.25","93", "IPIP","94", "MICP","95", "SCC-SP","96", "ETHERIP","97", "ENCAP","98", "any","99", "GMTP","100", "IFMP","101", "PNNI","102",
+                       "PIM","103", "ARIS","104", "SCPS","105", "QNX","106", "A/N","107", "IPComp","108", "SNP","109", "Compaq-Peer","110", "IPX-in-IP","111", "VRRP","112", "PGM","113",
+                       "any","114", "DDX","116", "IATP","117", "STP","118", "SRP","119", "UTI","120", "SMP","121", "SM","122", "PTP","123", "ISIS","124", "FIRE","125",
+                       "CRTP","126", "CRUDP","127", "SSCOPMCE","128", "IPLT","129", "SPS","130", "PIPE","131", "SCTP","132", "FC","133", "RSVP-E2E-IGNORE","134", "Mobility","135",
+                       "UDPLite","136", "MPLS-in-IP","137", "manet","138", "HIP","139", "Shim6","140", "WESP","141", "ROHC","142" ]
+
+        var protoMenu = document.getElementById("ew.acl.proto");
+        protoMenu.removeAllItems();
+        for (var i = 0; i &lt; protos.length; i+= 2) {
+            protoMenu.appendItem(protos[i], protos[i + 1])
+        }
+
+        document.getElementById("ew.acl.port.from").disabled = true
+        document.getElementById("ew.acl.port.to").disabled = true
+        document.getElementById("ew.acl.icmp.code").disabled = true
+        document.getElementById("ew.acl.icmp.type").disabled = true
+    }
+
+    function create() {
+        this.retVal.num = document.getElementById("ew.acl.num").value.trim();
+        this.retVal.action = document.getElementById("ew.acl.action").value.trim();
+        this.retVal.egress = document.getElementById("ew.acl.egress").value.trim() == "egress" ? true : false;
+        this.retVal.proto = document.getElementById("ew.acl.proto").value.trim();
+        this.retVal.cidr = document.getElementById("ew.acl.cidr").value.trim();
+        if (this.retVal.num == "" || this.retVal.proto == "" || this.retVal.cidr == "") {
+            alert("Rule number, Protocol and CIDR are required")
+            return false;
+        }
+
+        this.retVal.icmpcode = document.getElementById("ew.acl.icmp.code").value.trim();
+        this.retVal.icmptype = document.getElementById("ew.acl.icmp.type").value.trim();
+        this.retVal.portfrom = document.getElementById("ew.acl.port.from").value.trim();
+        this.retVal.portto = document.getElementById("ew.acl.port.to").value.trim();
+
+        switch (this.retVal.proto) {
+        case "1":
+            if (this.retVal.icmpcode == "" || this.retVal.icmptype == "") {
+               alert("ICMP Code and Type are required for ICMP protocol");
+               return false;
+            }
+            this.retVal.var1 = this.retVal.icmpcode;
+            this.retVal.var2 = this.retVal.icmptype;
+            break;
+
+        case "6":
+        case "17":
+            if (this.retVal.portfrom == "" || this.retVal.portto == "") {
+               alert("Port From and To are required for this protocol");
+               return false;
+            }
+            this.retVal.var1 = this.retVal.portfrom;
+            this.retVal.var2 = this.retVal.portto;
+            break;
+        }
+
+        this.retVal.ok = true;
+        return true;
+    }
+    function onproto() {
+        var protoMenu = document.getElementById("ew.acl.proto");
+        if (protoMenu.selectedIndex >= 0) {
+            protoMenu.value = protoMenu.selectedItem.value
+        }
+
+        document.getElementById("ew.acl.port.box").disabled = true
+        document.getElementById("ew.acl.port.from").disabled = true
+        document.getElementById("ew.acl.port.to").disabled = true
+        document.getElementById("ew.acl.icmp.box").disabled = true
+        document.getElementById("ew.acl.icmp.code").disabled = true
+        document.getElementById("ew.acl.icmp.type").disabled = true
+
+        switch (protoMenu.value) {
+        case "1":
+            document.getElementById("ew.acl.icmp.box").disabled = false
+            document.getElementById("ew.acl.icmp.code").disabled = false
+            document.getElementById("ew.acl.icmp.type").disabled = false
+            break;
+
+        case "6":
+        case "17":
+            document.getElementById("ew.acl.port.box").disabled = false
+            document.getElementById("ew.acl.port.from").disabled = false
+            document.getElementById("ew.acl.port.to").disabled = false
+            break;
+        }
+    }
+    </script>
+    <vbox flex="1">
+        <grid flex="1">
+            <columns flex="1">
+                <column />
+                <column />
+                <column />
+            </columns>
+            <rows flex="1">
+                <row>
+                    <label control="ew.acl.num" value="Rule Number:" />
+                    <textbox id="ew.acl.num" />
+                </row>
+                <row>
+                    <label control="ew.acl.proto" value="Protocol:" />
+                    <menulist id="ew.acl.proto" editable="true" oncommand="onproto(event)" onchange="onproto(event)"/>
+                </row>
+                <row>
+                    <label control="ew.acl.action" value="Action:" />
+                    <menulist id="ew.acl.action" value="allow" >
+                    <menupopup>
+                        <menuitem label="Allow" value="allow"/>
+                        <menuitem label="Deny" value="deny"/>
+                    </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <label control="ew.acl.egress" value="Type:" />
+                    <menulist id="ew.acl.egress" value="ingress" >
+                    <menupopup>
+                        <menuitem label="Ingress" value="ingress"/>
+                        <menuitem label="Egress" value="egress"/>
+                    </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <label control="ew.acl.cidr" value="CIDR Block:"/>
+                    <textbox id="ew.acl.cidr"  value="0.0.0.0/0" />
+                </row>
+             </rows>
+        </grid>
+        <groupbox flex="1" id="ew.acl.port.box">
+        <caption label="Port Range" />
+        <grid flex="1">
+        <columns flex="1">
+          <column />
+          <column />
+        </columns>
+        <rows>
+        <row>
+          <label control="ew.acl.port.from" value="From: " />
+          <textbox id="ew.acl.port.from" />
+        </row>
+        <row>
+          <label control="ew.acl.port.to" value="To: " />
+          <textbox id="ew.acl.port.to" />
+        </row>
+        </rows>
+        </grid>
+        </groupbox>
+
+        <groupbox flex="1" id="ew.acl.icmp.box">
+        <caption label="ICMP" />
+        <grid flex="1">
+        <columns flex="1">
+          <column />
+          <column />
+        </columns>
+        <rows>
+        <row>
+            <label control="ew.acl.icmp.code" value="Code: " />
+            <textbox id="ew.acl.icmp.code" />
+        </row>
+        <row>
+           <label control="ew.acl.icmp.type" value="Type:" />
+           <textbox id="ew.acl.icmp.type" />
+        </row>
+        </rows>
+        </grid>
+        </groupbox>
+    </vbox>
+</dialog>
+

@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.export" flex="1">
+    <vbox flex="1">
+
+    <groupbox flex="1" orient="vertical">
+        <caption label="Export Tasks" />
+        <popupset>
+            <menupopup id="ew.exportTasks.contextmenu">
+                <menuitem oncommand="ew_ExportTasksTreeView.deleteSelected();" label="Cancel Task" />
+            </menupopup>
+        </popupset>
+        <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <label control="ew.exportTasks.search" value="Search:"/>
+            <textbox id="ew.exportTasks.search" size="15" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ExportTasksTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="Create Instance Export Task" oncommand="ew_ExportTasksTreeView.createInstanceExport();" />
+            <toolbarbutton image="images/delete.png" tooltiptext="Cancel Task" oncommand="ew_ExportTasksTreeView.deleteSelected();" />
+        </toolbar>
+        <tree enableColumnDrag="true" id="ew.exportTasks.view" flex="1">
+            <treecols>
+                <treecol id="task.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="task.state" label="State" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="task.instanceId" label="Instance" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="task.targetEnvironment" label="Env" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="task.diskImageFormat" label="Format" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="task.bucket" label="Bucket" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+            </treecols>
+            <treechildren id="ew.exportTasks.children" context="ew.exportTasks.contextmenu" />
+        </tree>
+    </groupbox>
+
+     <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+
+     </splitter>
+
+        <groupbox flex="1" orient="vertical">
+            <caption label="Import Tasks" />
+            <popupset>
+                <menupopup id="ew.conversionTasks.contextmenu">
+                    <menuitem oncommand="ew_ConversionTasksTreeView.createTask()" label="Create Import Task" />
+                    <menuitem oncommand="ew_ConversionTasksTreeView.deleteSelected();" label="Cancel Task" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.conversionTasks.search" value="Search:"/>
+                <textbox id="ew.conversionTasks.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ConversionTasksTreeView.refresh()" />
+                <toolbarbutton image="images/ec2.png" tooltiptext="Create Instance Import Task" oncommand="ew_ConversionTasksTreeView.createInstanceTask();" />
+                <toolbarbutton image="images/dynamodb.png" tooltiptext="Create Volume Import Task" oncommand="ew_ConversionTasksTreeView.createVolumeTask();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Cancel Task" oncommand="ew_ConversionTasksTreeView.deleteSelected();" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.conversionTasks.view" flex="1">
+                <treecols>
+                    <treecol id="task.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="task.state" label="State" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="task.volumeId" label="Vol" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="task.instanceId" label="Instance" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="task.volumeSize" label="Size" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="task.bytesConverted" label="Bytes" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.conversionTasks.children" context="ew.conversionTasks.contextmenu" />
+            </tree>
+        </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

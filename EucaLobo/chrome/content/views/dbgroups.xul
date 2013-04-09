@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.group" flex="1">
+    <vbox flex="1">
+
+        <groupbox flex="1" orient="vertical">
+            <caption label="DB Security Groups" />
+            <popupset>
+                <menupopup id="ew.dbgroups.contextmenu">
+                <menuitem oncommand="ew_DBSecurityGroupsTreeView.addItem()" label="Add Group" />
+                <menuitem id="ew.dbgroups.contextmenu.delete" oncommand="ew_DBSecurityGroupsTreeView.deleteSelected();" label="Delete Group" />
+                <menuseparator />
+                <menuitem id="ew.dbgroups.contextmenu.addGroup" oncommand="ew_DBSecurityGroupsTreeView.authorizeGroup()" label="Authorized Group" />
+                <menuitem id="ew.dbgroups.contextmenu.deleteGroup" oncommand="ew_DBSecurityGroupsTreeView.revokeGroup();" label="Revoke Group" />
+                <menuseparator />
+                <menuitem id="ew.dbgroups.contextmenu.addCidr" oncommand="ew_DBSecurityGroupsTreeView.authorizeCidr()" label="Authorized IP Range" />
+                <menuitem id="ew.dbgroups.contextmenu.deleteCidr" oncommand="ew_DBSecurityGroupsTreeView.revokeCidr();" label="Revoke IP Range" />
+                </menupopup>
+            </popupset>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.dbgroups.search" value="Search:"/>
+                <textbox id="ew.dbgroups.search" size="15" />
+                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBSecurityGroupsTreeView.refresh()" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBSecurityGroupsTreeView.addItem()" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBSecurityGroupsTreeView.deleteSelected()" />
+            </toolbar>
+            <tree enableColumnDrag="true" id="ew.dbgroups.view" flex="1">
+                <treecols>
+                    <treecol id="dbgroup.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.descr" label="Descr" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.vpcId" label="VPC" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.groups" label="EC2 Groups" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="dbgroup.ipRanges" label="IP Ranges" flex="4" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbgroups.children" context="ew.dbgroups.contextmenu" />
+            </tree>
+        </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

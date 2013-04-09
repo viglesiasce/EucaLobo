@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.policy" flex="1">
+    <groupbox flex="1" align="center">
+    <caption label="Account Password Policy" style="text-align:center;" />
+    <description style="padding:20px;">A password policy is a set of rules that define the type of password an IAM user can set.</description>
+    <grid>
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row>
+                    <label control="ew.MinimumPasswordLength" value="Minimum Password Length:" />
+                    <hbox>
+                        <textbox id="ew.MinimumPasswordLength" size="2" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.RequireUppercaseCharacters" value="Require Uppercase Characters:" />
+                    <hbox>
+                        <checkbox id="ew.RequireUppercaseCharacters" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.RequireLowercaseCharacters" value="Require Lowercase Characters:" />
+                    <hbox>
+                        <checkbox id="ew.RequireLowercaseCharacters" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.RequireNumbers" value="Require Numbers:" />
+                    <hbox>
+                        <checkbox id="ew.RequireNumbers" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.RequireSymbols" value="Require Symbols:" />
+                    <hbox>
+                        <checkbox id="ew.RequireSymbols" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.AllowUsersToChangePassword" value="Allow Users To Change Password:" />
+                    <hbox>
+                        <checkbox id="ew.AllowUsersToChangePassword" />
+                    </hbox>
+                </row>
+                <row>
+                    <button label="Disable" id="ew.DisableAccountPasswordPolicy" oncommand="ew_PasswordPolicyView.disable()" />
+                    <button label="Save" id="ew.SaveAccountPasswordPolicy" oncommand="ew_PasswordPolicyView.save()" />
+                </row>
+            </rows>
+        </grid>
+     </groupbox>
+  </tabpanel>
+</overlay>
+

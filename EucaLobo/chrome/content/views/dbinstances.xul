@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.instance" flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="DB Instances" />
+            <popupset>
+                <menupopup id="ew.dbinstances.contextmenu">
+                  <menuitem id="ew.dbinstances.contextmenu.add" oncommand="ew_DBInstancesTreeView.putInstance();" label="Add Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.edit" oncommand="ew_DBInstancesTreeView.putInstance(true);" label="Edit Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.delete" oncommand="ew_DBInstancesTreeView.deleteInstance();" label="Delete Instance" />
+                  <menuitem id="ew.dbinstances.contextmenu.reboot" oncommand="ew_DBInstancesTreeView.rebootInstance();" label="Reboot Instance" />
+                  <menuseparator />
+                  <menuitem id="ew.dbinstances.contextmenu.snapshot" oncommand="ew_DBInstancesTreeView.createSnapshot();" label="Create Snapshot" />
+                  <menuitem id="ew.dbinstances.contextmenu.restoreTime" oncommand="ew_DBInstancesTreeView.restoreTime();" label="Restore to Point In Time" />
+                  <menuitem id="ew.dbinstances.contextmenu.replica" oncommand="ew_DBInstancesTreeView.createReplica();" label="Create Read Replica" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.dninstances.search" value="Search:"/>
+                <textbox id="ew.dbinstances.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_DBInstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" oncommand="ew_DBInstancesTreeView.putInstance();" tooltiptext="Add DB Instance" />
+                <toolbarbutton image="images/edit.png" oncommand="ew_DBInstancesTreeView.putInstance(true);" tooltiptext="Edit DB Instance" />
+                <toolbarbutton image="images/delete.png" oncommand="ew_DBInstancesTreeView.deleteInstance();" tooltiptext="Delete DB Instance" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.dbinstances.view" flex="1">
+                <treecols>
+                    <treecol id="instance.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.engine" label="Engine" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.version" label="Version" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.status" label="Status" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.instanceClass" label="Class" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.host" label="Host" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.allocatedStorage" label="Size" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="instance.availabilityZone" label="AZone" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.dbinstances.children" context="ew.dbinstances.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>

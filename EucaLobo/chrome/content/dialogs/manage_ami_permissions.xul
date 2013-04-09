@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<dialog id="ew.dialog.ami.perms" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    buttons="accept"
+    ondialogaccept="return true;"
+    onload="init();"
+    title="Manage AMI Launch Permissions"
+    buttonlabelaccept="OK">
+
+    <script type="application/x-javascript">
+    <![CDATA[
+
+    function init()
+    {
+        this.list = document.getElementById("ew.list");
+        this.core = window.arguments[0];
+        this.image = window.arguments[1];
+        this.items = window.arguments[2];
+        this.display(this.items);
+    }
+
+    function copyToClipboard(event)
+    {
+        if (this.list.value) this.core.copyToClipboard(this.list.value);
+    }
+
+    function refresh()
+    {
+        var me = this;
+        this.core.api.describeLaunchPermissions(this.image.id, function(list) { me.display(list); });
+    }
+
+    function add(name)
+    {
+        if (!name) name = this.core.prompt("Please provide an EC2 user ID");
+        if (!name) return;
+        var me = this;
+        this.core.api.addLaunchPermission(image.id, name, function() { me.refresh(); });
+        if (this.list.value == "all") this.image.status = 'public';
+    }
+
+    function remove()
+    {
+        if (!this.list.value) return;
+        if (!confirm("Revoke launch permissions for " + name + " on AMI " + this.image.id + "?")) return;
+        var me = this;
+        this.core.api.revokeLaunchPermission(this.image.id, this.list.value, function() { me.refresh()});
+        if (this.list.value == "all") this.image.status = 'private';
+    }
+
+    function reset()
+    {
+        if (!confirm("Reset launch permissions for AMI " + image.id + "?")) return;
+        var me = this;
+        this.core.api.resetLaunchPermissions(this.image.id, function() { me.refresh(); });
+    }
+
+    function display(items)
+    {
+        this.items = items;
+        var count = this.list.getRowCount();
+        for (var i = count - 1; i >= 0; i--) {
+            this.list.removeItemAt(i);
+        }
+
+        // Sort 'all' to the top
+        this.items.sort(function(x, y) {
+            if (x == 'all') return -1;
+            if (y == 'all') return 1;
+            return x < y ? -1 : (x == y ? 0 : 1);
+        });
+
+        for (var i in this.items) {
+            list.appendItem(this.items[i], this.items[i]);
+        }
+    }
+
+    ]]>
+    </script>
+
+    <groupbox flex="1">
+     <groupbox flex="1" orient="vertical">
+      <caption label="Manage AMI Launch Permissions" />
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <toolbarbutton image="../images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="refresh()" tooltiptext="&ew.refresh.tip;" />
+        <toolbarbutton image="../images/add.png" style="-moz-box-pack:center;" oncommand="add();" tooltiptext="&ew.launchperms.add.tip;" />
+        <toolbarbutton image="../images/delete.png" style="-moz-box-pack:center;" oncommand="remove();" tooltiptext="&ew.launchperms.remove.tip;" />
+        <toolbarbutton image="../images/attach.png" style="-moz-box-pack:center;" oncommand="add('all');" tooltiptext="&ew.launchperms.public.tip;" />
+        <toolbarbutton image="../images/revoke.png" style="-moz-box-pack:center;" oncommand="reset();" tooltiptext="&ew.launchperms.reset.tip;" />
+      </toolbar>
+      <listbox id="ew.list" seltype="single" rows="4" ondblclick="copyToClipboard(event)" flex="1" />
+     </groupbox>
+    </groupbox>
+</dialog>

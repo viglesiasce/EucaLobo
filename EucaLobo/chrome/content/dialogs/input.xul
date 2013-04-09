@@ -1,0 +1,509 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ew/skin/ew.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/main.dtd">
+
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  title=""
+  buttons="accept,cancel"
+  ondialogaccept="return accept();"
+  ondialogcancel="return true;"
+  onload="init();">
+
+  <script type="application/x-javascript" src="chrome://ew/content/utils.js" />
+  <script type="application/x-javascript" src="chrome://ew/content/types.js" />
+  <script>
+  <![CDATA[
+    function init() {
+      this.rc = window.arguments[0];
+      this.core = rc.core;
+      document.title = rc.title;
+      var parent = document.getElementById('main');
+      var rows = null;
+      for (var i = 0; i < this.rc.items.length; i++) {
+          rows = createItem(parent, rows, rc.items[i], i);
+      }
+      // Buttons labels
+      for (var b in rc.buttons) {
+         var button = document.documentElement.getButton(b);
+         if (button) button.label = rc.buttons[b];
+      }
+      // Call handler on init
+      for (var i = 0; i < rc.items.length; i++) {
+          handler(i, true);
+      }
+    }
+
+    function handler(idx, onstart) {
+        if (rc.onchange) {
+            rc.onchange.call(this, idx, onstart);
+        }
+        var obj = rc.items[idx];
+        if (!obj) return;
+        switch (obj.type) {
+        case 'graph':
+            graph(idx);
+            break;
+
+        case 'listview':
+            if (onstart) {
+                obj.core = this.core;
+                obj.name = 'item' + idx;
+                if (!obj.items) obj.items = obj.list || [];
+                obj.view = new ListView(obj);
+            }
+            break;
+        }
+        if (obj.callback) {
+            obj.callback.call(this, obj, idx, onstart);
+        }
+    }
+
+    function graph(idx, list) {
+        var obj = rc.items[idx];
+        if (!obj.graph) {
+            obj.graph = new Graph(obj.label, 'item' + idx, "line", this.core);
+        }
+        obj.graph.reset();
+        obj.graph.options.xlabel = obj.xlabel || '';
+        obj.graph.options.ylabel = obj.ylabel || '';
+        if (list) obj.list = list;
+        for (var j = 0; j < obj.list.length; j++) {
+            obj.graph.addPoint(j, obj.list[j].value, obj.list[j].name);
+        }
+        obj.graph.draw();
+    }
+
+    function browse(id, forDir) {
+        if (forDir) {
+            path = rc.core.promptForDir("Choose directory:");
+        } else {
+            path = rc.core.promptForFile("Choose file:");
+        }
+        if (path) {
+            document.getElementById(id).value = path;
+        }
+    }
+
+    function createItem(parent, rows, obj, i)
+    {
+        var reserved = ['id', "type", "label", "value", "fixed", "file", "required", 'key', 'list', 'data', 'obj'];
+        var title = obj.label || '';
+        var type = obj.type || 'textbox';
+        var value = obj.value || '';
+        var item = null;
+        if (obj.ignore) return rows;
+
+        var row = document.createElement('row');
+        var box = document.createElement('box');
+
+        switch (type) {
+        case 'tabs':
+             var tabbox = document.createElement('tabbox');
+             tabbox.setAttribute('flex', "1");
+             parent.appendChild(tabbox);
+             var tabs = document.createElement('tabs');
+             tabbox.appendChild(tabs);
+             for (var i in obj.list) {
+                 var tab = document.createElement('tab');
+                 tab.setAttribute('label', obj.list[i]);
+                 tabs.appendChild(tab)
+             }
+             parent.tabpanels = document.createElement('tabpanels');
+             parent.tabpanels.setAttribute('flex', '1');
+             parent.tabpanels.setAttribute('style', 'padding:5px;-moz-appearance:tabpanels');
+             tabbox.appendChild(parent.tabpanels);
+             return rows;
+
+        case 'tabpanel':
+             var tabpanel = document.createElement('tabpanel');
+             tabpanel.setAttribute('flex', '1');
+             tabpanel.setAttribute('orient', 'vertical');
+             tabpanel.setAttribute('style', "padding:5px;-moz-appearance:tabpanel");
+             tabpanel.setAttribute('align', "center");
+             parent.tabpanels.appendChild(tabpanel);
+             rows = createSection(tabpanel, title, obj.help, obj);
+             return rows;
+
+        case 'section':
+             rows = createSection(parent, title, obj.help, obj);
+             return rows;
+
+        case 'dir':
+        case 'file':
+           obj.custombox = 1;
+           item = document.createElement('textbox');
+           box.appendChild(item);
+           var button = document.createElement('button');
+           button.setAttribute('label', "Browse");
+           button.setAttribute('oncommand', "browse('item" + i + "'," + (type == "dir") + ")");
+           box.appendChild(button);
+           break;
+
+        case 'graph':
+           if (this.core.getBoolPrefs("ew.accessibility", false)) {
+               item = document.createElement('listbox');
+           } else {
+               var item = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+               item.setAttribute('class', 'graph');
+           }
+           item.setAttribute('width', obj.width || '280');
+           item.setAttribute('height', obj.height || '240');
+           box.appendChild(item);
+           break;
+
+        case 'image':
+           item = document.createElement(type);
+           item.setAttribute('src', value);
+           item.setAttribute('alt', title);
+           break;
+
+        case 'link':
+           item = document.createElement('description');
+           item.setAttribute('style', 'color:blue');
+           item.setAttribute('value', value);
+           item.setAttribute('onclick', "rc.core.displayUrl('" + obj.url + "')");
+           break;
+
+        case 'listview':
+           item = document.createElement('listbox');
+           item.setAttribute('flex', '1');
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'listbox':
+           item = document.createElement(type);
+           for (var j in obj.list) {
+               var o = obj.list[j];
+               var e = document.createElement('listitem');
+               e.setAttribute('label', rc.core.toString(o));
+               e.setAttribute('value', typeof o == "object" ? o[obj.key || "id"] : o);
+               item.appendChild(e);
+           }
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'menulist':
+           item = document.createElement(type);
+           var popup = document.createElement('menupopup');
+           popup.setAttribute('crop','none');
+           item.appendChild(popup);
+           if (!obj.required) {
+               var e = document.createElement('menuitem');
+               popup.appendChild(e);
+           }
+           for (var j in obj.list) {
+               var o = obj.list[j];
+               var e = document.createElement('menuitem');
+               var v = typeof o == "object" ? o[obj.key || "id"] : o;
+               e.setAttribute('label', rc.core.toString(o));
+               e.setAttribute('value', v);
+               popup.appendChild(e);
+           }
+           item.setAttribute('crop','end');
+           item.setAttribute('sizetopopup','none');
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'radio':
+           var item = document.createElement('radiogroup');
+           for (var j in obj.list) {
+               var o = obj.list[j];
+               var e = document.createElement('radio');
+               e.setAttribute('label', rc.core.toString(o));
+               e.setAttribute('value', typeof o == "object" ? o[obj.key || "id"] : o);
+               item.appendChild(e);
+           }
+           item.setAttribute('orient', 'horizontal');
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'password':
+           item = document.createElement('textbox');
+           item.setAttribute('type', type);
+           item.setAttribute('value', value);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'number':
+           item = document.createElement('textbox');
+           item.setAttribute('type', type);
+           item.setAttribute('value', value);
+           item.setAttribute('size', obj.size || 5);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'cidr':
+        case 'ip':
+        case 'url':
+        case 'email':
+        case 'textbox':
+           item = document.createElement('textbox');
+           item.setAttribute('value', value);
+           if (!obj.multiline) {
+               item.setAttribute('size', obj.size || 45);
+           }
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'name':
+        case 'column':
+        case 'autocomplete':
+           item = document.createElement('textbox');
+           item.setAttribute('type', 'autocomplete');
+           item.setAttribute('value', value);
+           item.setAttribute('autocompletesearch', "form-history");
+           item.setAttribute('size', obj.size || 45);
+           item.setAttribute('onchange', "handler(" + i + ")");
+           break;
+
+        case 'checkbox':
+           item = document.createElement('checkbox');
+           item.setAttribute('checked', value);
+           item.setAttribute('oncommand', "handler(" + i + ")");
+           break;
+
+        case 'description':
+           item = document.createElement(type);
+           item.setAttribute('style', 'white-space:pre-wrap;padding-bottom:5px;');
+           item.appendChild(document.createTextNode(value));
+           break;
+
+        case 'grid':
+        case 'box':
+        case 'hbox':
+        case 'vbox':
+        case 'groupbox':
+           item = document.createElement(type);
+           break;
+
+        default:
+           item = document.createElement(type);
+           item.setAttribute('value', value);
+           item.setAttribute('oncommand', "handler(event)");
+        }
+        obj.obj = item;
+        item.setAttribute('id', 'item' + i);
+
+        for (var p in obj) {
+            // Ignore our reserved attributes
+            if (reserved.indexOf(p) > -1) continue;
+            item.setAttribute(p, obj[p]);
+        }
+
+        if (obj.bold) {
+           box.setAttribute('class', 'header');
+        }
+
+        // Optional title
+        var label = document.createElement('label');
+        label.setAttribute('class', 'header');
+        label.setAttribute('control', 'item' + i);
+        if (!obj.notitle) {
+            label.setAttribute('value', title + (obj.required ? "*" : ""));
+        }
+        row.appendChild(label);
+
+        // Embed inside the box
+        if (!obj.custombox) {
+            if (!obj.nobox) {
+                box.appendChild(item);
+            } else {
+                box = item;
+            }
+        }
+
+        // This can apply to the box or the item
+        if (obj.fixed) {
+           box.setAttribute('autostretch', 'never');
+        }
+
+        // For images scale the whole row
+        if (obj.scale) {
+            box.setAttribute('flex', '1');
+            row.setAttribute('flex', '1');
+        }
+
+        // Text on the right
+        if (obj.help) {
+           var help = document.createElement('label');
+           help.setAttribute('value', obj.help);
+           box.appendChild(help);
+        }
+        row.appendChild(box);
+
+        // First time, create the title
+        if (!rows) {
+            rows = createSection(parent, rc.title, rc.help);
+        }
+        rows.appendChild(row);
+        return rows;
+    }
+
+    function createHeader(parent, title, help)
+    {
+        var cap = document.createElement('label');
+        cap.setAttribute('style', 'font-weight:bold;text-align:center;padding-bottom:20px;');
+        cap.setAttribute('value', title);
+        parent.appendChild(cap);
+
+        if (help) {
+            parent.appendChild(createDescr(help));
+        }
+    }
+
+    function createSection(parent, title, descr, rcItem)
+    {
+        var group = document.createElement('groupbox');
+        group.setAttribute('flex', '1');
+        group.setAttribute('style', 'padding-bottom: 20px;');
+        var cap = document.createElement('caption');
+        cap.setAttribute('style', 'text-align:center');
+        cap.setAttribute('label', title);
+        group.appendChild(cap);
+
+        if (descr) {
+            group.appendChild(createDescr(descr));
+        }
+        if (rcItem) {
+            rcItem.obj = group;
+        }
+        parent.appendChild(group);
+        return createGrid(group);
+    }
+
+    function createGrid(parent)
+    {
+        var grid = document.createElement('grid');
+        grid.setAttribute('flex', '1');
+        var cols = document.createElement('columns');
+        cols.setAttribute('flex', '1');
+        var col = document.createElement('column');
+        cols.appendChild(col);
+        col = document.createElement('column');
+        col.setAttribute('flex', '1');
+        cols.appendChild(col);
+        grid.appendChild(cols);
+        var rows = document.createElement('rows');
+        rows.setAttribute('flex', '1');
+        grid.appendChild(rows);
+        parent.appendChild(grid);
+        return rows;
+    }
+
+    function createDescr(descr)
+    {
+        var text = document.createElement('description');
+        text.setAttribute('flex', '1');
+        text.setAttribute('style', 'white-space:pre-wrap;padding-bottom:20px;');
+        text.textContent = descr;
+        return text;
+    }
+
+    function accept()
+    {
+      rc.values = [];
+      for (var i = 0; i < rc.items.length; i++) {
+          var obj = document.getElementById('item' + i);
+          if (!obj) continue;
+          var type = rc.items[i].type || 'textbox';
+          switch(type) {
+          case 'listview':
+             rc.items[i].view.done();
+             rc.values[i] = rc.items[i].view.selectedItems;
+             if (!rc.values[i].length) rc.values[i] = null;
+             break;
+
+          case 'checkbox':
+             rc.values[i] = obj.checked;
+             break;
+
+          case 'cidr':
+             rc.values[i] = obj.value;
+             if (obj.value && !/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+/.test(obj.value)) {
+                 alert('Invalid CIDR Block');
+                 return false;
+             }
+             break;
+
+          case 'ip':
+             rc.values[i] = obj.value;
+             if (obj.value && !/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/.test(obj.value)) {
+                 alert('Invalid IP Address');
+                 return false;
+             }
+             break;
+
+          case 'email':
+             rc.values[i] = obj.value;
+             if (obj.value && !/([^@]+)@([^@]+)/.test(obj.value)) {
+                 alert('Invalid Email Address');
+                 return false;
+             }
+             break;
+
+          case 'name':
+             rc.values[i] = obj.value;
+             if (obj.value && !/^[\.0-9a-zA-Z_\(\),\/-]{3,128}$/.test(obj.value)) {
+                 alert("The name is not formatted properly; it must be 3-128 characters in length containing alphanumerics, parantheses, commas, slashes, dashes, and underscores.");
+                 return false;
+             }
+             break;
+
+          case 'url':
+             rc.values[i] = obj.value;
+             //if (obj.value && !/^https?:\/\/[0-9a-zA-Z-_\.]+$/.test(obj.value)) {
+             //    alert("The URL is not formatted properly");
+             //    return false;
+             //}
+	     //return true;
+             break;
+
+          case 'column':
+             rc.values[i] = obj.value;
+             if (obj.value && !/^[\.0-9a-zA-Z_-]{1,255}$/.test(obj.value)) {
+                 alert("The name is not formatted properly; it must be 1-255 characters in length containing alphanumerics, dots, dashes, and underscores.");
+                 return false;
+             }
+             break;
+
+          case 'number':
+             rc.values[i] = obj.decimalPlaces ? parseFloat(obj.value) : parseInt(obj.value);
+             break;
+
+          case 'menulist':
+             if (rc.items[i].actual) {
+                 rc.values[i] = rc.items[i].list[obj.selectedIndex];
+                 break;
+             }
+
+          default:
+             rc.values[i] = obj.value;
+          }
+
+          // Custom validator
+          if (rc.items[i].validate) {
+              var msg =  rc.items[i].validate(rc.values[i], rc.items[i]);
+              if (msg) {
+                  alert(msg);
+                  return false;
+              }
+          }
+          // Make sure required fields are not empty
+          if (rc.items[i].required && !rc.values[i] && !(type == 'number' && rc.values[i] == '')) {
+             alert(rc.items[i].label + " is required");
+             return false;
+          }
+      }
+      // Call hanlder on accept, if it returns true we should not close the dialog and let the callback do it
+      if (rc.onaccept && rc.onaccept.call(this)) return false;
+      rc.ok = true;
+      return true;
+    }
+  ]]>
+  </script>
+  <vbox id="main" flex="1" />
+</dialog>

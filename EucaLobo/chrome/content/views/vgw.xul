@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.vgw" flex="1">
+        <vbox flex="1">
+            <groupbox orient="vertical" flex="1">
+                <caption label="&ew.captions.vpnGateways.label;" />
+                <popupset>
+                    <menupopup id="ew.vpnGateways.contextmenu" >
+                        <menuitem oncommand="ew_VpnGatewayTreeView.tag(event);" label="Add Tag" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.createVpnConnection();" label="&ew.vpnGateway.contextmenu.createvpnconnection.label;" />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.deleteVpnGateway();" label="&ew.vpnGateway.contextmenu.delete.label;" />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.enablePropagation();" label="Enable Propagation to a route table" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.attachVpc();" label="&ew.vpnGateway.contextmenu.attachvpc.label;" />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.detachVpc();" label="&ew.vpnGateway.contextmenu.detachvpc.label;" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnGatewayTreeView.copyToClipboard('id');" label="&ew.vpnGateway.contextmenu.copyvgwid.label;" />
+                    </menupopup>
+                </popupset>
+                <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                    <hbox flex="1">
+                        <label control="ew.vpnGateways.search" value="Search:"/>
+                        <textbox id="ew.vpnGateways.search" size="15" />
+                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnGatewayTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnGatewayTreeView.createVpnGateway()" tooltiptext="&ew.createvpnGateway.tip;" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnGatewayTreeView.deleteVpnGateway()" tooltiptext="&ew.deletevpnGateway.tip;" />
+                        <toolbarbutton image="images/attach.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnGatewayTreeView.attachToVpc();" tooltiptext="&ew.attachvpnGateway.tip;" />
+                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VpnGatewayTreeView.tag();" tooltiptext="Add Tag" />
+                    </hbox>
+                </toolbar>
+                <tree id="ew.vpnGateways.view" seltype="single" enableColumnDrag="true" flex="1">
+                    <treecols>
+                        <treecol id="vpnGateway.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnGateway.id" label="&ew.vpnGateways.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnGateway.availabilityZone" label="&ew.vpnGateways.availabilityZone.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnGateway.type" label="&ew.vpnGateways.type.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnGateway.state" label="&ew.vpnGateways.state.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnGateway.vpcId" label="VPC" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                    </treecols>
+                    <treechildren context="ew.vpnGateways.contextmenu" />
+                </tree>
+            </groupbox>
+        </vbox>
+    </tabpanel>
+</overlay>

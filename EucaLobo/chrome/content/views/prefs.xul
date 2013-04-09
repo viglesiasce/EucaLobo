@@ -1,0 +1,304 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.prefs" flex="1">
+    <vbox flex="1">
+    <tabbox flex="1" style="padding: 20px;" >
+       <tabs id="ew.tabs">
+         <tab label="System" selected="true" />
+         <tab label="Paths" selected="true" />
+         <tab label="Security" selected="true" />
+       </tabs>
+
+       <tabpanels flex="1" style="padding: 20px;-moz-appearance:tabpanels;" >
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <grid>
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row>
+                    <label control="ew.user" value="AWS User:" />
+                    <textbox id="ew.user" readonly="true" size="80" />
+                </row>
+                <row>
+                    <label control="ew.account" value="AWS Account Number:" />
+                    <textbox id="ew.account" readonly="true" size="80" />
+                </row>
+                <row>
+                    <label control="ew.account_arn" value="AWS Account ARN:" />
+                    <textbox id="ew.account_arn" readonly="true" size="80" />
+                </row>
+                <row>
+                   <label control="ew.platforms" value="Platforms Supported:" />
+                   <label id="ew.platforms" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                   <label control="ew.sys" value="Platform:" />
+                   <label id="ew.sys" />
+                </row>
+                <row>
+                   <label control="ew.version" value="ElasticWolf Version:" />
+                   <label id="ew.version" />
+                </row>
+                <row>
+                   <label control="ew.ec2_version" value="EC2 API Version:" />
+                   <label id="ew.ec2_version" />
+                </row>
+                <row>
+                   <label control="ew.iam_version" value="IAM API Version:" />
+                   <label id="ew.iam_version" />
+                </row>
+                <row>
+                   <label control="ew.elb_version" value="Elastic Load Balancing API Version:" />
+                   <label id="ew.elb_version" />
+                </row>
+                <row>
+                   <label control="ew.cw_version" value="CloudWatch API Version:" />
+                   <label id="ew.cw_version" />
+                </row>
+                <row>
+                   <label control="ew.sqs_version" value="SQS API Version:" />
+                   <label id="ew.sqs_version" />
+                </row>
+                <row>
+                   <label control="ew.sts_version" value="STS API Version:" />
+                   <label id="ew.sts_version" />
+                </row>
+                <row>
+                   <label control="ew.as_version" value="AutoScaling API Version:" />
+                   <label id="ew.as_version" />
+                </row>
+                <row>
+                   <label control="ew.emr_version" value="EMR API Version:" />
+                   <label id="ew.emr_version" />
+                </row>
+                <row>
+                   <label control="ew.ddb_version" value="DynamoDB API Version:" />
+                   <label id="ew.ddb_version" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label control="ew.accessibility" value="Accessibility mode" tooltiptext="Enable accessibility mode to use alternative outputs for graphs" />
+                    <checkbox id="ew.accessibility" />
+                </row>
+                <row>
+                    <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will make the console filled with debugging messages" />
+                    <checkbox id="ew.debug.enabled" />
+                </row>
+                <row>
+                    <label control="ew.http.enabled" value="Enable HTTP requests:" tooltiptext="Temporary disable all HTTP request making the tool UI only, this is developers option" />
+                    <checkbox id="ew.http.enabled" />
+                </row>
+                <row>
+                    <label control="ew.prompt.open.port" value="Ask about opening ports on instance launch" tooltiptext="When new instance is launched it may need inbound ports to be opened for access, use this to enable/disable confirmation popup about opening ports, if disabled, ports for access (RDP, SSH) will be open automatically if needed" />
+                    <checkbox id="ew.prompt.open.port" />
+                </row>
+                <row>
+                    <label control="ew.advanced.mode" value="Advanced mode" tooltiptext="Enables some advanced features that are not typically needed" />
+                    <checkbox id="ew.advanced.mode" />
+                </row>
+                <row>
+                    <label control="ew.errors.show" value="Show errors in popups" tooltiptext="Check for errors to be be displayed in a popup, uncheck to appear in status bar" />
+                    <checkbox id="ew.errors.show" />
+                </row>
+                <row>
+                    <label control="ew.http.timeout" value="HTTP timeout (ms):" tooltiptext="Timeout for HTTP requests, after this period of time the request will be canceled." />
+                    <textbox id="ew.http.timeout" type="number" size="5" maxlength="5" style="max-width:100px;" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label value="" />
+                    <hbox>
+                    <button id="ew.updates" label="Check for Updates" oncommand="ew_core.checkForUpdates(true)" />
+                    <button id="ew.updates" label="Show Errors" oncommand="ew_core.displayErrors()" />
+                    <button id="ew.venkman" label="Run Venkman" oncommand="start_venkman()" />
+                    </hbox>
+                </row>
+            </rows>
+        </grid>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <grid>
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row>
+                    <label control="ew.home" value="User home directory:" />
+                    <label id="ew.home" />
+                </row>
+                <row>
+                    <label control="ew.profile" value="Profile directory:" />
+                    <hbox>
+                    <label id="ew.profile" />
+                    <button label="Delete Preferences" oncommand="ew_PrefsView.cleanup()" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.key.home" value="Directory for private key files:" />
+                    <hbox>
+                        <textbox id="ew.key.home" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.key.home')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.ssh.command" value="SSH Command:" />
+                    <hbox>
+                        <textbox id="ew.ssh.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.ssh.command', true)" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.ssh.args" value="SSH Arguments:" />
+                    <hbox>
+                        <textbox id="ew.ssh.args" size="60" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.ssh.user" value="SSH User:" />
+                    <hbox>
+                        <textbox id="ew.ssh.user" size="20" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.openssl.command" value="OPENSSL Command:" />
+                    <hbox>
+                        <textbox id="ew.openssl.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.openssl.command', true)" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.sshkeygen.command" value="SSH Keygen Command:" />
+                    <hbox>
+                        <textbox id="ew.sshkeygen.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.sshkeygen.command', true)" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.shell.command" value="SHELL Command:" />
+                    <hbox>
+                        <textbox id="ew.shell.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.shell.command', true)" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.shell.args" value="SHELL Arguments:" />
+                    <hbox>
+                        <textbox id="ew.shell.args" size="60" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.rdp.command" value="RDP Command:" />
+                    <hbox>
+                        <textbox id="ew.rdp.command" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.rdp.command', true)" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.rdp.args" value="RDP Arguments:" />
+                    <hbox>
+                        <textbox id="ew.rdp.args" size="60" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.java" value="Java Home Path:" />
+                    <hbox>
+                        <textbox id="ew.path.java" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.java')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.ec2" value="EC2 API Command-line Tools Home:" />
+                    <hbox>
+                        <textbox id="ew.path.ec2" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.ec2')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.iam" value="IAM Command-line Tools Home:" />
+                    <hbox>
+                        <textbox id="ew.path.iam" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.iam')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.ami" value="AMI Command-line Tools Home:" />
+                    <hbox>
+                        <textbox id="ew.path.ami" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.ami')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.cloudwatch" value="Cloud Watch Command-line Tools Home:" />
+                    <hbox>
+                        <textbox id="ew.path.cloudwatch" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.cloudwatch')" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.path.autoscaling" value="AWS Auto Scaling Command-line Tools Home:" />
+                    <hbox>
+                        <textbox id="ew.path.autoscaling" size="60" /> <button label="Browse" oncommand="ew_PrefsView.browse('ew.path.autoscaling')" />
+                    </hbox>
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label value="" />
+                    <hbox>
+                    <button id="ew.reset" label="Reset to defaults" oncommand="ew_PrefsView.reset()" />
+                    </hbox>
+                </row>
+            </rows>
+        </grid>
+        </tabpanel>
+
+        <tabpanel orient="vertical" flex="1" style="-moz-appearance:tabpanel;" align="center">
+        <grid>
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row>
+                    <label control="ew.pin" value="Access PIN:" tooltiptext="Restrict access to the console with PIN" />
+                    <hbox>
+                        <textbox id="ew.pin" type="password" size="20" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.idle.timeout" value="Idle timeout (min):" />
+                    <hbox>
+                        <textbox id="ew.idle.timeout" size="3" maxlength="3" type="number" />
+                    </hbox>
+                </row>
+                <row>
+                    <label control="ew.idle.action" value="Action on idle timeout:" />
+                    <hbox>
+                        <menulist id="ew.idle.action">
+                         <menupopup>
+                            <menuitem label="None" value=""/>
+                            <menuitem label="Ask for PIN" value="pin"/>
+                            <menuitem label="Exit" value="exit"/>
+                         </menupopup>
+                        </menulist>
+                    </hbox>
+                </row>
+            </rows>
+        </grid>
+        </tabpanel>
+
+       </tabpanels>
+    </tabbox>
+    </vbox>
+  </tabpanel>
+</overlay>
+

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.db.subnet" flex="1">
+    <vbox flex="1">
+
+    <groupbox flex="1" orient="vertical">
+        <caption label="DB Subnet Groups" />
+        <popupset>
+            <menupopup id="ew.dbsubnets.contextmenu">
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.displayDetails()" label="View Details" />
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.addItem()" label="Add Subnet" />
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.editItem()" label="Edit Subnet" />
+                <menuitem oncommand="ew_DBSubnetGroupsTreeView.deleteSelected();" label="Delete Subnet" />
+            </menupopup>
+        </popupset>
+        <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <label control="ew.dbsubnets.search" value="Search:"/>
+            <textbox id="ew.dbsubnets.search" size="15" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_DBSubnetGroupsTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="Add" oncommand="ew_DBSubnetGroupsTreeView.addItem()" />
+            <toolbarbutton image="images/edit.png" tooltiptext="Edit" oncommand="ew_DBSubnetGroupsTreeView.editItem()" />
+            <toolbarbutton image="images/delete.png" tooltiptext="Remove" oncommand="ew_DBSubnetGroupsTreeView.deleteSelected()" />
+        </toolbar>
+        <tree enableColumnDrag="true" id="ew.dbsubnets.view" flex="1">
+            <treecols>
+                <treecol id="dbsubnet.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dbsubnet.descr" label="Descr" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dbsubnet.status" label="Status" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dbsubnet.vpcId" label="VPC" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="dbsubnet.subnets" label="Subnets" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+            </treecols>
+            <treechildren id="ew.dbsubnets.tree.children" context="ew.dbsubnets.contextmenu" />
+        </tree>
+    </groupbox>
+
+    </vbox>
+    </tabpanel>
+</overlay>

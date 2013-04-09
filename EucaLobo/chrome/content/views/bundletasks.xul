@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.bundletask" flex="1">
+    <groupbox flex="1" orient="vertical">
+      <caption label="&ew.captions.bundleTasks.label;" />
+      <popupset>
+        <menupopup id="ew.bundleTasks.contextmenu" >
+          <menuitem oncommand="ew_BundleTasksTreeView.displayDetails();" label="&ew.contextmenu.details.label;" />
+          <menuseparator />
+          <menuitem id="bundleTasks.context.register" oncommand="ew_BundleTasksTreeView.registerNewImage();" label="&ew.images.contextmenu.register.label;" />
+          <menuitem id="bundleTasks.context.cancel" oncommand="ew_BundleTasksTreeView.cancelBundleTask();" label="&ew.bundleTasks.contextmenu.cancel.label;" />
+          <menuseparator />
+          <menuitem oncommand="ew_BundleTasksTreeView.copyToClipboard('id');" label="&ew.bundleTasks.contextmenu.copybunid.label;" />
+          <menuitem oncommand="ew_BundleTasksTreeView.copyToClipboard('instanceId');" label="&ew.instances.contextmenu.copyid.label;" />
+        </menupopup>
+      </popupset>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <hbox flex="10">
+          <label control="ew.bundleTasks.search" value="Search:"/>
+          <textbox id="ew.bundleTasks.search" size="15" />
+          <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+          <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.cancelBundleTask()" tooltiptext="&ew.cancelBundleTask.tip;" />
+          <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" tooltiptext="&ew.images.register.tip;" oncommand="ew_BundleTasksTreeView.registerNewImage();" />
+        </hbox>
+      </toolbar>
+      <tree id="ew.bundleTasks.view" seltype="single" enableColumnDrag="true" flex="1">
+        <treecols>
+          <treecol id="bun.instanceId" label="&ew.instances.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.id" label="&ew.bundleTasks.id.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.state" label="&ew.bundleTasks.state.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.startTime" label="&ew.bundleTasks.startTime.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.updateTime" label="&ew.bundleTasks.updateTime.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.s3bucket" label="&ew.bundleTasks.s3.bucket.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.s3prefix" label="&ew.bundleTasks.s3.prefix.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="bun.errorMsg" label="&ew.bundleTasks.errorMessage.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+        </treecols>
+        <treechildren context="ew.bundleTasks.contextmenu"/>
+      </tree>
+    </groupbox>
+  </tabpanel>
+</overlay>

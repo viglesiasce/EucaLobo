@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.spot" flex="1">
+    <groupbox flex="1" orient="vertical">
+      <caption label="Spot Instance Requests" />
+      <popupset>
+        <menupopup id="ew.spotInstanceRequests.contextmenu">
+          <menuitem id="ew.spotInstanceRequests.contextmenu.history" oncommand="ew_SpotInstanceRequestsTreeView.showHistory();" label="Show Price History" />
+          <menuseparator />
+          <menuitem id="ew.spotInstanceRequests.contextmenu.add" oncommand="ew_SpotInstanceRequestsTreeView.createRequest();" label="Create Request" />
+          <menuitem id="ew.spotInstanceRequests.contextmenu.delete" oncommand="ew_SpotInstanceRequestsTreeView.cancelRequest();" label="Cancel Request" />
+          <menuseparator />
+          <menuitem id="ew.spotInstanceRequests.contextmenu.addFeed" oncommand="ew_SpotInstanceRequestsTreeView.createDatafeed();" label="Create Spot Instance Data Feed" />
+          <menuitem id="ew.spotInstanceRequests.contextmenu.deleteFeed" oncommand="ew_SpotInstanceRequestsTreeView.deleteDatafeed();" label="Delete spot Instance Data Feed" />
+        </menupopup>
+      </popupset>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <hbox flex="10">
+          <label control="ew.spotInstanceRequests.search" value="Search:"/>
+          <textbox id="ew.spotInstanceRequests.search" size="15" />
+          <toolbarbutton image="images/refresh.png" oncommand="ew_SpotInstanceRequestsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+          <toolbarseparator />
+          <toolbarbutton image="images/chart.png" oncommand="ew_SpotInstanceRequestsTreeView.showHistory();" tooltiptext="Show price history" />
+          <toolbarbutton image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.createRequest();" tooltiptext="Create Request" />
+          <toolbarbutton image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_SpotInstanceRequestsTreeView.cancelRequest();" tooltiptext="Cancel Request" />
+        </hbox>
+      </toolbar>
+
+      <tree id="ew.spotInstanceRequests.view" enableColumnDrag="true" flex="1">
+        <treecols>
+          <treecol id="instance.id" label="ID" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.type" label="Type" flex="9" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.state" label="State" flex="3" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.instanceType" label="Instance Type" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.availabilityZone" label="&ew.availabilityZone.label;" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.productDescription" label="Product" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+          <treecol id="instance.price" label="Price" flex="1" persist="width ordinal hidden sortDirection" />
+          <splitter class="tree-splitter" />
+        </treecols>
+        <treechildren context="ew.spotInstanceRequests.contextmenu" />
+      </tree>
+    </groupbox>
+  </tabpanel>
+</overlay>

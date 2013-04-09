@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.sns" flex="1">
+      <vbox flex="1">
+        <groupbox orient="vertical" flex="1" >
+            <caption label="SNS Topics" />
+            <popupset>
+                <menupopup id="ew.topics.contextmenu" >
+                 <menuitem id="ew.topics.contextmenu.add" oncommand="ew_SNSTopicsTreeView.createTopic();" label="Create Topic" />
+                 <menuitem id="ew.topics.contextmenu.delete" oncommand="ew_SNSTopicsTreeView.deletetopic();" label="Delete Topic" />
+                 <menuitem id="ew.topics.contextmenu.perm" oncommand="ew_SNSTopicsTreeView.addPermission();" label="Add Permission" />
+                 <menuitem id="ew.topics.contextmenu.config" oncommand="ew_SNSTopicsTreeView.configureTopic();" label="Configure Topic" />
+                 <menuitem id="ew.topics.contextmenu.subscribe" oncommand="ew_SNSTopicsTreeView.subscribe();" label="Subscribe" />
+                 <menuitem id="ew.topics.contextmenu.confirm" oncommand="ew_SNSTopicsTreeView.confirm();" label="Confirm Subscription" />
+                 <menuitem id="ew.topics.contextmenu.publish" oncommand="ew_SNSTopicsTreeView.publish();" label="Publish" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.topics.search" value="Search:"/>
+                <textbox id="ew.topics.search" size="15" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SNSTopicsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" tooltiptext="Create Topic" oncommand="ew_SNSTopicsTreeView.createTopic();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete Topic" oncommand="ew_SNSTopicsTreeView.deleteTopic();" />
+                <toolbarbutton image="images/credentials.png" tooltiptext="Add Permission" oncommand="ew_SNSTopicsTreeView.addPermission();" />
+                <toolbarbutton image="images/tools.png" tooltiptext="Configure" oncommand="ew_SNSTopicsTreeView.configureTopic();" />
+                <toolbarbutton image="images/attach.png" tooltiptext="Subscribe" oncommand="ew_SNSTopicsTreeView.subscribe();" />
+                <toolbarbutton image="images/email.png" tooltiptext="Publish" oncommand="ew_SNSTopicsTreeView.publish();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.topics.view" flex="1">
+                <treecols>
+                   <treecol id="sqs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
+                   <treecol id="sqs.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                   <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.topics.children" context="ew.topics.contextmenu" />
+            </tree>
+        </groupbox>
+
+        <splitter style="width: 4px; max-height: 4px;" persist="state" collapse="none" resizebefore="closest">
+
+        </splitter>
+
+        <groupbox orient="vertical" flex="1" >
+            <caption label="Subscriptions" />
+            <popupset>
+                <menupopup id="ew.subscriptions.contextmenu" >
+                 <menuitem id="ew.subscriptions.contextmenu.delete" oncommand="ew_SNSsubscriptionsTreeView.unsubscribe();" label="Unsubscribe" />
+                 <menuitem id="ew.subscriptions.contextmenu.config" oncommand="ew_SNSSubscriptionsTreeView.configure();" label="Configure" />
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.subscriptions.search" value="Search:"/>
+                <textbox id="ew.subscriptions.search" size="15" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SNSTopicsTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Unsubscribe" oncommand="ew_SNSSubscriptionsTreeView.unsubscribe();" />
+                <toolbarbutton image="images/tools.png" tooltiptext="Configure" oncommand="ew_SNSSubscriptionsTreeView.configure();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.subscriptions.view" flex="1">
+                <treecols>
+                    <treecol id="sqs.topicName" label="Topic" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.protocol" label="Protocol" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.endpoint" label="Endpoint" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.owner" label="Owner" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.subscriptions.children" context="ew.subscriptions.contextmenu" />
+            </tree>
+        </groupbox>
+      </vbox>
+    </tabpanel>
+</overlay>

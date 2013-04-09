@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.vpn" flex="1">
+        <vbox flex="1">
+            <groupbox orient="vertical" flex="1">
+                <caption label="&ew.captions.vpnconnections.vpnconnections.label;" />
+                <popupset>
+                    <menupopup id="ew.vpnconnections.contextmenu">
+                        <menuitem oncommand="ew_VpnConnectionTreeView.tag(event);" label="Add Tag" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.deleteVpnConnection();" label="&ew.vpnconnection.contextmenu.delete.label;" />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.getCustomerConfig();" label="&ew.vpnconnection.contextmenu.config.label;" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.addRoute();" label="Add Static Route" />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.deleteRoute();" label="Delete Static Route" />
+                        <menuseparator />
+                        <menuitem oncommand="ew_VpnConnectionTreeView.copyToClipboard('id');" label="&ew.vpnconnection.contextmenu.copyvpnconnectionsid.label;" />
+                    </menupopup>
+                </popupset>
+                <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                    <hbox flex="1">
+                        <label control="ew.vpnconnections.search" value="Search:"/>
+                        <textbox id="ew.vpnconnections.search" size="15" />
+                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnConnectionTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnConnectionTreeView.createVpnConnection(null, null)" tooltiptext="&ew.createvpnconnection.tip;" />
+                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnConnectionTreeView.deleteVpnConnection()" tooltiptext="&ew.deletevpnconnection.tip;" />
+                        <toolbarbutton image="images/download.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VpnConnectionTreeView.getCustomerConfig()" tooltiptext="&ew.getcustomerconfig.tip;" />
+                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VpnConnectionTreeView.tag();" tooltiptext="Add Tag" />
+                    </hbox>
+                </toolbar>
+                <tree id="ew.vpnconnections.view" seltype="single" enableColumnDrag="true" flex="1">
+                    <treecols>
+                        <treecol id="vpnConnection.name" label="Name" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnConnection.id" label="&ew.vpnconnections.id.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnConnection.vgwId" label="&ew.vpnconnections.vgwid.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnConnection.cgwId" label="&ew.vpnconnections.cgwid.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnConnection.type" label="&ew.vpnconnections.type.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                        <treecol id="vpnConnection.state" label="&ew.vpnconnections.state.label;" flex="1" persist="width ordinal hidden sortDirection" />
+                        <splitter class="tree-splitter" />
+                    </treecols>
+                    <treechildren context="ew.vpnconnections.contextmenu" />
+                </tree>
+            </groupbox>
+        </vbox>
+    </tabpanel>
+</overlay>

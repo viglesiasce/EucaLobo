@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns:html="http://www.w3.org/1999/xhtml" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <tabpanel id="ew.tabs.graph" flex="1">
+  <groupbox orient="vertical" flex="1" >
+   <caption id="ew.graphs.title" label="Cloud Watch Graphs" />
+   <toolbar style="padding: 0px 3px; -moz-box-align: center">
+    <label control="ew.graphs.dimensions" value="Dimensions:"/>
+    <menulist id="ew.graphs.dimensions" style="max-width:200px;" crop="end" sizetopopup="none" oncommand="ew_GraphsView.onChange()"/>
+    <label control="ew.graphs.statistics" value="Stats:" />
+    <menulist id="ew.graphs.statistics" >
+      <menupopup>
+        <menuitem label="Average" value="Average" />
+        <menuitem label="Sum" value="Sum"/>
+        <menuitem label="SampleCount" value="SampleCount"/>
+        <menuitem label="Maximum" value="Maximum"/>
+        <menuitem label="Minimum" value="Minimum"/>
+      </menupopup>
+    </menulist>
+    <label control="ew.graphs.period" value="Period:" />
+    <menulist id="ew.graphs.period">
+      <menupopup>
+        <menuitem label="1 Minute Periods" value="60"/>
+        <menuitem label="5 Minutes Periods" value="300" />
+        <menuitem label="15 Minutes Periods" value="900"/>
+        <menuitem label="1 Hour Periods" value="3600"/>
+        <menuitem label="6 Hours Periods" value="21600"/>
+        <menuitem label="1 Day Periods" value="86400"/>
+      </menupopup>
+    </menulist>
+    <label control="ew.graphs.interval" value="Interval:" />
+    <menulist id="ew.graphs.interval">
+      <menupopup>
+        <menuitem label="15 Minutes ago" value="900" />
+        <menuitem label="30 Minutes ago" value="1800" />
+        <menuitem label="1 Hour ago" value="3600" />
+        <menuitem label="3 Hours ago" value="10800"/>
+        <menuitem label="6 Hours ago" value="21600"/>
+        <menuitem label="1 Day" value="86400"/>
+        <menuitem label="3 Days ago" value="259200"/>
+        <menuitem label="1 Week ago" value="604800"/>
+        <menuitem label="2 Weeks ago" value="1209600"/>
+      </menupopup>
+    </menulist>
+    <toolbarbutton image="images/chart.png" oncommand="ew_GraphsView.show();" tooltiptext="Show metric graph" />
+  </toolbar>
+
+  <scrollbox id="ew.graphs.page" flex="1" orient="vertical" style="overflow:auto;" />
+
+  </groupbox>
+  </tabpanel>
+</overlay>
+

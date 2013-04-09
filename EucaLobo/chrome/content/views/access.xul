@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.access" flex="1">
+    <vbox flex="1">
+
+    <groupbox flex="1" orient="vertical">
+        <caption label="&ew.captions.accesskeys.label;" />
+        <popupset>
+            <menupopup id="ew.accesskeys.contextmenu">
+                <menuitem oncommand="ew_AccessKeysTreeView.displayDetails()" label="View Details" />
+                <menuitem oncommand="ew_AccessKeysTreeView.createAccessKey()" label="&ew.accesskeys.create.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.deleteSelected();" label="&ew.accesskeys.delete.tip;" />
+                <menuitem oncommand="ew_AccessKeysTreeView.createTemp();" label="Create Temporary Access Key" />
+            </menupopup>
+        </popupset>
+        <toolbar style="padding: 0px 3px; -moz-box-align: center">
+            <label control="ew.accesskeys.search" value="Search:"/>
+            <textbox id="ew.accesskeys.search" size="15" />
+            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeysTreeView.refresh()" />
+            <toolbarbutton image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeysTreeView.createAccessKey();" />
+            <toolbarbutton image="images/delete.png" tooltiptext="&ew.accesskeys.delete.tip;" oncommand="ew_AccessKeysTreeView.deleteSelected();" />
+            <toolbarbutton image="images/key.png" tooltiptext="Create Temporary Access key" oncommand="ew_AccessKeysTreeView.createTemp()"/>
+        </toolbar>
+        <tree enableColumnDrag="true" id="ew.accesskeys.view" flex="1">
+            <treecols>
+                <treecol id="accesskey.id" label="&ew.accesskeys.name.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.status" label="&ew.accesskeys.status.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.userName" label="User" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.date" label="Created" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.state" label="&ew.accesskeys.current.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                <splitter class="tree-splitter" />
+                <treecol id="accesskey.expire" label="Expire" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+            </treecols>
+            <treechildren context="ew.accesskeys.contextmenu" />
+        </tree>
+    </groupbox>
+    </vbox>
+    </tabpanel>
+</overlay>

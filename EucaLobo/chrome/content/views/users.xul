@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ew/locale/ew.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <tabpanel id="ew.tabs.users" flex="1">
+        <groupbox orient="vertical" flex="1">
+            <caption label="IAM Users" />
+            <popupset>
+                <menupopup id="ew.users.contextmenu" >
+                <menuitem id="ew.users.contextmenu.add" oncommand="ew_UsersTreeView.addUser();" label="Add user" />
+                <menuitem id="ew.users.contextmenu.delete" oncommand="ew_UsersTreeView.deleteUser();" label="Delete user" />
+                <menuitem id="ew.users.contextmenu.addGroup" oncommand="ew_UsersTreeView.addGroup();" label="Add to Group" />
+                <menuseparator />
+                <menuitem id="ew.users.contextmenu.addPassword" oncommand="ew_UsersTreeView.setPassword();" label="Add Password" />
+                <menuitem id="ew.users.contextmenu.changePassword" oncommand="ew_UsersTreeView.setPassword(true);" label="Change Password" />
+                <menuitem id="ew.users.contextmenu.deletePassword" oncommand="ew_UsersTreeView.deletePassword();" label="Delete Password" />
+                <menuseparator />
+                <menuitem id="ew.users.contextmenu.createKey" oncommand="ew_UsersTreeView.createAccessKey();" label="Create Access Key" />
+                <menuitem id="ew.users.contextmenu.deleteKey" oncommand="ew_UsersTreeView.deleteAccessKey();" label="Delete Access Key" />
+                <menuitem id="ew.users.contextmenu.createCred" oncommand="ew_UsersTreeView.createCredentials();" label="Make Current User" />
+                <menuitem id="ew.users.contextmenu.createTemp" oncommand="ew_UsersTreeView.createTempCredentials();" label="Make Temp Credentials and Current User" />
+                <menuseparator />
+                <menuitem id="ew.users.contextmenu.enableMFA" oncommand="ew_UsersTreeView.enableMFA();" label="Activate MFA Device" />
+                <menuitem id="ew.users.contextmenu.enableVMFA" oncommand="ew_UsersTreeView.createVMFA();" label="Activate Virtual MFA Device" />
+                <menuitem id="ew.users.contextmenu.resyncMFA" oncommand="ew_UsersTreeView.resyncMFA();" label="Resync MFA Device" />
+                <menuitem id="ew.users.contextmenu.deactivateMFA" oncommand="ew_UsersTreeView.deactivateMFA();" label="Deactivate MFA Device" />
+                <menuseparator />
+                <menuitem id="ew.users.contextmenu.addPolicy" oncommand="ew_UsersTreeView.addPolicy();" label="Add Policy" />
+                <menuitem id="ew.users.contextmenu.editPolicy" oncommand="ew_UsersTreeView.editPolicy();" label="Edit Policy" />
+                <menuitem id="ew.users.contextmenu.deletePolicy" oncommand="ew_UsersTreeView.deletePolicy();" label="Delete Policy" />
+                <menuseparator />
+                <menuitem id="ew.users.contextmenu.genKey" oncommand="ew_UsersTreeView.makeKeypair();" label="&ew.keypairs.make.tip;"/>
+                </menupopup>
+            </popupset>
+
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <label control="ew.users.search" value="Search:"/>
+                <textbox id="ew.users.search" size="15"  />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_UsersTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton image="images/add.png" tooltiptext="Add User" oncommand="ew_UsersTreeView.addUser();" />
+                <toolbarbutton image="images/delete.png" tooltiptext="Delete User" oncommand="ew_UsersTreeView.deleteUser();" />
+                <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_UsersTreeView.makeKeypair();" />
+            </toolbar>
+
+            <tree enableColumnDrag="true" seltype="single" id="ew.users.view" flex="1">
+                <treecols>
+                    <treecol id="user.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.path" label="Path" flex="2" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.arn" label="ARN" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.groups" label="Groups" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.policies" label="Policies" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.accessKeys" label="Access Keys" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="user.mfaDevices" label="MFA Device" flex="1" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                </treecols>
+                <treechildren id="ew.users.children" context="ew.users.contextmenu" />
+            </tree>
+        </groupbox>
+    </tabpanel>
+</overlay>
