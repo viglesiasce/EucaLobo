@@ -5,7 +5,7 @@
 	<key>CFBundleExecutable</key>
 	<string>xulrunner</string>
 	<key>CFBundleGetInfoString</key>
-	<string>ElasticWolf</string>
+	<string>EucaLobo</string>
 	<key>CFBundleIconFile</key>
 	<string>logo.icns</string>
 	<key>CFBundleIdentifier</key>
