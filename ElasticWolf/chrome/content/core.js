@@ -120,6 +120,8 @@ var ew_core = {
         if (this.credentials.length == 0) {
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
         }
+        // Cache essential models on startup
+        ["images","availabilityZones","securityGroups"].forEach(function(x) { me.refreshModel(x); });
     },
 
     setIdleTimer: function()
@@ -997,7 +999,8 @@ var ew_core = {
         };
         xmlhttp.open("GET", this.URL + "?" + new Date().getTime(), true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.setRequestHeader("Cache-Control", "no-cache, must-revalidate");
+        xmlhttp.setRequestHeader("Cache-Control", "no-cache");
+        xmlhttp.setRequestHeader("Pragma", "no-cache");
         xmlhttp.send();
         // Mark when we checked last time
         this.setIntPrefs('ew.updates.time', (new Date()).getTime()/1000);
