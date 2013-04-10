@@ -1,5 +1,5 @@
 var ew_LoadbalancerTreeView = {
-    model: [ "loadBalancers", "availabilityZones", "securityGroups", "instances","cerverCerts", "subnets", "elbPolicyTypes" ],
+    model: [ "loadBalancers", "availabilityZones", "securityGroups", "instances","serverCerts", "subnets", "elbPolicyTypes" ],
 
     display: function(list)
     {
