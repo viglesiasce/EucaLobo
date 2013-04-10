@@ -20,6 +20,10 @@ var ew_JobFlowsTreeView = {
     addItem: function(instance)
     {
         var me = this;
+
+        // Warning: the labels used in this dialog must match the parameter names to the EMR API,
+        // for example the label "Log Uri" is converted to "LogUri" and used on the EMR API.  Also,
+        // these may be prefixed if necesary - to do that, add a prefix:"myprefix" property.
         var inputs = [{label:'EMR',type:'tabs',list:['General','Instance Group','Bootstrap','Steps']},
                       {label:'General',type:'tabpanel'},
                       {label:"Name",tooltiptext:"Friendly name given to the job flow",required:true},
@@ -34,6 +38,7 @@ var ew_JobFlowsTreeView = {
                       {label:"Hadoop Version",type:"menulist",prefix:"Instances.",list:["0.18", "0.20", "0.20.205"],required:true},
                       {label:"Ami Version",type:"menulist",list:["1.0", "2.0", "latest"],tooltiptext:"The version of the Amazon Machine Image (AMI) to use when launching Amazon EC2 instances in the job flow. The following values ane valid: latest (latest AMI version; currently AMI 2.0, Hadoop 0.20.205), 2.0 (AMI 2.0, Hadoop 0.20.205), 1.0 (AMI 1.0, Hadoop 0.18), If this value is not specified, the job flow uses the default of (AMI 1.0, Hadoop 0.18)."},
                       {label:"Log Uri",tooltiptext:"Specifies the location in Amazon S3 to write the log files of the job flow. If a value is not provided, logs are not created."},
+                      {label:"Job Flow Role",tooltiptext:"An IAM role for the job flow. The EC2 instances of the job flow assume this role. The default role is EMRJobflowDefault. In order to use the default role, you must have already created it using the CLI."},
                       {label:"Supported Products",type:"listview",rows:3,headers:["","Product"],list:["karmasphere-enterprise-utility","mapr-m3","mapr-m5"],toltiptext:"A list of strings that indicates third-party software to use with the job flow."},
                       {label:"Instance Group",type:"tabpanel"},
                       {label:"Name",tooltiptext:"Friendly name given to the instance group"},
