@@ -82,6 +82,7 @@ var ew_api = {
         this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
         this.signatures.EC2 = endpoint.signature;
+        this.urls.S3 = endpoint.url + "/services/Walrus";
         this.urls.ELB = endpoint.url + "/services/LoadBalancing";//endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.signatures.ELB = endpoint.signatureELB;
@@ -508,15 +509,8 @@ var ew_api = {
     {
         var regions = this.getS3Regions();
 
-        function getS3Region(region) {
-            for (var i in regions) {
-                if (regions[i].region == region) return regions[i];
-            }
-            return regions[0];
-        }
-
         var curTime = new Date().toUTCString();
-        var url = this.core.getEndpoint("walrus").url + (bucket ? "/" + bucket : "");
+        var url = this.urls.S3 + (bucket ? "/" + bucket : "");
 
         if (!params) params = {}
         if (!expires) expires = "";
@@ -3918,7 +3912,11 @@ var ew_api = {
             if (url.indexOf("https://") != 0 && url.indexOf("http://") != 0) {
                 url = "https://" + url;
             }
-            list.push(new Endpoint(name, url));
+            if( name == "walrus"){
+                this.urls.S3 = url;
+            }else{
+                list.push(new Endpoint(name, url));
+            }
         }
 
         response.result = list;
