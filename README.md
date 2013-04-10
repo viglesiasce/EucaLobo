@@ -3,14 +3,14 @@
 EucaLobo is an application for managing Eucalyptus resources with a simple and
 easy to use client-side UI.
 
-This project is a fork of ElasticWolf with URLs replaced to point at a Eucalyptus install.
+This project is a fork of EucaLobo with URLs replaced to point at a Eucalyptus install.
 
 In addition, it integrates well with the AWS command line tools such that the user can
 easily configure both EucaLobo and the CLI to work together.
 
 ## Setting up for Eucalyptus
 
-   * To download the ElasticWolf project from the GitHub repository:
+   * To download the EucaLobo project from the GitHub repository:
 
          git clone https://github.com/viglesiasce/EucaLobo
 
@@ -20,7 +20,7 @@ easily configure both EucaLobo and the CLI to work together.
 
 ## Testing On Mac OS X
 
-   * To download the ElasticWolf project from the GitHub repository:
+   * To download the EucaLobo project from the GitHub repository:
 
         git clone https://github.com/viglesiasce/EucaLobo
 
@@ -43,18 +43,18 @@ easily configure both EucaLobo and the CLI to work together.
      * http://code.google.com/p/gitextensions/ (Explorer integration)
      * https://code.google.com/p/tortoisegit/ (Explorer integration)
 
-   * To download the ElasticWolf project from the GitHub repository:
+   * To download the EucaLobo project from the GitHub repository:
 
      * Use your Git UI, or
      * Launch cmd.exe, cd to the directory where you want to keep the source code, and
-       run git clone git://github.com/aws-ew-dev/ElasticWolf.git
+       run git clone git clone https://github.com/viglesiasce/EucaLobo
 
-   * To run the ElasticWolf application:
+   * To run the EucaLobo application:
 
-     * ElasticWolf/ElasticWolf.exe -jsconsole (runs with a javascript debug console)
-     * Simply execute ElasticWolf.exe from Windows Explorer
+     * ElasticWolf/EucaLobo.exe -jsconsole (runs with a javascript debug console)
+     * Simply execute EucaLobo.exe from Windows Explorer
 
-   * To get ElasticWolf updates:
+   * To get EucaLobo updates:
 
      * Use your Git UI and pull from the repository, or
      * Run git pull in the source directory
@@ -63,13 +63,13 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To retrieve source code from the repository:
 
-     git clone git://github.com/aws-ew-dev/ElasticWolf.git
+     git clone git clone https://github.com/viglesiasce/EucaLobo
 
    * To install xulrunner (for example on Ubuntu):
 
      apt-get install xulrunner
 
-   * Execute ElasticWolf/ElasticWolf
+   * Execute EucaLobo/EucaLobo
 
    * If xulrunner is not available as a package, use the commands below to install it:
 
