@@ -146,7 +146,7 @@ var ew_S3BucketsTreeView = {
         }
     },
 
-    modelChanged: function()
+    modelChanged: function(name)
     {
         // Add external buckets
         var buckets = this.getExtBuckets();
@@ -156,7 +156,7 @@ var ew_S3BucketsTreeView = {
             this.core.addModel('s3Buckets', item);
             debug('ext bucket:' + item)
         }
-        TreeView.modelChanged.call(this);
+        TreeView.modelChanged.call(this, name);
     },
 
     selectionChanged: function()
