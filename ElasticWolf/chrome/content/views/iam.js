@@ -959,7 +959,6 @@ var ew_VMFATreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (!item) return;
         var values = this.core.promptInput('Create Virtual MFA device', [{label:"Device Name",required:1}, {label:"Device Path"}]);
         if (!values) return;
         this.core.api.createVirtualMFADevice(values[0], values[1], function(obj) {
