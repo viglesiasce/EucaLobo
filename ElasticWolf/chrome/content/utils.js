@@ -406,11 +406,35 @@ function log(msg)
 
 function debug(msg)
 {
+    var logfile = ew_core.getBoolPrefs("ew.debug.logfile", false);
+    var logfilename = ew_core.getStrPrefs("ew.debug.logfilename", "");
+    var logflush = ew_core.getBoolPrefs("ew.debug.logflush", false);
+
     try {
+        // Initialize console logging
         if (this.consoleService == null) {
             this.consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+            this.consoleService.logStringMessage("Debug logging to file: " + logfile);
+            this.consoleService.logStringMessage("Debug logging to filename: " + logfilename);
         }
-        this.consoleService.logStringMessage("[ ew ] [" + (new Date()).strftime("%Y-%m-%d %H:%M:%S") + "] " + msg);
+
+        // If configured, initialize mirroring of console logs to file
+        if (logfile && (logfilename != "") && this.foStream == null) {
+            this.debugFile = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
+            this.debugFile.append(logfilename);
+            this.foStream = Components.classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
+            this.foStream.init(this.debugFile, 0x02 | 0x08 | 0x20, 0666, 0)
+        }
+
+        // Format log with identifier and timestamp
+        var smsg = "[ ew ] [" + (new Date()).strftime("%Y-%m-%d %H:%M:%S") + "] " + msg;
+        this.consoleService.logStringMessage(smsg);
+
+        // If configured, mirror console log to file
+        if (logfile && (logfilename != "")) {
+            this.foStream.write(smsg + "\n", smsg.length + 1);
+            if (logflush) this.foStream.flush();
+        }
     }
     catch (e) {
         alert("debug:" + e)

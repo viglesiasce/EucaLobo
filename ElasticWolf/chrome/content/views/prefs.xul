@@ -94,8 +94,28 @@
                     <checkbox id="ew.accessibility" />
                 </row>
                 <row>
-                    <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will make the console filled with debugging messages" />
+                   <label value=" "/>
+                   <label value=" "/>
+                </row>
+                <row>
+                    <label control="ew.debug.enabled" value="Enable debug output:" tooltiptext="If the tool is started with -jsconsole argument, this option will write debug messages to the console" />
                     <checkbox id="ew.debug.enabled" />
+                </row>
+                <row>
+                    <label control="ew.debug.logfile" value="Debug log to file:" tooltiptext="If debug is enabled, debugging messages can be sent to file as well as the console.  WARNING - credentials may be logged." />
+                    <checkbox id="ew.debug.logfile" />
+                </row>
+                <row>
+                    <label control="ew.debug.logfilename" value="Debug log filename:" tooltiptext="If debug is enabled, specify the debug log filename here.  Restart if you change this value." />
+                    <textbox id="ew.debug.logfilename" />
+                </row>
+                <row>
+                    <label control="ew.debug.logflush" value="Debug log file flush:" tooltiptext="If debug logging to file, enable this option to force immediate flushing of the log file." />
+                    <checkbox id="ew.debug.logflush" />
+                </row>
+                <row>
+                   <label value=" "/>
+                   <label value=" "/>
                 </row>
                 <row>
                     <label control="ew.http.enabled" value="Enable HTTP requests:" tooltiptext="Temporary disable all HTTP request making the tool UI only, this is developers option" />
