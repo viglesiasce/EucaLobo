@@ -78,6 +78,7 @@ var ew_api = {
     setEndpoint : function (endpoint)
     {
         if (!endpoint) return;
+        this.endpointURL = endpoint.url;
         this.region = endpoint.name;
         this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
@@ -2663,6 +2664,27 @@ var ew_api = {
         response.result = list;
     },
 
+    describeServices : function(listAll, listInternal, listUserServices, callback)
+    {
+        var params = [];
+        var emperyeanURL = this.endpointURL + "/services/Empyrean";
+        params.push([ "ListAll", listAll ]);
+        params.push([ "ListInternal", listInternal ]);
+        params.push([ "ListUserServices", listUserServices ]);
+        this.queryEC2("DescribeServices", params, this, false, "onCompleteDescribeServices", callback, emperyeanURL);
+    },
+
+    onCompleteDescribeServices : function(response)
+    {
+        var xmlDoc = response.responseXML;
+        var list = this.getItems(xmlDoc, "serviceStatuses", "item");
+        for ( var i = 0; i < list.length; i++) {
+            var item = list[i];
+            this.getItems(item, "serviceId", "type");
+        }
+        response.result = [];
+    },
+
     describeInstanceAttribute : function(instanceId, attribute, callback)
     {
         this.queryEC2("DescribeInstanceAttribute", [[ "InstanceId", instanceId ], [ "Attribute", attribute ]], this, false, "onCompleteDescribeInstanceAttribute", callback);
@@ -3918,7 +3940,6 @@ var ew_api = {
                 list.push(new Endpoint(name, url));
             }
         }
-
         response.result = list;
     },
 
