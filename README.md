@@ -63,7 +63,7 @@ easily configure both EucaLobo and the CLI to work together.
 
    * To retrieve source code from the repository:
 
-     git clone git clone https://github.com/viglesiasce/EucaLobo
+     git clone https://github.com/viglesiasce/EucaLobo
 
    * To install xulrunner (for example on Ubuntu):
 
