@@ -83,7 +83,7 @@ var ew_api = {
         this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
         this.signatures.EC2 = endpoint.signature;
-        this.urls.S3 = endpoint.url + "/services/Walrus";
+        this.urls.S3 = this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
         this.urls.ELB = endpoint.url + "/services/LoadBalancing";//endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.signatures.ELB = endpoint.signatureELB;
@@ -128,22 +128,7 @@ var ew_api = {
 
     getEC2Regions: function()
     {
-        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'ap-southeast-2', url: 'https://ec2.ap-southeast-2.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
-                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
-                   urlIAM: 'https://iam.us-gov.amazonaws.com',
-                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
-                   urlSWF: 'https://swf.us-gov-west-1.amazonaws.com',
-                   actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
-                   signatureDDB: 4,
-                 },
+        return [ { name: 'ECC',url: 'http://ecc.eucalyptus.com', toString: function() { return this.name; } },
             ];
     },
 
@@ -829,7 +814,6 @@ var ew_api = {
             if (rc.isSync) rc.result = res;
         }
         this.core.writeAccessLog('handleResponse: ' + action + ', key=' + this.accessKey + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
-
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
             // Call error handler if passed as an object
@@ -2680,6 +2664,7 @@ var ew_api = {
         var list = this.getItems(xmlDoc, "serviceStatuses", "item");
         for ( var i = 0; i < list.length; i++) {
             var item = list[i];
+            debug("VIC");
             this.getItems(item, "serviceId", "type");
         }
         response.result = [];
@@ -3934,11 +3919,7 @@ var ew_api = {
             if (url.indexOf("https://") != 0 && url.indexOf("http://") != 0) {
                 url = "https://" + url;
             }
-            if( name == "walrus"){
-                this.urls.S3 = url;
-            }else{
-                list.push(new Endpoint(name, url));
-            }
+            list.push(new Endpoint(name, url));
         }
         response.result = list;
     },

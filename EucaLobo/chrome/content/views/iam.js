@@ -1273,17 +1273,20 @@ var ew_EndpointsTreeView = {
      },
 
      addEndpoint: function(name, url) {
-         var values = this.core.promptInput("Endpoint:", [ {label:"URL",type:'url',required:1}, {label:"Name:",type:'name'}]);
+         var values = this.core.promptInput("Endpoint:", [ {label:"Eucalyptus URL",type:'url',required:1}, {label:"Walrus URL",type:'url',required:1}, {label:"Name:",type:'name',required:1}]);
          if (!values) return;
-         var endpoint = new Endpoint(values[1], values[0]);
-         this.core.addEndpoint(endpoint.name, endpoint.url);
+         var euca_endpoint = new Endpoint(values[2], values[0]);
+         var walrus_name = values[2] + "-walrus";
+         var walrus_endpoint = new Endpoint(walrus_name, values[1]);
+         this.core.addEndpoint(euca_endpoint.name, euca_endpoint.url);
+         this.core.addEndpoint(walrus_endpoint.name, walrus_endpoint.url);
          this.refresh();
      },
 
      filter: function(list)
      {
          for (var i in list) {
-             list[i].status = list[i].url == this.core.api.urls.EC2 ? "Active" : "";
+             list[i].status = list[i].url + "/services/Eucalyptus" == this.core.api.urls.EC2 ? "Active" : "";
          }
          return TreeView.filter.call(this, list);
      },
