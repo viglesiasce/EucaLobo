@@ -2583,7 +2583,7 @@ var ew_api = {
             params.push([prefix + "EbsOptimized", "true"]);
         }
         if (options.monitoringEnabled) {
-            params.push([ prefix + "Monitoring.Enabled", "enabled"]);
+            params.push([ prefix + "Monitoring.Enabled", "true"]);
         }
         if (options.disableApiTermination) {
             params.push([ prefix + "DisableApiTermination", "true"]);
