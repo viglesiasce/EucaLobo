@@ -2332,7 +2332,6 @@ var ew_core = {
         var alias = null, owner = null, root = null, rx = null;
         if (type == "my_ami" || type == "my_ami_rdt_ebs") {
             owner = this.user.accountId;
-            rx = regExs["ami"];
             root = type == "my_ami" ? null : "ebs";
         } else
         if (type == "amzn" || type == "amzn_rdt_ebs") {
@@ -2344,11 +2343,9 @@ var ew_core = {
         } else
         if (type == "rdt_is") {
             root = "instance-store";
-        } else {
-            rx = regExs[type.value || "all"];
         }
         for (var i in list) {
-            if (rx && !list[i].id.match(rx)) continue;
+            //if (rx && !list[i].id.match(rx)) continue;
             if (root && root != list[i].rootDeviceType) continue;
             if (alias && alias != list[i].ownerAlias) continue;
             if (owner && owner != list[i].ownerId) continue;
@@ -2441,8 +2438,8 @@ var ew_core = {
 
     getImageFilters: function()
     {
-        return [ {name:"My AMIs", value:"my_ami", toString: function() { return this.name; }, },
-                 {name:"All AMIs", value:"ami", toString: function() { return this.name; },},
+        return [ {name:"All AMIs", value:"ami", toString: function() { return this.name; },},
+                 {name:"My AMIs", value:"my_ami", toString: function() { return this.name; }, },
                  {name:"All AMIs with EBS Root Device", value:"rdt_ebs", toString: function() { return this.name; }, },
                  {name:"All AMIs with Instance Store Root Device", value:"rdt_is", toString: function() { return this.name; },},
                  {name:"My AMIs with EBS Root Device", value:"my_ami_rdt_ebs", toString: function() { return this.name; }, },
