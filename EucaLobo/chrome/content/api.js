@@ -3700,10 +3700,11 @@ var ew_api = {
             obj.description = getNodeValue(item, "groupDescription");
             obj.vpcId = getNodeValue(item, "vpcId");
             var ipPermissions = item.getElementsByTagName("ipPermissions")[0];
-            var ipPermissionsList = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
-	    ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
+            obj.permissions = this.parsePermissions('Ingress', [], ipPermissions.childNodes);
+	        ipPermissions = item.getElementsByTagName("ipPermissionsEgress")[0];
+
             // Comment out egress rules for Eucalyptus
-	    //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
+	        //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
             obj.tags = this.getTags(item);
             ew_core.processTags(obj)
             list.push(obj);
