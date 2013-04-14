@@ -233,6 +233,20 @@ var ew_AMIsTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
         if (retVal.ok) {
             this.core.api.runInstances(retVal.imageId, retVal.instanceType, retVal.minCount, retVal.maxCount, retVal, function(list) {
+                // Monitor status, once running then attache volume
+                if (retVal.attachVolume) {
+                    function attachVolume() {
+                        me.core.api.describeInstanceStatus(list[0], false, function(status) {
+                            debug(status)
+                            if (status && status.length && status[0].state == 'running') {
+                                ew_VolumeTreeView.attachEBSVolume(retVal.attachVolume.volumeId, list[0], retVal.attachVolume.deviceName);
+                            } else {
+                                setTimeout(function() { attachVolume() }, 2000);
+                            }
+                        });
+                    }
+                    attachVolume();
+                }
                 if (retVal.tag) {
                     me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
                 } else {
@@ -1234,10 +1248,8 @@ var ew_VolumeTreeView = {
 
     attachEBSVolume : function (volumeId, instId, device)
     {
-        if (device == "windows_device") {
-            device = this.determineWindowsDevice(instId);
-        }
         var me = this;
+        if (device == "windows_device") device = this.determineWindowsDevice(instId);
         this.core.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
     },
 
@@ -1275,15 +1287,11 @@ var ew_VolumeTreeView = {
 
         // If a volume is associated with this instance, mark the associated device as taken
         for (var i in volumes) {
-            if (volumes[i].instanceId == instId) {
-                devList[volumes[i].device] = 1;
-            }
+            if (volumes[i].instanceId == instId) devList[volumes[i].device] = 1;
         }
 
         for (var device in devList) {
-            if (devList[device] != 1) {
-                return devList[device];
-            }
+            if (devList[device] != 1) return devList[device];
         }
         return "";
     },

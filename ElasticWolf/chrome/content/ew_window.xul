@@ -112,7 +112,7 @@
 
             { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
 
-            { name: "ew.tabs.ec2.folder",    views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
+            { name: "ew.tabs.ec2.c.folder",    views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
@@ -547,7 +547,7 @@
       <tabpanel id="ew.tabs.placementgroup"/>
       <tabpanel id="ew.tabs.swf.domain"/>
 
-      <tabpanel id="ew.tabs.ec2.folder">
+      <tabpanel id="ew.tabs.ec2.c.folder">
        <vbox flex="1">
          <groupbox flex="1">
            <caption label="EC2 Resources Summary" />

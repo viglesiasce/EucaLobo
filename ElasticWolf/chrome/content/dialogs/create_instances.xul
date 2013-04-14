@@ -94,6 +94,16 @@
              this.retVal.blockDeviceMapping = device;
              break;
 
+        case "volume":
+             device.volumeId = $("ew.volumeId").value;
+             if (!device.volumeId) {
+                 alert('Please specify volume for the attaching device ' + device.deviceName);
+                 $("ew.tabs").selectedIndex = 3;
+                 return false;
+             }
+             this.retVal.attachVolume = device;
+            break;
+
         case "new":
              device.volumeSize = $("ew.volumeSize").value;
              if (!device.volumeSize) {
@@ -220,7 +230,7 @@
 
     function deviceSelected()
     {
-        $("ew.virtualName").disabled = $("ew.snapshotId").disabled = $("ew.volumeSize").disabled = $("ew.deleteOnTermination").disabled = true;
+        $("ew.virtualName").disabled = $("ew.snapshotId").disabled = $("ew.volumeSize").disabled = $("ew.deleteOnTermination").disabled = $("ew.volumeId").disabled = true;
         switch ($("ew.deviceType").value) {
         case "snapshot":
              $("ew.snapshotId").disabled = $("ew.deleteOnTermination").disabled = false;
@@ -230,6 +240,9 @@
              break;
         case "virtual":
              $("ew.virtualName").disabled = false;
+             break;
+        case "volume":
+             $("ew.volumeId").disabled = $("ew.deleteOnTermination").disabled = false;
              break;
         }
     }
@@ -359,6 +372,7 @@
         this.imagesListView = new ListView();
 
         this.images = this.core.queryModel('images');
+        var volumes = this.core.queryModel('volumes');
         var keypairs = this.core.queryModel('keypairs');
         var types = this.core.getInstanceTypes(this.image ? this.image.arch : "");
         var availZones = this.core.queryModel('availabilityZones');
@@ -407,6 +421,12 @@
             snapshotMenu.appendItem(snapshots[i].toString(), snapshots[i].id);
         }
         snapshotMenu.selectedIndex = 0;
+
+        var volumeMenu = $("ew.volumeId");
+        for ( var i in volumes) {
+            volumeMenu.appendItem(volumes[i].toString(), volumes[i].id);
+        }
+        volumeMenu.selectedIndex = 0;
 
         var eniSubnetMenu = $("ew.eniSubnet");
         eniSubnetMenu.appendItem("<none>", "")
@@ -644,6 +664,7 @@
                          <menuitem label="EBS Snapshot" value="snapshot" />
                          <menuitem label="Virtual" value="virtual" />
                          <menuitem label="New EBS Volume" value="new" />
+                         <menuitem label="Existing EBS Volume" value="volume" />
                        </menupopup>
                     </menulist>
                 </row>
@@ -674,6 +695,10 @@
                 <row>
                     <label control="ew.snapshotId" value="Snapshot:" />
                     <menulist id="ew.snapshotId" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" />
+                </row>
+                <row>
+                    <label control="ew.volumeId" value="Volume:" />
+                    <menulist id="ew.volumeId" crop="end" sizetopopup="none" style="max-width: 450px;" disabled="true" />
                 </row>
                 <row>
                     <label control="ew.deleteOnTermination" value="Delete On Termination:" />

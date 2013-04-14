@@ -1191,8 +1191,9 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.status + fieldSeparator + this.type + (this.type == "io1" ? "/" + this.iops : "") + fieldSeparator +
-                        this.device + fieldSeparator + this.size + "GB" + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") + fieldSeparator + this.attachStatus +
-                       (this.instanceId ? " to (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+                        this.device + fieldSeparator + this.size + "GB" + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") + fieldSeparator +
+                        this.availabilityZone + fieldSeparator +
+                        this.attachStatus + (this.instanceId ? " to (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
             }
             obj.id = getNodeValue(item, "volumeId");
             obj.type = getNodeValue(item, "volumeType");
@@ -2729,7 +2730,9 @@ var ew_api = {
             var item = items[i];
             var instanceId = getNodeValue(item, "instanceId");
             var availabilityZone = getNodeValue(item, "availabilityZone");
+            var state = getNodeValue(item, "instanceState", "name");
             list = [];
+            list.push(new Element('type', 'InstanceState', 'id', instanceId, 'state', state, 'availabilityZone', availabilityZone));
 
             var objs = item.getElementsByTagName("systemStatus");
             for (var j = 0; j < objs.length; j++) {
