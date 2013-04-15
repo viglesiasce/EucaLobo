@@ -1110,8 +1110,16 @@ var ew_core = {
 
         // Get existing tags and delete them all, then create new tags if exist
         this.api.describeTags(objs, function(described) {
+            var non_system_tags = [];
+            // Ensure that system tags are not deleted on update
+            var system_tags_pattern =/(euca:|aws:)/g;
             if (described.length) {
-                me.api.deleteTags(described, wrap);
+                for (var i = 0; i < described.length; i++) {
+                    if (!system_tags_pattern.test(described[i])){
+                        non_system_tags.push();
+                    }
+                }
+                me.api.deleteTags(non_system_tags, wrap);
             } else {
                 wrap();
             }
