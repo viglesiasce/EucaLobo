@@ -3916,7 +3916,7 @@ var ew_api = {
             if (url.indexOf("https://") != 0 && url.indexOf("http://") != 0) {
                 url = "https://" + url;
             }
-            list.push(new Endpoint(name, url));
+            //list.push(new Endpoint(name, url));
         }
         response.result = list;
     },
