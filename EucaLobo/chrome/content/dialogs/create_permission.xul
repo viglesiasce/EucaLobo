@@ -293,8 +293,8 @@
                             <label control="ew.protocol" value="Known Port:" />
                             <menulist id="ew.protocol" selectedIndex="0" size="50" onselect="selectionChanged()">
                                 <menupopup>
-                                    <menuitem label="Other" value="other" oncommand="displayProtocolDetails(true);" />
                                     <menuitem label="SSH" value="ssh" oncommand="displayProtocolDetails(false);" />
+                                    <menuitem label="Other" value="other" oncommand="displayProtocolDetails(true);" />
                                     <menuitem label="RDP" value="rdp" oncommand="displayProtocolDetails(false);" />
                                     <menuitem label="HTTP" value="http" oncommand="displayProtocolDetails(false);" />
                                     <menuitem label="HTTPS" value="https" oncommand="displayProtocolDetails(false);" />
