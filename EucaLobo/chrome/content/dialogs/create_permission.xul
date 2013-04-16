@@ -320,6 +320,7 @@
                                     <menupopup>
                                         <menuitem label="TCP/IP" value="tcp" />
                                         <menuitem label="UDP/IP" value="udp" />
+                                        <menuitem label="ICMP" value="icmp" oncommand="selectProtocolDataDeck(2);" />
                                     </menupopup>
                                 </menulist>
                             </hbox>
