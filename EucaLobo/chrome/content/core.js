@@ -2419,27 +2419,18 @@ var ew_core = {
     {
         return [ { name: "Administrator Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": "*","Resource": "*"}]}' },
                  { name: "Power User Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","NotAction": "iam:*","Resource": "*"}]}' },
-                 { name: "Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Action": ["autoscaling:Describe*","cloudformation:DescribeStacks","cloudformation:DescribeStackEvents","cloudformation:DescribeStackResources","cloudformation:GetTemplate","cloudfront:Get*","cloudfront:List*","cloudwatch:Describe*","cloudwatch:Get*","cloudwatch:List*","dynamodb:GetItem","dynamodb:BatchGetItem","dynamodb:Query","dynamodb:Scan","dynamodb:DescribeTable","dynamodb:ListTables","ec2:Describe*","elasticache:Describe*","elasticbeanstalk:Check*","elasticbeanstalk:Describe*","elasticbeanstalk:List*","elasticbeanstalk:RequestEnvironmentInfo","elasticbeanstalk:RetrieveEnvironmentInfo","elasticloadbalancing:Describe*","iam:List*","iam:Get*","route53:Get*","route53:List*","rds:Describe*","s3:Get*","s3:List*","sdb:GetAttributes","sdb:List*","sdb:Select*","ses:Get*","ses:List*","sns:Get*","sns:List*","sqs:GetQueueAttributes","sqs:ListQueues","sqs:ReceiveMessage","storagegateway:List*","storagegateway:Describe*"],"Effect": "Allow","Resource": "*"}]}' },
+                 { name: "Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Action": ["autoscaling:Describe*","cloudwatch:Describe*","cloudwatch:Get*","cloudwatch:List*","ec2:Describe*","elasticache:Describe*","iam:List*","iam:Get*","s3:Get*","s3:List*"],"Effect": "Allow","Resource": "*"}]}' },
                  { name: "EC2 Full Access", toString: function() { return this.name; }, id: '{"Statement": [{"Action": "ec2:*","Effect": "Allow","Resource": "*"},{"Effect": "Allow","Action": "elasticloadbalancing:*","Resource": "*"},{"Effect": "Allow","Action": "cloudwatch:*","Resource": "*"},{"Effect": "Allow","Action": "autoscaling:*","Resource": "*"}]}' },
                  { name: "IAM Full Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": "iam:*","Resource": "*"}]}' },
                  { name: "S3 Read Only Access", toString: function() { return this.name; }, id: '{"Statement": [{"Effect": "Allow","Action": ["s3:Get*","s3:List*"],"Resource": "*"}]}' },
-                 { name: "VPC Full Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Effect": "Allow", "Action": [ "ec2:AllocateAddress", "ec2:AssociateAddress", "ec2:AssociateDhcpOptions", "ec2:AssociateRouteTable", "ec2:AttachInternetGateway", "ec2:AttachVpnGateway", "ec2:AuthorizeSecurityGroupEgress", "ec2:AuthorizeSecurityGroupIngress", "ec2:CreateCustomerGateway", "ec2:CreateDhcpOptions", "ec2:CreateInternetGateway", "ec2:CreateNetworkAcl", "ec2:CreateNetworkAclEntry", "ec2:CreateRoute", "ec2:CreateRouteTable", "ec2:CreateSecurityGroup", "ec2:CreateSubnet", "ec2:CreateVpc", "ec2:CreateVpnConnection", "ec2:CreateVpnGateway", "ec2:DeleteCustomerGateway", "ec2:DeleteDhcpOptions", "ec2:DeleteInternetGateway", "ec2:DeleteNetworkAcl", "ec2:DeleteNetworkAclEntry", "ec2:DeleteRoute", "ec2:DeleteRouteTable", "ec2:DeleteSecurityGroup", "ec2:DeleteSubnet", "ec2:DeleteVpc", "ec2:DeleteVpnConnection", "ec2:DeleteVpnGateway", "ec2:DescribeAddresses", "ec2:DescribeAvailabilityZones", "ec2:DescribeCustomerGateways", "ec2:DescribeDhcpOptions", "ec2:DescribeInstances", "ec2:DescribeInternetGateways", "ec2:DescribeKeyPairs", "ec2:DescribeNetworkAcls", "ec2:DescribeRouteTables", "ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcs", "ec2:DescribeVpnConnections", "ec2:DescribeVpnGateways", "ec2:DetachInternetGateway", "ec2:DetachVpnGateway", "ec2:DisassociateAddress", "ec2:DisassociateRouteTable", "ec2:ReleaseAddress", "ec2:ReplaceNetworkAclAssociation", "ec2:ReplaceNetworkAclEntry", "ec2:ReplaceRouteTableAssociation", "ec2:RevokeSecurityGroupEgress", "ec2:RevokeSecurityGroupIngress" ], "Resource": "*" } ] }' },
-                 { name: "DynamoDB Full Access", toString: function() { return this.name;}, id: '{ "Statement": [ { "Action": [ "dynamodb:*" ], "Effect": "Allow", "Resource": "*" } ]}' },
-                 { name: "DynamoDB Read Only Access", toString: function() { return this.name; }, id: '{ "Statement": [ { "Action": [ "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:DescribeTable", "dynamodb:ListTables" ], "Effect": "Allow", "Resource": "*" } ]}' },
-        ];
+                 ];
     },
 
     getCloudWatchNamespaces: function()
     {
-        return [{ name: "AWS Billing", type: "AWS/Billing" },
-               { name: "Amazon DynamoDB", type: "AWS/DynamoDB" },
+        return [
                { name: "Amazon Elastic Block Store", type: "AWS/EBS" },
                { name: "Amazon Elastic Compute Cloud", type: "AWS/EC2" },
-               { name: "Amazon Elastic MapReduce", type: "AWS/EMR" },
-               { name: "Amazon Relational Database", type: "AWS/RDS" },
-               { name: "Amazon Simple Notification Service", type: "AWS/SNS" },
-               { name: "Amazon Simple Queue Service", type: "AWS/SQS" },
-               { name: "Amazon Storage Gateway", type: "AWS/StorageGateway" },
                { name: "Auto Scaling", type: "AWS/AutoScaling" },
                { name: "Elastic Load Balancing", type: "AWS/ELB" } ];
     },
@@ -2451,8 +2442,6 @@ var ew_core = {
                  {name:"All AMIs with EBS Root Device", value:"rdt_ebs", toString: function() { return this.name; }, },
                  {name:"All AMIs with Instance Store Root Device", value:"rdt_is", toString: function() { return this.name; },},
                  {name:"My AMIs with EBS Root Device", value:"my_ami_rdt_ebs", toString: function() { return this.name; }, },
-                 {name:"Amazon AMIs", value:"amzn", toString: function() { return this.name; }, },
-                 {name:"Amazon AMIs with EBS Root Device", value:"amzn_rdt_ebs", toString: function() { return this.name; }, },
                  {name:"Favorites", value:"fav", toString: function() { return this.name; }, }];
     },
 };
