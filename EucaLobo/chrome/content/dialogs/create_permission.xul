@@ -315,16 +315,6 @@
                     <row>
                         <deck id="ew.deck.protocol" selectedIndex="0">
                             <hbox flex="1" align="pack">
-                                <label control="ew.protocol.menuitem" value="Protocol:" />
-                                <menulist id="ew.protocol.menuitem" size="30" selectedIndex="0">
-                                    <menupopup>
-                                        <menuitem label="TCP/IP" value="tcp" />
-                                        <menuitem label="UDP/IP" value="udp" />
-                                        <menuitem label="ICMP" value="icmp" oncommand="selectProtocolDataDeck(2);" />
-                                    </menupopup>
-                                </menulist>
-                            </hbox>
-                            <hbox flex="1" align="pack">
                                 <label control="ew.other" value="Protocol:" />
                                 <menulist id="ew.other" size="30" selectedIndex="0">
                                     <menupopup>
