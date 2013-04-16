@@ -83,7 +83,12 @@ var ew_api = {
         this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
         this.signatures.EC2 = endpoint.signature;
-        this.urls.S3 = this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
+        if (this.core.getEndpoint(endpoint.name + "-walrus")){
+            this.urls.S3 = this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
+        }else{
+            this.urls.S3 = "";
+        }
+        //this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
         this.urls.ELB = endpoint.url + "/services/LoadBalancing";//endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.signatures.ELB = endpoint.signatureELB;
@@ -128,8 +133,7 @@ var ew_api = {
 
     getEC2Regions: function()
     {
-        return [ { name: 'ECC',url: 'http://ecc.eucalyptus.com', toString: function() { return this.name; } },
-            ];
+        return [];
     },
 
     getS3Regions: function()
