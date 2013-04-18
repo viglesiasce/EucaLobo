@@ -8,6 +8,8 @@
     <em:version>4.2.0</em:version>
     <em:description>A graphical interface to Amazon's EC2/VPC/S3 web service.</em:description>
     <em:creator>Vlad Seryakov</em:creator>
+    <em:homepageURL>http://www.elasticwolf.com/</em:homepageURL>
+    <em:optionsURL>chrome://ew/content/views/prefs.xul</em:optionsURL>
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
