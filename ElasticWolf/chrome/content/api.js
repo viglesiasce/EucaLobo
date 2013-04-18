@@ -68,11 +68,19 @@ var ew_api = {
 
     setCredentials : function (accessKey, secretKey, securityToken)
     {
+        debug('setCredentials');
+
         this.accessKey = accessKey;
         this.secretKey = secretKey;
-        this.securityToken = typeof securityToken == "string" ? securityToken : "";
+        this.securityToken = (typeof securityToken == "string") ? securityToken : "";
         this.sessionkey = null;
-        debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
+
+        // The next lines are commented out so that access/secret keys do not appear in
+        // in console logs, for security reasons.  If you need to debug issues with
+        // this code then uncomment the following debug lines.
+        // debug('setCredentials: access key=' + this.accessKey);
+        // debug('setCredentials: secret key=' + this.secretKey);
+        // debug('setCredentials: security token=' + this.securityToken);
     },
 
     setEndpoint : function (endpoint)
@@ -355,7 +363,13 @@ var ew_api = {
                 queryParams += item;
             }
             queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSign));
-            log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
+
+            // For security reasons, we obfuscate the AWSAccessKeyId in the following
+            // logs.  Uncomment the following lines if you need to see the access key.
+            log("EC2: url=" + url + "?" + queryParams.replace(/(.*)(AWSAccessKeyId=)([A-Z0-9]+)(.+)/, "$1$2********************$4"));
+            log("EC2: sign=" + strSign.replace(/(.*)(AWSAccessKeyId=)([A-Z0-9]+)(.+)/, "$1$2********************$4"));
+            // log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
+            // log("EC2: sign=" + strSign);
 
             xmlhttp.setRequestHeader("Content-Length", queryParams.length);
             xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
@@ -777,7 +791,11 @@ var ew_api = {
     sendRequest: function(xmlhttp, url, content, isSync, action, version, handlerMethod, handlerObj, callback, params)
     {
         var me = this;
-        this.core.writeAccessLog('sendRequest: ' + url + ', key=' + this.accessKey + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
+
+        // Have obfuscated access key in the access log for security reasons.  Uncomment
+        // the second line if you need to see the access key.
+        this.core.writeAccessLog('sendRequest: ' + url + ', key=********************, action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
+        // this.core.writeAccessLog('sendRequest: ' + url + ', key=' + this.accessKey + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
 
         var xhr = xmlhttp;
         // Generate random timer
@@ -832,7 +850,18 @@ var ew_api = {
             var res = handlerObj.onResponseComplete(rc);
             if (rc.isSync) rc.result = res;
         }
-        this.core.writeAccessLog('handleResponse: ' + action + ', key=' + this.accessKey + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
+
+        // For security reasons, we obfuscate the AWSAccessKeyId in the following
+        // log.  Swap the commented/uncommented key lines if you need to see the access key.
+        this.core.writeAccessLog('handleResponse: ' + action +
+                                 //', key=' + this.accessKey +
+                                 ', key=********************' +
+                                 ", method=" + handlerMethod +
+                                 ", mode=" + (isSync ? "Sync" : "Async") +
+                                 ", status=" + rc.status + '/' + rc.contentType +
+                                 ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString +
+                                 ', length=' + rc.responseText.length +
+                                 ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
 
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
