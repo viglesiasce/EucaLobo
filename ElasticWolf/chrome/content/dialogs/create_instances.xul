@@ -799,7 +799,7 @@
                     <textbox id="ew.token" size="40" />
                 </row>
                 <row>
-                    <label control="ew.shutdown" value="Instance Initiated Shutdown Behaviour:" />
+                    <label control="ew.shutdown" value="Instance Initiated Shutdown Behavior:" />
                     <menulist id="ew.shutdown">
                          <menupopup>
                             <menuitem label="Stop" value="stop"/>

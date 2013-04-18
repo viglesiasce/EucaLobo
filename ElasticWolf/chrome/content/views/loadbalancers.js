@@ -73,7 +73,7 @@ var ew_LoadbalancerTreeView = {
                       {label:"Healthy Threshold",type:"number",required:1},
                       {label:"Unhealthy Threhold",type:"number",required:1}]
 
-        var values = this.core.promptInput("Configure HealthCheck", inputs);
+        var values = this.core.promptInput("Configure Health Check", inputs);
         if (!values) return;
         var me = this;
         this.core.api.configureHealthCheck(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });

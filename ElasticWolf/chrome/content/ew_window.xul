@@ -62,9 +62,14 @@
 <?xul-overlay href="chrome://ew/content/views/ddb.xul"?>
 <?xul-overlay href="chrome://ew/content/views/swfdomains.xul"?>
 
-<window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
+<window id="ew-window"
+        title="ElasticWolf"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical"
-        persist="width height screenX screenY sizemode" minwidth="600" minheight="400"
+        persist="width height screenX screenY sizemode"
+        minwidth="600"
+        minheight="400"
         onload="ew_core.initialize(ew_tabs, ew_api)">
 
   <script src="chrome://venkman/content/venkman-overlay.js" />
@@ -286,6 +291,7 @@
        <menuitem label="Show Error Log" image="images/revoke.png" class="menuitem-iconic" oncommand="ew_core.displayErrors();"/>
        <menuitem label="Show Access Log" image="images/start.png" class="menuitem-iconic" oncommand="ew_core.displayAccessLog();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
+       <menuseparator id="menu_FileQuitSeparator"/>
        <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
       </menupopup>
     </menu>

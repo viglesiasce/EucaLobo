@@ -802,7 +802,9 @@ var ew_api = {
         var timerKey = this.getTimerKey();
         this.startTimer(timerKey, function() {
             debug('TIMEOUT: ' + url + ', action=' + action + '/' + handlerMethod + ', params=' + params);
+            if (xhr && xhr.readystate != 4) {
             xhr.abort();
+            }
         });
         this.showBusy(true);
 
@@ -839,7 +841,11 @@ var ew_api = {
 
     handleResponse : function(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params)
     {
-        log(xmlhttp.responseText);
+        if (action === 'DescribeImages') {
+            log('DescribeImages response logging suppressed, it is too long');
+        } else {
+            log(xmlhttp.responseText);
+        }
 
         var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
                  this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
@@ -2625,8 +2631,8 @@ var ew_api = {
         if (options.disableApiTermination) {
             params.push([ prefix + "DisableApiTermination", "true"]);
         }
-        if (options.instanceInitiatedShutdownBehaviour) {
-            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehaviour]);
+        if (options.instanceInitiatedShutdownBehavior) {
+            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehavior]);
         }
         if (options.availabilityZone) {
             params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);

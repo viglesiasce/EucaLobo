@@ -10,7 +10,7 @@ var ew_DDBTreeView = {
     menuChanged: function()
     {
         var item = this.getSelected();
-        $('ew.ddb.contextmenu.delete').disabled = item == null;
+        $('ew.ddb.contextmenu.delete').disabled = (item == null);
     },
 
     // Update item with nw table info

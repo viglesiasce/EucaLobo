@@ -7,13 +7,13 @@
       <caption label="&ew.captions.bundleTasks.label;" />
       <popupset>
         <menupopup id="ew.bundleTasks.contextmenu" >
-          <menuitem oncommand="ew_BundleTasksTreeView.displayDetails();" label="&ew.contextmenu.details.label;" />
+          <menuitem id="bundleTasks.context.details" oncommand="ew_BundleTasksTreeView.displayDetails();" label="&ew.contextmenu.details.label;" />
           <menuseparator />
           <menuitem id="bundleTasks.context.register" oncommand="ew_BundleTasksTreeView.registerNewImage();" label="&ew.images.contextmenu.register.label;" />
           <menuitem id="bundleTasks.context.cancel" oncommand="ew_BundleTasksTreeView.cancelBundleTask();" label="&ew.bundleTasks.contextmenu.cancel.label;" />
           <menuseparator />
-          <menuitem oncommand="ew_BundleTasksTreeView.copyToClipboard('id');" label="&ew.bundleTasks.contextmenu.copybunid.label;" />
-          <menuitem oncommand="ew_BundleTasksTreeView.copyToClipboard('instanceId');" label="&ew.instances.contextmenu.copyid.label;" />
+          <menuitem id="bundleTasks.context.copy.bunid" oncommand="ew_BundleTasksTreeView.copyToClipboard('id');" label="&ew.bundleTasks.contextmenu.copybunid.label;" />
+          <menuitem id="bundleTasks.context.copy.id" oncommand="ew_BundleTasksTreeView.copyToClipboard('instanceId');" label="&ew.bundleTasks.contextmenu.copyid.label;" />
         </menupopup>
       </popupset>
       <toolbar style="padding: 0px 3px; -moz-box-align: center">

@@ -11,7 +11,6 @@
                     <menuitem id="ew.addresses.contextmenu.disassociate" oncommand="ew_ElasticIPTreeView.disassociateAddress();" label="Disassociate EIP" />
                     <menuitem id="ew.addresses.contextmenu.release" oncommand="ew_ElasticIPTreeView.releaseAddress();" label="Release EIP" />
                     <menuseparator />
-                    <menuitem id="ew.addresses.contextmenu.tag" oncommand="ew_ElasticIPTreeView.tag();" label="Add Tag" />
                     <menuitem id="ew.addresses.contextmenu.copyIp" oncommand="ew_ElasticIPTreeView.copyToClipboard('publicIp');" label="Copy Elastic IP to Clipboard" />
                     <menuitem id="ew.addresses.contextmenu.copyDns" oncommand="ew_ElasticIPTreeView.copyPublicDnsToClipBoard();" label="Copy Public DNS Name to Clipboard" />
                 </menupopup>
@@ -23,22 +22,19 @@
                 <toolbarbutton image="images/delete.png" tooltiptext="&ew.eips.release.tip;" oncommand="ew_ElasticIPTreeView.releaseAddress();" />
                 <toolbarbutton image="images/attach.png" tooltiptext="&ew.eips.associate.tip;" oncommand="ew_ElasticIPTreeView.associateAddress();" />
                 <toolbarbutton image="images/stop.png" tooltiptext="&ew.eips.disassociate.tip;" oncommand="ew_ElasticIPTreeView.disassociateAddress();" />
-                <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_ElasticIPTreeView.tag();" tooltiptext="Add Tag" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.eip.view" flex="1">
                 <treecols>
-                    <treecol id="eip.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <treecol id="eip.publicIp" label="&ew.eip.address.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="eip.domain" label="Domain" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="eip.publicIp" label="&ew.eip.address.label;" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
-                    <splitter class="tree-splitter" />
-                    <treecol id="eip.instanceId" label="Instance" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="eip.instanceId" label="Instance ID" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="eip.networkInterfaceId" label="ENI" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
-                    <treecol id="eip.allocationId" label="AllocId" flex="1" persist="width ordinal hidden sortDirection" />
+                    <treecol id="eip.allocationId" label="Allocation ID" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="eip.associationId" label="AssocId" flex="1" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />

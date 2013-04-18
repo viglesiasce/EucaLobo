@@ -483,7 +483,7 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        if (!confirm("Delete group?")) return;
+        if (!confirm("Delete group " + item.name + "?")) return;
         this.core.api.deleteGroup(item.name, function() {
             me.core.removeModel('groups', item.name, 'name');
             me.invalidate();

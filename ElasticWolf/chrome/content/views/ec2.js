@@ -233,7 +233,7 @@ var ew_AMIsTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
         if (retVal.ok) {
             this.core.api.runInstances(retVal.imageId, retVal.instanceType, retVal.minCount, retVal.maxCount, retVal, function(list) {
-                // Monitor status, once running then attache volume
+                // Monitor status, once running then attach volume
                 if (retVal.attachVolume) {
                     function attachVolume() {
                         me.core.api.describeInstanceStatus(list[0], false, function(status) {
@@ -410,7 +410,7 @@ var ew_InstancesTreeView = {
                                      {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
                                      {label:"S3 Bucket Name",type:"name",required:1},
                                      {label:"S3 Prefix"},
-                                     {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                                     {label:"Disk Image Format",type:"menulist",list:["vmdk", "vhd"]},
                                      {label:"Container Format",type:"menulist",list:["ova"]},
                                      ]);
         if (!values) return;
@@ -739,7 +739,7 @@ var ew_InstancesTreeView = {
         // These items are only valid for instances with EBS-backed root devices.
         var optDisabled = !isEbsRootDeviceType(instance.rootDeviceType);
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
-        $("instances.context.changeShutdownBehaviour").disabled = optDisabled;
+        $("instances.context.changeShutdownBehavior").disabled = optDisabled;
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
         $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringEnabled;
         $("instances.context.stopMonitoring").disabled = optDisabled || !instance.monitoringEnabled;
@@ -883,7 +883,7 @@ var ew_InstancesTreeView = {
         });
     },
 
-    changeShutdownBehaviour : function(value)
+    changeShutdownBehavior : function(value)
     {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
@@ -891,7 +891,7 @@ var ew_InstancesTreeView = {
 
         this.core.api.describeInstanceAttribute(instances[0].id, "instanceInitiatedShutdownBehavior", function(value) {
             value = value == "stop" ? "terminate" : "stop";
-            if (confirm("Change instance initiated shutdown behaviour to " + value + " for "+instances.length+" instance(s)?")) {
+            if (confirm("Change instance initiated shutdown behavior to " + value + " for "+instances.length+" instance(s)?")) {
                 for (var i = 0; i < instances.length; i++) {
                     me.core.api.modifyInstanceAttribute(instances[i].id, "InstanceInitiatedShutdownBehavior", value);
                 }
@@ -1512,12 +1512,13 @@ var ew_ElasticIPTreeView = {
         $("ew.addresses.contextmenu.disassociate").disabled = !eip || (!eip.instanceId && !eip.associationId);
         $("ew.addresses.contextmenu.copyDns").disabled = !eip || !instance || !instance.dnsName;
         $("ew.addresses.contextmenu.copyIp").disabled = !eip;
-        $("ew.addresses.contextmenu.tag").disabled = !eip;
     },
 
     allocateAddress : function() {
+        if (this.core.promptYesNo('Allocate New Address', 'Are you sure you want to allocate a new IP address?')) {
         var me = this;
         this.core.api.allocateAddress(this.core.isVpcMode(), function() { me.refresh() });
+        }
     },
 
     releaseAddress : function() {
@@ -1599,7 +1600,7 @@ var ew_ElasticIPTreeView = {
         var eip = this.getSelected();
         if (eip == null) return;
         if (!eip.instanceId && !eip.associationId) {
-            return alert("This EIP is not associated")
+            return alert("This EIP is not associated with an EC2 instance.")
         }
         if (!confirm("Disassociate " + eip + "?")) return;
         this.core.api.disassociateAddress(eip, function() { me.refresh() });
@@ -1797,11 +1798,18 @@ var ew_BundleTasksTreeView = {
     {
         var task = this.getSelected();
 
+        // Cannot view bundle details unless a bundle task is available and selected
+        $("bundleTasks.context.details").disabled = !task;
+
         // If the task has been completed or has failed, disable the following context menu items.
         $("bundleTasks.context.cancel").disabled = !task || (task.state == "complete" || task.state == "failed");
 
         // If the task hasn't completed, you can't register a new AMI
         $("bundleTasks.context.register").disabled = !task || (task.state != "complete");
+
+        // Cannot copy bundle ID or instance ID unless a bundle task is available and selected
+        $("bundleTasks.context.copy.bunid").disabled = !task;
+        $("bundleTasks.context.copy.id").disabled = !task;
     },
 
     isRefreshable : function()
@@ -1815,7 +1823,11 @@ var ew_BundleTasksTreeView = {
     cancelBundleTask: function ()
     {
         var selected = this.getSelectedBundle();
-        if (selected == null) return;
+
+        if (selected == null) {
+            alert('Please select a bundle task.');
+            return;
+        }
 
         if (!confirm("Cancel bundle task:  " + selected.id + "?")) return;
         var me = this;
@@ -1835,7 +1847,11 @@ var ew_BundleTasksTreeView = {
 
     registerNewImage : function () {
         var selected = this.getSelected();
-        if (selected == null) return;
+
+        if (selected == null) {
+            alert('A bundle task in complete state is required before registering a new AMI.');
+            return;
+        }
 
         // Ensure that bundling has run to completion
         if (selected.state != "complete") {
@@ -1956,7 +1972,7 @@ var ew_ExportTasksTreeView = {
                 {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
                 {label:"S3 Bucket Name",type:"name",required:1},
                 {label:"S3 Prefix"},
-                {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                {label:"Disk Image Format",type:"menulist",list:["vmdk", "vhd"]},
                 {label:"Container Format",type:"menulist",list:["ova"]},
                 ]);
        if (!values) return;
@@ -1990,7 +2006,7 @@ var ew_ConversionTasksTreeView = {
                                     {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
                                     {label:"Disk Description"},
-                                    {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
+                                    {label:"Disk Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
                                     {label:"Disk Image Size (bytes)",type:"number",required:1},
                                     {label:"Disk Image S3 Bucket",required:1,tooltiptext:"S3 bucket to the manifest for the disk image, stored in Amazon S3"},
                                     {label:"Disk Image S3 Path",required:1,tooltiptext:"S3 path to the manifest for the disk image, stored in Amazon S3, it will be converted into S3 HTTP URL and signed with current credentials"},
@@ -2014,7 +2030,7 @@ var ew_ConversionTasksTreeView = {
        options.subnetId = values[12];
        options.privateIpAddress = values[13];
        options.monitoringEnabled = values[14];
-       options.instanceInitiatedShutdownBehaviour = values[15];
+       options.instanceInitiatedShutdownBehavior = values[15];
        options.userData = values[16];
        options.platform = values[17];
        var s3 = this.core.api.queryS3Prepare('GET', values[6], values[7], "", {}, "", Math.round((new Date()).getTime()/1000) + 60);
