@@ -419,11 +419,19 @@ function debug(msg)
         }
 
         // If configured, initialize mirroring of console logs to file
-        if (logfile && (logfilename != "") && this.foStream == null) {
+        if (logfile && (logfilename != "") && !this.foStream) {
             this.debugFile = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
             this.debugFile.append(logfilename);
             this.foStream = Components.classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
-            this.foStream.init(this.debugFile, 0x02 | 0x08 | 0x20, 0666, 0)
+            this.foStream.init(this.debugFile, 0x02 | 0x08 | 0x20, 0666, 0);
+            // alert("Start logging to file: " + logfilename);
+        }
+
+        // If currently streaming to file but logging option has changed to disable logging to file
+        if (this.foStream && !(logfile && (logfilename != ""))) {
+            this.foStream.close();
+            this.foStream = null;
+            // alert("Stop logging to file");
         }
 
         // Format log with identifier and timestamp
@@ -431,13 +439,13 @@ function debug(msg)
         this.consoleService.logStringMessage(smsg);
 
         // If configured, mirror console log to file
-        if (logfile && (logfilename != "")) {
+        if (this.foStream) {
             this.foStream.write(smsg + "\n", smsg.length + 1);
             if (logflush) this.foStream.flush();
         }
     }
     catch (e) {
-        alert("debug:" + e)
+        console.log(e);
     }
 }
 
