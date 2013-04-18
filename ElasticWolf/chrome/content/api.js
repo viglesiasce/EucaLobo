@@ -5507,9 +5507,11 @@ var ew_api = {
                 switch (name) {
                 case "":
                     break;
+                // The following times are sent to us as epoch time in milliseconds
                 case "SentTimestamp":
                 case "ApproximateFirstReceiveTimestamp":
-                    obj[name] = new Date(value * 1000);
+                    obj[name] = new Date(0);
+                    obj[name].setUTCMilliseconds(value);
                     break;
                 default:
                     obj[name] = value;
