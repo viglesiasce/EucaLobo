@@ -421,7 +421,7 @@ var ew_core = {
                 if (!endpoint) endpoint = new Endpoint("", cred.url)
                 this.selectEndpoint(endpoint, true);
             } else
-            // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errors
+            // GovCloud credentials require endpoint to be set explicitly, switching from GovCloud without explicit endpoint will result in errors
             if (wasGovCloud) {
                 // Reset and then use last saved endpoint
                 this.api.setEndpoint(new Endpoint());
@@ -432,7 +432,7 @@ var ew_core = {
             this.invalidateMenu();
             var me = this;
             // Retrieve current user info
-            this.api.getUser(null, function(user) { me.user = user || {}; })
+            this.api.getUser(null, function(user) { me.user = user || {}; ew_PrefsView.refresh(); })
             return true;
         }
         return false;
