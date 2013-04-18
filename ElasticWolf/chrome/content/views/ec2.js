@@ -741,9 +741,9 @@ var ew_InstancesTreeView = {
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
         $("instances.context.changeShutdownBehaviour").disabled = optDisabled;
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
-        $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringStatus != "";
-        $("instances.context.stopMonitoring").disabled = optDisabled || instance.monitoringStatus == "";
-        $("instances.context.showMetrics").disabled = optDisabled || instance.monitoringStatus == "";
+        $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringEnabled;
+        $("instances.context.stopMonitoring").disabled = optDisabled || !instance.monitoringEnabled;
+        $("instances.context.showMetrics").disabled = optDisabled || !instance.monitoringEnabled;
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
         $("instances.context.forceStop").disabled = optDisabled;

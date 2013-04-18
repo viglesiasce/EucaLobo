@@ -452,7 +452,7 @@ function toByteArray(str)
 
 function toBool(val)
 {
-    return !val || val == "false" || val == "FALSE" || val == "f" || val == "F" || val == "0" ? false : true;
+    return !val || val == "false" || val == "FALSE" || val == "f" || val == "F" || val == "0" || val == "disabled"? false : true;
 }
 
 function byteArrayToString(arr)
