@@ -351,7 +351,7 @@ var ew_api = {
             sigValues.push(new Array("SignatureVersion", "2"));
             sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
             sigValues.push(new Array("Timestamp", formattedTime));
-            if (accessKey.securityToken != "") {
+            if (accessKey.securityToken && accessKey.securityToken != "") {
                 sigValues.push(new Array("SecurityToken", accessKey.securityToken));
             }
 
