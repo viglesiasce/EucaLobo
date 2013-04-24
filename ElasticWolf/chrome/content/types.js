@@ -442,7 +442,7 @@ var TreeView = {
         if (!item) return;
         var tag = this.core.promptForTag(item.tags);
         if (tag == null) return;
-        // Replace tas in the object without reloading the whole list
+        // Replace tag in the object without reloading the whole list
         item.tags = this.core.parseTags(tag);
         this.core.processTags(item);
         this.core.setTags(item[this.tagId || "id"], item.tags, callback);
@@ -461,25 +461,30 @@ var TreeView = {
             this.startRefreshTimer();
         }
         if (this.core.winDetails && event) {
-            this.displayDetails();
+            this.displayDetails(event);
         }
     },
     onKeydown: function(event)
     {
         debug(this.getName() + " " + event.keyCode + " " + event.shiftKey)
         switch (event.keyCode) {
-        case 121:
+        case 121: // F10
+            // Intention here is for shift+F10 to bring up the context menu
+            // by falling through to the next case, but it does not work.  It
+            // does fall through and execute the menuSelected() call but the
+            // context menu does not appear.
             if (!event.shiftKey) {
                 break;
             }
 
-        case 13:
-            this.menuSelected(event);
+        case 13: // enter
+        case 93: // contextmenu
+            this.menuSelected();
             event.stopPropagation();
             event.preventDefault();
             return false;
 
-        case 32:
+        case 32: // space
             this.displayDetails(event);
             event.stopPropagation();
             event.preventDefault();
