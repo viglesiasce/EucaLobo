@@ -108,7 +108,7 @@ var ew_api = {
         this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
         this.signatures.R53 = endpoint.signatureR53;
-        this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
+        this.urls.AS = endpoint.urlAS || 'https://autoscaling.' + this.region + '.amazonaws.com';
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
         this.signatures.AS = endpoint.signatureAS;
         this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
@@ -145,8 +145,6 @@ var ew_api = {
                  { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
                    urlIAM: 'https://iam.us-gov.amazonaws.com',
                    urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
-                   urlAS: 'https://autoscaling.us-gov-west-1.amazonaws.com',
-                   urlSWF: 'https://swf.us-gov-west-1.amazonaws.com',
                    actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
                    signatureDDB: 4,
                  },
