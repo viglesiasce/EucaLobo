@@ -1094,10 +1094,14 @@ var ew_InstancesTreeView = {
             if (!FileIO.exists(keyFile)) {
                 keyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + instance.keyName);
             }
-            if (!keyFile || !FileIO.exists(keyFile)) {
+            if (!keyFile) {
+                debug('User cancelled');
+                return;
+            } else if (!FileIO.exists(keyFile)) {
                 alert('Cannot connect without private key file for keypair ' + instance.keyName)
                 return;
             }
+            debug('Connecting to ' + keyFile);
             params.push(["key", keyFile])
         }
 
