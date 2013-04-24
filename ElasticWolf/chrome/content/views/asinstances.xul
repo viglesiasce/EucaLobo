@@ -7,8 +7,8 @@
             <caption label="AutoScaling Instances" />
             <popupset>
                 <menupopup id="ew.asinstances.contextmenu">
-                  <menuitem oncommand="ew_ASConfigsTreeView.terminate();" label="Terminate" />
-                  <menuitem oncommand="ew_ASConfigsTreeView.setHealth();" label="Set Health Status" />
+                  <menuitem oncommand="ew_ASInstancesTreeView.terminate();" label="Terminate" />
+                  <menuitem oncommand="ew_ASInstancesTreeView.setHealth();" label="Set Health Status" />
                 </menupopup>
             </popupset>
 

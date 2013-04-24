@@ -326,7 +326,7 @@ var ew_ASInstancesTreeView = {
        var item = this.getSelected();
        if (!item) return;
        var check = {value: false};
-       var status = item.healthStatus == "Healthy" ? "Unhealthy" : "Healthy";
+       var status = (item.healthStatus.toUpperCase() == "HEALTHY") ? "Unhealthy" : "Healthy";
        if (!this.core.promptConfirm("Set Health Status", "Set status to " + status + " for " + item.instanceId + "?", "Respect Grace Period", check)) return;
        this.core.api.setInstanceHealth(item.instanceId, status, check.value, function() { me.refresh(); });
    },
