@@ -12,7 +12,8 @@
                   <menuitem id="deleteGroup" oncommand="ew_ASGroupsTreeView.putGroup(true);" label="Edit Group" />
                   <menuitem id="deleteGroup" oncommand="ew_ASGroupsTreeView.deleteSelected();" label="Delete Group" />
                   <menuseparator />
-                  <menuitem id="enableMetrics" oncommand="ew_ASGroupsTreeView.enableMetrics();" label="Enable/Disable Metrics Collection" />
+                  <menuitem id="enableMetrics" oncommand="ew_ASGroupsTreeView.enableMetrics();" label="Enable Metrics Collection" />
+                  <menuitem id="disableMetrics" oncommand="ew_ASGroupsTreeView.disableMetrics();" label="Disable Metrics Collection" />
                   <menuitem id="setCapacity" oncommand="ew_ASGroupsTreeView.setCapacity();" label="Set Desired Capacity" />
                   <menuitem id="setCapacity" oncommand="ew_ASGroupsTreeView.putNotifications();" label="Set Notifications" />
                   <menuseparator />
