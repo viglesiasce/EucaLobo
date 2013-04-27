@@ -6895,7 +6895,16 @@ var ew_api = {
         if (iamProfile) params.push(["IamInstanceProfile", iamProfile])
         if (keypair) params.push(["KeyName", keypair])
         if (price > 0) params.push(["SpotPrice", price])
-        if (userData) params.push(["UserData", userData])
+        if (userData){
+            var b64str = "Base64:";
+            if (userData.indexOf(b64str) != 0) {
+                // This data needs to be encoded
+               userData = Base64.encode(userData);
+            } else {
+                userData = userData.substring(b64str.length);
+            }
+            params.push([ "UserData", userData ]);
+        }
         if (ebsOptimized) params.push(["EbsOptimized", true])
         if (groups) {
             groups.forEach(function(x, i) {
