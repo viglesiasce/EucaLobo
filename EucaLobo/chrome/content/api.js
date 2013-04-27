@@ -2498,11 +2498,12 @@ var ew_api = {
     {
         var me = this;
         var params = cloneObject(instance)
-        this.describeInstanceAttribute(instance.id, "userData", function(data) {
-            params.userData = data;
-            params.privateIpAddress = null;
-            me.runInstances(instance.imageId, instance.instanceType, count, count, params, callback);
-        });
+        //this.describeInstanceAttribute(instance.id, "userData", function(data) {
+        //    params.userData = data;
+        //    params.privateIpAddress = null;
+        //    me.runInstances(instance.imageId, instance.instanceType, count, count, params, callback);
+        //});
+        me.runInstances(instance.imageId, instance.instanceType, count, count, params, callback);
     },
 
     importInstance: function(instanceType, arch, diskFmt, diskBytes, diskUrl, diskSize, options, callback)
