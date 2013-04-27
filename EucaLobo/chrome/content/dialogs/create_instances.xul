@@ -224,6 +224,7 @@
         switch ($("ew.deviceType").value) {
         case "snapshot":
              $("ew.snapshotId").disabled = $("ew.deleteOnTermination").disabled = false;
+             $("ew.volumeSize").disabled = false;
              break;
         case "new":
              $("ew.volumeSize").disabled = false;
@@ -665,7 +666,7 @@
                 </row>
                 <row>
                     <label control="ew.volumeSize" value="New Volume Size (GB):" />
-                    <textbox id="ew.volumeSize" size="40" type="number" min="1" disabled="true" />
+                    <textbox id="ew.volumeSize" size="40" type="number" min="1" disabled="false" />
                 </row>
                 <row>
                    <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
