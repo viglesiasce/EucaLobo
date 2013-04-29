@@ -52,7 +52,7 @@ var ew_DDBTreeView = {
             if (item.status == "DELETING") {
                 this.core.api.listTables({}, function(list) {
                     if (list.indexOf(item.name) == -1) {
-                        debug('deleting ' + item.name)
+                        debug('deleting ' + item.name);
                         me.core.removeModel('ddb', item.name, 'name');
                         me.invalidate();
                     }
@@ -72,7 +72,6 @@ var ew_DDBTreeView = {
 
     selectionChanged: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         if (!item.status) {
@@ -126,13 +125,12 @@ var ew_DDBItemsTreeView = {
 
     addItem: function()
     {
-        var me = this;
         var table = ew_DDBTreeView.getSelected();
         if (!table) return;
         var inputs = [ {label:"Table",type:"label",value:table.name } ];
-        inputs.push({label:table.hashKey,type:table.hashType=="N"?"number":"textbox" })
+        inputs.push({label:table.hashKey,type:table.hashType=="N"?"number":"textbox" });
         if (table.rangeKey) {
-            inputs.push({label:table.rangeKey,type:table.rangeType=="N"?"number":"textbox" })
+            inputs.push({label:table.rangeKey,type:table.rangeType=="N"?"number":"textbox" });
         }
         var values = this.core.promptInput("Add Item", inputs);
         if (!values) return;
@@ -156,7 +154,7 @@ var ew_DDBItemsTreeView = {
         var inputs = [ {label:"Table",type:"label",value:table.name } ];
         for (var p in item) {
             if (p == '_hashKey' || p == '_rangeKey') continue;
-            inputs.push({label:p,type:typeName(item[p])=="number"?"number":"textbox",value:item[p] })
+            inputs.push({label:p,type:typeName(item[p])=="number"?"number":"textbox",value:item[p] });
         }
         var values = this.core.promptInput("Edit Item", inputs);
         if (!values) return;
@@ -209,7 +207,7 @@ var ew_DDBItemsTreeView = {
                 var item = fromDynamoDB(rc.Items[i]);
                 item._hashKey = item[table._hashKey];
                 if (table._rangeKey) item._rangeKey = item[table._rangeKey];
-                list.push(item)
+                list.push(item);
             }
             me.display(list);
         });
@@ -230,7 +228,7 @@ var ew_DDBItemsTreeView = {
                 var item = fromDynamoDB(rc.Items[i]);
                 item._hashKey = item[table.hashKey];
                 if (table.rangeKey) item._rangeKey = item[table.rangeKey];
-                list.push(item)
+                list.push(item);
             }
             me.display(list);
         });

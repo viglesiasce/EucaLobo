@@ -125,9 +125,9 @@ var ew_PrefsView = {
    },
 
    resetAll: function() {
-       var items = document.getElementsByTagName("textbox")
+       var items = document.getElementsByTagName("textbox");
        for (var i = 0; i < items.length; i++) {
-           items[i].value = ""
+           items[i].value = "";
        }
    },
 
@@ -201,6 +201,6 @@ var ew_PrefsView = {
        if (!confirm('All preferences and credentials will be removed from this computer, access to AWS will not be possible without new credentials, continue?')) return;
        DirIO.remove(this.core.getProfileHome());
        this.core.quit();
-   },
-}
+   }
+};
 

@@ -29,7 +29,7 @@ var ew_MetricsTreeView = {
         for (var i in list) {
             if (nm && list[i].namespace != nm) continue;
             list[i].update();
-            nlist.push(list[i])
+            nlist.push(list[i]);
         }
         return TreeView.filter.call(this, nlist);
     },
@@ -46,7 +46,7 @@ var ew_MetricsTreeView = {
         var map = {};
         var dm = $('ew.graphs.dimensions');
         dm.removeAllItems();
-        dm.appendItem('Choose Metrics', '')
+        dm.appendItem('Choose Metrics', '');
         dm.selectedIndex = 0;
         var list = this.core.getModel('metrics');
         for (var i in list) {
@@ -222,7 +222,7 @@ var ew_MetricAlarmsTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete alarm ' + item.name + "?")) return;
-        this.core.api.deleteAlarms([item], function() { me.refresh() });
+        this.core.api.deleteAlarms([item], function() { me.refresh(); });
     },
 
     disableActions: function()
@@ -232,9 +232,9 @@ var ew_MetricAlarmsTreeView = {
         if (!item) return;
         if (!confirm((item.actionsEnabled ? "Disable" : "Enable") + " actions for " + item.name + "?")) return;
         if (item.actionsEnabled) {
-            this.core.api.disableAlarmActions([item], function() { me.refresh() });
+            this.core.api.disableAlarmActions([item], function() { me.refresh(); });
         } else {
-            this.core.api.enableAlarmActions([item], function() { me.refresh() });
+            this.core.api.enableAlarmActions([item], function() { me.refresh(); });
         }
     },
 
@@ -245,7 +245,7 @@ var ew_MetricAlarmsTreeView = {
         if (!item) return;
         var values = this.core.promptInput("Set Alarm State", [{label:"State",type:"menulist",list:["OK","ALARM","INSUFFICIENT_DATA"],required:1}, {label:"Reason",required:1}]);
         if (!values) return;
-        this.core.api.setAlarmState(item.name, values[0], values[1], function() { me.refresh() });
+        this.core.api.setAlarmState(item.name, values[0], values[1], function() { me.refresh(); });
     },
 
     displayHistory: function()
@@ -267,7 +267,7 @@ var ew_GraphsView = {
     activate: function()
     {
         // If called with this view active, refresh all models
-        this.refresh()
+        this.refresh();
     },
 
     refresh: function()
@@ -300,8 +300,6 @@ var ew_GraphsView = {
     setDimensions: function(title, value, view)
     {
         var me = this;
-        var page = $('ew.graphs.page');
-        clearElement(page)
 
         this.metrics = [];
         this.dimensions = this.core.parseTags(value);
@@ -309,17 +307,21 @@ var ew_GraphsView = {
         if (!this.dimensions.length) return;
 
         var page = $('ew.graphs.page');
+        clearElement(page);
+        
         this.core.api.listMetrics(null, null, this.dimensions, function(list) {
             me.metrics = list;
+            var hbox = null;
             for (var i = 0; i < list.length; i++) {
-                var hbox;
                 if (i % 3 == 0) {
                     hbox = document.createElement('hbox');
                     hbox.setAttribute('style', 'padding:5px;');
                     page.appendChild(hbox);
                 }
+                
                 var vbox = document.createElement('vbox');
                 vbox.appendChild(makeElement('label', 'control', 'ew.graphs.' + list[i].name, 'value', list[i].name));
+                
                 var canvas = makeCanvas(me.core);
                 canvas.setAttribute('id', 'ew.graphs.' + list[i].name);
                 canvas.setAttribute('width', '280');

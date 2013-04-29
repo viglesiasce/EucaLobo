@@ -139,7 +139,7 @@ var ew_core = {
              timeout: timeout * 60,
              observe: function(subject, topic, data) {
                  var action = me.getStrPrefs("ew.idle.action", "");
-                 debug(subject + ", " + topic + ", " + data + ", " + action)
+                 debug(subject + ", " + topic + ", " + data + ", " + action);
                  switch (topic + ':' + action) {
                  case "idle:exit":
                      me.quit();
@@ -206,7 +206,7 @@ var ew_core = {
             // Try directly if this panel not in the menu
             var panel = $(name);
             if (!panel) {
-                debug('menu not found ' + name)
+                debug('menu not found ' + name);
                 return false;
             }
         } else {
@@ -218,7 +218,7 @@ var ew_core = {
 
         // Activate and refresh if no records yet
         for (var i in tab.views) {
-            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount)
+            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount);
             tab.views[i].view.activate();
             // Assign new filter list and refresh contents
             tab.views[i].view.filterList = tab.views[i].filterList;
@@ -310,26 +310,36 @@ var ew_core = {
         }
     },
 
+    updateStatusBar: function()
+    {
+        var cred = this.getActiveCredentials();
+        $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
+    },
+
     updateMenu: function()
     {
-        var tree = $('ew.menu');
+        this.updateStatusBar();
+
+        // Modify menu to show current credentials
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
+            var tree = $('ew.menu');
             var cred = this.getActiveCredentials();
             var label = cred ? 'Current: ' + cred.name + "/" + this.api.region : "Manage Credentials";
             tree.view.setCellText(idx, tree.columns[0], label);
-            $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
-        // Hide items in non advanced mode
+
+        // Hide advanced items if not in advanced mode
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
         var items = document.getElementsByClassName("advanced");
         for (var i = 0; i < items.length; i++) {
             items[i].hidden = !advanced;
         }
-        // Hie items in VPC only mode
+
+        // Hide EC2 classic items in VPC only mode
         var items = document.getElementsByClassName("ec2");
         for (var i = 0; i < items.length; i++) {
-            items[i].hidden = this.vpcId != null;
+            items[i].hidden = (this.vpcId != null);
         }
     },
 
@@ -348,13 +358,14 @@ var ew_core = {
         this.updateMenu();
     },
 
-    getCredentials : function () {
+    getCredentials : function ()
+    {
         var credentials = new Array();
-        var list = this.getPasswordList("Cred:")
+        var list = this.getPasswordList("Cred:");
         for (var i = 0; i < list.length; i++) {
             var pw = list[i][1].split(";;");
             if (pw.length > 1) {
-                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "", pw.length > 4 ? pw[4] : "")
+                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "", pw.length > 4 ? pw[4] : "");
                 credentials.push(cred);
             }
         }
@@ -373,13 +384,13 @@ var ew_core = {
 
     removeCredentials : function(cred)
     {
-        this.deletePassword('Cred:' + cred.name)
+        this.deletePassword('Cred:' + cred.name);
         this.credentials = this.getCredentials();
     },
 
     saveCredentials : function(cred)
     {
-        this.savePassword('Cred:' + cred.name, cred.toString())
+        this.savePassword('Cred:' + cred.name, cred.toString());
     },
 
     getActiveCredentials : function()
@@ -411,14 +422,14 @@ var ew_core = {
 
         var wasGovCloud = this.isGovCloud();
         if (cred) {
-            debug("switch credentials to " + cred.name + " " + cred.url)
+            debug("switch credentials to " + cred.name + " " + cred.url);
             this.setStrPrefs("ew.account.name", cred.name);
             this.api.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
 
             // Default endpoint does not need to be saved
             if (cred.url != "") {
                 var endpoint = this.getEndpoint(null, cred.url);
-                if (!endpoint) endpoint = new Endpoint("", cred.url)
+                if (!endpoint) endpoint = new Endpoint("", cred.url);
                 this.selectEndpoint(endpoint, true);
             } else
             // GovCloud credentials require endpoint to be set explicitly, switching from GovCloud without explicit endpoint will result in errors
@@ -432,7 +443,7 @@ var ew_core = {
             this.invalidateMenu();
             var me = this;
             // Retrieve current user info
-            this.api.getUser(null, function(user) { me.user = user || {}; ew_PrefsView.refresh(); })
+            this.api.getUser(null, function(user) { me.user = user || {}; ew_PrefsView.refresh(); });
             return true;
         }
         return false;
@@ -450,7 +461,7 @@ var ew_core = {
     createTempCredentials: function(item, active)
     {
         if (!item) return;
-        if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary" }).length >= 2) {
+        if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary"; }).length >= 2) {
             return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys. Please delete one key in order to create new credentials.');
         }
 
@@ -527,7 +538,7 @@ var ew_core = {
         if (this.selectEndpoint(endpoint)) {
             // Switching between GovCloud, reset credentials
             if (this.isGovCloud() != wasGovCloud) {
-                debug('disable credentials when switching to/from GovCloud')
+                debug('disable credentials when switching to/from GovCloud');
                 this.api.setCredentials("", "");
                 this.setStrPrefs("ew.account.name", "");
             }
@@ -535,7 +546,7 @@ var ew_core = {
             this.invalidateModel();
             this.invalidateMenu();
         } else {
-            alert('Endpoint ' + name + ' does not exist.')
+            alert('Endpoint ' + name + ' does not exist.');
         }
     },
 
@@ -607,7 +618,7 @@ var ew_core = {
         try {
           var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
           var uri = io.newURI(url, null, null);
-          var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService)
+          var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService);
           var launcher = eps.getProtocolHandlerInfo(protocol || 'http');
           launcher.preferredAction = Components.interfaces.nsIHandlerInfo.useSystemDefault;
           launcher.launchWithURI(uri, null);
@@ -690,7 +701,7 @@ var ew_core = {
         if (fp.show() != nsIFilePicker.returnCancel) {
             return fp.file.path;
         }
-        return null
+        return null;
     },
 
     promptForDir : function(msg, save)
@@ -702,13 +713,13 @@ var ew_core = {
         if (fp.show() != nsIFilePicker.returnCancel) {
             return fp.file.path;
         }
-        return null
+        return null;
     },
 
     promptYesNo : function(title, text)
     {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-        return promptService.confirmEx(window, title, text, promptService.STD_YES_NO_BUTTONS| promptService.BUTTON_POS_0_DEFAULT, "", "", "", null, {}) == 0
+        return promptService.confirmEx(window, title, text, promptService.STD_YES_NO_BUTTONS| promptService.BUTTON_POS_0_DEFAULT, "", "", "", null, {}) == 0;
     },
 
     promptConfirm: function(title, msg, checkmsg, checkval)
@@ -796,7 +807,7 @@ var ew_core = {
                 try {
                     input.value = formatJSON(input.value);
                 }
-                catch(e) { debug(e) }
+                catch(e) { debug(e); }
             }
             if (input.found) inputs.splice(0, 0, input); else inputs.push(input);
         }
@@ -864,14 +875,14 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username == key) {
-                log("modifying password: " + key)
+                log("modifying password: " + key);
                 loginManager.modifyLogin(logins[i], login);
-                return false
+                return false;
             }
         }
-        log("adding password: " + key)
+        log("adding password: " + key);
         loginManager.addLogin(login);
-        return true
+        return true;
     },
 
     deletePassword : function(key)
@@ -880,12 +891,12 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username == key) {
-                log("removing password: " + key)
+                log("removing password: " + key);
                 loginManager.removeLogin(logins[i]);
-                return true
+                return true;
             }
         }
-        return false
+        return false;
     },
 
     getPassword : function(key)
@@ -897,7 +908,7 @@ var ew_core = {
                 return logins[i].password;
             }
         }
-        return ""
+        return "";
     },
 
     getPasswordList : function(prefix)
@@ -907,10 +918,10 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username.indexOf(prefix) == 0) {
-                list.push([ logins[i].username, logins[i].password ])
+                list.push([ logins[i].username, logins[i].password ]);
             }
         }
-        return list
+        return list;
     },
 
     getTempKeys: function()
@@ -948,7 +959,7 @@ var ew_core = {
         for (var i = 0; i < arguments.length; i++) {
             str += String(arguments[i]) + " ";
         }
-        debug(str)
+        debug(str);
     },
 
     copyToClipboard: function(text)
@@ -979,7 +990,7 @@ var ew_core = {
 
         // File naming convention
         var rx = new RegExp(this.getAppName() + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
-        var verno = this.getAppVersion()
+        var verno = this.getAppVersion();
         var ver = this.versionNum(verno);
 
         // HTTP access to the releases, can be any kind of page or listing with files
@@ -994,7 +1005,7 @@ var ew_core = {
                         return;
                     }
                 }
-                if (msg) alert("You are running the latest version: " + verno)
+                if (msg) alert("You are running the latest version: " + verno);
             }
         };
         xmlhttp.open("GET", this.URL + "?" + new Date().getTime(), true);
@@ -1086,7 +1097,7 @@ var ew_core = {
     // tags can be a string or list of tags
     setTags: function(objs, tags, callback)
     {
-        log('setTags: id=' + objs + ", tags=" + tags)
+        log('setTags: id=' + objs + ", tags=" + tags);
 
         var me = this;
         var ntags = new Array();
@@ -1141,7 +1152,7 @@ var ew_core = {
             var type = mService.getTypeFromURI(url);
             return type || "";
         }
-        catch(e) { debug('Error: ' + file + ":" + e) }
+        catch(e) { debug('Error: ' + file + ":" + e); }
         return "";
     },
 
@@ -1179,7 +1190,7 @@ var ew_core = {
         if (home == "" && env.exists('HOME')) {
             home = env.get("HOME");
         }
-        return home
+        return home;
     },
 
     getAppPath : function()
@@ -1212,9 +1223,9 @@ var ew_core = {
                 var rc = FileIO.write(FileIO.open(file), "");
                 FileIO.remove(file);
                 if (rc) return 1;
-                msg = "Directory " + path + " is not writable, please choose another place where to keep my files:"
+                msg = "Directory " + path + " is not writable, please choose another place where to keep my files:";
             } else {
-                msg = 'Unable to create directory ' + path + ", please choose another directory where to keep my files:"
+                msg = 'Unable to create directory ' + path + ", please choose another directory where to keep my files:";
             }
             path = this.promptForDir(msg);
             if (!path) return 0;
@@ -1305,7 +1316,7 @@ var ew_core = {
                   '  tell app "Terminal" to activate',
                   'end run'];
             // turn into -e 'line1' -e 'line2' etc.
-            args = cmdline.map(function(s) { return "-e '" + s.replace(/^\s+/, '') + "'" }).join(" ");
+            args = cmdline.map(function(s) { return "-e '" + s.replace(/^\s+/, '') + "'"; }).join(" ");
         } else
 
         if (isWindows(navigator.platform)) {
@@ -1388,11 +1399,11 @@ var ew_core = {
             }
         }
         if (file.indexOf("${home}") > -1) {
-            var home = this.getHome()
+            var home = this.getHome();
             file = file.replace(/\${home}/g, quotepath(home));
         }
         if (file.indexOf("${keyhome}") > -1) {
-            var home = this.getKeyHome()
+            var home = this.getKeyHome();
             file = file.replace(/\${keyhome}/g, quotepath(home));
         }
         if (file.indexOf("${user}") > -1) {
@@ -1401,7 +1412,7 @@ var ew_core = {
         if (file.indexOf("${key}") > -1) {
             file = file.replace(/\${key}/g, quotepath(this.getPrivateKeyFile(keyname)));
         }
-        return file
+        return file;
     },
 
     getArgsProcessed: function(args, params, shellfile)
@@ -1423,7 +1434,7 @@ var ew_core = {
         FileIO.write(fd, batch + (isWindows(navigator.platform) ? "\r\n" : "\n"));
         fd.permissions = 0700;
 
-        debug("BATCH:" + shellfile + "\n" + batch)
+        debug("BATCH:" + shellfile + "\n" + batch);
         return args;
     },
 
@@ -1436,13 +1447,13 @@ var ew_core = {
     generateKeypair : function(keyname)
     {
         // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
+        if (!this.makeKeyHome()) return 0;
 
         var certfile = this.getCertificateFile(keyname);
         var keyfile = this.getPrivateKeyFile(keyname);
         var pubfile = this.getPublicKeyFile(keyname);
         var openssl = this.getOpenSSLCommand();
-        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf"
+        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf";
 
         // Make sure we do not lose existing private keys
         if (FileIO.exists(keyfile)) {
@@ -1455,7 +1466,7 @@ var ew_core = {
         FileIO.remove(conffile);
 
         // Create openssl config file
-        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n"
+        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n";
         if (!FileIO.write(FileIO.open(conffile), confdata)) {
             return alert('Unable to create file ' + conffile + ", please check permissions.");
         }
@@ -1464,26 +1475,26 @@ var ew_core = {
         this.setEnv("OPENSSL_CONF", conffile);
         this.launchProcess(openssl, [ "genrsa", "-out", keyfile, "1024" ], true);
         if (!waitForFile(keyfile, 5000)) {
-            debug("ERROR: no private key generated")
+            debug("ERROR: no private key generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
         FileIO.open(keyfile).permissions = 0600;
 
         this.launchProcess(openssl, [ "req", "-new", "-x509", "-nodes", "-sha1", "-days", "730", "-key", keyfile, "-out", certfile, "-config", conffile ], true);
         if (!waitForFile(certfile, 5000)) {
-            debug("ERROR: no certificate generated")
+            debug("ERROR: no certificate generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
 
         // Create public file
         this.launchProcess(openssl, [ "rsa", "-in", keyfile, "-pubout", "-out", pubfile ], true);
         // Wait a little because if process is running in the background on Windows it may take some time but we return immediately
         if (!waitForFile(pubfile, 5000)) {
-            debug("ERROR: no public file generated")
+            debug("ERROR: no public file generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
         FileIO.remove(conffile);
 
@@ -1507,7 +1518,7 @@ var ew_core = {
     launchShell : function(cred)
     {
         // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
+        if (!this.makeKeyHome()) return 0;
 
         // Save access key into file by credentials name or account name
         if (!cred) cred = this.getActiveCredentials();
@@ -1547,7 +1558,7 @@ var ew_core = {
             this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
-        debug('launchShell:' + cred + " " + path)
+        debug('launchShell:' + cred + " " + path);
         this.setEnv("PATH", path);
         this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
     },
@@ -1600,11 +1611,11 @@ var ew_core = {
 
         try {
             process.run(block, args, args.length);
-            debug("launch: " + cmd + " finished with status " + process.exitValue)
+            debug("launch: " + cmd + " finished with status " + process.exitValue);
         }
         catch (e) {
             alert("Couldn't launch: " + cmd + "\nWith arguments: " + args.join(" ") + "\n\n" + e.message);
-            return false
+            return false;
         }
         return true;
     },
@@ -1809,10 +1820,10 @@ var ew_core = {
             var name = arguments[i];
             var now = (new Date).getTime();
             if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
-                debug('refresh: ' + name + ' in progress')
+                debug('refresh: ' + name + ' in progress');
                 continue;
             }
-            debug('refresh model ' + name)
+            debug('refresh model ' + name);
             this.progress[name] = now;
 
             switch (name) {
@@ -2009,7 +2020,7 @@ var ew_core = {
                 this.api.describeJobFlows();
                 break;
             case "ddb":
-                this.api.listTables({}, function(list) { me.setModel('ddb', list) });
+                this.api.listTables({}, function(list) { me.setModel('ddb', list); });
                 break;
             case "hostedZones":
                 this.api.listHostedZones();
@@ -2042,7 +2053,7 @@ var ew_core = {
     // Update model list and notify components
     setModel: function(name, list)
     {
-        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records');
         this.progress[name] = 0;
         this.model[name] = list;
         this.notifyComponents(name);
@@ -2050,7 +2061,7 @@ var ew_core = {
 
     appendModel: function(name, list, reset)
     {
-        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records' + (reset ? " with reset" : ""))
+        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records' + (reset ? " with reset" : ""));
         this.progress[name] = 0;
         if (!this.model[name] || reset) this.model[name] = [];
         this.model[name] = this.model[name].concat(list);
@@ -2151,7 +2162,7 @@ var ew_core = {
             } else {
                 var obj = this.findObject(list, value);
                 if (obj) {
-                    return obj.toString()
+                    return obj.toString();
                 }
             }
         }
@@ -2165,7 +2176,7 @@ var ew_core = {
         if (typeof obj == "object") {
             var item = "";
             if (!columns && obj.hasOwnProperty('toString')) {
-                item = obj.toString()
+                item = obj.toString();
             } else {
                for (var p in obj) {
                    if (typeof obj[p] == "function") {
@@ -2177,7 +2188,7 @@ var ew_core = {
                    }
                 }
             }
-            return item
+            return item;
         }
         return obj;
     },
@@ -2230,7 +2241,7 @@ var ew_core = {
                     }
                 }
                 if (matches == args.length/2) {
-                    list.push(items[i])
+                    list.push(items[i]);
                 }
             }
         }
@@ -2325,7 +2336,7 @@ var ew_core = {
             var favs = this.getStrPrefs("ew.images.favorites", "").split("^");
             for (var i in list) {
                 if (favs.indexOf(list[i].id) >= 0) {
-                    nlist.push(list[i])
+                    nlist.push(list[i]);
                 }
             }
             return nlist;
@@ -2355,56 +2366,56 @@ var ew_core = {
             if (root && root != list[i].rootDeviceType) continue;
             if (alias && alias != list[i].ownerAlias) continue;
             if (owner && owner != list[i].ownerId) continue;
-            nlist.push(list[i])
+            nlist.push(list[i]);
         }
         return nlist;
     },
 
     getVpcById: function(id)
     {
-        return this.findObject(this.model.vpcs, id)
+        return this.findObject(this.model.vpcs, id);
     },
 
     getSubnetById: function(id)
     {
-        return this.findObject(this.model.subnets, id)
+        return this.findObject(this.model.subnets, id);
     },
 
     getInstanceById: function(id)
     {
-        return this.findObject(this.model.instances, id)
+        return this.findObject(this.model.instances, id);
     },
 
     getSecurityGroupById: function(id)
     {
-        return this.findObject(this.model.securityGroups, id)
+        return this.findObject(this.model.securityGroups, id);
     },
 
     getInstanceTypes: function(arch, region)
     {
         var types = [
-           { name: "t1.micro: Up to 2 EC2 Compute Units (for short periodic bursts), 613 MiB, No storage, Low I/O", id: "t1.micro", x86_64: true, i386: true,  },
-           { name: "m1.small: 1 EC2 Compute Unit (1 virtual core with 1 EC2 Compute Unit), 1.7 GiB, 150 GiB instance storage,  Moderate I/O", id: "m1.small", x86_64: true, i386: true,  },
-           { name: "m1.medium: 2 EC2 Compute Units (1 virtual core with 2 EC2 Compute Units), 3.75 GiB, 400 GiB instance storage (1 x 400 GiB), Moderate I/O", id: "m1.medium", x86_64: true, i386: true,  },
-           { name: "m1.large: 4 EC2 Compute Units (2 virtual cores with 2 EC2 Compute Units each), 7.5 GiB, 840 GiB instance storage (2 x 420 GiB), High I/O", id: "m1.large", x86_64: true,  },
-           { name: "m1.xlarge: 8 EC2 Compute Units (4 virtual cores with 2 EC2 Compute Units each), 15 GiB, 1680 GB instance storage (4 x 420 GiB), High I/O", id: "m1.xlarge", x86_64: true,  },
-           { name: "c1.medium: 5 EC2 Compute Units (2 virtual cores with 2.5 EC2 Compute Units each), 1.7 GiB, 340 GiB instance storage (340 GiB), Moderate I/O", id: "c1.medium", x86_64: true, i386: true,  },
-           { name: "c1.xlarge: 20 EC2 Compute Units (8 virtual cores with 2.5 EC2 Compute Units each), 7 GiB, 1680 GiB instance storage (4 x 420 GiB), High I/O", id: "c1.xlarge", x86_64: true,  },
-           { name: "m2.xlarge : 6.5 EC2 Compute Units (2 virtual cores with 3.25 EC2 Compute Units each), 17.1 GiB, 410 GiB instance storage (1 x 410 GiB), Moderate I/O", id: "m2.xlarge", x86_64: true,  },
-           { name: "m2.2xlarge: 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 34.2 GiB,  840 GiB instance storage (1 x 840 GiB), High I/O", id: "m2.2xlarge", x86_64: true,  },
-           { name: "m2.4xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 68.4 GiB, 1680 GiB instance storage (2 x 840 GiB), High I/O", id: "m2.4xlarge", x86_64: true,  },
+           { name: "t1.micro: Up to 2 EC2 Compute Units (for short periodic bursts), 613 MiB, EBS only storage, Low I/O", id: "t1.micro", x86_64: true, i386: true,  },
+           { name: "m1.small: 1 EC2 Compute Unit (1 virtual core with 1 EC2 Compute Unit), 1.7 GiB, 160 GB instance storage,  Moderate I/O", id: "m1.small", x86_64: true, i386: true,  },
+           { name: "m1.medium: 2 EC2 Compute Units (1 virtual core with 2 EC2 Compute Units), 3.75 GiB, 410 GB instance storage, Moderate I/O", id: "m1.medium", x86_64: true, i386: true,  },
+           { name: "m1.large: 4 EC2 Compute Units (2 virtual cores with 2 EC2 Compute Units each), 7.5 GiB, 850 GB instance storage, High I/O", id: "m1.large", x86_64: true,  },
+           { name: "m1.xlarge: 8 EC2 Compute Units (4 virtual cores with 2 EC2 Compute Units each), 15 GiB, 1690 GB instance storage, High I/O", id: "m1.xlarge", x86_64: true,  },
+           { name: "c1.medium: 5 EC2 Compute Units (2 virtual cores with 2.5 EC2 Compute Units each), 1.7 GiB, 350 GB instance storage, Moderate I/O", id: "c1.medium", x86_64: true, i386: true,  },
+           { name: "c1.xlarge: 20 EC2 Compute Units (8 virtual cores with 2.5 EC2 Compute Units each), 7 GiB, 1690 GB instance storage, High I/O", id: "c1.xlarge", x86_64: true,  },
+           { name: "m2.xlarge : 6.5 EC2 Compute Units (2 virtual cores with 3.25 EC2 Compute Units each), 17.1 GiB, 420 GB instance storage, Moderate I/O", id: "m2.xlarge", x86_64: true,  },
+           { name: "m2.2xlarge: 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 34.2 GiB,  850 GB instance storage, High I/O", id: "m2.2xlarge", x86_64: true,  },
+           { name: "m2.4xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 68.4 GiB, 1690 GB instance storage, High I/O", id: "m2.4xlarge", x86_64: true,  },
            { name: "m3.xlarge : 13 EC2 Compute Units (4 virtual cores with 3.25 EC2 Compute Units each), 15 GiB, EBS only storage, Moderate I/O", id: "m3.xlarge", x86_64: true,  },
-           { name: "m3.2xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 30 GiB,  EBS only storage, High I/O", id: "m3.2xlarge", x86_64: true,  },
-           { name: "cc1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), 23 GiB, 1690 GiB instance 64-bit storage (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cc1.4xlarge", x86_64: true,  },
-           { name: "cc2.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core 'Sandy Bridge' architecture), 60.5 GiB, 3360 GiB instance (4 x 840 GiB), Very high (10 Gbps Ethernet", id: "cc2.8xlarge", x86_64: true,  },
-           { name: "cg1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core 'Nehalem' architecture), plus 2 NVIDIA Tesla M2050 'Fermi' GPUs, 22 GiB, 1680 GiB instance (2 x 840 GiB), Very high (10 Gbps Ethernet)", id: "cg1.4xlarge", x86_64: true,  'us-gov-west-1': false },
-           { name: "hi1.4xlarge: 35 EC2 Compute Units (8 virtual cores with 4.37 ECUs each), 60 GiB, 2T SSD instance (2 x 1TB SSD), Very high (10 Gbps Ethernet)", id: "hi1.4xlarge", x86_64: true, 'us-gov-west-1': false },
-           { name: "hs1.8xlarge: 35 EC2 Compute Units (16 virtual cores), 117 GiB, 48T instance storage on 24 disk drives, Very high (10 Gbps Ethernet)", id: "hs1.8xlarge", x86_64: true, 'us-gov-west-1': false },
+           { name: "m3.2xlarge: 26 EC2 Compute Units (8 virtual cores with 3.25 EC2 Compute Units each), 30 GiB, EBS only storage, High I/O", id: "m3.2xlarge", x86_64: true,  },
+           { name: "cc2.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core), 60.5 GiB, 3370 GB instance, Very high (10 Gbps Ethernet)", id: "cc2.8xlarge", x86_64: true,  },
+           { name: "cr1.8xlarge: 88 EC2 Compute Units (2 x Intel Xeon E5-2670, eight-core, Intel Turbo, NUMA), 244 GiB, 240 GB SSD instance, Very high (10 Gbps Ethernet)", id: "cr1.8xlarge", x86_64: true,  },
+           { name: "cg1.4xlarge: 33.5 EC2 Compute Units (2 x Intel Xeon X5570, quad-core), plus 2 NVIDIA Tesla M2050 'Fermi' GPUs, 22 GiB, 1690 GB instance, Very high (10 Gbps Ethernet)", id: "cg1.4xlarge", x86_64: true,  'us-gov-west-1': false },
+           { name: "hi1.4xlarge: 35 EC2 Compute Units (16 virtual cores), 60.5 GiB, 2 TB SSD instance (2 x 1TB SSD), Very high (10 Gbps Ethernet)", id: "hi1.4xlarge", x86_64: true, 'us-gov-west-1': false },
+           { name: "hs1.8xlarge: 35 EC2 Compute Units (16 virtual cores), 117 GiB, 48TB instance storage on 24 disk drives, Very high (10 Gbps Ethernet)", id: "hs1.8xlarge", x86_64: true, 'us-gov-west-1': false },
            ];
 
         var list = [];
         for (var i in types) {
-            types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); }
+            types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); };
             // Filter by region, type
             if (region && types[i][region] == false) continue;
             if (arch && !types[i][arch]) continue;

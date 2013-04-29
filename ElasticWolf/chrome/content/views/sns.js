@@ -41,12 +41,11 @@ var ew_SNSTopicsTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Topic ' + item.name)) return;
-        this.core.api.deleteTopic(item.id, function(){ me.refresh() });
+        this.core.api.deleteTopic(item.id, function(){ me.refresh(); });
     },
 
     addPermission: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
 
@@ -66,7 +65,7 @@ var ew_SNSTopicsTreeView = {
         var actions = [];
         for (var i = 2; i < values.length; i++) {
             if (values[i]) {
-                actions.push({name:inputs[i].label,id:values[1]})
+                actions.push({name:inputs[i].label,id:values[1]});
             }
         }
         this.core.api.addTopicPermission(item.url, values[0], actions, function(id) {});
@@ -92,12 +91,11 @@ var ew_SNSTopicsTreeView = {
 
         var values = this.core.promptInput("Subscribe", inputs);
         if (!values) return;
-        this.core.api.subscribe(item.id, values[1], values[2], function(id) { me.core.refreshModel('subscriptions') });
+        this.core.api.subscribe(item.id, values[1], values[2], function(id) { me.core.refreshModel('subscriptions'); });
     },
 
     confirm: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
 
@@ -112,7 +110,6 @@ var ew_SNSTopicsTreeView = {
 
     publish: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         var json = '{\n"default" : "some message",\n"email" : "some email message",\n"email-json" : "some email-json message",\n"http" : "some http message",\n"https" : "some https message",\n"sqs" : "some sqs message"\n }';
@@ -140,7 +137,7 @@ var ew_SNSTopicsTreeView = {
             item.attributes = list;
             var values = me.core.promptAttributes('Configure Topic', fields, list);
             for (var i in values) {
-                me.core.api.setTopicAttributes(item.id, values[i].name, values[i].value)
+                me.core.api.setTopicAttributes(item.id, values[i].name, values[i].value);
             }
         });
     },
@@ -167,7 +164,7 @@ var ew_SNSSubscriptionsTreeView = {
         if (!confirm('Remove this subscription?')) return;
         this.core.api.unsubscribe(item.id, function() {
             me.remove(item);
-        })
+        });
     },
 
     configure: function()
@@ -181,7 +178,7 @@ var ew_SNSSubscriptionsTreeView = {
             item.attributes = list;
             var values = me.core.promptAttributes('Configure Subscription', fields, list);
             for (var i in values) {
-                me.core.api.setTopicAttributes(item.id, values[i].name, values[i].value)
+                me.core.api.setTopicAttributes(item.id, values[i].name, values[i].value);
             }
         });
     },

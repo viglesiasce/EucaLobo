@@ -55,7 +55,7 @@ var TreeView = {
     getList: function()
     {
         var list = (this.model ? this.getModel() : this.getData()) || [];
-        log(this.getName() + ' contains ' + list.length + ' records')
+        log(this.getName() + ' contains ' + list.length + ' records');
         return list || [];
     },
     get rowCount() {
@@ -113,7 +113,7 @@ var TreeView = {
     },
     getImageSrc : function(idx, column)
     {
-        return ""
+        return "";
     },
     getProgressMode : function(idx, column)
     {
@@ -138,7 +138,7 @@ var TreeView = {
         if (idx >= 0 && idx < this.rowCount) this.treeList[idx][name] = val;
     },
     modelChanged : function(name) {
-        log('model changed ' + this.getName())
+        log('model changed ' + this.getName());
         if (this.visible || this.core.getModel(name) == null) {
             this.invalidate();
         }
@@ -222,7 +222,7 @@ var TreeView = {
     },
     remove: function(obj, columns)
     {
-        var i = this.find(obj, columns)
+        var i = this.find(obj, columns);
         if (i >= 0) {
             this.treeList.splice(i, 1);
             this.treeBox.rowCountChanged(i + 1, -1);
@@ -230,7 +230,7 @@ var TreeView = {
     },
     replace: function(obj, columns)
     {
-        var i = this.find(obj, columns)
+        var i = this.find(obj, columns);
         if (i >= 0) {
             this.treeList.splice(i, 1, obj);
             this.treeBox.rowCountChanged(i + 1, -1);
@@ -251,7 +251,7 @@ var TreeView = {
     },
     select : function(obj, columns)
     {
-        var i = this.find(obj, columns)
+        var i = this.find(obj, columns);
         if (i >= 0) {
             var old = this.selection.currentIndex;
             this.selection.select(i);
@@ -280,7 +280,7 @@ var TreeView = {
     },
     refresh : function(force)
     {
-        var name = this.getModelName()
+        var name = this.getModelName();
         if (name) {
             this.core.refreshModel(name);
             this.refreshAll(force);
@@ -290,7 +290,7 @@ var TreeView = {
     },
     refreshAll: function(force)
     {
-        log('refreshAll' + (force ? "force" : "") + ' ' + this.model)
+        log('refreshAll' + (force ? "force" : "") + ' ' + this.model);
         if (this.model instanceof Array) {
             var args = [];
             for (var i = 1; i < this.model.length; i++) {
@@ -299,7 +299,7 @@ var TreeView = {
                 }
             }
             if (args.length) {
-                debug('refreshAll: ' + args)
+                debug('refreshAll: ' + args);
                 this.core.refreshModel.apply(this.core, args);
             }
         }
@@ -311,7 +311,7 @@ var TreeView = {
         }
         var me = this;
         // Ignore refresh timer if we have popup active
-        this.refreshTimer = setTimeout(function() { if (!me.menuActive) me.onRefreshTimer() }, this.refreshTimeout);
+        this.refreshTimer = setTimeout(function() { if (!me.menuActive) me.onRefreshTimer(); }, this.refreshTimeout);
         log('start timer ' + this.getName() + ' for ' + this.refreshTimeout + ' ms');
     },
     stopRefreshTimer : function()
@@ -343,13 +343,13 @@ var TreeView = {
                         var p = String(list[i][this.filterList[j].name]);
                         var rc = p.match(this.filterList[j].value);
                         if ((this.filterList[j].not && !rc) || (!this.filterList[j].not && rc)) {
-                            nlist.push(list[i])
+                            nlist.push(list[i]);
                         }
                     } else
                     if (this.filterList[j].hasOwnProperty('empty')) {
                         if ((this.filterList[j].empty && !list[i][this.filterList[j].name]) ||
                             (!this.filterList[j].empty && list[i][this.filterList[j].name])) {
-                            nlist.push(list[i])
+                            nlist.push(list[i]);
                         }
                     }
                 }
@@ -396,13 +396,13 @@ var TreeView = {
     },
     display : function(list)
     {
-        var sel = cloneObject(this.getSelected())
+        var sel = cloneObject(this.getSelected());
         this.treeBox.rowCountChanged(0, -this.treeList.length);
         this.treeList = new Array();
         if (list) {
             this.treeList = this.treeList.concat(list);
         }
-        log(this.getName() + ' displays ' + this.treeList.length + ' records')
+        log(this.getName() + ' displays ' + this.treeList.length + ' records');
         this.treeBox.rowCountChanged(0, this.treeList.length);
         this.treeBox.invalidate();
         this.selection.clearSelection();
@@ -437,7 +437,6 @@ var TreeView = {
     },
     tag: function(event, callback)
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         var tag = this.core.promptForTag(item.tags);
@@ -466,7 +465,7 @@ var TreeView = {
     },
     onKeydown: function(event)
     {
-        debug(this.getName() + " " + event.keyCode + " " + event.shiftKey)
+        debug(this.getName() + " " + event.keyCode + " " + event.shiftKey);
         switch (event.keyCode) {
         case 121: // F10
             // Intention here is for shift+F10 to bring up the context menu
@@ -496,8 +495,7 @@ var TreeView = {
     {
         var item = this.getSelected();
         if (item == null) return;
-        var me = this;
-        var rc = { core: this.core, item: item, title: className(item), }
+        var rc = { core: this.core, item: item, title: className(item), };
         if (!this.core.win.details) {
             this.core.win.details = window.openDialog("chrome://ew/content/dialogs/details.xul", null, "chrome,centerscreen,modeless,resizable", rc);
         } else
@@ -524,7 +522,7 @@ var TreeView = {
             for (var i in types) {
                 var list = toolbars[t].getElementsByTagName(types[i]);
                 for (var j = 0; j < list.length; j++) {
-                    items.push({ id: list[j].id, type: types[i], value: list[j].value, checked: list[j].checked })
+                    items.push({ id: list[j].id, type: types[i], value: list[j].value, checked: list[j].checked });
                 }
             }
         }
@@ -596,7 +594,7 @@ var TreeView = {
                     textbox.setAttribute("autocompletesearch", "form-history");
                     (function(v) { var me = v; textbox.addEventListener('keypress', function(e) { e.stopPropagation();me.searchChanged(e); }, false); }(this));
                 } else {
-                    debug('search textbox ' + this.searchElement + " not found")
+                    debug('search textbox ' + this.searchElement + " not found");
                 }
             }
 
@@ -774,7 +772,7 @@ var ListBox = {
                 this.items[this.listbox.currentIndex][this.checkedProperty] = checked;
             }
         }
-        if (this.onclick) setTimeout(function() {self.onclick.call(self, self.items[self.listbox.currentIndex], checked)}, 10);
+        if (this.onclick) setTimeout(function() {self.onclick.call(self, self.items[self.listbox.currentIndex], checked);}, 10);
     },
 
     onKeydown: function(event)
@@ -893,7 +891,7 @@ var FileIO = {
             return data;
         }
         catch (e) {
-            debug("FileIO: read: " + e)
+            debug("FileIO: read: " + e);
             return false;
         }
     },
@@ -914,7 +912,7 @@ var FileIO = {
             return data;
         }
         catch(e) {
-            debug("FileIO: readBinary: " + e)
+            debug("FileIO: readBinary: " + e);
             return false;
         }
     },
@@ -936,7 +934,7 @@ var FileIO = {
             return true;
         }
         catch (e) {
-            debug("FileIO: write: " + e)
+            debug("FileIO: write: " + e);
             return false;
         }
     },
@@ -1002,10 +1000,10 @@ var FileIO = {
     {
         if (!path) return "";
         try {
-            return this.read(this.open(path))
+            return this.read(this.open(path));
         }
         catch (e) {
-            debug("Error: toString:" + path + ": " + e)
+            debug("Error: toString:" + path + ": " + e);
             return "";
         }
     },
@@ -1022,7 +1020,7 @@ var FileIO = {
         return data;
     },
 
-}
+};
 
 // Directory service get properties
 // ProfD profile directory
@@ -1080,19 +1078,19 @@ var DirIO = {
     mkpath: function(path)
     {
         try {
-            var i = 0
+            var i = 0;
             var dirs = path.split(this.slash);
-            if (dirs.length == 0) return 0
+            if (dirs.length == 0) return 0;
             if (isWindows(navigator.platform)) {
                 path = dirs[0];
                 i++;
             } else {
-                path = ""
+                path = "";
             }
             while (i < dirs.length) {
                 path += this.slash + dirs[i];
                 if (!FileIO.exists(path) && !DirIO.create(FileIO.open(path))) {
-                    return false
+                    return false;
                 }
                 i++;
             }
@@ -1209,7 +1207,7 @@ var DirIO = {
     {
         return this.fileName(path).split(".")[0];
     },
-}
+};
 
 // Base64 encode / decode http://www.webtoolkit.info/javascript-base64.html
 var Base64 = {
@@ -1219,7 +1217,7 @@ var Base64 = {
     {
         var output = "";
         var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-        var chr1g, chr2g, chr3g;
+        var chr2g, chr3g;
         var i = 0;
 
         if (typeof input === 'string') {
@@ -1229,11 +1227,10 @@ var Base64 = {
         while (i < input.length) {
             // Initialize all variables to 0
             chr1 = chr2 = chr3 = 0;
-            chr1g = chr2g = chr3g = true;
+            chr2g = chr3g = true;
 
             if (i < input.length)
                 chr1 = input[i++];
-            else chr1g = false;
 
             if (i < input.length)
                 chr2 = input[i++];
@@ -1250,8 +1247,7 @@ var Base64 = {
 
             if (!chr2g) {
                 enc3 = enc4 = 64;
-            } else
-            if (!chr3g) {
+            } else if (!chr3g) {
                 enc4 = 64;
             }
             output = output + this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) + this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
@@ -1270,6 +1266,7 @@ var Base64 = {
         input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
         while (i < input.length) {
             chr1 = chr2 = chr3 = 0;
+            enc2 = enc3 = enc4 = 0;
             enc1 = this._keyStr.indexOf(input.charAt(i++));
             if (i < input.length) enc2 = this._keyStr.indexOf(input.charAt(i++));
             if (i < input.length) enc3 = this._keyStr.indexOf(input.charAt(i++));
@@ -1318,29 +1315,29 @@ var Base64 = {
     {
         var string = "";
         var i = 0;
-        var c = 0, c1 = 0, c2 = 0, c3 = 0;
+        var c1 = 0, c2 = 0, c3 = 0;
 
         while (i < utftext.length) {
-            c = utftext.charCodeAt(i);
-            if (c < 128) {
-                string += String.fromCharCode(c);
+            c1 = utftext.charCodeAt(i);
+            if (c1 < 128) {
+                string += String.fromCharCode(c1);
                 i++;
             } else
-                if ((c > 191) && (c < 224)) {
+                if ((c1 > 191) && (c1 < 224)) {
                     c2 = utftext.charCodeAt(i + 1);
-                    string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                    string += String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
                     i += 2;
                 } else {
                     c2 = utftext.charCodeAt(i + 1);
                     c3 = utftext.charCodeAt(i + 2);
-                    string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                    string += String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
                     i += 3;
                 }
 
         }
         return string;
     },
-}
+};
 
 // Heavily modified jsgraph library for charts using HTML5 Canvas, original author's message is below:
 //
@@ -1402,19 +1399,19 @@ function Graph(title, element, type, core)
     {
         this.series = new Array();
         this.addSeries('');
-    }
+    };
 
     this.addSeries = function(name, color)
     {
         this.lastSeries = new Series(name, color || this.options.seriesColor[this.series.length]);
         this.series[this.series.length] = this.lastSeries;
-    }
+    };
     this.reset();
 
     this.addPoint = function(x, y, label)
     {
         this.lastSeries.points[this.lastSeries.points.length] = new Point(x, y, this.lastSeries.color, label);
-    }
+    };
 
     this.vmin = function()
     {
@@ -1433,7 +1430,7 @@ function Graph(title, element, type, core)
             min = 0;
         }
         return min;
-    }
+    };
 
     this.vmax = function()
     {
@@ -1448,7 +1445,7 @@ function Graph(title, element, type, core)
             }
         }
         return max;
-    }
+    };
 
     this.min = function()
     {
@@ -1463,7 +1460,7 @@ function Graph(title, element, type, core)
             }
         }
         return min;
-    }
+    };
 
     this.max = function()
     {
@@ -1478,7 +1475,7 @@ function Graph(title, element, type, core)
             }
         }
         return max;
-    }
+    };
 
     this.range = function()
     {
@@ -1486,7 +1483,7 @@ function Graph(title, element, type, core)
         var max = this.max();
         if (max - min == 0) return 1;
         return max - min;
-    }
+    };
 
     this.vrange = function()
     {
@@ -1494,7 +1491,7 @@ function Graph(title, element, type, core)
         var max = this.vmax();
         if (max - min == 0) return 1;
         return max - min;
-    }
+    };
 
     this.draw = function()
     {
@@ -1660,7 +1657,6 @@ function Graph(title, element, type, core)
             for (var p = 0; p < series.points.length; p++) {
                 var curr = series.points[p];
                 // Move point into graph-space
-                var height = canvas.height;
                 var y = (canvas.height - bottomSpace) - (curr.y) * vScale + (vMin * vScale);
                 var x = hScale * (curr.x - hMin) + leftSpace;
                 count++;
@@ -1699,21 +1695,21 @@ function Graph(title, element, type, core)
         if (count) {
             ctx.strokeRect(leftSpace, topSpace, canvas.width - leftSpace - rightSpace, canvas.height - topSpace - bottomSpace);
         }
-    }
+    };
 }
 
 function Endpoint(name, url)
 {
     this.url = url || "";
     if (!name) {
-        this.name = this.url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
+        this.name = this.url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "");
     } else {
         this.name = name;
     }
 
     this.toString = function() {
         return this.name + fieldSeparator + this.url;
-    }
+    };
 }
 
 function Credential(name, accessKey, secretKey, url, securityToken, expire)
@@ -1730,34 +1726,34 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
 
     this.toString = function() {
         return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken + ";;" + this.expire;
-    }
+    };
 }
 
 function S3Bucket(name, mtime, owner, ownerAlias)
 {
-    this.name = name
-    this.mtime = mtime
-    this.owner = owner
-    this.ownerAlias = ownerAlias
-    this.region = ""
-    this.acls = null
-    this.keys = []
+    this.name = name;
+    this.mtime = mtime;
+    this.owner = owner;
+    this.ownerAlias = ownerAlias;
+    this.region = "";
+    this.acls = null;
+    this.keys = [];
     this.indexSuffix = "";
     this.errorKey = "";
     this.toString = function() {
         return this.name;
-    }
+    };
 }
 
 function S3BucketAcl(id, type, name, permission)
 {
-    this.id = id
-    this.type = type
-    this.name = name
-    this.permission = permission
+    this.id = id;
+    this.type = type;
+    this.name = name;
+    this.permission = permission;
     this.toString = function() {
        return (this.name ? this.name : this.id ? this.id : "ALL") + "=" + this.permission;
-    }
+    };
 }
 
 // Create an object with list of pairs describing properties in the form name, value, ...
@@ -1774,7 +1770,7 @@ function Element()
         }).map(function(x) {
             return ew_core.modelValue(x, self[x], self._showNames);
         }).join(fieldSeparator);
-    }
+    };
 }
 
 function Tag(name, value, id, type, propagate)
@@ -1787,7 +1783,7 @@ function Tag(name, value, id, type, propagate)
 
     this.toString = function() {
         return this.name + ":" + (this.value.match(/[,:]+/) ? '"' + this.value + '"' : this.value);
-    }
+    };
 }
 
 

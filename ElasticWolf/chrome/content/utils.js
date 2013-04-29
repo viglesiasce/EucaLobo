@@ -43,17 +43,17 @@ Function.prototype.className = function()
 {
     if ("name" in this) return this.name;
     return this.name = this.toString().match(/function\s*([^(]*)\(/)[1];
-}
+};
 
 String.prototype.trim = function()
 {
     return this.replace(/^\s+|\s+$/g, "");
-}
+};
 
 String.prototype.trimAll = function()
 {
     return this.trim().replace(/\s+/g, ' ');
-}
+};
 
 Date.prototype.strftime = function(fmt, utc)
 {
@@ -61,22 +61,22 @@ Date.prototype.strftime = function(fmt, utc)
     /* other support functions -- thanks, ecmanaut! */
     var strftime_funks = {
         zeropad : function(n) { return n > 9 ? n : '0' + n; },
-        a : function(t) { return [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ][utc ? t.getUTCDay() : t.getDay()] },
-        A : function(t) { return [ 'Sunday', 'Monday', 'Tuedsay', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ][utc ? t.getUTCDay() : t.getDay()] },
-        b : function(t) { return [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ][utc ? t.getUTCMonth() : t.getMonth()] },
-        B : function(t) { return [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ][utc ? t.getUTCMonth() : t.getMonth()] },
-        c : function(t) { return utc ? t.toUTCString() : t.toString() },
-        d : function(t) { return this.zeropad(utc ? t.getUTCDate() : t.getDate()) },
-        H : function(t) { return this.zeropad(utc ? t.getUTCHours() : t.getHours()) },
-        I : function(t) { return this.zeropad(((utc ? t.getUTCHours() : t.getHours()) + 12) % 12) },
-        m : function(t) { return this.zeropad((utc ? t.getUTCMonth() : t.getMonth()) + 1) }, // month-1
-        M : function(t) { return this.zeropad(utc ? t.getUTCMinutes() : t.getMinutes()) },
+        a : function(t) { return [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ][utc ? t.getUTCDay() : t.getDay()]; },
+        A : function(t) { return [ 'Sunday', 'Monday', 'Tuedsay', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ][utc ? t.getUTCDay() : t.getDay()]; },
+        b : function(t) { return [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ][utc ? t.getUTCMonth() : t.getMonth()]; },
+        B : function(t) { return [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ][utc ? t.getUTCMonth() : t.getMonth()]; },
+        c : function(t) { return utc ? t.toUTCString() : t.toString(); },
+        d : function(t) { return this.zeropad(utc ? t.getUTCDate() : t.getDate()); },
+        H : function(t) { return this.zeropad(utc ? t.getUTCHours() : t.getHours()); },
+        I : function(t) { return this.zeropad(((utc ? t.getUTCHours() : t.getHours()) + 12) % 12); },
+        m : function(t) { return this.zeropad((utc ? t.getUTCMonth() : t.getMonth()) + 1); }, // month-1
+        M : function(t) { return this.zeropad(utc ? t.getUTCMinutes() : t.getMinutes()); },
         p : function(t) { return this.H(t) < 12 ? 'AM' : 'PM'; },
-        S : function(t) { return this.zeropad(utc ? t.getUTCSeconds() : t.getSeconds()) },
-        w : function(t) { return utc ? t.getUTCDay() : t.getDay() }, // 0..6 == sun..sat
+        S : function(t) { return this.zeropad(utc ? t.getUTCSeconds() : t.getSeconds()); },
+        w : function(t) { return utc ? t.getUTCDay() : t.getDay(); }, // 0..6 == sun..sat
         y : function(t) { return this.zeropad(this.Y(t) % 100); },
-        Y : function(t) { return utc ? t.getUTCFullYear() : t.getFullYear() },
-        '%' : function(t) { return '%' },
+        Y : function(t) { return utc ? t.getUTCFullYear() : t.getFullYear(); },
+        '%' : function(t) { return '%'; },
     };
     var t = this;
     for ( var s in strftime_funks) {
@@ -88,15 +88,15 @@ Date.prototype.strftime = function(fmt, utc)
 function formatDuration(duration)
 {
     if (duration > 0) {
-        var h = Math.floor(duration/3600)
-        var m = Math.floor((duration - h * 3600) / 60)
+        var h = Math.floor(duration/3600);
+        var m = Math.floor((duration - h * 3600) / 60);
         if (h > 0) {
-            return h + " hour" + (h > 1 ? "s" :"") + (m > 0 ? (" " + m + " min" + (m > 1 ? "s" : "")) : "")
+            return h + " hour" + (h > 1 ? "s" :"") + (m > 0 ? (" " + m + " min" + (m > 1 ? "s" : "")) : "");
         } else
         if (m > 0) {
-            return m + " min" + (m > 1 ? "s" : "")
+            return m + " min" + (m > 1 ? "s" : "");
         } else {
-            return Math.floor(duration) + " secs"
+            return Math.floor(duration) + " secs";
         }
     }
     return "";
@@ -208,7 +208,7 @@ function cloneObject(obj)
         if (obj[i] && typeof obj[i] == "object") {
             newObj[i] = cloneObject(obj[i]);
         } else {
-            newObj[i] = obj[i]
+            newObj[i] = obj[i];
         }
     }
     return newObj;
@@ -400,7 +400,7 @@ function newWindow()
 function log(msg)
 {
     if (ew_core.getBoolPrefs("ew.debug.enabled", false)) {
-        debug(msg)
+        debug(msg);
     }
 }
 

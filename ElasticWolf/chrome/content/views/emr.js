@@ -64,7 +64,7 @@ var ew_JobFlowsTreeView = {
                       ];
         var values = this.core.promptInput("Create Job Flow", inputs);
         if (!values) return;
-        var opts = {}
+        var opts = {};
         for (var i = 3; i < inputs.length; i++) {
             if (!values[i]) continue;
             var label = (inputs[i].prefix || "") + inputs[i].label.replace(/ /g, "");
@@ -111,7 +111,7 @@ var ew_JobFlowsTreeView = {
                 }
             }
         }
-        this.core.api.runJobFlow(values[2], values[3], opts, function() { me.refresh() });
+        this.core.api.runJobFlow(values[2], values[3], opts, function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -119,7 +119,7 @@ var ew_JobFlowsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.terminateJobFlows(item.id, function() { me.refresh() });
+        this.core.api.terminateJobFlows(item.id, function() { me.refresh(); });
     },
 
     setTerminationProtection: function()
@@ -129,7 +129,7 @@ var ew_JobFlowsTreeView = {
         if (!item) return;
         var values = this.core.promptInput("Set Termination Protection",
                         [{label:"Termination Protection", type:"checkbox",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."}]);
-        this.core.api.setTerminationProtection(item.id, values[0], function() { me.refresh() });
+        this.core.api.setTerminationProtection(item.id, values[0], function() { me.refresh(); });
     },
 
     addGroup: function()
@@ -145,14 +145,14 @@ var ew_JobFlowsTreeView = {
                  {label:"Market",type:"menulist",list:["ON_DEMAND","SPOT"],required:true,tooltiptext:"Market type of the Amazon EC2 instances used to create a cluster node."},
                  {label:"BidPrice",type:"number",min:0,tooltiptext:"Bid price for each Amazon EC2 instance in the instance group when launching nodes as Spot Instances, expressed in USD."}]);
         if (!values) return;
-        var group = {}
+        var group = {};
         group.Name = values[0];
         group.InstanceCount = values[1];
         group.InstanceRole = values[2];
         group.InstanceType = values[3];
         group.Market = values[4];
         group.BidPrice = values[5];
-        this.core.api.addInstanceGroups(item.id, group, function() { me.refresh() });
+        this.core.api.addInstanceGroups(item.id, group, function() { me.refresh(); });
     },
 
     modifyGroup: function()
@@ -168,7 +168,7 @@ var ew_JobFlowsTreeView = {
                  {label:"Number of instance in the group:",type:"number",min:0,}]);
         if (!values) return;
         values[0].InstanceCount = values[1];
-        this.core.api.modifyInstanceGroups(values[0], function() { me.refresh() });
+        this.core.api.modifyInstanceGroups(values[0], function() { me.refresh(); });
     },
 
     addFlowStep: function()
@@ -185,14 +185,14 @@ var ew_JobFlowsTreeView = {
                  {label:"Properties",multiline:true,rows:3,cols:60,tooltiptext:"A list of Java properties that are set when the step runs.You can use these properties to pass key value pairs to your main function.Format is: key=value"}
                  ]);
         if (!values) return;
-        var step = {}
-        step.Name = values[0]
-        step.ActionOnFailure = values[1]
+        var step = {};
+        step.Name = values[0];
+        step.ActionOnFailure = values[1];
         step.Jar = values[2];
         step.MainClass = values[3];
         step.Args = values[4] ? values[4].split(" ") : "";
         step.Properties = this.core.parseTags(values[5]);
-        this.core.api.addJobFlowSteps(item.id, step, function() { me.refresh() });
+        this.core.api.addJobFlowSteps(item.id, step, function() { me.refresh(); });
     },
 
 };

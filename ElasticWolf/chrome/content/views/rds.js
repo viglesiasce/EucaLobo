@@ -18,7 +18,7 @@ var ew_DBSnapshotsTreeView = {
         var values = this.core.promptInput("Snapshot", [{label:"DB Instance",type:"menulist",list:this.core.queryModel("dbinstances"),required:1,value:instance ? instance.id : ""},
                                                         {label:"DB Snapshot Identifier",type:"name",required:1}]);
         if (!values) return;
-        this.core.api.createDBSnapshot(values[0], values[1], function() { me.refresh() });
+        this.core.api.createDBSnapshot(values[0], values[1], function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -26,7 +26,7 @@ var ew_DBSnapshotsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.deleteDBSnapshot(item.id, function() { me.refresh() });
+        this.core.api.deleteDBSnapshot(item.id, function() { me.refresh(); });
     },
 
     restoreSnapshot: function()
@@ -35,6 +35,7 @@ var ew_DBSnapshotsTreeView = {
         var item = this.getSelected();
         if (!item) return;
 
+        // TODO: decide if the following unused variables should be used or deleted
         var snapshots = this.core.queryModel("dbsnapshots");
         var engines = this.core.queryModel("dbengines");
         var options = this.core.queryModel("dboptions");
@@ -49,12 +50,11 @@ var ew_DBSnapshotsTreeView = {
             for (var i = 0; i < inputs.length; i++) {
                 if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
             }
-            me.core.api.restoreDBInstanceFromDBSnapshot(values[1], values[0], options, function() { me.refresh() });
+            me.core.api.restoreDBInstanceFromDBSnapshot(values[1], values[0], options, function() { me.refresh(); });
             return 1;
         }
 
         function onchange(idx, onstart) {
-            var input = this;
             // Validation
             var item = this.rc.items[idx];
             switch (item.label) {
@@ -111,13 +111,13 @@ var ew_DBSubnetGroupsTreeView = {
     addItem: function() {
         var me = this;
         var subnets = this.core.queryModel("subnets");
-        this.core.sortObjects(subnets, ["vpcId", "cidrIp"])
+        this.core.sortObjects(subnets, ["vpcId", "cidrIp"]);
         var values = this.core.promptInput("Create Subnet Group",
                             [{label:"Group Name",required:1},
                              {label:"Description",required:1},
                              {label:"Subnet",type:"listview",list:subnets } ]);
         if (!values) return;
-        this.core.api.createDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh() });
+        this.core.api.createDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh(); });
     },
 
     editItem: function()
@@ -134,7 +134,7 @@ var ew_DBSubnetGroupsTreeView = {
                              {label:"Description",required:1,value:item.descr},
                              {label:"Subnet",type:"listview",list:subnets,checkedItems: checked } ]);
         if (!values) return;
-        this.core.api.modifyDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh() });
+        this.core.api.modifyDBSubnetGroup(values[0],values[1],values[2],function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -142,7 +142,7 @@ var ew_DBSubnetGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.deleteDBSubnetGroup(item.name,function() { me.refresh() });
+        this.core.api.deleteDBSubnetGroup(item.name,function() { me.refresh(); });
     },
 };
 
@@ -166,7 +166,7 @@ var ew_DBSecurityGroupsTreeView = {
                              {label:"Description",required:1},
                              {label:"VPC",type:"menulist",list:vpcs } ]);
         if (!values) return;
-        this.core.api.createDBSecurityGroup(values[0],values[1],values[2],function() { me.refresh() });
+        this.core.api.createDBSecurityGroup(values[0],values[1],values[2],function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -174,7 +174,7 @@ var ew_DBSecurityGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.deleteDBSecurityGroup(item.name,function() { me.refresh() });
+        this.core.api.deleteDBSecurityGroup(item.name,function() { me.refresh(); });
     },
 
     authorizeCidr: function()
@@ -182,9 +182,9 @@ var ew_DBSecurityGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var cidr = this.core.prompt("Please enter CIDR:")
+        var cidr = this.core.prompt("Please enter CIDR:");
         if (!cidr) return;
-        this.core.api.authorizeDBSecurityGroupIngress(item.name, null, cidr, function() { me.refresh() });
+        this.core.api.authorizeDBSecurityGroupIngress(item.name, null, cidr, function() { me.refresh(); });
     },
 
     revokeCidr: function()
@@ -202,7 +202,7 @@ var ew_DBSecurityGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var groups = this.core.queryModel('securityGroups').filter(function(x) { return (item.vpcId && item.vpcId == x.vpcId) || (!item.vpcId && !x.vpcId)});
+        var groups = this.core.queryModel('securityGroups').filter(function(x) { return (item.vpcId && item.vpcId == x.vpcId) || (!item.vpcId && !x.vpcId); });
         var idx = this.core.promptList("CIDR", "Select Group to authorize", groups);
         if (idx < 0) return;
         var group = item.vpcId ? { id: groups[idx].id } : groups[idx];
@@ -246,7 +246,7 @@ var ew_DBOptionGroupsTreeView = {
         if (!engine) return;
         // Take major version as first octets
         var ver = engine.version.split(".").slice(0,2).join(".");
-        this.core.api.createOptionGroup(values[0],values[1],engine.name,ver,function() { me.refresh() });
+        this.core.api.createOptionGroup(values[0],values[1],engine.name,ver,function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -254,7 +254,7 @@ var ew_DBOptionGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.deleteOptionGroup(item.name, function() { me.refresh() });
+        this.core.api.deleteOptionGroup(item.name, function() { me.refresh(); });
     },
 };
 
@@ -300,13 +300,12 @@ var ew_DBOptionGroupOptionsTreeView = {
 
     deleteSelected : function()
     {
-        var me = this;
         var group = ew_DBOptionGroupsTreeView.getSelected();
         var item = this.getSelected();
         if (!item || !group) return;
         var check = {value: false};
         if (!this.core.promptConfirm("Delete option", "Delete " + item.name + " from " + group.name + "?", "Apply immediatley", check)) return;
-        this.core.api.modifyOptionGroup(item.name, check.value, [], [item.name], function() { ew_DBOptionGroupsTreeView.refresh() });
+        this.core.api.modifyOptionGroup(item.name, check.value, [], [item.name], function() { ew_DBOptionGroupsTreeView.refresh(); });
     },
 };
 
@@ -335,7 +334,7 @@ var ew_DBParameterGroupsTreeView = {
                                      {label:"Group Name",required:1},
                                      {label:"Description",required:1} ]);
         if (!values) return;
-        this.core.api.createDBParameterGroup(values[0],values[1],values[2],function() { me.refresh() });
+        this.core.api.createDBParameterGroup(values[0],values[1],values[2],function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -343,7 +342,7 @@ var ew_DBParameterGroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.deleteDBParameterGroup(item.name, function() { me.refresh() });
+        this.core.api.deleteDBParameterGroup(item.name, function() { me.refresh(); });
     },
 };
 
@@ -420,7 +419,7 @@ var ew_DBOfferingsTreeView = {
                      {label:"One Time Payment",type:"section"},
                      {label:"One time payment/Instance(US$)",type:"label",value:item.fixedPrice},
                      {label:"Number of instances",type:"number",size:6,required:1,min:0,oninput:price,onchange:price},
-                     {label:"Total one time payment, due now (US$)",type:"label",value:item.fixedPrice} ])
+                     {label:"Total one time payment, due now (US$)",type:"label",value:item.fixedPrice} ]);
 
             if (!values || !parseInt(values[12])) return;
             // Ensure that the user actually wants to purchase this offering
@@ -622,6 +621,8 @@ var ew_DBInstancesTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
+        
+        // TODO: decide if the following unused variables should be used or deleted
         var snapshots = this.core.queryModel("dbsnapshots");
         var engines = this.core.queryModel("dbengines");
         var options = this.core.queryModel("dboptions");
@@ -636,12 +637,11 @@ var ew_DBInstancesTreeView = {
             for (var i = 0; i < inputs.length; i++) {
                 if (values[i]) options[inputs[i].label.replace(" ", "")] = values[i];
             }
-            me.core.api.restoreDBInstanceToPointInTime(values[0], values[1], options, function() { me.refresh() });
+            me.core.api.restoreDBInstanceToPointInTime(values[0], values[1], options, function() { me.refresh(); });
             return 1;
         }
 
         function onchange(idx, onstart) {
-            var input = this;
             // Validation
             var item = this.rc.items[idx];
             switch (item.label) {
@@ -707,11 +707,11 @@ var ew_DBInstancesTreeView = {
                       {label:"Port",type:"number",tooltiptext:"The port number on which the database accepts connections."},
                       {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
                       {label:"Auto Minor Version Upgrade", type:"checkbox",tooltiptext:"Indicates that minor engine upgrades will be applied automatically to the DB Instance during the maintenance window."},
-                      {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."}]
+                      {label:"Option Group Name",type:"menulist",list:options,key:'name',tooltiptext:"Indicates that the DB Instance should be associated with the specified option group."}];
 
         var values = this.core.promptInput("Create DB Read Replica", inputs);
         if (!values) return;
-        this.core.api.createDBInstanceReadReplica(values[1],values[0], function() { me.refresh() })
+        this.core.api.createDBInstanceReadReplica(values[1],values[0], function() { me.refresh(); });
     },
 
 };
