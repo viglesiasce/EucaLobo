@@ -5927,7 +5927,7 @@ var ew_api = {
             params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
         }
         for (var i in options.DBSecurityGroups) {
-            params.push([ "DBSecurityGroups." + parseInt(i), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].id : options.DBSecurityGroups[i] ]);
+            params.push([ "DBSecurityGroups.member." + (i+1), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].name : options.DBSecurityGroups[i] ]);
         }
         if (options.DBSubnetGroupName) {
             params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
