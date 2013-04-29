@@ -532,9 +532,9 @@
 <!ENTITY ew.dialog.title.bundle_instance "Bundle Instance into an AMI">
 <!ENTITY ew.dialog.title.bundle_task_details "Bundle Task Details">
 <!ENTITY ew.dialog.title.console_output "Instance Console Output">
-<!ENTITY ew.dialog.title.copy_S3_keys "Elasticfox AMI Migrator">
+<!ENTITY ew.dialog.title.copy_S3_keys "ElasticWolf AMI Migrator">
 <!ENTITY ew.dialog.title.create_security_group "Create a new security group">
-<!ENTITY ew.dialog.title.delete_ami "Elasticfox AMI Deleter">
+<!ENTITY ew.dialog.title.delete_ami "ElasticWolf AMI Deleter">
 <!ENTITY ew.dialog.title.eip_details "ElasticIP Details">
 <!ENTITY ew.dialog.title.instance_details "Instance Details">
 <!ENTITY ew.dialog.title.keypair_details "Key Pair Details">

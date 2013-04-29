@@ -16,6 +16,6 @@
     </statusbarpanel>
   </statusbar>
   <toolbarpalette id="BrowserToolbarPalette">
-    <toolbarbutton id="ew-toolbarbutton" class="toolbarbutton-1" oncommand="openOverlay();" image="chrome://ew/content/images/logo.png" label="ElasticWolf" />
+    <toolbarbutton id="ew-toolbarbutton" class="toolbarbutton-1" oncommand="openOverlay();" image="chrome://ew/content/images/logo.png" label="ElasticWolf" title="ElasticWolf" />
   </toolbarpalette>
 </overlay>

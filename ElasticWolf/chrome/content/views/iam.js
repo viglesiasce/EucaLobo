@@ -741,6 +741,7 @@ var ew_AccessKeysTreeView = {
                 if (list[i].userName != this.core.user.name) continue;
                 if (list[i].expire < now) {
                     list[i].state = "Expired";
+                    // Automatically delete temporary keys one day after they expire
                     if (now.getTime() - list[i].expire.getTime() > 86400 * 1000) {
                         this.core.deleteTempKey(list[i]);
                         continue;
