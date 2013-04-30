@@ -25,7 +25,7 @@
                         <menuitem id="ew.s3Buckets.policy" oncommand="ew_S3BucketsTreeView.manageCORS();" label="Manage CORS Policy" />
                         <menuseparator />
                         <menuitem id="ew.s3Buckets.download" oncommand="ew_S3BucketsTreeView.download();" label="Download selected file" />
-                        <menuitem id="ew.s3Buckets.upload" oncommand="ew_S3BucketsTreeView.upload();" label="Upload file" />
+                        <menuitem id="ew.s3Buckets.upload" oncommand="ew_S3BucketsTreeView.upload(false);" label="Upload file" />
                         <menuitem id="ew.s3Buckets.edit" oncommand="ew_S3BucketsTreeView.edit();" label="Edit selected text file" />
                         <menuitem id="ew.s3Buckets.createFile" oncommand="ew_S3BucketsTreeView.createFile();" label="Create and edit new text file" />
                         <menuitem id="ew.s3Buckets.download2" oncommand="ew_S3BucketsTreeView.download(true);" label="Download by path" />
@@ -43,7 +43,7 @@
                     <toolbarbutton image="images/web.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageWebsite();" tooltiptext="Manage Website config" />
                     <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.displayInfo();" tooltiptext="Show Info" />
                     <toolbarbutton image="images/download.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.download();" tooltiptext="Download file" />
-                    <toolbarbutton image="images/upload.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.upload();" tooltiptext="Upload file" />
+                    <toolbarbutton image="images/upload.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.upload(false);" tooltiptext="Upload file" />
                     <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.edit();" tooltiptext="Edit text file" />
                 </toolbar>
                 <hbox style="background-color:#EEEEEE;">

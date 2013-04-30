@@ -696,6 +696,13 @@ var ew_core = {
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
         fp.init(window, msg, save ? nsIFilePicker.modeSave : nsIFilePicker.modeOpen);
+        fp.appendFilters(nsIFilePicker.filterAll |
+                         nsIFilePicker.filterApps |
+                         nsIFilePicker.filterAudio |
+                         nsIFilePicker.filterHTML |
+                         nsIFilePicker.filterImages |
+                         nsIFilePicker.filterText |
+                         nsIFilePicker.filterVideo);
         fp.displayDirectory = FileIO.open(this.getKeyHome());
         fp.defaultString = filename || "";
         if (fp.show() != nsIFilePicker.returnCancel) {

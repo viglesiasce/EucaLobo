@@ -61,7 +61,7 @@ var ew_S3BucketsTreeView = {
     },
 
 
-    displayInfo : function()
+    displayInfo: function()
     {
         var item = this.getSelected();
         if (!item) return
@@ -71,7 +71,7 @@ var ew_S3BucketsTreeView = {
         TreeView.displayDetails.call(this);
     },
 
-    display : function(list)
+    display: function(list)
     {
         var path = this.path.join("/") + "/";
         var nlist = [];
@@ -332,18 +332,21 @@ var ew_S3BucketsTreeView = {
         if (this.isFolder(item)) return
         var type = this.core.getMimeType(item.name);
         if (type.indexOf("image") > -1) {
-            var file = DirIO.get("TmpD").path + DirIO.sep + DirIO.fileName(item.name);
+            var file = DirIO.get("TmpD").path + DirIO.slash + DirIO.fileName(item.name);
             this.core.api.getS3BucketKey(item.bucket, item.name, "", {}, file,
                 function(f) {
-                     me.setStatus(f, 100);
-                     try { if (me.win) me.win.close(); } catch(e) { debug(e); }
-                     me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + encodeURI(file.replace(/\\/g,'/')),width:"100%",height:"100%",nobox:1,scale:1} ]);
+                    me.setStatus(f, 100);
+                    try { if (me.win) me.win.close(); } catch(e) { debug(e); }
+                    me.win = me.core.promptInput(item.bucket + "/" + item.name, [ {type:"image",value:"file://" + encodeURI(file.replace(/\\/g,'/')),width:"100%",height:"100%",nobox:1,scale:1} ]);
                 },
-                function(f, p) { me.setStatus(f, p); } );
-        }
-
-        if (type.indexOf("text") > -1) {
+                function(f, p) {
+                    me.setStatus(f, p);
+                }
+            );
+        } else if (type.indexOf("text") > -1) {
             this.edit();
+        } else {
+            alert("This item is not a supported file type");
         }
     },
 
@@ -351,9 +354,12 @@ var ew_S3BucketsTreeView = {
     {
         var me = this;
         var item = this.getSelected();
-        if (this.isFolder(item)) return
+        if (this.isFolder(item)) {
+            alert(item.name + " is a folder and cannot be edited");
+            return
+        }
         if (item.size > 1024*1024) {
-            alert(item.name + " is too big");
+            alert(item.name + " is too big to edit");
             return;
         }
         // Read current ACLs

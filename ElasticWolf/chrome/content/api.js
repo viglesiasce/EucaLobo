@@ -3122,14 +3122,14 @@ var ew_api = {
             key.name = getNodeValue(items[i], "Key");
             key.size = getNodeValue(items[i], "Size");
             key.type = getNodeValue(items[i], "StorageClass");
-            key.etag = getNodeValue(items[i], "ETag");
+            key.etag = getNodeValue(items[i], "ETag").replace(/\"/g, '');
             key.mtime = new Date(getNodeValue(items[i], "LastModified"));
             key.owner = getNodeValue(items[i], "ID");
             list.push(key);
         }
         var obj = this.core.getS3Bucket(bucket);
         if (obj) {
-            obj.keys = obj.keys.concat(list);
+            obj.keys = (obj.keys ? obj.keys.concat(list) : list);
             this.core.notifyComponents('s3buckets');
         } else {
             obj = new S3Bucket(bucket);
@@ -6321,7 +6321,7 @@ var ew_api = {
         if (cidr) {
             params.push([ "CIDRIP", cidr]);
         } else if (group) {
-        	// TODO: check if this trailing else is correct (id/group mutually exclusive) or not
+            // TODO: check if this trailing else is correct (id/group mutually exclusive) or not
             if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
             if (group.name) params.push(["EC2SecurityGroupName", group.name]);
             if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId]);
@@ -6335,7 +6335,7 @@ var ew_api = {
         if (cidr) {
             params.push([ "CIDRIP", cidr]);
         } else if (group) {
-        	// TODO: check if this trailing else is correct (id/group mutually exclusive) or not
+            // TODO: check if this trailing else is correct (id/group mutually exclusive) or not
             if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
             if (group.name) params.push(["EC2SecurityGroupName", group.name]);
             if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId]);
