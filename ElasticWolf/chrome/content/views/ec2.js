@@ -644,7 +644,7 @@ var ew_InstancesTreeView = {
 
         while (fSuccess) {
             var rsaPrivateKey = null;
-            
+
             // If the private key file was not specified, or couldn't be found,
             // ask the user for its location on the local filesystem
             if (prvKeyFile.length == 0) {
@@ -1658,9 +1658,11 @@ var ew_SecurityGroupsTreeView = {
 
             case 'Manual':
                 ew_PermissionsTreeView.grantPermission();
+                me.refresh();
                 return;
 
             default:
+                me.refresh();
                 return;
             }
             // Need to authorize SSH and RDP for either this host or the network.
