@@ -19,7 +19,6 @@
           <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SecurityGroupsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarbutton image="images/add.png" tooltiptext="&ew.secgroups.create.tip;" oncommand="ew_SecurityGroupsTreeView.createNewGroup();" />
           <toolbarbutton image="images/delete.png" tooltiptext="&ew.secgroups.delete.tip;" oncommand="ew_SecurityGroupsTreeView.deleteSelected();" />
-          <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SecurityGroupsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
       </toolbar>
       <tree id="ew.securityGroups.view" seltype="single" enableColumnDrag="true" flex="1">
         <treecols>
