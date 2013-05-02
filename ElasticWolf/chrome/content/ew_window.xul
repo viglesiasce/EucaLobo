@@ -491,7 +491,7 @@
 
     <splitter persist="state" collapse="none" resizebefore="closest" />
 
-    <tabbox flex="1">
+    <tabbox flex="1" style="overflow: scroll;">
     <tabpanels id="ew.tabs" flex="1" style="margin:5px;padding-top:0px;outline:0px;border:0px;">
       <tabpanel id="ew.tabs.prefs"/>
       <tabpanel id="ew.tabs.credential"/>
