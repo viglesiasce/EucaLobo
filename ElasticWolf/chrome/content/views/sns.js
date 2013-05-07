@@ -19,7 +19,7 @@ var ew_SNSTopicsTreeView = {
         $('ew.topics.contextmenu.delete').disabled = item == null;
         $('ew.topics.contextmenu.perm').disabled = !item;
         $('ew.topics.contextmenu.config').disabled = !item;
-        $('ew.topics.contextmenu.confirm').disabled = !item;
+        $('ew.topics.contextmenu.confirmsub').disabled = !item;
         $('ew.topics.contextmenu.subscribe').disabled = !item;
         $('ew.topics.contextmenu.publish').disabled = !item;
     },
@@ -49,8 +49,27 @@ var ew_SNSTopicsTreeView = {
         var item = this.getSelected();
         if (!item) return;
 
+        function addPermissionOnAccept() {
+            var countchecked = 0;
+            var values = this.rc.values;
+
+            for (var i = 2; i < values.length; i++) {
+                if (values[i]) {
+                    countchecked++;
+                }
+            }
+
+            if (countchecked > 0) {
+                this.close();
+                return false;
+            } else {
+                alert("At least one action must be checked.");
+                return true;
+            }
+        }
+
         var inputs = [{label:"Label",required:1},
-                      {label:"AWS Account",required:1,type:"number"},
+                      {label:"AWS Account ID",required:1},
                       {label:"CreateTopic",type:"checkbox"},
                       {label:"DeleteTopic",type:"checkbox"},
                       {label:"Subscribe",type:"checkbox"},
@@ -60,7 +79,8 @@ var ew_SNSTopicsTreeView = {
                       {label:"Publish",type:"checkbox"},
                       ];
 
-        var values = this.core.promptInput("Add Permission", inputs);
+        var values = this.core.promptInput("Add Permission", inputs, {onaccept:addPermissionOnAccept});
+
         if (!values) return;
         var actions = [];
         for (var i = 2; i < values.length; i++) {
@@ -94,7 +114,7 @@ var ew_SNSTopicsTreeView = {
         this.core.api.subscribe(item.id, values[1], values[2], function(id) { me.core.refreshModel('subscriptions'); });
     },
 
-    confirm: function()
+    confirmsub: function()
     {
         var item = this.getSelected();
         if (!item) return;
@@ -169,16 +189,21 @@ var ew_SNSSubscriptionsTreeView = {
 
     configure: function()
     {
-        var fields = [ {label:"Delivery Policy",multiline:true,rows:5,cols:50,name:"DeliveryPolicy"}, ];
-
         var me = this;
         var item = this.getSelected();
         if (!item) return;
+        if (item.id == 'PendingConfirmation') {
+            alert("This subscription is still pending confirmation.");
+            return;
+        }
+
+        var fields = [ {label:"Delivery Policy",multiline:true,rows:5,cols:50,name:"DeliveryPolicy",tooltiptext:"The new value for the attribute in JSON format."}, ];
+
         this.core.api.getSubscriptionAttributes(item.id, function(list) {
             item.attributes = list;
             var values = me.core.promptAttributes('Configure Subscription', fields, list);
             for (var i in values) {
-                me.core.api.setTopicAttributes(item.id, values[i].name, values[i].value);
+                me.core.api.setSubscriptionAttributes(item.id, values[i].name, values[i].value);
             }
         });
     },

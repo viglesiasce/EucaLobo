@@ -5556,8 +5556,8 @@ var ew_api = {
     {
         var params = [ ["Label", label]];
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (i + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+            params.push(["ActionName.member." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId.member." + (i + 1), actions[i].id]);
         }
         this.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
     },
@@ -5606,8 +5606,8 @@ var ew_api = {
         params.push([ "Label", label ]);
         params.push([ "TopicArn", id ]);
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (i + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (i + 1), actions[i].id]);
+            params.push(["ActionName.member." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId.member." + (i + 1), actions[i].id]);
         }
         this.querySNS("AddPermission", params, this, false, "onComplete", callback);
     },

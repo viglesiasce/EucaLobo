@@ -13,7 +13,7 @@
                  <menuitem id="ew.topics.contextmenu.perm" oncommand="ew_SNSTopicsTreeView.addPermission();" label="Add Permission" />
                  <menuitem id="ew.topics.contextmenu.config" oncommand="ew_SNSTopicsTreeView.configureTopic();" label="Configure Topic" />
                  <menuitem id="ew.topics.contextmenu.subscribe" oncommand="ew_SNSTopicsTreeView.subscribe();" label="Subscribe" />
-                 <menuitem id="ew.topics.contextmenu.confirm" oncommand="ew_SNSTopicsTreeView.confirm();" label="Confirm Subscription" />
+                 <menuitem id="ew.topics.contextmenu.confirmsub" oncommand="ew_SNSTopicsTreeView.confirmsub();" label="Confirm Subscription" />
                  <menuitem id="ew.topics.contextmenu.publish" oncommand="ew_SNSTopicsTreeView.publish();" label="Publish" />
                 </menupopup>
             </popupset>
@@ -32,7 +32,7 @@
 
             <tree enableColumnDrag="true" seltype="single" id="ew.topics.view" flex="1">
                 <treecols>
-                   <treecol id="sqs.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                   <treecol id="sqs.name" label="Topic Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                    <splitter class="tree-splitter" />
                    <treecol id="sqs.id" label="ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                    <splitter class="tree-splitter" />
@@ -57,7 +57,7 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.subscriptions.search" value="Search:"/>
                 <textbox id="ew.subscriptions.search" size="15" />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_SNSTopicsTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
+                <toolbarbutton image="images/refresh.png" oncommand="ew_SNSSubscriptionsTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
                 <toolbarbutton image="images/delete.png" tooltiptext="Unsubscribe" oncommand="ew_SNSSubscriptionsTreeView.unsubscribe();" />
                 <toolbarbutton image="images/tools.png" tooltiptext="Configure" oncommand="ew_SNSSubscriptionsTreeView.configure();" />
             </toolbar>
@@ -71,6 +71,8 @@
                     <treecol id="sqs.endpoint" label="Endpoint" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                     <treecol id="sqs.owner" label="Owner" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
+                    <splitter class="tree-splitter" />
+                    <treecol id="sqs.id" label="Subscription ID" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
                     <splitter class="tree-splitter" />
                 </treecols>
                 <treechildren id="ew.subscriptions.children" context="ew.subscriptions.contextmenu" />
