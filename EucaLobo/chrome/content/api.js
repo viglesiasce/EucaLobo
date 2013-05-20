@@ -2550,8 +2550,11 @@ var ew_api = {
         if (options.instanceProfile) {
             params.push([prefix + "IamInstanceProfile.Name", options.instanceProfile])
         }
-        if (options.securityGroupNames) {
-            params.push([ prefix + "groupId", typeof options.securityGroupNames[0] == "object" ? options.securityGroupNames[0].name : options.securityGroupNames[0] ]);
+        for (var i in options.securityGroups) {
+            params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
+        }
+        for (var i in options.securityGroupNames) {
+            params.push([ prefix + "SecurityGroup." + parseInt(i), typeof options.securityGroupNames[i] == "object" ? options.securityGroupNames[i].name : options.securityGroupNames[i] ]);
         }
         if (options.userData) {
             var b64str = "Base64:";
