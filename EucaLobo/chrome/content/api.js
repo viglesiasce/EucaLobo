@@ -4312,9 +4312,9 @@ var ew_api = {
         if (!(ids instanceof Array)) ids = [ ids ];
 
         var params = new Array();
+        params.push([ "Filter.1.Name", "resource-id" ]);
         for ( var i = 0; i < ids.length; i++) {
-            params.push([ "Filter." + (parseInt(i) + 1) + ".Name", "resource-id" ]);
-            params.push([ "Filter." + (parseInt(i) + 1) + ".Value.1", ids[i] ]);
+            params.push([ "Filter.1.Value." + (parseInt(i) + 1), ids[i] ]);
         }
 
         this.queryEC2("DescribeTags", params, this, false, "onCompleteDescribeTags", callback);
