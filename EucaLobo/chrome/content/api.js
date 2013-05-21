@@ -3802,7 +3802,7 @@ var ew_api = {
     // Without callback the request will be sync and the result will be cnsole output
     getConsoleOutput : function(instanceId, callback)
     {
-        return this.queryEC2("GetConsoleOutput", [ [ "InstanceId.1", instanceId ] ], this, callback ? false : true, "onCompleteGetConsoleOutput", callback);
+        return this.queryEC2("GetConsoleOutput", [ [ "InstanceId", instanceId ] ], this, callback ? false : true, "onCompleteGetConsoleOutput", callback);
     },
 
     onCompleteGetConsoleOutput : function(response)
