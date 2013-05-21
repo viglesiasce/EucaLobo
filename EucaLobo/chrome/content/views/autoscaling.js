@@ -74,7 +74,8 @@ var ew_ASGroupsTreeView = {
                       {label:"Load Balancers",type:"listview",rows:3,list:this.core.queryModel('loadBalancers'),tooltiptext:"A list of load balancers to use. "},
                       {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2."},
                       {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5,tooltiptext:"A standalone termination policy or a list of termination policies used to select the instance to terminate. The policies are executed in the order that they are listed."},
-                      {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"}
+                      {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"},
+                      {label:"Propagate Tags",type: "checkbox", value: true,tooltiptext:"Whether or not to propagate tags on launch"}
                       ];
 
         if (edit) {
@@ -102,11 +103,15 @@ var ew_ASGroupsTreeView = {
         if (!values) return;
 
         var tags = this.core.parseTags(values[13]);
+        var propagate = false;
+        if (values[14]){
+            propagate = true;
+        }
         if (edit) {
             // Disable monitoring when updating live group
             var cfg = this.core.findModel('asconfigs', item.launchConfiguration, 'name');
             function doEdit() {
-                me.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, function() {
+                me.core.api.updateAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, propagate, function() {
                     if (cfg.monitoring) {
                         me.core.api.enableMetricsCollection(item.name, function() { me.refresh(); });
                     } else {
@@ -120,7 +125,7 @@ var ew_ASGroupsTreeView = {
                 doEdit();
             }
         } else {
-            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, function() { me.refresh(); });
+            this.core.api.createAutoScalingGroup(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], tags, propagate, function() { me.refresh(); });
         }
     },
 

@@ -1163,7 +1163,7 @@ var ew_CredentialsTreeView = {
                              {label:"Name:",required:1,size:45,value:user,validate: function(v, o) { if (me.core.findCredentials(v)) return "Credentials with such name already exists" }},
                              {label:"AWS Access Key:",required:1,size:45},
                              {label:"AWS Secret Access Key:",type:'password',required:1,size:45},
-                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'url'},
+                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'ec2_url'},
                              {label:"Security Token:",multiline:true,rows:3,cols:45}]);
          if (!values) return;
          var cred = new Credential(values[0], values[1], values[2], values[3], values[4]);
@@ -1180,7 +1180,7 @@ var ew_CredentialsTreeView = {
                              {label:"Credentials Name:",required:1,value:cred.name,size:45},
                              {label:"AWS Access Key:",required:1,value:cred.accessKey,size:45},
                              {label:"AWS Secret Access Key:",type:'password',required:1,value:cred.secretKey,size:45},
-                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'url',value:cred.url},
+                             {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'ec2_url',value:cred.ec2_url},
                              {label:"Security Token:",multiline:true,rows:3,cols:45,value:cred.securityToken}]);
          if (!values) return;
          this.core.removeCredentials(cred);
@@ -1252,11 +1252,11 @@ var ew_EndpointsTreeView = {
          if (!item) return;
          var active = this.core.getActiveEndpoint();
 
-         if (item.url != active.url) {
+         if (item.ec2_url != active.ec2_url) {
              if (this.core.isGovCloud()) {
                  return this.core.alertDialog("Credential Error", 'Cannot use GovCloud credentials in commercial regions.');
              }
-             if (this.core.isGovCloud(item.url)) {
+             if (this.core.isGovCloud(item.ec2_url)) {
                  return this.core.alertDialog("Credential Error", 'Cannot use non-Govcloud credentials in GovCloud.');
              }
          }
@@ -1273,20 +1273,26 @@ var ew_EndpointsTreeView = {
      },
 
      addEndpoint: function(name, url) {
-         var values = this.core.promptInput("Endpoint:", [ {label:"Eucalyptus URL",type:'url',required:1}, {label:"Walrus URL",type:'url',required:1}, {label:"Name:",type:'name',required:1}]);
+         var values = this.core.promptInput("Endpoint:", [ {label:"Name:",type:'name',required:1},
+                                                           {label:"Type",type:"menulist",list:["AWS","Eucalyptus"],required:1},
+                                                           {label:"EC2 URL",type:'url',required:1},
+                                                           {label:"S3 URL",type:'url',required:1}]
+
+                                            );
          if (!values) return;
-         var euca_endpoint = new Endpoint(values[2], values[0]);
-         var walrus_name = values[2] + "-walrus";
-         var walrus_endpoint = new Endpoint(walrus_name, values[1]);
-         this.core.addEndpoint(euca_endpoint.name, euca_endpoint.url);
-         this.core.addEndpoint(walrus_endpoint.name, walrus_endpoint.url);
+         var endpoint = new Endpoint(values[0], values[1], values[2], values[3]);
+         this.core.addEndpoint(endpoint.name, endpoint.type, endpoint.ec2_url, endpoint.s3_url);
          this.refresh();
      },
 
      filter: function(list)
      {
          for (var i in list) {
-             list[i].status = list[i].url + "/services/Eucalyptus" == this.core.api.urls.EC2 ? "Active" : "";
+             if (list[i].type.indexOf("Eucalyptus") == -1){
+                list[i].status = list[i].ec2_url == this.core.api.urls.EC2 ? "Active" : "";
+             }else{
+                list[i].status = list[i].ec2_url + "/services/Eucalyptus" == this.core.api.urls.EC2 ? "Active" : "";
+             }
          }
          return TreeView.filter.call(this, list);
      },
