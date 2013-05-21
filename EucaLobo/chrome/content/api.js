@@ -6826,13 +6826,13 @@ var ew_api = {
             params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
         });
 
-        (tags || []).forEach(function(x,i) {
-            params.push(["Tags.member." + (i+1) + ".Key", x.name]);
-            params.push(["Tags.member." + (i+1) + ".Value", x.value]);
-            params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", true]);
-            params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
-            params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
-        });
+        //(tags || []).forEach(function(x,i) {
+        //   params.push(["Tags.member." + (i+1) + ".Key", x.name]);
+        //    params.push(["Tags.member." + (i+1) + ".Value", x.value]);
+        //    params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", true]);
+        //    params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
+        //    params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
+        //});
 
         this.queryAS("UpdateAutoScalingGroup", params, this, false, "onComplete", callback);
     },
