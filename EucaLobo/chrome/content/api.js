@@ -4085,13 +4085,13 @@ var ew_api = {
                 params.push(["SecurityGroups.member." + (parseInt(i) + 1), groups[i]]);
             }
         }
-        params.push([ "Listeners.member.Protocol", protocol ]);
+        params.push([ "Listeners.member.1.Protocol", protocol ]);
         if (protocol == "HTTPS") {
-            params.push([ "Listeners.member.SSLCertificateId", cert || "arn:aws:iam::322191361670:server-certificate/testCert" ]);
+            params.push([ "Listeners.member.1.SSLCertificateId", cert || "arn:aws:iam::322191361670:server-certificate/testCert" ]);
         }
         if (scheme) params.push(["Scheme", scheme]);
-        params.push([ "Listeners.member.LoadBalancerPort", elbport ]);
-        params.push([ "Listeners.member.InstancePort", instanceport ]);
+        params.push([ "Listeners.member.1.LoadBalancerPort", elbport ]);
+        params.push([ "Listeners.member.1.InstancePort", instanceport ]);
         this.queryELB("CreateLoadBalancer", params, this, false, "onComplete", callback);
     },
 
