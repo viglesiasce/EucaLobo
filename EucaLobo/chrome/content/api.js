@@ -78,21 +78,30 @@ var ew_api = {
     setEndpoint : function (endpoint)
     {
         if (!endpoint) return;
-        this.endpointURL = endpoint.url;
-        this.region = endpoint.name;
-        this.urls.EC2 = endpoint.url + "/services/Eucalyptus";
+        this.endpoint = endpoint;
+        if (endpoint.type.indexOf("Eucalyptus") != -1) {
+            this.region = "eucalyptus";
+            this.urls.EC2 = endpoint.ec2_url + "/services/Eucalyptus";
+            this.urls.S3 = endpoint.s3_url + "/services/Walrus";
+            this.urls.ELB = endpoint.ec2_url + "/services/LoadBalancing";
+            this.urls.AS = endpoint.ec2_url + "/services/AutoScaling";
+            this.urls.CW = endpoint.ec2_url + "/services/CloudWatch";
+            this.urls.IAM = endpoint.ec2_url + "/services/Euare";
+            this.urls.STS = endpoint.ec2_url + "/services/Tokens";
+        }else{
+            this.region = endpoint.name;
+            this.urls.EC2 = endpoint.ec2_url;
+            this.urls.S3 = endpoint.s3_url;
+            this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
+            this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
+            this.urls.CW = "https://monitoring." + this.region + ".amazonaws.com";
+            this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
+            this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
+        }
         this.versions.EC2 = endpoint.version || this.EC2_API_VERSION;
         this.signatures.EC2 = endpoint.signature;
-        if (this.core.getEndpoint(endpoint.name + "-walrus")){
-            this.urls.S3 = this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
-        }else{
-            this.urls.S3 = "";
-        }
-        //this.core.getEndpoint(endpoint.name + "-walrus").url + "/services/Walrus";
-        this.urls.ELB = endpoint.url + "/services/LoadBalancing";//endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
         this.versions.ELB = endpoint.versionELB || this.ELB_API_VERSION;
         this.signatures.ELB = endpoint.signatureELB;
-        this.urls.CW = endpoint.url + "/services/CloudWatch";//endpoint.urlCW || "https://monitoring." + this.region + ".amazonaws.com";
         this.versions.CW = endpoint.versionCW || this.CW_API_VERSION;
         this.signatures.CW = endpoint.signatureCW;
         this.urls.SQS = endpoint.urlSQS || 'https://sqs.' + this.region + '.amazonaws.com';
@@ -107,10 +116,8 @@ var ew_api = {
         this.urls.R53 = endpoint.urlR53 || 'https://route53.amazonaws.com';
         this.versions.R53 = endpoint.versionR53 || this.R53_API_VERSION;
         this.signatures.R53 = endpoint.signatureR53;
-        this.urls.AS = endpoint.url + "/services/AutoScaling";//endpoint.urlAS || "https://autoscaling.amazonaws.com";
         this.versions.AS = endpoint.versionAS || this.AS_API_VERSION;
         this.signatures.AS = endpoint.signatureAS;
-        this.urls.IAM = endpoint.url + "/services/Euare";//endpoint.urlIAM || 'https://iam.amazonaws.com';
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
         this.signatures.IAM = endpoint.signatureIAM;
         this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
@@ -119,7 +126,6 @@ var ew_api = {
         this.urls.DDB = endpoint.urlDDB || 'https://dynamodb.' + this.region + '.amazonaws.com';
         this.versions.DDB = endpoint.versionDDB || this.DDB_API_VERSION;
         this.signatures.DDB = endpoint.signatureDDB;
-        this.urls.STS = endpoint.url + "/services/Tokens";//endpoint.urlSTS || 'https://sts.amazonaws.com';
         this.versions.STS = endpoint.versionSTS || this.STS_API_VERSION;
         this.signatures.STS = endpoint.signatureSTS;
         this.urls.SWF = endpoint.urlSWF || 'https://swf.' + this.region + '.amazonaws.com';
@@ -1075,7 +1081,7 @@ var ew_api = {
         if (!endpoint) {
             return alert('Cannot determine endpoint url for ' + region);
         }
-        this.queryEC2InRegion(region, "RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback, endpoint.url);
+        this.queryEC2InRegion(region, "RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback, endpoint.ec2_url);
     },
 
     registerImage : function(manifestPath, callback)
@@ -6762,7 +6768,7 @@ var ew_api = {
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags,callback)
+    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags, propagate,callback)
     {
         var params = [ ["AutoScalingGroupName", name]]
         zones.forEach(function(x, i) {
@@ -6791,7 +6797,7 @@ var ew_api = {
         (tags || []).forEach(function(x,i) {
             params.push(["Tags.member." + (i+1) + ".Key", x.name]);
             params.push(["Tags.member." + (i+1) + ".Value", x.value]);
-            params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", true]);
+            params.push(["Tags.member." + (i+1) + ".PropagateAtLaunch", propagate]);
             params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
             params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
         });

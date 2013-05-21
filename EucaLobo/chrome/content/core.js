@@ -410,14 +410,14 @@ var ew_core = {
 
         var wasGovCloud = this.isGovCloud();
         if (cred) {
-            debug("switch credentials to " + cred.name + " " + cred.url)
+            debug("switch credentials to " + cred.name + " " + cred.ec2_url)
             this.setStrPrefs("ew.account.name", cred.name);
             this.api.setCredentials(cred.accessKey, cred.secretKey, cred.securityToken);
 
             // Default endpoint does not need to be saved
             if (cred.url != "") {
-                var endpoint = this.getEndpoint(null, cred.url);
-                if (!endpoint) endpoint = new Endpoint("", cred.url)
+                var endpoint = this.getEndpoint(null, cred.ec2_url);
+                if (!endpoint) endpoint = new Endpoint("", cred.ec2_url)
                 this.selectEndpoint(endpoint, true);
             } else
             // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errors
@@ -489,16 +489,16 @@ var ew_core = {
 
     getActiveEndpoint : function()
     {
-        var endpoint = this.getEndpoint(this.api.region);
-        return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.url", "https://ec2.us-east-1.amazonaws.com"));
+        var endpoint = this.getEndpoint(this.endpoint.name);
+        return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.ec2_url", "https://ec2.us-east-1.amazonaws.com"));
     },
 
-    getEndpoint: function(name, url)
+    getEndpoint: function(name, ec2_url)
     {
         if (this.endpoints) {
             for (var i in this.endpoints) {
                 if (name && this.endpoints[i].name == name) return this.endpoints[i];
-                if (url && this.endpoints[i].url == url) return this.endpoints[i];
+                if (ec2_url && this.endpoints[i].ec2_url == ec2_url) return this.endpoints[i];
             }
         }
         return null;
@@ -508,7 +508,7 @@ var ew_core = {
     {
         if (endpoint != null) {
             if (!dontsave) {
-                this.setStrPrefs("ew.endpoint.url", endpoint.url);
+                this.setStrPrefs("ew.endpoint.url", endpoint.ec2_url);
             }
             this.api.setEndpoint(endpoint);
             this.updateMenu();
@@ -538,11 +538,11 @@ var ew_core = {
         }
     },
 
-    addEndpoint: function(name, url)
+    addEndpoint: function(name, type, ec2_url, s3_url)
     {
         if (this.endpoints) {
             if (this.getEndpoint(name)) return;
-            this.endpoints.push(new Endpoint(name, url));
+            this.endpoints.push(new Endpoint(name, type, ec2_url, s3_url));
             this.setListPrefs("ew.endpoints", this.endpoints);
         }
     },
@@ -574,8 +574,8 @@ var ew_core = {
             // Merge with added endpoints
             var list = this.getListPrefs("ew.endpoints");
             for (var i in list) {
-                if (list[i] && list[i].name && list[i].url && this.getEndpoint(list[i].name) == null) {
-                    this.endpoints.push(new Endpoint(list[i].name, list[i].url));
+                if (list[i] && list[i].name && list[i].type && list[i].ec2_url && list[i].s3_url && this.getEndpoint(list[i].name) == null) {
+                    this.endpoints.push(new Endpoint(list[i].name,list[i].type, list[i].ec2_url, list[i].s3_url));
                 }
             }
         }

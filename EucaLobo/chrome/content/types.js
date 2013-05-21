@@ -1697,17 +1697,19 @@ function Graph(title, element, type, core)
     }
 }
 
-function Endpoint(name, url)
+function Endpoint(name, type, ec2_url, s3_url)
 {
-    this.url = url || "";
+    this.ec2_url = ec2_url || "http://ec2.us-east-1.amazonaws.com";
+    this.s3_url = s3_url || "http://s3.amazonaws.com";
+    this.type = type || "AWS";
     if (!name) {
-        this.name = this.url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
+        this.name = this.ec2_url.replace(/(https?:\/\/|ec2|amazonaws|com|\.)/g, "")
     } else {
         this.name = name;
     }
 
     this.toString = function() {
-        return this.name + fieldSeparator + this.url;
+        return this.name + fieldSeparator + this.ec2_url;
     }
 }
 
@@ -1716,7 +1718,7 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
     this.name = name;
     this.accessKey = accessKey;
     this.secretKey = secretKey;
-    this.url = typeof url == "string" ? url : "";
+    this.ec2_url = typeof url == "string" ? url : "";
     this.securityToken = typeof securityToken == "string" ? securityToken : "";
     this.status = "";
     this.expire = expire instanceof Date || (typeof expire == "object" && expire.getTime) ? expire.getTime() : (!isNaN(parseInt(expire)) ? parseInt(expire) : 0);
@@ -1724,7 +1726,7 @@ function Credential(name, accessKey, secretKey, url, securityToken, expire)
     this.expirationDate =  this.expire > 0 ? new Date(this.expire) : "";
 
     this.toString = function() {
-        return this.accessKey + ";;" + this.secretKey + ";;" + this.url + ";;" + this.securityToken + ";;" + this.expire;
+        return this.accessKey + ";;" + this.secretKey + ";;" + this.ec2_url + ";;" + this.securityToken + ";;" + this.expire;
     }
 }
 
