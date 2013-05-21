@@ -6826,6 +6826,8 @@ var ew_api = {
             params.push(["LoadBalancerNames.member." + (i+1), typeof x == "object" ? x.name : x]);
         });
 
+        // Removed this due to it not being supported no the Euca side yet
+        // See bug https://eucalyptus.atlassian.net/browse/EUCA-5744
         //(tags || []).forEach(function(x,i) {
         //   params.push(["Tags.member." + (i+1) + ".Key", x.name]);
         //    params.push(["Tags.member." + (i+1) + ".Value", x.value]);
