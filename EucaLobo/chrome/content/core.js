@@ -365,7 +365,7 @@ var ew_core = {
         if (!cred) return;
         if (key) cred.accessKey = key;
         if (secret) cred.secretKey = secret;
-        if (typeof url == "string") cred.url = url;
+        if (typeof url == "string") cred.ec2_url = url;
         if (typeof token == "string") cred.securityToken = token;
         this.saveCredentials(cred);
     },
@@ -489,7 +489,7 @@ var ew_core = {
 
     getActiveEndpoint : function()
     {
-        var endpoint = this.getEndpoint(this.endpoint.name);
+        var endpoint = this.getEndpoint(this.getStrPrefs("ew.endpoint.ec2_url"));
         return endpoint ? endpoint : new Endpoint("", this.getStrPrefs("ew.endpoint.ec2_url", "https://ec2.us-east-1.amazonaws.com"));
     },
 
@@ -508,7 +508,7 @@ var ew_core = {
     {
         if (endpoint != null) {
             if (!dontsave) {
-                this.setStrPrefs("ew.endpoint.url", endpoint.ec2_url);
+                this.setStrPrefs("ew.endpoint.ec2_url", endpoint.ec2_url);
             }
             this.api.setEndpoint(endpoint);
             this.updateMenu();
@@ -574,7 +574,7 @@ var ew_core = {
             // Merge with added endpoints
             var list = this.getListPrefs("ew.endpoints");
             for (var i in list) {
-                if (list[i] && list[i].name && list[i].type && list[i].ec2_url && list[i].s3_url && this.getEndpoint(list[i].name) == null) {
+                if (list[i] && list[i].name && list[i].type && list[i].ec2_url && list[i].s3_url) {
                     this.endpoints.push(new Endpoint(list[i].name,list[i].type, list[i].ec2_url, list[i].s3_url));
                 }
             }
