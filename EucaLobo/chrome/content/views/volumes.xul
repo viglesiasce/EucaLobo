@@ -27,7 +27,7 @@
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 1px; -moz-box-align: center">
-                    <hbox flex="10" align="center">\
+                    <hbox flex="10" align="center">
                         <toolbarbutton label="Create" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createVolume()" tooltiptext="&ew.createvol.tip;" />
                         <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.deleteVolume()" tooltiptext="&ew.deletevol.tip;" />
                         <toolbarbutton label="Snapshot" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createSnapshot()" tooltiptext="&ew.createsnapfromvol.tip;" />
