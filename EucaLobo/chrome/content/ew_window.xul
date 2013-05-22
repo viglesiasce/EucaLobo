@@ -336,7 +336,7 @@
          <treeitem><treerow><treecell label="Roles" value="ew.tabs.roles" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Certificates" value="ew.tabs.cert" /></treerow></treeitem>
          <treeitem hidden="true" class="advanced"><treerow><treecell label="Virtual MFA Devices" value="ew.tabs.vmfa" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
+         <treeitem hidden="true"><treerow><treecell label="Password Policy" value="ew.tabs.policy" /></treerow></treeitem>
          <treeitem hidden="true" class="advanced"><treerow><treecell label="Change Console Password" value="ew.tabs.password" /></treerow></treeitem>
        </treechildren>
       </treeitem>
@@ -391,7 +391,7 @@
        <treechildren>
          <treeitem><treerow><treecell label="Groups and configs" value="ew.tabs.as.group" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Policies" value="ew.tabs.as.policy" /></treerow></treeitem>
-         <treeitem><treerow><treecell label="Scheduled Actions" value="ew.tabs.as.action" /></treerow></treeitem>
+         <treeitem hidden="true"><treerow><treecell label="Scheduled Actions" value="ew.tabs.as.action" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Instances" value="ew.tabs.as.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Activity" value="ew.tabs.as.activity" /></treerow></treeitem>
        </treechildren>
