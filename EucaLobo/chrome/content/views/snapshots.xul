@@ -23,14 +23,10 @@
                 </popupset>
                 <toolbar style="padding: 0px 1px; -moz-box-align: center">
                     <hbox flex="10" align="center">
-                        <label value="Create"/>
-                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.createVolume()" tooltiptext="&ew.createvolfromsnap.tip;" />
-                        <label value="Delete"/>
-                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.deleteSnapshot()" tooltiptext="&ew.deletesnap.tip;" />
-                        <label value="Tags"/>
-                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.tag();" tooltiptext="Edit EC2 Tag" />
-                        <label value="Details"/>
-                        <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
+                        <toolbarbutton label="Create" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.createVolume()" tooltiptext="&ew.createvolfromsnap.tip;" />
+                        <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.deleteSnapshot()" tooltiptext="&ew.deletesnap.tip;" />
+                        <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+                        <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
                     </hbox>
                 </toolbar>
                 <toolbar style="padding: 0px 1px; -moz-box-align: center">
