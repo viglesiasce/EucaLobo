@@ -27,29 +27,20 @@
                     </menupopup>
                 </popupset>
                 <toolbar style="padding: 0px 1px; -moz-box-align: center">
-                    <hbox flex="10" align="center">
-                        <label value="Create"/>
-                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createVolume()" tooltiptext="&ew.createvol.tip;" />
-                        <label value="Delete"/>
-                        <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.deleteVolume()" tooltiptext="&ew.deletevol.tip;" />
-                        <label value="Snapshot"/>
-                        <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createSnapshot()" tooltiptext="&ew.createsnapfromvol.tip;" />
-                        <label value="Attach"/>
-                        <toolbarbutton image="images/attach.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.attachVolume()" tooltiptext="&ew.attachvol.tip;" />
-                        <label value="Detach"/>
-                        <toolbarbutton image="images/stop.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.detachVolume()" tooltiptext="&ew.detachvol.tip;" />
+                    <hbox flex="10" align="center">\
+                        <toolbarbutton label="Create" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createVolume()" tooltiptext="&ew.createvol.tip;" />
+                        <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.deleteVolume()" tooltiptext="&ew.deletevol.tip;" />
+                        <toolbarbutton label="Snapshot" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.createSnapshot()" tooltiptext="&ew.createsnapfromvol.tip;" />
+                        <toolbarbutton label="Attach" image="images/attach.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.attachVolume()" tooltiptext="&ew.attachvol.tip;" />
+                        <toolbarbutton label="Detach" image="images/stop.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.detachVolume()" tooltiptext="&ew.detachvol.tip;" />
                     </hbox>
                 </toolbar>
                 <toolbar style="padding: 0px 3px; -moz-box-align: center">
                     <hbox flex="10" align="center">
-                        <label value="Refresh"/>
-                        <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                        <label value="Tags  "/>
-                        <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.tag();" tooltiptext="Edit EC2 Tag" />
-                        <label value="Details"/>
-                        <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
-                        <label value="Graph Metrics"/>
-                        <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.showMetrics();" tooltiptext="Show Metrics" />
+                        <toolbarbutton label="Refresh" image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_VolumeTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                        <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+                        <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
+                        <toolbarbutton label="Graph Metrics" image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_VolumeTreeView.showMetrics();" tooltiptext="Show Metrics" />
                         <label control="ew.volumes.search" value="Search:"/>
                         <textbox id="ew.volumes.search" size="15"  />
                         <label control="ew.volumes.norootdev" value="Hide /dev/sda1:"/>
