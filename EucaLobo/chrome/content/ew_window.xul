@@ -346,6 +346,7 @@
          <treecell label="EC2 Compute and Storage" src="images/ec2.png" value="ew.tabs.ec2.c.folder" />
        </treerow>
        <treechildren>
+         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.image.label;" value="ew.tabs.image" /></treerow></treeitem>
          <treeitem><treerow><treecell label="Keypairs" value="ew.tabs.keypair" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.bundletask.label;" value="ew.tabs.bundletask" /></treerow></treeitem>
@@ -360,7 +361,6 @@
          <treecell label="EC2 Networking" src="images/ec2.png" value="ew.tabs.ec2.n.folder" />
        </treerow>
        <treechildren>
-         <treeitem><treerow><treecell label="&ew.tabs.instance.label;" value="ew.tabs.instance" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.eip.label;" value="ew.tabs.eip" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.securitygroup.label;" value="ew.tabs.securitygroup" /></treerow></treeitem>
          <treeitem><treerow><treecell label="&ew.tabs.loadbalancer.label;" value="ew.tabs.loadbalancer" /></treerow></treeitem>
