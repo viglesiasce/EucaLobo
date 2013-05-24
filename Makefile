@@ -17,7 +17,7 @@ build:	clean build_osx build_win build_linux xpi md5
 	make dev
 
 md5:
-	(cd ../ && for f in *.zip *.xpi; do md5sum $$f > $$f.md5;done)
+	(cd ../ && for f in *.zip *.xpi; do md5 $$f > $$f.md5;done)
 
 prepare: clean prepare_osx
 
