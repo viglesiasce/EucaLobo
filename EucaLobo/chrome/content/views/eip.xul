@@ -18,12 +18,12 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <toolbarbutton image="images/refresh.png" oncommand="ew_ElasticIPTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" tooltiptext="&ew.eips.allocate.tip;" oncommand="ew_ElasticIPTreeView.allocateAddress();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="&ew.eips.release.tip;" oncommand="ew_ElasticIPTreeView.releaseAddress();" />
-                <toolbarbutton image="images/attach.png" tooltiptext="&ew.eips.associate.tip;" oncommand="ew_ElasticIPTreeView.associateAddress();" />
-                <toolbarbutton image="images/stop.png" tooltiptext="&ew.eips.disassociate.tip;" oncommand="ew_ElasticIPTreeView.disassociateAddress();" />
-                <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_ElasticIPTreeView.tag();" tooltiptext="Add Tag" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_ElasticIPTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Allocate" image="images/add.png" tooltiptext="&ew.eips.allocate.tip;" oncommand="ew_ElasticIPTreeView.allocateAddress();" />
+                <toolbarbutton label="Release" image="images/delete.png" tooltiptext="&ew.eips.release.tip;" oncommand="ew_ElasticIPTreeView.releaseAddress();" />
+                <toolbarbutton label="Associate" image="images/attach.png" tooltiptext="&ew.eips.associate.tip;" oncommand="ew_ElasticIPTreeView.associateAddress();" />
+                <toolbarbutton label="Disassociate" image="images/stop.png" tooltiptext="&ew.eips.disassociate.tip;" oncommand="ew_ElasticIPTreeView.disassociateAddress();" />
+                <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_ElasticIPTreeView.tag();" tooltiptext="Add Tag" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.eip.view" flex="1">
