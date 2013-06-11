@@ -18,10 +18,10 @@
         <toolbar style="padding: 0px 3px; -moz-box-align: center">
             <label control="ew.accesskeys.search" value="Search:"/>
             <textbox id="ew.accesskeys.search" size="15" />
-            <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeysTreeView.refresh()" />
-            <toolbarbutton image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeysTreeView.createAccessKey();" />
-            <toolbarbutton image="images/delete.png" tooltiptext="&ew.accesskeys.delete.tip;" oncommand="ew_AccessKeysTreeView.deleteSelected();" />
-            <toolbarbutton image="images/key.png" tooltiptext="Create Temporary Access key" oncommand="ew_AccessKeysTreeView.createTemp()"/>
+            <toolbarbutton label="Refresh" image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_AccessKeysTreeView.refresh()" />
+            <toolbarbutton label="Add" image="images/add.png" tooltiptext="&ew.accesskeys.create.tip;" oncommand="ew_AccessKeysTreeView.createAccessKey();" />
+            <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="&ew.accesskeys.delete.tip;" oncommand="ew_AccessKeysTreeView.deleteSelected();" />
+            <toolbarbutton label="Create Temp Key" image="images/key.png" tooltiptext="Create Temporary Access key" oncommand="ew_AccessKeysTreeView.createTemp()"/>
         </toolbar>
         <tree enableColumnDrag="true" id="ew.accesskeys.view" flex="1">
             <treecols>
