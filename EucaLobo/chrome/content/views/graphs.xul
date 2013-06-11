@@ -44,7 +44,7 @@
         <menuitem label="2 Weeks ago" value="1209600"/>
       </menupopup>
     </menulist>
-    <toolbarbutton image="images/chart.png" oncommand="ew_GraphsView.show();" tooltiptext="Show metric graph" />
+    <toolbarbutton label="Show Graph" image="images/chart.png" oncommand="ew_GraphsView.show();" tooltiptext="Show metric graph" />
   </toolbar>
 
   <scrollbox id="ew.graphs.page" flex="1" orient="vertical" style="overflow:auto;" />
