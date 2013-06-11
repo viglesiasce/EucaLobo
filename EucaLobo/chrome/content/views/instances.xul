@@ -73,19 +73,7 @@
         <hbox flex="10" align="center">
           <label control="ew.instances.search" value="Search:"/>
           <textbox id="ew.instances.search" size="15" />
-          <toolbarbutton image="images/refresh.png" oncommand="ew_InstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-          <toolbarseparator />
-          <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.instances.launch.tip;" />
-          <toolbarbutton image="images/start.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.startInstance();" id="instances.button.start" tooltiptext="&ew.instances.start.tip;" />
-          <toolbarbutton image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
-          <toolbarbutton image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.stopInstance();" id="instances.button.stop" tooltiptext="&ew.instances.stop.tip;" />
-          <toolbarbutton image="images/reboot.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.rebootInstance();" tooltiptext="&ew.instances.reboot.tip;" />
-          <toolbarseparator />
-          <toolbarbutton image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
-          <toolbarbutton image="images/connect.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectTo(3);" tooltiptext="&ew.instances.connect.tip;" />
-          <toolbarbutton image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
-          <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
-          <toolbarbutton image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showMetrics();" tooltiptext="Show Metrics" />
+          <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_InstancesTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
           <toolbarseparator />
           <label control="ew.instances.noterminated" value="Hide Terminated:"/>
           <checkbox id="ew.instances.noterminated" oncommand="ew_InstancesTreeView.filterChanged();"/>
@@ -93,6 +81,20 @@
           <checkbox id="ew.instances.nostopped" oncommand="ew_InstancesTreeView.filterChanged();"/>
           <label control="ew.instances.onlyspot" value="Spot Only:"/>
           <checkbox id="ew.instances.onlyspot" oncommand="ew_InstancesTreeView.filterChanged();"/>
+        </hbox>
+      </toolbar>
+      <toolbar style="padding: 0px 3px; -moz-box-align: center">
+        <hbox flex="10" align="center">
+          <toolbarbutton label="Run same image" image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.launchNewInstances();" id="instances.button.start" tooltiptext="&ew.instances.launch.tip;" />
+          <toolbarbutton label="Start" image="images/start.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.startInstance();" id="instances.button.start" tooltiptext="&ew.instances.start.tip;" />
+          <toolbarbutton label="Terminate" image="images/powerdown.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.terminateInstance();" tooltiptext="&ew.instances.powerdown.tip;" />
+          <toolbarbutton label="Stop" image="images/stop.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.stopInstance();" id="instances.button.stop" tooltiptext="&ew.instances.stop.tip;" />
+          <toolbarbutton label="Reboot" image="images/reboot.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.rebootInstance();" tooltiptext="&ew.instances.reboot.tip;" />
+          <toolbarbutton label="Console Output" image="images/edit.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showConsoleOutput();" tooltiptext="&ew.instances.console.tip;" />
+          <toolbarbutton label="SSH" image="images/connect.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.connectTo(3);" tooltiptext="&ew.instances.connect.tip;" />
+          <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.displayDetails();" tooltiptext="View Details" />
+          <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+          <toolbarbutton label="Metrics" image="images/chart.png" style="-moz-box-pack:center;" oncommand="ew_InstancesTreeView.showMetrics();" tooltiptext="Show Metrics" />
         </hbox>
       </toolbar>
 
