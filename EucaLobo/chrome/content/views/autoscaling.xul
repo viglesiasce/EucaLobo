@@ -25,11 +25,11 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.asgroups.search" value="Search:"/>
                 <textbox id="ew.asgroups.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_ASGroupsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" oncommand="ew_ASGroupsTreeView.putGroup();" tooltiptext="Add Group" />
-                <toolbarbutton image="images/edit.png" oncommand="ew_ASGroupsTreeView.putGroup(true);" tooltiptext="Edit Group" />
-                <toolbarbutton image="images/delete.png" oncommand="ew_ASGroupsTreeView.deleteSelected();" tooltiptext="Delete Group" />
-                <toolbarbutton image="images/email.png" oncommand="ew_ASGroupsTreeView.putNotifications();" tooltiptext="Set Notifications" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_ASGroupsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Create" image="images/add.png" oncommand="ew_ASGroupsTreeView.putGroup();" tooltiptext="Add Group" />
+                <toolbarbutton label="Edit" image="images/edit.png" oncommand="ew_ASGroupsTreeView.putGroup(true);" tooltiptext="Edit Group" />
+                <toolbarbutton label="Delete" image="images/delete.png" oncommand="ew_ASGroupsTreeView.deleteSelected();" tooltiptext="Delete Group" />
+                <toolbarbutton label="Set Notification" image="images/email.png" oncommand="ew_ASGroupsTreeView.putNotifications();" tooltiptext="Set Notifications" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.asgroups.view" flex="1">
@@ -73,9 +73,9 @@
             </popupset>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <textbox id="ew.asconfigs.search" size="15" />
-                <toolbarbutton image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASConfigsTreeView.refresh()" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add Configuration" oncommand="ew_ASConfigsTreeView.addConfig();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="Delete Configuration" oncommand="ew_ASConfigsTreeView.deleteSelected();" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" tooltiptext="&ew.refresh.tip;" oncommand="ew_ASConfigsTreeView.refresh()" />
+                <toolbarbutton label="Create" image="images/add.png" tooltiptext="Add Configuration" oncommand="ew_ASConfigsTreeView.addConfig();" />
+                <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="Delete Configuration" oncommand="ew_ASConfigsTreeView.deleteSelected();" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.asconfigs.view" flex="1">
                 <treecols>
