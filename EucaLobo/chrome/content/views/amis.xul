@@ -32,13 +32,17 @@
                         <hbox flex="10" align="center">
                             <label control="ew.images.search" value="Search:"/>
                             <textbox id="ew.images.search" size="15" type="autocomplete" autocompletesearch="form-history" />
-                            <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_AMIsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                            <toolbarbutton image="images/add.png" tooltiptext="&ew.images.register.tip;" oncommand="ew_AMIsTreeView.registerNewImage();" />
-                            <toolbarbutton image="images/delete.png" tooltiptext="&ew.images.deregister.tip;" oncommand="ew_AMIsTreeView.deregisterImage();" />
-                            <toolbarbutton image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.launchNewInstances();" tooltiptext="&ew.images.powerup.tip;" />
-                            <toolbarbutton image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+                            <toolbarbutton label="Refresh" image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_AMIsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                             <label control="ew.image.type" value="Type:"/>
                             <menulist id="ew.images.type" oncommand="ew_AMIsTreeView.filterChanged();" />
+                        </hbox>
+                    </toolbar>
+                    <toolbar style="padding: 0px 3px;">
+                        <hbox flex="10" align="center">
+                            <toolbarbutton label="Register" image="images/add.png" tooltiptext="&ew.images.register.tip;" oncommand="ew_AMIsTreeView.registerNewImage();" />
+                            <toolbarbutton label="Deregister" image="images/delete.png" tooltiptext="&ew.images.deregister.tip;" oncommand="ew_AMIsTreeView.deregisterImage();" />
+                            <toolbarbutton label="Run" image="images/run.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.launchNewInstances();" tooltiptext="&ew.images.powerup.tip;" />
+                            <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_AMIsTreeView.tag();" tooltiptext="Edit EC2 Tag" />
                         </hbox>
                     </toolbar>
                     <tree id="ew.images.view" seltype="single" enableColumnDrag="true" flex="1">
