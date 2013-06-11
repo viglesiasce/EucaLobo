@@ -116,9 +116,11 @@ var ew_core = {
         this.setIdleTimer();
         this.refreshEndpoints();
 
-        // On fresh install offer to enter endpoint then credentials, need timeout to allow the UI to settle
-        if (this.credentials.length == 0) {
+        // On fresh install offer to enter endpoint the endpoints and credentials, need timeout to allow the UI to settle
+        if (this.endpoints.length == 0) {
             setTimeout(function() { ew_CredentialsTreeView.addEndpoint(); }, 1000);
+        }
+        if (this.endpoints.length == 0) {
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
         }
     },
