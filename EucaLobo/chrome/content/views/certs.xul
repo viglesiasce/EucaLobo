@@ -16,12 +16,12 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.certs.search" value="Search:"/>
                 <textbox id="ew.certs.search" size="15" />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_CertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_CertsTreeView.createCert();" />
-                <toolbarbutton image="images/import.png" tooltiptext="&ew.certs.upload.tip;" oncommand="ew_CertsTreeView.uploadCert();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="&ew.certs.delete.tip;" oncommand="ew_CertsTreeView.deleteCert();" />
-                <toolbarbutton image="images/download.png" tooltiptext="&ew.certs.save.tip;" oncommand="ew_CertsTreeView.saveCert();" />
-                <toolbarbutton image="images/ssh.png" tooltiptext="Generate SSH keys and X509 certificate" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_CertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Add" image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_CertsTreeView.createCert();" />
+                <toolbarbutton label="Import" image="images/import.png" tooltiptext="&ew.certs.upload.tip;" oncommand="ew_CertsTreeView.uploadCert();" />
+                <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="&ew.certs.delete.tip;" oncommand="ew_CertsTreeView.deleteCert();" />
+                <toolbarbutton label="Download" image="images/download.png" tooltiptext="&ew.certs.save.tip;" oncommand="ew_CertsTreeView.saveCert();" />
+                <toolbarbutton label="Generate SSH Key" image="images/ssh.png" tooltiptext="Generate SSH keys and X509 certificate" oncommand="ew_KeypairsTreeView.makeKeypair(true);" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.certs.view" flex="1">
                 <treecols>
@@ -48,11 +48,11 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.serverCerts.search" value="Search:"/>
                 <textbox id="ew.serverCerts.search" size="15" />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_ServerCertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_ServerCertsTreeView.createCert();" />
-                <toolbarbutton image="images/import.png" tooltiptext="&ew.certs.upload.tip;" oncommand="ew_ServerCertsTreeView.uploadCert();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="&ew.certs.delete.tip;" oncommand="ew_ServerCertsTreeView.deleteCert();" />
-                <toolbarbutton image="images/download.png" tooltiptext="&ew.certs.save.tip;" oncommand="ew_ServerCertsTreeView.saveCert();" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_ServerCertsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Add" image="images/add.png" tooltiptext="&ew.certs.create.tip;" oncommand="ew_ServerCertsTreeView.createCert();" />
+                <toolbarbutton label="Import" image="images/import.png" tooltiptext="&ew.certs.upload.tip;" oncommand="ew_ServerCertsTreeView.uploadCert();" />
+                <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="&ew.certs.delete.tip;" oncommand="ew_ServerCertsTreeView.deleteCert();" />
+                <toolbarbutton label="Download" image="images/download.png" tooltiptext="&ew.certs.save.tip;" oncommand="ew_ServerCertsTreeView.saveCert();" />
             </toolbar>
             <tree enableColumnDrag="true" id="ew.serverCerts.view" flex="1">
                 <treecols>
