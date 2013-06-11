@@ -227,7 +227,7 @@
              $("ew.volumeSize").disabled = false;
              break;
         case "new":
-             $("ew.volumeSize").disabled = false;
+             $("ew.volumeSize").disabled = $("ew.deleteOnTermination").disabled = false;
              break;
         case "virtual":
              $("ew.virtualName").disabled = false;
