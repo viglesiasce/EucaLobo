@@ -15,8 +15,8 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.asinstances.search" value="Search:"/>
                 <textbox id="ew.asinstances.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_ASInstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/stop.png" tooltiptext="Terminate" oncommand="ew_ASConfigsTreeView.terminate();" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_ASInstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Terminate" image="images/stop.png" tooltiptext="Terminate" oncommand="ew_ASConfigsTreeView.terminate();" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.asinstances.view" flex="1">
