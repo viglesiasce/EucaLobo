@@ -23,14 +23,6 @@
                 </popupset>
                 <toolbar style="padding: 0px 1px; -moz-box-align: center">
                     <hbox flex="10" align="center">
-                        <toolbarbutton label="Create" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.createVolume()" tooltiptext="&ew.createvolfromsnap.tip;" />
-                        <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.deleteSnapshot()" tooltiptext="&ew.deletesnap.tip;" />
-                        <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.tag();" tooltiptext="Edit EC2 Tag" />
-                        <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
-                    </hbox>
-                </toolbar>
-                <toolbar style="padding: 0px 1px; -moz-box-align: center">
-                    <hbox flex="10" align="center">
                         <label value="Refresh"/>
                         <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                         <label control="ew.snapshots.search" value="Search:"/>
@@ -45,6 +37,14 @@
                         <toolbarseparator />
                         <label control="ew.snapshots.noami" value="Hide AMI Snapshot:" />
                         <checkbox id="ew.snapshots.noami" checked="false" oncommand="ew_SnapshotTreeView.invalidate();" />
+                    </hbox>
+                </toolbar>
+                <toolbar style="padding: 0px 1px; -moz-box-align: center">
+                    <hbox flex="10" align="center">
+                        <toolbarbutton label="Create" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.createVolume()" tooltiptext="&ew.createvolfromsnap.tip;" />
+                        <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.deleteSnapshot()" tooltiptext="&ew.deletesnap.tip;" />
+                        <toolbarbutton label="Tags" image="images/tools.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.tag();" tooltiptext="Edit EC2 Tag" />
+                        <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_SnapshotTreeView.displayDetails();" tooltiptext="&ew.contextmenu.details.label;" />
                     </hbox>
                 </toolbar>
                 <tree id="ew.snapshots.view" seltype="single" enableColumnDrag="true" flex="1">
