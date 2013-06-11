@@ -38,7 +38,7 @@
                     <toolbarbutton label="Back" image="images/left.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.back()" tooltiptext="Back" />
                     <toolbarbutton label="Refresh" image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
                     <toolbarbutton label="Create Bucket" image="images/add.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.create();" tooltiptext="Create Bucket/Folder" />
-                    <toolbarbutton label="Delete Bucket" image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder(s)" />
+                    <toolbarbutton label="Delete" image="images/delete.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.remove();" tooltiptext="Delete Bucket/Folder(s)" />
                     <toolbarbutton label="ACLs" image="images/credentials.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageAcls();" tooltiptext="Manage ACLs" />
                     <toolbarbutton label="Manage Web" image="images/web.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.manageWebsite();" tooltiptext="Manage Website config" />
                     <toolbarbutton label="Details" image="images/details.png" style="-moz-box-pack:center;" oncommand="ew_S3BucketsTreeView.displayInfo();" tooltiptext="Show Info" />
