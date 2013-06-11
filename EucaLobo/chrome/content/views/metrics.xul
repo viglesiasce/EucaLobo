@@ -11,14 +11,13 @@
             </popupset>
 
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <toolbarbutton image="images/refresh.png" oncommand="ew_MetricsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_MetricsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
                 <label control="ew.metrics.namespace" value="Types:" />
                 <menulist id="ew.metrics.namespace" oncommand="ew_MetricsTreeView.filterChanged();" />
                 <label control="ew.metrics.search" value="Search:"/>
                 <textbox id="ew.metrics.search" size="15"  />
             </toolbar>
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
-                <toolbarbutton label="Graph Metric" image="images/chart.png" oncommand="ew_MetricsTreeView.chart();" tooltiptext="Show metric graph" />
                 <label control="ew.metrics.statistics" value="Stats:" />
                 <menulist id="ew.metrics.statistics" >
                     <menupopup>
@@ -54,6 +53,7 @@
                         <menuitem label="2 Weeks ago" value="1209600"/>
                     </menupopup>
                 </menulist>
+                <toolbarbutton label="Show Graph" image="images/chart.png" oncommand="ew_MetricsTreeView.chart();" tooltiptext="Show metric graph" />
             </toolbar>
             <tree enableColumnDrag="true" seltype="single" id="ew.metrics.view" flex="1">
                 <treecols>
