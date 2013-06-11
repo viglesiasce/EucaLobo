@@ -36,9 +36,9 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.users.search" value="Search:"/>
                 <textbox id="ew.users.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_UsersTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add User" oncommand="ew_UsersTreeView.addUser();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="Delete User" oncommand="ew_UsersTreeView.deleteUser();" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_UsersTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Add" image="images/add.png" tooltiptext="Add User" oncommand="ew_UsersTreeView.addUser();" />
+                <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="Delete User" oncommand="ew_UsersTreeView.deleteUser();" />
                 <toolbarbutton image="images/gen.png" tooltiptext="&ew.keypairs.make.tip;" oncommand="ew_UsersTreeView.makeKeypair();" />
             </toolbar>
 
