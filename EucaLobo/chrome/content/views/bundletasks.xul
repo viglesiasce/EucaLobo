@@ -20,9 +20,9 @@
         <hbox flex="10">
           <label control="ew.bundleTasks.search" value="Search:"/>
           <textbox id="ew.bundleTasks.search" size="15" />
-          <toolbarbutton image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
-          <toolbarbutton image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.cancelBundleTask()" tooltiptext="&ew.cancelBundleTask.tip;" />
-          <toolbarbutton image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" tooltiptext="&ew.images.register.tip;" oncommand="ew_BundleTasksTreeView.registerNewImage();" />
+          <toolbarbutton label="Refresh" image="images/refresh.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.refresh()" tooltiptext="&ew.refresh.tip;" />
+          <toolbarbutton label="Cancel" image="images/delete.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" oncommand="ew_BundleTasksTreeView.cancelBundleTask()" tooltiptext="&ew.cancelBundleTask.tip;" />
+          <toolbarbutton label="Register new image" image="images/add.png" style="-moz-box-orient:horizontal;-moz-box-pack:center;" tooltiptext="&ew.images.register.tip;" oncommand="ew_BundleTasksTreeView.registerNewImage();" />
         </hbox>
       </toolbar>
       <tree id="ew.bundleTasks.view" seltype="single" enableColumnDrag="true" flex="1">
