@@ -15,20 +15,9 @@
                   <menuitem id="setState" oncommand="ew_MetricAlarmsTreeView.setState();" label="Set Alarm State" />
                 </menupopup>
             </popupset>
-
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.alarms.search" value="Search:"/>
                 <textbox id="ew.alarms.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_MetricAlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" oncommand="ew_MetricAlarmsTreeView.putAlarm();" tooltiptext="Add Alarm" />
-                <toolbarbutton image="images/edit.png" oncommand="ew_MetricAlarmsTreeView.putAlarm(true);" tooltiptext="Edit Alarm" />
-                <toolbarbutton image="images/delete.png" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" tooltiptext="Delete Alarm" />
-                <toolbarbutton image="images/attach.png" oncommand="ew_MetricAlarmsTreeView.setState();" tooltiptext="Set Alarm State" />
-                <toolbarbutton image="images/details.png" oncommand="ew_MetricAlarmsTreeView.displayHistory();" tooltiptext="Display Alarm History" />
-                <toolbarseparator/>
-                <toolbarbutton image="images/chart.png" oncommand="ew_MetricAlarmsTreeView.chart();" tooltiptext="Show metric graph" />
-            </toolbar>
-            <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.alarms.statistics" value="Stats:"/>
                 <menulist id="ew.alarms.statistics" >
                     <menupopup>
@@ -64,7 +53,17 @@
                         <menuitem label="2 Weeks ago" value="1209600"/>
                     </menupopup>
                 </menulist>
+                <toolbarbutton label="Show Graph" image="images/chart.png" oncommand="ew_MetricAlarmsTreeView.chart();" tooltiptext="Show metric graph" />
             </toolbar>
+            <toolbar style="padding: 0px 3px; -moz-box-align: center">
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_MetricAlarmsTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Create" image="images/add.png" oncommand="ew_MetricAlarmsTreeView.putAlarm();" tooltiptext="Add Alarm" />
+                <toolbarbutton label="Edit" image="images/edit.png" oncommand="ew_MetricAlarmsTreeView.putAlarm(true);" tooltiptext="Edit Alarm" />
+                <toolbarbutton label="Delete" image="images/delete.png" oncommand="ew_MetricAlarmsTreeView.deleteAlarm();" tooltiptext="Delete Alarm" />
+                <toolbarbutton label="Set State" image="images/attach.png" oncommand="ew_MetricAlarmsTreeView.setState();" tooltiptext="Set Alarm State" />
+                <toolbarbutton label="Details" image="images/details.png" oncommand="ew_MetricAlarmsTreeView.displayHistory();" tooltiptext="Display Alarm History" />
+            </toolbar>
+
             <tree enableColumnDrag="true" seltype="single" id="ew.alarms.view" flex="1">
                 <treecols>
                     <treecol id="alarms.name" label="Name" flex="1" sortDirection="ascending" persist="width ordinal hidden sortDirection" />
