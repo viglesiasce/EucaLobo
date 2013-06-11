@@ -19,10 +19,10 @@
             <toolbar style="padding: 0px 3px; -moz-box-align: center">
                 <label control="ew.roles.search" value="Search:"/>
                 <textbox id="ew.roles.search" size="15"  />
-                <toolbarbutton image="images/refresh.png" oncommand="ew_RolesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton image="images/add.png" tooltiptext="Add Role" oncommand="ew_RolesTreeView.addRole();" />
-                <toolbarbutton image="images/delete.png" tooltiptext="Delete Role" oncommand="ew_RolesTreeView.deleteRole();" />
-                <toolbarbutton image="images/edit.png" tooltiptext="Edit Policy" oncommand="ew_RolesTreeView.editPolicy();" />
+                <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_RolesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
+                <toolbarbutton label="Add" image="images/add.png" tooltiptext="Add Role" oncommand="ew_RolesTreeView.addRole();" />
+                <toolbarbutton label="Delete" image="images/delete.png" tooltiptext="Delete Role" oncommand="ew_RolesTreeView.deleteRole();" />
+                <toolbarbutton label="Edit" image="images/edit.png" tooltiptext="Edit Policy" oncommand="ew_RolesTreeView.editPolicy();" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.roles.view" flex="1">
