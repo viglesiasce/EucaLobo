@@ -2340,7 +2340,7 @@ var ew_core = {
         }
 
         // Initialize the owner display filter to the empty string
-        var alias = null, owner = null, root = null, rx = null;
+        var alias = null, owner = null, root = null, rx = "mi";
         if (type == "my_ami" || type == "my_ami_rdt_ebs") {
             owner = this.user.accountId;
             root = type == "my_ami" ? null : "ebs";
@@ -2356,7 +2356,7 @@ var ew_core = {
             root = "instance-store";
         }
         for (var i in list) {
-            //if (rx && !list[i].id.match(rx)) continue;
+            if (rx && !list[i].id.match(rx)) continue;
             if (root && root != list[i].rootDeviceType) continue;
             if (alias && alias != list[i].ownerAlias) continue;
             if (owner && owner != list[i].ownerId) continue;
