@@ -3625,9 +3625,9 @@ var ew_api = {
         if (privateIpCount) {
             params.push([ 'SecondaryPrivateIpAddressCount', privateIpCount ])
         }
-        if (reassign) {
-            params.push([ 'AllowReassignment', "true" ])
-        }
+        //if (reassign) {
+        //    params.push([ 'AllowReassignment', "true" ])
+        //}
         this.queryEC2("AssignPrivateIpAddresses", params, this, false, "onComplete", callback);
     },
 
