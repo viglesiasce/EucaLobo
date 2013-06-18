@@ -116,12 +116,12 @@ var ew_core = {
         this.setIdleTimer();
         this.refreshEndpoints();
 
-        // On fresh install offer to enter endpoint the endpoints and credentials, need timeout to allow the UI to settle
+        // On fresh install offer to enter endpoint the endpoints and credentials,
+        // need timeout to allow the UI to settle
         if (this.endpoints.length == 0) {
-            setTimeout(function() { ew_CredentialsTreeView.addEndpoint(); }, 1000);
-        }
-        if (this.endpoints.length == 0) {
+            setTimeout(function() { ew_EndpointsTreeView.addEndpoint(); }, 1000);
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
+            this.addEndpoint("AWS","AWS","https://ec2.amazonaws.com","https://s3.amazonaws.com");
         }
     },
 

@@ -3930,7 +3930,11 @@ var ew_api = {
             if (url.indexOf("https://") != 0 && url.indexOf("http://") != 0) {
                 url = "https://" + url;
             }
-            //list.push(new Endpoint(name, url));
+
+            //TODO: Figure out why this is not allowing switching of endpoints with the same creds.
+            //if(this.endpoint.type == 'AWS'){
+            //    list.push(new Endpoint(name, this.endpoint.type, url, "https://s3-"+ name +".amazonaws.com"));
+            //}
         }
         response.result = list;
     },
