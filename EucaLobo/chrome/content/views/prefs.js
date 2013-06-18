@@ -53,7 +53,7 @@ var ew_PrefsView = {
        this.getPrefs("ew.http.timeout", 15000);
        this.getPrefs("ew.prompt.open.port", true);
        this.getPrefs("ew.advanced.mode", false);
-       this.getPrefs("ew.errors.show", true);
+       this.getPrefs("ew.errors.show", false);
        this.getPrefs("ew.accessibility", false);
        // Optional debugging support
        $('ew.venkman').hidden = typeof start_venkman != 'function';
