@@ -617,7 +617,9 @@ var ew_InstancesTreeView = {
             instance = this.getSelected();
         }
         if (instance == null) return;
-        if (!isWindows(instance.platform)) return;
+
+        //Readd when euca supports platform
+        //if (!isWindows(instance.platform)) return;
 
         var password = "";
         var fSuccess = true;
@@ -702,12 +704,9 @@ var ew_InstancesTreeView = {
 
         instance.validate();
 
-        // Windows-based enable/disable
-        if (isWindows(instance.platform)) {
-          $("instances.context.getPassword").disabled = false;
-        } else {
-          $("instances.context.getPassword").disabled = true;
-        }
+        //TODO Open bug in euca for not having platform properly filled out.
+        $("instances.context.getPassword").disabled = false;
+
 
         $("instances.context.connectPublic").disabled = instance.ipAddress == "";
         $("instances.context.copyPublic").disabled = instance.ipAddress == "";
@@ -723,11 +722,12 @@ var ew_InstancesTreeView = {
         } else {
             $("instances.context.createimage").disabled = true;
             $("instances.context.export").disabled = true;
-            if (isWindows(instance.platform)) {
-                $("instances.context.bundle").disabled = false;
-            } else {
-                $("instances.context.bundle").disabled = true;
-            }
+            //TODO Readd when Euca supports platform
+            //if (isWindows(instance.platform)) {
+            $("instances.context.bundle").disabled = false;
+            //} else {
+            //    $("instances.context.bundle").disabled = true;
+            //}
         }
         $("instances.context.changeSecurityGroups").disabled = instance.vpcId == "";
 
