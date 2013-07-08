@@ -121,6 +121,7 @@ var ew_DDBTreeView = {
 };
 
 var ew_DDBItemsTreeView = {
+    name: 'ddbitems',
     lastItem: null,
 
     addItem: function()
@@ -185,12 +186,18 @@ var ew_DDBItemsTreeView = {
         var table = ew_DDBTreeView.getSelected();
         if (!table) return;
         var key = $("ew.ddb.items.key").value;
-        if (!key) return;
+
+        if (!key) {
+            alert("Please provide a hash key.");
+            return;
+        }
+
         if (table.hashType == 'N') key = parseFloat(key);
         var range1 = $("ew.ddb.items.range1").value;
         var range2 = $("ew.ddb.items.range2").value;
         var op = $("ew.ddb.items.op").value;
         var options = { limit: parseInt($("ew.ddb.items.limit").value) };
+
         if (op && range1) {
             if (table.rangeType == 'N') {
                 range1 = parseFloat(range1);
