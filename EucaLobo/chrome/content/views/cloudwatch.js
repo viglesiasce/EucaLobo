@@ -175,7 +175,7 @@ var ew_MetricAlarmsTreeView = {
         var topics = this.core.queryModel('topics').concat(this.core.queryModel('aspolicies'));
         var inputs = [{label:"AlarmName",required:1},
                       {label:"AlarmDescription",maxlength:255},
-                      {label:"Namespace",type:"menulist",list:this.core.getCloudWatchNamespaces(),required:1,key:"type"},
+                      {label:"Namespace",required:1},
                       {label:"MetricName",type:"menulist",required:1,key:'name',style:"max-width:300px"},
                       {label:"Dimensions",multiline:true,cols:30,rows:3,wrap:'off',help:"One name:value pair per line"},
                       {label:"ComparisonOperator",type:"menulist",list:["GreaterThanOrEqualToThreshold","GreaterThanThreshold","LessThanThreshold","LessThanOrEqualToThreshold"],required:1,tooltiptext:"The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand.Type: String.Valid Values:GreaterThanOrEqualToThreshold |GreaterThanThreshold |LessThanThreshold |LessThanOrEqualToThreshold"},
