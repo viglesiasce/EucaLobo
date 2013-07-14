@@ -230,8 +230,8 @@ var ew_MetricAlarmsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        if (!confirm((item.actionsEnabled ? "Disable" : "Enable") + " actions for " + item.name + "?")) return;
-        if (item.actionsEnabled) {
+        if (!confirm(( item.actionsEnabled=="true" ? "Disable" : "Enable") + " actions for " + item.name + "?")) return;
+        if (item.actionsEnabled=="true") {
             this.core.api.disableAlarmActions([item], function() { me.refresh() });
         } else {
             this.core.api.enableAlarmActions([item], function() { me.refresh() });
