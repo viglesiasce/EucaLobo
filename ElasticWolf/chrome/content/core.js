@@ -5,6 +5,7 @@
 
 var ew_core = {
     URL: 'http://www.elasticwolf.com/',
+    S3REDIRECT: 'https://s3-us-gov-west-1.amazonaws.com/elasticwolf/redirect',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
@@ -990,38 +991,85 @@ var ew_core = {
         return parseInt(v[0]) * 100 + parseInt(v[1]) * 10 + parseInt(v[2]);
     },
 
-    checkForUpdates: function(msg)
+    checkForRedirect: function(showmsg)
     {
         var me = this;
         if (!this.isEnabled()) return null;
 
-        // File naming convention
+        var xmlhttp = this.api.getXmlHttp();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4) {
+                if (xmlhttp.status == 200) {
+                    debug("Response text: " + xmlhttp.responseText);
+                    var o = JSON.parse(xmlhttp.responseText);
+                    debug("New URL: " + o.url);
+                    debug("New MSG: " + o.msg);
+                    return me.checkForUpdatedVersion(showmsg, o.url, o.msg);
+                } else {
+                    return me.checkForUpdatedVersion(showmsg, null, null);
+                }
+            }
+            return null;
+        };
+        var url = this.S3REDIRECT + "?" + new Date().getTime();
+        xmlhttp.open("GET", url, true);
+        xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
+        xmlhttp.setRequestHeader("Cache-Control", "no-cache");
+        xmlhttp.setRequestHeader("Pragma", "no-cache");
+        xmlhttp.send();
+    },
+
+    checkForUpdatedVersion: function(showmsg, redirecturl, redirectmsg)
+    {
+        var me = this;
+        if (!this.isEnabled()) return null;
+
+        if (redirecturl && redirectmsg) {
+            if (confirm(redirectmsg + "\n\n" + "A software update is available at " + redirecturl + "\n\nWould you like to visit that page to download the update?")) {
+                this.displayUrl(redirecturl);
+            }
+            return;
+        }
+
+        // File naming convention includes version number
         var rx = new RegExp(this.getAppName() + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
+
+        // HTTP access to the releases, can be any kind of page or listing with files
         var verno = this.getAppVersion();
         var ver = this.versionNum(verno);
+
+        url = redirecturl ? redirecturl : this.URL;
+        debug("url: " + url);
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4) {
                 var d, data = xmlhttp.responseText;
+
                 while (d = rx.exec(data)) {
                     debug('update:' + d);
                     if (me.versionNum(d[1]) > ver) {
-                        me.promptInput('Software Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
+                        me.promptInput('Software Update', [{label:"New version " + d[1] + " is available at",value:url,type:"link",url:url}]);
                         return;
                     }
                 }
-                if (msg) alert("You are running the latest version: " + verno);
+                if (showmsg) alert("You are running the latest version: " + verno);
             }
         };
-        xmlhttp.open("GET", this.URL + "?" + new Date().getTime(), true);
+        xmlhttp.open("GET", url + "?" + new Date().getTime(), true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
         xmlhttp.setRequestHeader("Cache-Control", "no-cache");
         xmlhttp.setRequestHeader("Pragma", "no-cache");
         xmlhttp.send();
         // Mark when we checked last time
         this.setIntPrefs('ew.updates.time', (new Date()).getTime()/1000);
+    },
+
+    checkForUpdates: function(showmsg)
+    {
+        if (!this.isEnabled()) return null;
+        this.checkForRedirect(showmsg, this.checkForUpdatedVersion);
     },
 
     errorMessage: function(msg)
