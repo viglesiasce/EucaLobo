@@ -19,10 +19,13 @@ s3.setBucket(bucket);
 if (dir == "index.html") {
     var index = "";
     s3.get(dir, 'stream', function (err, res) {
-       if (err) console.log(err);
+       if (err) {
+           console.log(err);
+           return;
+        }
 
        res.on('data', function(buf) {
-          index += buf.toString(); 
+          index += buf.toString();
        });
 
        res.on('end', function() {
@@ -31,7 +34,7 @@ if (dir == "index.html") {
           index = index.replace(/ElasticWolf-[0-9\.]+xpi/g, 'ElasticWolf-' + file + '.xpi');
           index = index.replace(/ElasticWolf version [0-9\.]+/g, 'ElasticWolf version ' + file);
 
-          // Upload modified index to back into S3 bucket 
+          // Upload modified index to back into S3 bucket
           s3.putBuffer(dir, new Buffer(index), 'public-read', {'content-type':'text/html'}, function (err, res) {
              if (err) console.log(err);
              process.exit(0);
@@ -43,10 +46,10 @@ if (dir == "index.html") {
     // Upload file into S3 bucket
     var type = 'application/zip';
     switch (path.extname(file)) {
-    case '.md5': 
+    case '.md5':
         type = "text/plain";
         break;
-    case '.xpi': 
+    case '.xpi':
         type = "application/x-xpinstall";
         break;
     case ".html":
