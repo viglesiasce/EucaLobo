@@ -5,7 +5,7 @@
     <em:type>2</em:type>
     <em:unpack>true</em:unpack>
     <em:name>ElasticWolf</em:name>
-    <em:version>4.2.0</em:version>
+    <em:version>5.0.0</em:version>
     <em:description>A graphical interface for managing Amazon Web Services (AWS) cloud resources.</em:description>
     <em:creator>Vlad Seryakov</em:creator>
     <em:homepageURL>http://www.elasticwolf.com/</em:homepageURL>
