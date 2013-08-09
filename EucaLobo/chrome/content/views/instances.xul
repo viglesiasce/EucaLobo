@@ -30,7 +30,7 @@
           <menuitem id="instances.context.changeUserData" oncommand="ew_InstancesTreeView.changeUserData();" label="View/Change User Data" />
           <menuitem id="instances.context.changeInstanceType" oncommand="ew_InstancesTreeView.changeInstanceType();" label="Change Instance Type" />
           <menuitem id="instances.context.changeTerminationProtection" oncommand="ew_InstancesTreeView.changeTerminationProtection();" label="Change Termination Protection" />
-          <menuitem id="instances.context.changeShutdownBehaviour" oncommand="ew_InstancesTreeView.changeShutdownBehaviour();" label="Change Shutdown Behaviour" />
+          <menuitem id="instances.context.changeShutdownBehavior" oncommand="ew_InstancesTreeView.changeShutdownBehavior();" label="Change Shutdown Behavior" />
           <menuitem id="instances.context.changeSourceDestCheck" oncommand="ew_InstancesTreeView.changeSourceDestCheck();" label="Change SourceDest Check" />
           <menuitem id="instances.context.changeSecurityGroups" oncommand="ew_InstancesTreeView.changeSecurityGroups();" label="Change Security Groups" />
           <menuitem id="instances.context.changeDeleteOnTermination" oncommand="ew_InstancesTreeView.changeDeleteOnTermination();" label="Change Delete On Termination for Volumes" />

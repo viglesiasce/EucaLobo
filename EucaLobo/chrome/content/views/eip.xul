@@ -11,7 +11,6 @@
                     <menuitem id="ew.addresses.contextmenu.disassociate" oncommand="ew_ElasticIPTreeView.disassociateAddress();" label="Disassociate EIP" />
                     <menuitem id="ew.addresses.contextmenu.release" oncommand="ew_ElasticIPTreeView.releaseAddress();" label="Release EIP" />
                     <menuseparator />
-                    <menuitem id="ew.addresses.contextmenu.tag" oncommand="ew_ElasticIPTreeView.tag();" label="Add Tag" />
                     <menuitem id="ew.addresses.contextmenu.copyIp" oncommand="ew_ElasticIPTreeView.copyToClipboard('publicIp');" label="Copy Elastic IP to Clipboard" />
                     <menuitem id="ew.addresses.contextmenu.copyDns" oncommand="ew_ElasticIPTreeView.copyPublicDnsToClipBoard();" label="Copy Public DNS Name to Clipboard" />
                 </menupopup>

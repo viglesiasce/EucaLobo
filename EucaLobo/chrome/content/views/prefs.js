@@ -47,6 +47,9 @@ var ew_PrefsView = {
        this.getPrefs('ew.path.autoscaling');
        this.getPrefs('ew.path.cloudwatch');
        this.getPrefs("ew.debug.enabled");
+       this.getPrefs("ew.debug.logfile", false);
+       this.getPrefs("ew.debug.logfilename", "elasticwolf.log");
+       this.getPrefs("ew.debug.logflush", false);
        this.getPrefs("ew.http.enabled", true);
        this.getPrefs("ew.idle.timeout");
        this.getPrefs("ew.idle.action");
@@ -94,6 +97,9 @@ var ew_PrefsView = {
        this.setPrefs('ew.path.autoscaling');
        this.setPrefs('ew.path.cloudwatch');
        this.setPrefs("ew.debug.enabled");
+       this.setPrefs("ew.debug.logfile");
+       this.setPrefs("ew.debug.logfilename");
+       this.setPrefs("ew.debug.logflush");
        this.setPrefs("ew.http.enabled");
        this.setPrefs("ew.errors.show");
        this.setPrefs("ew.idle.timeout");
@@ -119,9 +125,9 @@ var ew_PrefsView = {
    },
 
    resetAll: function() {
-       var items = document.getElementsByTagName("textbox")
+       var items = document.getElementsByTagName("textbox");
        for (var i = 0; i < items.length; i++) {
-           items[i].value = ""
+           items[i].value = "";
        }
    },
 
@@ -195,6 +201,6 @@ var ew_PrefsView = {
        if (!confirm('All preferences and credentials will be removed from this computer, access to AWS will not be possible without new credentials, continue?')) return;
        DirIO.remove(this.core.getProfileHome());
        this.core.quit();
-   },
-}
+   }
+};
 

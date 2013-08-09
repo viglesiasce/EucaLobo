@@ -7,8 +7,8 @@
             <caption label="AutoScaling Instances" />
             <popupset>
                 <menupopup id="ew.asinstances.contextmenu">
-                  <menuitem oncommand="ew_ASConfigsTreeView.terminate();" label="Terminate" />
-                  <menuitem oncommand="ew_ASConfigsTreeView.setHealth();" label="Set Health Status" />
+                  <menuitem oncommand="ew_ASInstancesTreeView.terminate();" label="Terminate" />
+                  <menuitem oncommand="ew_ASInstancesTreeView.setHealth();" label="Set Health Status" />
                 </menupopup>
             </popupset>
 
@@ -16,7 +16,7 @@
                 <label control="ew.asinstances.search" value="Search:"/>
                 <textbox id="ew.asinstances.search" size="15"  />
                 <toolbarbutton label="Refresh" image="images/refresh.png" oncommand="ew_ASInstancesTreeView.refresh();" tooltiptext="&ew.refresh.tip;" />
-                <toolbarbutton label="Terminate" image="images/stop.png" tooltiptext="Terminate" oncommand="ew_ASConfigsTreeView.terminate();" />
+                <toolbarbutton label="Terminate" image="images/stop.png" tooltiptext="Terminate" oncommand="ew_ASInstancesTreeView.terminate();" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.asinstances.view" flex="1">

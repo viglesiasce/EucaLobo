@@ -52,12 +52,11 @@ var ew_SQSTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Queue ' + item.id)) return;
-        this.core.api.deleteQueue(item.url, function() { me.refresh() });
+        this.core.api.deleteQueue(item.url, function() { me.refresh(); });
     },
 
     addPermission: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
 
@@ -74,7 +73,7 @@ var ew_SQSTreeView = {
         var actions = [];
         for (var i = 2; i < values.length; i++) {
             if (values[i]) {
-                actions.push({name:inputs[i].label,id:values[1]})
+                actions.push({name:inputs[i].label,id:values[1]});
             }
         }
         this.core.api.addQueuePermission(item.url, values[0], actions, function(id) {});
@@ -82,7 +81,6 @@ var ew_SQSTreeView = {
 
     sendMessage: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         var values = this.core.promptInput("Message", [{label:"Text",multiline:true,rows:15,cols:50,required:true,scrollbars:true},
@@ -109,7 +107,7 @@ var ew_SQSTreeView = {
 
             var values = me.core.promptAttributes('Configure Queue', fields, list);
             for (var i in values) {
-                me.core.api.setQueueAttributes(item.id, values[i].name, values[i].value)
+                me.core.api.setQueueAttributes(item.id, values[i].name, values[i].value);
                 item[values[i].name] = values[i].value;
             }
         });
@@ -121,7 +119,6 @@ var ew_SQSMsgTreeView = {
 
     displayDetails: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
 
@@ -185,7 +182,7 @@ var ew_SQSMsgTreeView = {
         this.core.api.deleteMessage(item.url, item.handle, function() {
             me.core.removeObject(queue.messages, item.id);
             me.update(queue);
-        })
+        });
     },
 
 };

@@ -14,7 +14,7 @@ var ew_ASGroupsTreeView = {
 
         var procs = [];
         if (resume) {
-            item.suspendedProcesses.forEach(function(x) { procs.push(x.name); })
+            item.suspendedProcesses.forEach(function(x) { procs.push(x.name); });
         } else {
             procs = ['Launch','Terminate','HealthCheck','ReplaceUnhealthy','AZRebalance','AlarmNotification','ScheduledActions','AddToLoadBalancer'];
         }
@@ -37,7 +37,7 @@ var ew_ASGroupsTreeView = {
         if (!item) return;
 
         var checked = [];
-        this.core.queryModel('asnotifications', 'group', item.name).forEach(function(x) { checked.push(x.type); })
+        this.core.queryModel('asnotifications', 'group', item.name).forEach(function(x) { checked.push(x.type); });
 
         var values = this.core.promptInput("Set Notifications",
                             [{label:"AutoScaling Group",type:"label",value:item.name},
@@ -175,7 +175,6 @@ var ew_ASConfigsTreeView = {
     {
         var me = this;
         function callback(idx, onstart) {
-            var input = this;
             var item = this.rc.items[idx];
             switch (idx) {
             case 2:
@@ -183,7 +182,7 @@ var ew_ASConfigsTreeView = {
                 var amiList = this.rc.items[idx+1].obj;
                 amiList.removeAllItems();
                 for (var i in images) {
-                    amiList.appendItem(images[i].toString(), images[i].id)
+                    amiList.appendItem(images[i].toString(), images[i].id);
                 }
                 amiList.selectedIndex = 0;
                 break;
@@ -206,7 +205,7 @@ var ew_ASConfigsTreeView = {
                  {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."}
                  ], { onchange: callback });
         if (!values) return;
-        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],values[12],function() { me.refresh()});
+        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],values[12],function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -255,7 +254,7 @@ var ew_ASPoliciesTreeView = {
         }
         var values = this.core.promptInput((edit ? "Edit" : "Create") + ' AutoScaling Policy', inputs, { onchange: onchange});
         if (!values) return;
-        this.core.api.putScalingPolicy(values[0],values[1],values[2],values[3],values[4],values[5], function() { me.refresh() });
+        this.core.api.putScalingPolicy(values[0],values[1],values[2],values[3],values[4],values[5], function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -311,7 +310,7 @@ var ew_ASActionsTreeView = {
 
         var values = this.core.promptInput((edit ? " Edit" : "Create") + " Scheduled Action", inputs);
         if (!values) return;
-        this.core.api.putScheduledUpdateGroupAction(values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], function() { me.refresh() });
+        this.core.api.putScheduledUpdateGroupAction(values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -333,7 +332,7 @@ var ew_ASInstancesTreeView = {
        var item = this.getSelected();
        if (!item) return;
        var check = {value: false};
-       var status = item.healthStatus == "Healthy" ? "Unhealthy" : "Healthy";
+       var status = (item.healthStatus.toUpperCase() == "HEALTHY") ? "Unhealthy" : "Healthy";
        if (!this.core.promptConfirm("Set Health Status", "Set status to " + status + " for " + item.instanceId + "?", "Respect Grace Period", check)) return;
        this.core.api.setInstanceHealth(item.instanceId, status, check.value, function() { me.refresh(); });
    },

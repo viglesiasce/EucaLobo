@@ -68,11 +68,19 @@ var ew_api = {
 
     setCredentials : function (accessKey, secretKey, securityToken)
     {
+        debug('setCredentials');
+
         this.accessKey = accessKey;
         this.secretKey = secretKey;
-        this.securityToken = typeof securityToken == "string" ? securityToken : "";
+        this.securityToken = (typeof securityToken == "string") ? securityToken : "";
         this.sessionkey = null;
-        debug('setCreds: ' + this.accessKey + ", " + this.secretKey + ", " + this.securityToken)
+
+        // The next lines are commented out so that access/secret keys do not appear in
+        // in console logs, for security reasons.  If you need to debug issues with
+        // this code then uncomment the following debug lines.
+        // debug('setCredentials: access key=' + this.accessKey);
+        // debug('setCredentials: secret key=' + this.secretKey);
+        // debug('setCredentials: security token=' + this.securityToken);
     },
 
     setEndpoint : function (endpoint)
@@ -93,7 +101,7 @@ var ew_api = {
             this.urls.EC2 = endpoint.ec2_url;
             this.urls.S3 = endpoint.s3_url;
             this.urls.ELB = endpoint.urlELB || "https://elasticloadbalancing." + this.region + ".amazonaws.com";
-            this.urls.AS = endpoint.urlAS || "https://autoscaling.amazonaws.com";
+            this.urls.AS = endpoint.urlAS || 'https://autoscaling.' + this.region + '.amazonaws.com';
             this.urls.CW = "https://monitoring." + this.region + ".amazonaws.com";
             this.urls.IAM = endpoint.urlIAM || 'https://iam.amazonaws.com';
             this.urls.STS = endpoint.urlSTS || 'https://sts.amazonaws.com';
@@ -120,7 +128,7 @@ var ew_api = {
         this.signatures.AS = endpoint.signatureAS;
         this.versions.IAM = endpoint.versionIAM || this.IAM_API_VERSION;
         this.signatures.IAM = endpoint.signatureIAM;
-        this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.amazonaws.com';
+        this.urls.EMR = endpoint.urlEMR || 'https://elasticmapreduce.' + this.region + '.amazonaws.com';
         this.versions.EMR = endpoint.versionEMR || this.EMR_API_VERSION;
         this.signatures.EMR = endpoint.signatureEMR;
         this.urls.DDB = endpoint.urlDDB || 'https://dynamodb.' + this.region + '.amazonaws.com';
@@ -139,7 +147,21 @@ var ew_api = {
 
     getEC2Regions: function()
     {
-        return [];
+        return [ { name: 'us-east-1',      url: 'https://ec2.us-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-1',      url: 'https://ec2.us-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-west-2',      url: 'https://ec2.us-west-2.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'eu-west-1',      url: 'https://ec2.eu-west-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-southeast-1', url: 'https://ec2.ap-southeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-southeast-2', url: 'https://ec2.ap-southeast-2.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'ap-northeast-1', url: 'https://ec2.ap-northeast-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'sa-east-1',      url: 'https://ec2.sa-east-1.amazonaws.com', toString: function() { return this.name; } },
+                 { name: 'us-gov-west-1',  url: 'https://ec2.us-gov-west-1.amazonaws.com', toString: function() { return this.name; },
+                   urlIAM: 'https://iam.us-gov.amazonaws.com',
+                   urlSTS: 'https://sts.us-gov-west-1.amazonaws.com',
+                   actionIgnore: [ "hostedzone", "DescribePlacementGroups" ],
+                   signatureDDB: 4,
+                 },
+            ];
     },
 
     getS3Regions: function()
@@ -153,7 +175,7 @@ var ew_api = {
                  { name: "Asia Pacific (Tokyo)",          url: "s3-ap-northeast-1.amazonaws.com", region: "ap-northeast-1" },
                  { name: "South America (Sao Paulo)",     url: "s3-sa-east-1.amazonaws.com",      region: "sa-east-1" },
                  { name: "GovCloud",                      url: "s3-us-gov-west-1.amazonaws.com",  region: 'us-gov-west-1' },
-               ]
+               ];
     },
 
     getRoute53Regions: function()
@@ -271,8 +293,8 @@ var ew_api = {
 
         var credString = [ datetime, region, service, 'aws4_request' ].join('/');
         var pathParts = path.split('?', 2);
-        var signedHeaders = Object.keys(headers).map(function(key) { return key.toLowerCase() }).sort().join(';');
-        var canonHeaders = Object.keys(headers).sort(function(a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1 }).map(function(key) { return key.toLowerCase() + ':' + String(headers[key]).trimAll() }).join('\n');
+        var signedHeaders = Object.keys(headers).map(function(key) { return key.toLowerCase(); }).sort().join(';');
+        var canonHeaders = Object.keys(headers).sort(function(a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1; }).map(function(key) { return key.toLowerCase() + ':' + String(headers[key]).trimAll(); }).join('\n');
         var canonString = [ method, pathParts[0] || '/', pathParts[1] || '', canonHeaders + '\n', signedHeaders, hex_sha256(body || '')].join('\n');
 
         var strToSign = [ 'AWS4-HMAC-SHA256', date, credString, hex_sha256(canonString) ].join('\n');
@@ -319,7 +341,7 @@ var ew_api = {
 
         function encode(str) {
             str = encodeURIComponent(str);
-            var efunc = function(m) { return m == '!' ? '%21' : m == "'" ? '%27' : m == '(' ? '%28' : m == ')' ? '%29' : m == '*' ? '%2A' : m; }
+            var efunc = function(m) { return m == '!' ? '%21' : m == "'" ? '%27' : m == '(' ? '%28' : m == ')' ? '%29' : m == '*' ? '%2A' : m; };
             return str.replace(/[!'()*~]/g, efunc);
         }
 
@@ -340,7 +362,7 @@ var ew_api = {
             sigValues.push(new Array("SignatureVersion", "2"));
             sigValues.push(new Array("SignatureMethod", "HmacSHA1"));
             sigValues.push(new Array("Timestamp", formattedTime));
-            if (accessKey.securityToken != "") {
+            if (accessKey.securityToken && accessKey.securityToken != "") {
                 sigValues.push(new Array("SecurityToken", accessKey.securityToken));
             }
 
@@ -352,7 +374,13 @@ var ew_api = {
                 queryParams += item;
             }
             queryParams += "&Signature="+encodeURIComponent(b64_hmac_sha1(accessKey.secret, strSign));
-            log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
+
+            // For security reasons, we obfuscate the AWSAccessKeyId in the following
+            // logs.  Uncomment the following lines if you need to see the access key.
+            log("EC2: url=" + url + "?" + queryParams.replace(/(.*)(AWSAccessKeyId=)([A-Z0-9]+)(.+)/, "$1$2********************$4"));
+            log("EC2: sign=" + strSign.replace(/(.*)(AWSAccessKeyId=)([A-Z0-9]+)(.+)/, "$1$2********************$4"));
+            // log("EC2: url=" + url + "?" + queryParams + ', sig=' + strSign);
+            // log("EC2: sign=" + strSign);
 
             xmlhttp.setRequestHeader("Content-Length", queryParams.length);
             xmlhttp.setRequestHeader("User-Agent", this.core.getUserAgent());
@@ -394,7 +422,7 @@ var ew_api = {
                 });
 
                 if (!me.sessionkey) {
-                    debug('requesting new session token...')
+                    debug('requesting new session token...');
                     me.getSessionToken(null, null, null, null, function(key) {
                         me.core.saveTempKeys(me.core.getTempKeys().concat([ key ]));
                         me.sessionkey = key;
@@ -402,7 +430,7 @@ var ew_api = {
                     });
                     return;
                 }
-                debug('using session token: ' + me.sessionkey.id)
+                debug('using session token: ' + me.sessionkey.id);
             }
 
             var key = this.sessionkey;
@@ -451,7 +479,7 @@ var ew_api = {
             var strSign = "POST\n/\n\nhost:" + host + "\nx-amz-date:" + curTime + "\nx-amz-target:" + target + "\n\n" + json;
             var sig = b64_hmac_sha256(key.secret, str_sha256(strSign));
             var auth = 'AWS3 AWSAccessKeyId=' + key.id + ',Algorithm=HmacSHA256,SignedHeaders=host;x-amz-date;x-amz-target,Signature=' + sig;
-            headers['user-agent'] = this.core.getUserAgent()
+            headers['user-agent'] = this.core.getUserAgent();
             headers['host'] = host;
             headers['x-amzn-authorization'] = auth;
             headers['x-amz-date'] = curTime;
@@ -471,7 +499,7 @@ var ew_api = {
 
         var url = this.urls.R53 + "/" + this.versions.R53 + "/" + action.substr(action[0] == '/' ? 1 : 0);
 
-        if (!params) params = {}
+        if (!params) params = {};
 
         // Required headers
         params["x-amz-date"] = curTime;
@@ -485,7 +513,7 @@ var ew_api = {
         params["User-Agent"] = this.core.getUserAgent();
         params["Connection"] = "close";
 
-        log("R53 [" + method + ":" + url + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+        log("R53 [" + method + ":" + url + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]");
 
         var xmlhttp = this.getXmlHttp();
         if (!xmlhttp) {
@@ -508,7 +536,7 @@ var ew_api = {
         var curTime = new Date().toUTCString();
         var url = this.urls.S3 + (bucket ? "/" + bucket : "");
 
-        if (!params) params = {}
+        if (!params) params = {};
         if (!expires) expires = "";
 
         // Required headers
@@ -526,10 +554,10 @@ var ew_api = {
         var strSign = method + "\n" + (params['Content-MD5']  || "") + "\n" + (params['Content-Type'] || "") + "\n" + expires + "\n";
 
         // Amazon canonical headers
-        var headers = []
+        var headers = [];
         for (var p in params) {
             if (/X-AMZ-/i.test(p)) {
-                var value = params[p]
+                var value = params[p];
                 if (value instanceof Array) {
                     value = value.join(',');
                 }
@@ -537,7 +565,7 @@ var ew_api = {
             }
         }
         if (headers.length) {
-            strSign += headers.sort().join('\n') + "\n"
+            strSign += headers.sort().join('\n') + "\n";
         }
 
         // Split query string for subresources, supported are:
@@ -545,13 +573,13 @@ var ew_api = {
                          "uploadId", "uploads", "versionId", "versioning", "versions", "website", "cors",
                          "delete",
                          "response-content-type", "response-content-language", "response-expires",
-                         "response-cache-control", "response-content-disposition", "response-content-encoding" ]
-        var rclist = []
+                         "response-cache-control", "response-content-disposition", "response-content-encoding" ];
+        var rclist = [];
         var query = parseQuery(path);
         for (var p in query) {
             p = p.toLowerCase();
             if (resources.indexOf(p) != -1) {
-                rclist.push(p + (query[p] == true ? "" : "=" + query[p]))
+                rclist.push(p + (query[p] == true ? "" : "=" + query[p]));
             }
         }
 
@@ -562,7 +590,7 @@ var ew_api = {
         params["User-Agent"] = this.core.getUserAgent();
         params["Connection"] = "close";
 
-        log("S3 [" + method + ":" + url + "/" + key + path + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]")
+        log("S3 [" + method + ":" + url + "/" + key + path + ":" + strSign.replace(/\n/g, "|") + " " + JSON.stringify(params) + "]");
 
         var rc = { method: method, url: url + (key[0] != "/" ? "/" : "") + key + path, headers: params, signature: signature, str: strSign, time: curTime, expires: expires };
 
@@ -588,7 +616,7 @@ var ew_api = {
         var me = this;
         var file = FileIO.streamOpen(filename);
         if (!file) {
-            alert('Cannot open ' + filename)
+            alert('Cannot open ' + filename);
             return false;
         }
         var length = file[1].available();
@@ -614,7 +642,7 @@ var ew_api = {
             }
             catch(e) {
                 debug('Error: ' + e);
-                me.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e)
+                me.core.alertDialog("S3 Error", "Error uploading " + filename + "\n" + e);
             }
         }, 300);
 
@@ -678,12 +706,12 @@ var ew_api = {
             content += grant(item.acls[i]);
         }
         content += '</AccessControlList></AccessControlPolicy>';
-        debug(content)
+        debug(content);
 
         if (item.bucket) {
-            this.setS3BucketKeyAcl(item.bucket, item.name, content, callback)
+            this.setS3BucketKeyAcl(item.bucket, item.name, content, callback);
         } else {
-            this.setS3BucketAcl(item.name, content, callback)
+            this.setS3BucketAcl(item.name, content, callback);
         }
     },
 
@@ -720,13 +748,13 @@ var ew_api = {
     {
         if (!this.isEnabled()) return null;
 
-        debug('download: ' + url + '| ' + JSON.stringify(headers) + '| ' + filename)
+        debug('download: ' + url + '| ' + JSON.stringify(headers) + '| ' + filename);
 
         try {
           FileIO.remove(filename);
           var file = FileIO.open(filename);
           if (!file || !FileIO.create(file)) {
-              alert('Cannot create ' + filename)
+              alert('Cannot create ' + filename);
               return false;
           }
           var me = this;
@@ -740,7 +768,7 @@ var ew_api = {
             },
             onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
                 var chan = aRequest.QueryInterface(Components.interfaces.nsIHttpChannel);
-                debug("download: " + filename + " " + aStateFlags + " " + aStatus + " " + persist.currentState + " " + chan.responseStatus + " " + chan.responseStatusText)
+                debug("download: " + filename + " " + aStateFlags + " " + aStatus + " " + persist.currentState + " " + chan.responseStatus + " " + chan.responseStatusText);
                 if (persist.currentState == persist.PERSIST_STATE_FINISHED) {
                     if (chan.responseStatus == 200) {
                         if (callback) callback(filename);
@@ -750,7 +778,7 @@ var ew_api = {
                     }
                 }
             }
-          }
+          };
 
           var hdrs = "";
           for (var p in headers) {
@@ -768,33 +796,39 @@ var ew_api = {
     sendRequest: function(xmlhttp, url, content, isSync, action, version, handlerMethod, handlerObj, callback, params)
     {
         var me = this;
-        this.core.writeAccessLog('sendRequest: ' + url + ', key=' + this.accessKey + ', action=' + action + '/' + version + '/' + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
+
+        // Have obfuscated access key in the access log for security reasons.  Uncomment
+        // the second line if you need to see the access key.
+        this.core.writeAccessLog('sendRequest: ' + url + ', key=********************, action=' + action + '/' + (version ? version + '/' : '') + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
+        // this.core.writeAccessLog('sendRequest: ' + url + ', key=' + this.accessKey + ', action=' + action + '/' + (version ? version + '/' : '') + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ', params=' + (Array.isArray(params) ? params : JSON.stringify(params)));
 
         var xhr = xmlhttp;
         // Generate random timer
         var timerKey = this.getTimerKey();
         this.startTimer(timerKey, function() {
             debug('TIMEOUT: ' + url + ', action=' + action + '/' + handlerMethod + ', params=' + params);
-            xhr.abort();
+            if (xhr && xhr.readystate != 4) {
+                xhr.abort();
+            }
         });
         this.showBusy(true);
 
         if (isSync) {
-            xmlhttp.onreadystatechange = function() {}
+            xmlhttp.onreadystatechange = function() {};
         } else {
-            xmlhttp.onreadystatechange = function () {
+            xmlhttp.onreadystatechange = function() {
                 if (xhr.readyState == 4) {
                     me.showBusy(false);
                     me.stopTimer(timerKey);
                     me.handleResponse(xhr, url, isSync, action, handlerMethod, handlerObj, callback, params);
                 }
-            }
+            };
         }
 
         try {
             xmlhttp.send(content);
         } catch(e) {
-            debug('xmlhttp error:' + url + ", " + e)
+            debug('xmlhttp error:' + url + ", " + e);
             this.showBusy(false);
             this.stopTimer(timerKey);
             this.handleResponse(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params);
@@ -812,7 +846,11 @@ var ew_api = {
 
     handleResponse : function(xmlhttp, url, isSync, action, handlerMethod, handlerObj, callback, params)
     {
-        log(xmlhttp.responseText);
+        if (action === 'DescribeImages') {
+            log('DescribeImages response logging suppressed, it is too long');
+        } else {
+            log(xmlhttp.responseText);
+        }
 
         var rc = xmlhttp && (xmlhttp.status >= 200 && xmlhttp.status < 300) ?
                  this.createResponse(xmlhttp, url, isSync, action, handlerMethod, callback, params) :
@@ -823,7 +861,17 @@ var ew_api = {
             var res = handlerObj.onResponseComplete(rc);
             if (rc.isSync) rc.result = res;
         }
-        this.core.writeAccessLog('handleResponse: ' + action + ', key=' + this.accessKey + ", method=" + handlerMethod + ", mode=" + (isSync ? "Sync" : "Async") + ", status=" + rc.status + '/' + rc.contentType + ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString + ', length=' + rc.responseText.length + ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
+        // For security reasons, we obfuscate the AWSAccessKeyId in the following
+        // log.  Swap the commented/uncommented key lines if you need to see the access key.
+        this.core.writeAccessLog('handleResponse: ' + action +
+                                 //', key=' + this.accessKey +
+                                 ', key=********************' +
+                                 ", method=" + handlerMethod +
+                                 ", mode=" + (isSync ? "Sync" : "Async") +
+                                 ", status=" + rc.status + '/' + rc.contentType +
+                                 ', error=' + rc.hasErrors + "/" + rc.errCode + ' ' + rc.errString +
+                                 ', length=' + rc.responseText.length +
+                                 ", results=" + (rc.result && rc.result.length ? rc.result.length : 0));
         if (rc.hasErrors) {
             this.displayError(rc.action + ": " + rc.errCode + ": " + rc.errString + ': ' + (params || ""), rc);
             // Call error handler if passed as an object
@@ -855,13 +903,13 @@ var ew_api = {
 
         if (rc.contentType == 'application/x-amz-json-1.0') {
             var json = {};
-            try { json = JSON.parse(rc.responseText) } catch(e) { json.message = e; debug(rc.responseText) }
+            try { json = JSON.parse(rc.responseText); } catch(e) { json.message = e; debug(rc.responseText); }
             rc.errString = action + ' [' + rc.status + ']: ' + (json.message || json['__type']);
         } else {
             var xml = rc.responseXML;
             // EC2 common error reponse format
             if (!getNodeValue(xml, "Message")) {
-                try { xml = new DOMParser().parseFromString(rc.responseText, "text/xml"); } catch(e) { debug(e) }
+                try { xml = new DOMParser().parseFromString(rc.responseText, "text/xml"); } catch(e) { debug(e); }
             }
             rc.errCode = getNodeValue(xml, "Code");
             rc.errString = getNodeValue(xml, "Message");
@@ -869,7 +917,7 @@ var ew_api = {
 
             // Route53 error messages
             if (!rc.errString) {
-                rc.errString = this.getItems(rc.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message });
+                rc.errString = this.getItems(rc.responseXML, 'InvalidChangeBatch', 'Messages', [ 'Message' ], function(obj) { return obj.Message; });
                 if (rc.errString.length) rc.errCode = "InvalidChangeBatch"; else rc.errString = "";
             }
         }
@@ -877,6 +925,7 @@ var ew_api = {
 
         if (!rc.errCode) rc.errCode = "Unknown: " + rc.status;
         if (!rc.errString) rc.errString = "An unknown error occurred, please check connectivity and/or try to increase HTTTP timeout in the Preferences if this happens often";
+        // TODO: understand why the following warns about type mismatch
         return rc;
     },
 
@@ -910,7 +959,7 @@ var ew_api = {
             try {
                 response.json = JSON.parse(response.responseText);
             } catch(e) {
-                response.hasErrors = true
+                response.hasErrors = true;
                 response.errString = e;
             }
         }
@@ -1062,12 +1111,12 @@ var ew_api = {
     // Retrieve all tags from the response XML structure
     getTags : function(item)
     {
-        return this.getItems(item, "tagSet", "item", ["key", "value"], function(obj) { return new Tag(obj.key, obj.value)});
+        return this.getItems(item, "tagSet", "item", ["key", "value"], function(obj) { return new Tag(obj.key, obj.value); });
     },
 
     getGroups : function(item)
     {
-        return this.getItems(item, "groupSet", "item", ["groupId", "groupName"], function(obj) { return new Element('id', obj.groupId, 'name', obj.groupName, 'owner', '', 'status', '')});
+        return this.getItems(item, "groupSet", "item", ["groupId", "groupName"], function(obj) { return new Element('id', obj.groupId, 'name', obj.groupName, 'owner', '', 'status', ''); });
     },
 
     registerImageInRegion : function(manifestPath, region, callback)
@@ -1077,7 +1126,7 @@ var ew_api = {
             return this.registerImage(manifestPath, callback);
         }
 
-        var endpoint = this.core.getEndpoint(region)
+        var endpoint = this.core.getEndpoint(region);
         if (!endpoint) {
             return alert('Cannot determine endpoint url for ' + region);
         }
@@ -1128,13 +1177,13 @@ var ew_api = {
         var params = [];
         params.push(["SourceRegion", region]);
         params.push([ "SourceSnapshotId", snapshotId ]);
-        if (descr) params.push(["Description", descr])
+        if (descr) params.push(["Description", descr]);
         this.queryEC2("CopySnapshot", params, this, false, "onComplete", callback);
     },
 
     attachVolume : function(volumeId, instanceId, device, callback)
     {
-        var params = []
+        var params = [];
         if (volumeId != null) params.push([ "VolumeId", volumeId ]);
         if (instanceId != null) params.push([ "InstanceId", instanceId ]);
         if (device != null) params.push([ "Device", device ]);
@@ -1143,7 +1192,7 @@ var ew_api = {
 
     createVolume : function(size, snapshotId, zone, params, callback)
     {
-        if (!params) params = []
+        if (!params) params = [];
         if (size) params.push([ "Size", size ]);
         if (snapshotId) params.push([ "SnapshotId", snapshotId ]);
         if (zone) params.push([ "AvailabilityZone", zone ]);
@@ -1181,9 +1230,10 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.status + fieldSeparator + this.type + (this.type == "io1" ? "/" + this.iops : "") + fieldSeparator +
-                        this.device + fieldSeparator + this.size + "GB" + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") + fieldSeparator + this.attachStatus +
-                       (this.instanceId ? " to (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
-            }
+                        this.device + fieldSeparator + this.size + "GB" + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") + fieldSeparator +
+                        this.availabilityZone + fieldSeparator +
+                        this.attachStatus + (this.instanceId ? " to (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
+            };
             obj.id = getNodeValue(item, "volumeId");
             obj.type = getNodeValue(item, "volumeType");
             obj.size = getNodeValue(item, "size");
@@ -1230,7 +1280,7 @@ var ew_api = {
                 return this.volumeId + fieldSeparator + this.status + fieldSeparator + this.availabilityZone +
                        (this.eventType ? fieldSeparator + this.eventType + fieldSeparator + this.eventDescr : "") +
                        (this.action ? fieldSeparator + this.action + fieldSeparator + this.actionDescr : "");
-            }
+            };
             obj.volumeId = getNodeValue(item, "volumeId");
             obj.availabilityZone = getNodeValue(item, "availabilityZone");
             obj.status = getNodeValue(item, "status");
@@ -1266,7 +1316,7 @@ var ew_api = {
                 return (this.description ? this.description + fieldSeparator : this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator +
                        (this.status != "completed" ? this.status + fieldSeparator : "") +
                        (this.progress != "100%" ? this.progress : this.volumeSize + "GB");
-            }
+            };
             obj.id = getNodeValue(item, "snapshotId");
             obj.volumeId = getNodeValue(item, "volumeId");
             obj.status = getNodeValue(item, "status");
@@ -1275,8 +1325,8 @@ var ew_api = {
             if (obj.progress && obj.progress.indexOf('%') == -1) obj.progress += '%';
             obj.volumeSize = getNodeValue(item, "volumeSize");
             obj.description = getNodeValue(item, "description");
-            obj.ownerId = getNodeValue(item, "ownerId")
-            obj.ownerAlias = getNodeValue(item, "ownerAlias")
+            obj.ownerId = getNodeValue(item, "ownerId");
+            obj.ownerAlias = getNodeValue(item, "ownerAlias");
             obj.tags = this.getTags(item);
             ew_core.processTags(obj);
             list.push(obj);
@@ -1301,10 +1351,10 @@ var ew_api = {
             var group = getNodeValue(items[i], "group");
             var user = getNodeValue(items[i], "userId");
             if (group != '') {
-                list.push({ id: group, type: 'Group', snapshotId: id })
+                list.push({ id: group, type: 'Group', snapshotId: id });
             } else
             if (user != '') {
-                list.push({ id: user, type: 'UserId', snapshotId: id })
+                list.push({ id: user, type: 'UserId', snapshotId: id });
             }
         }
 
@@ -1312,17 +1362,17 @@ var ew_api = {
     },
 
     modifySnapshotAttribute: function(id, add, remove, callback) {
-        var params = [ ["SnapshotId", id]]
+        var params = [ ["SnapshotId", id]];
 
         // Params are lists in format: [ { "UserId": user} ], [ { "Group": "all" }]
         if (add) {
             for (var i = 0; i < add.length; i++) {
-                params.push(["CreateVolumePermission.Add." + (parseInt(i) + 1) + "." + add[i][0], add[i][1] ])
+                params.push(["CreateVolumePermission.Add." + (i + 1) + "." + add[i][0], add[i][1] ]);
             }
         }
         if (remove) {
             for (var i = 0; i < remove.length; i++) {
-                params.push(["CreateVolumePermission.Remove." + (parseInt(i) + 1) + "." + remove[i][0], remove[i][1] ])
+                params.push(["CreateVolumePermission.Remove." + (i + 1) + "." + remove[i][0], remove[i][1] ]);
             }
         }
         this.queryEC2("ModifySnapshotAttribute", params, this, false, "onComplete", callback);
@@ -1343,14 +1393,14 @@ var ew_api = {
             var vpc = new Element();
             vpc.toString = function() {
                 return this.cidr + fieldSeparator + (this.name ? this.name + fieldSeparator : "") + this.id + (this.instanceTenancy == "dedicated" ? fieldSeparator + "dedicated" : "");
-            }
+            };
             vpc.id = getNodeValue(item, "vpcId");
             vpc.cidr = getNodeValue(item, "cidrBlock");
             vpc.state = getNodeValue(item, "state");
             vpc.dhcpOptionsId = getNodeValue(item, "dhcpOptionsId");
             vpc.instanceTenancy = getNodeValue(item, "instanceTenancy");
             vpc.tags = this.getTags(item);
-            ew_core.processTags(vpc)
+            ew_core.processTags(vpc);
             list.push(vpc);
         }
         this.core.setModel('vpcs', list);
@@ -1381,10 +1431,10 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "subnetSet", "item");
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var sub = new Element()
+            var sub = new Element();
             sub.toString = function() {
                 return this.cidr + fieldSeparator + this.availabilityZone + fieldSeparator + this.vpcId + fieldSeparator + this.id + (this.name ? fieldSeparator + this.name : "");
-            }
+            };
             sub.id = getNodeValue(item, "subnetId");
             sub.vpcId = getNodeValue(item, "vpcId");
             sub.cidr = getNodeValue(item, "cidrBlock");
@@ -1392,7 +1442,7 @@ var ew_api = {
             sub.availableIp = getNodeValue(item, "availableIpAddressCount");
             sub.availabilityZone = getNodeValue(item, "availabilityZone");
             sub.tags = this.getTags(item);
-            ew_core.processTags(sub)
+            ew_core.processTags(sub);
             list.push(sub);
         }
         this.core.setModel('subnets', list);
@@ -1441,14 +1491,14 @@ var ew_api = {
                     if (valItems.item(k).nodeName == '#text') continue;
                     values.push(getNodeValue(valItems.item(k), "value"));
                 }
-                options.push(key + " = " + values.join(","))
+                options.push(key + " = " + values.join(","));
             }
-            var dhcp = new Element('id', id, 'options', options.join("; "))
+            var dhcp = new Element('id', id, 'options', options.join("; "));
             dhcp.toString = function() {
                 return this.options + fieldSeparator + this.id;
-            }
+            };
             dhcp.tags = this.getTags(item);
-            ew_core.processTags(dhcp)
+            ew_core.processTags(dhcp);
             list.push(dhcp);
         }
         this.core.setModel('dhcpOptions', list);
@@ -1472,7 +1522,7 @@ var ew_api = {
                     var val = String(opts[p][d]).trim();
                     if (val == "") continue;
                     params.push([ "DhcpConfiguration." + i + ".Value." + j, val ]);
-                    j++
+                    j++;
                 }
             } else {
                 var val = String(opts[p]).trim();
@@ -1501,13 +1551,13 @@ var ew_api = {
 
         switch (proto) {
         case "1":
-            params.push([ "Icmp.Code", var1])
-            params.push([ "Icmp.Type", var2])
+            params.push([ "Icmp.Code", var1]);
+            params.push([ "Icmp.Type", var2]);
             break;
         case "6":
         case "17":
-            params.push(["PortRange.From", var1])
-            params.push(["PortRange.To", var2])
+            params.push(["PortRange.From", var1]);
+            params.push(["PortRange.To", var2]);
             break;
         }
         this.queryEC2("CreateNetworkAclEntry", params, this, false, "onComplete", callback);
@@ -1550,7 +1600,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.id + fieldSeparator + (this.dflt ? "default" : "") + " (" + ew_core.modelValue("vpcId", this.vpcId) + ")";
-            }
+            };
             obj.rules = [];
             obj.associations = [];
             obj.id = getNodeValue(item, "networkAclId");
@@ -1562,7 +1612,7 @@ var ew_api = {
                 var acl = new Element();
                 acl.toString = function() {
                     return this.id + fieldSeparator + this.proto + fieldSeparator + this.action + fieldSeparator + (this.egress ? "Egress" + fieldSeparator : "") + this.cidr;
-                }
+                };
                 acl.aclId = obj.id;
                 acl.num = getNodeValue(entries[j], "ruleNumber");
                 acl.id = acl.num == 32767 ? "*" : acl.num;
@@ -1570,28 +1620,28 @@ var ew_api = {
                 acl.action = getNodeValue(entries[j], "ruleAction");
                 acl.egress = getNodeValue(entries[j], "egress");
                 acl.cidr = getNodeValue(entries[j], "cidrBlock");
-                acl.icmp = [], acl.ports = []
+                acl.icmp = [], acl.ports = [];
                 var code = getNodeValue(entries[j], "code");
                 var type = getNodeValue(entries[j], "type");
                 if (code != "" && type != "") {
-                    acl.icmp.push([code, type])
+                    acl.icmp.push([code, type]);
                 }
                 var from = getNodeValue(entries[j], "from");
                 var to = getNodeValue(entries[j], "to");
                 if (from != "" && to != "") {
-                    acl.ports.push([from, to])
+                    acl.ports.push([from, to]);
                 }
-                obj.rules.push(acl)
+                obj.rules.push(acl);
             }
 
             var assoc = item.getElementsByTagName("associationSet")[0].getElementsByTagName("item");
             for ( var j = 0; j < assoc.length; j++) {
                 var o = new Element();
-                o.toString = function() { return this.id + fieldSeparator + ew_core.modelValue("subnetId", this.subnetId); }
+                o.toString = function() { return this.id + fieldSeparator + ew_core.modelValue("subnetId", this.subnetId); };
                 o.id = getNodeValue(assoc[j], "networkAclAssociationId");
                 o.aclId = getNodeValue(assoc[j], "networkAclId");
                 o.subnetId = getNodeValue(assoc[j], "subnetId");
-                obj.associations.push(o)
+                obj.associations.push(o);
             }
             obj.tags = this.getTags(item);
             ew_core.processTags(obj);
@@ -1616,12 +1666,12 @@ var ew_api = {
             var item = items[i];
             var vgw = new Element();
             vgw.toString = function() {
-                var text = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state
+                var text = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state;
                 for (var i in this.attachments) {
                     text += ", " + this.attachments[i].toString();
                 }
                 return text;
-            }
+            };
 
             vgw.id = getNodeValue(item, "vpnGatewayId");
             vgw.availabilityZone = getNodeValue(item, "availabilityZone");
@@ -1632,7 +1682,7 @@ var ew_api = {
                 vgw.vpcId = vgw.attachments[0].vpcId;
             }
             vgw.tags = this.getTags(item);
-            ew_core.processTags(vgw)
+            ew_core.processTags(vgw);
             list.push(vgw);
         }
         this.core.setModel('vpnGateways', list);
@@ -1684,14 +1734,14 @@ var ew_api = {
             var cgw = new Element();
             cgw.toString = function() {
                 return this.ipAddress + fieldSeparator + this.bgpAsn + (this.name ? fieldSeparator + this.name : "");
-            }
+            };
             cgw.id = getNodeValue(item, "customerGatewayId");
             cgw.type = getNodeValue(item, "type");
             cgw.state = getNodeValue(item, "state");
             cgw.ipAddress = getNodeValue(item, "ipAddress");
             cgw.bgpAsn = getNodeValue(item, "bgpAsn");
             cgw.tags = this.getTags(item);
-            ew_core.processTags(cgw)
+            ew_core.processTags(cgw);
             list.push(cgw);
         }
         this.core.setModel('customerGateways', list);
@@ -1723,12 +1773,12 @@ var ew_api = {
             var igw = new Element();
             igw.toString = function() {
                 return this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
-            }
+            };
 
             igw.id = getNodeValue(item, "internetGatewayId");
             igw.vpcId = getNodeValue(item, "vpcId");
             igw.tags = this.getTags(item);
-            ew_core.processTags(igw)
+            ew_core.processTags(igw);
             list.push(igw);
         }
         this.core.setModel('internetGateways', list);
@@ -1776,7 +1826,7 @@ var ew_api = {
             vpn.toString = function() {
                 return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator +
                         ew_core.modelValue("vgwId", this.vgwId) + fieldSeparator + ew_core.modelValue('cgwId', this.cgwId);
-            }
+            };
 
             vpn.id = getNodeValue(item, "vpnConnectionId");
             vpn.cgwId = getNodeValue(item, "customerGatewayId");
@@ -1787,14 +1837,14 @@ var ew_api = {
             vpn.attributes = getNodeValue(item, "vpn_connection_attributes");
 
             // Required since Firefox limits nodeValue to 4096 bytes
-            var cgwtag = item.getElementsByTagName("customerGatewayConfiguration")
+            var cgwtag = item.getElementsByTagName("customerGatewayConfiguration");
             if (cgwtag[0]) {
                 vpn.config = cgwtag[0].textContent;
             }
             vpn.telemetry = this.getItems(item, "vgwTelemetry", "item", ["status", "outsideIpAddress","lastStatusChange","statusMessage","acceptedRouteCount"]);
             vpn.routes = this.getItems(item, "routes", "item", ["state", "source","destinationCidrBlock"]);
             vpn.tags = this.getTags(item);
-            this.core.processTags(vpn)
+            this.core.processTags(vpn);
             list.push(vpn);
         }
         this.core.setModel('vpnConnections', list);
@@ -1806,7 +1856,7 @@ var ew_api = {
         var params = [ [ "Type", type ] ];
         params.push([ "CustomerGatewayId", cgwid ]);
         params.push([ "VpnGatewayId", vgwid ] );
-        if (staticOnly) params.push([ "Options.StaticRoutesOnly", "true" ])
+        if (staticOnly) params.push([ "Options.StaticRoutesOnly", "true" ]);
         this.queryEC2("CreateVpnConnection", params, this, false, "onComplete:vpnConnectionId", callback);
     },
 
@@ -1831,7 +1881,7 @@ var ew_api = {
         var obj = new Element();
         obj.toString = function() {
             return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.state + fieldSeparator + this.status + fieldSeparator + this.rootDeviceType;
-        }
+        };
         obj.id = getNodeValue(item, "imageId");
         obj.location = getNodeValue(item, "imageLocation");
         obj.state = getNodeValue(item, "imageState");
@@ -1856,13 +1906,13 @@ var ew_api = {
                        (this.virtualName ? fieldSeparator + this.virtualName : "") + (this.volumeSize ? fieldSeparator + this.volumeSize + "GB" : "") +
                        (this.snapshotId ? fieldSeparator + this.snapshotId : "") + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                        (this.noDevice ? fieldSeparator + "noDevice" : "");
-            }
+            };
             dev.deviceName = getNodeValue(objs[i], "deviceName");
             dev.virtualName = getNodeValue(objs[i], "virtualName");
             dev.snapshotId = getNodeValue(objs[i], "ebs", "snapshotId");
             dev.volumeSize = getNodeValue(objs[i], "ebs", "volumeSize");
             dev.volumeType = getNodeValue(objs[i], "ebs", "volumeType");
-            dev.deleteOnTermination = toBool(getNodeValue(objs[i], "ebs", "deleteOnTermination"))
+            dev.deleteOnTermination = toBool(getNodeValue(objs[i], "ebs", "deleteOnTermination"));
             dev.noDevice = objs[i].getElementsByTagName("noDevice").length ? true : false;
             obj.volumes.push(dev);
         }
@@ -1870,7 +1920,7 @@ var ew_api = {
         obj.hypervisor = getNodeValue(item, 'hypervisor');
         obj.arch = getNodeValue(item, 'architecture');
         obj.tags = this.getTags(item);
-        ew_core.processTags(obj)
+        ew_core.processTags(obj);
         return obj;
     },
 
@@ -1904,17 +1954,17 @@ var ew_api = {
         var params = [];
         if (owners) {
             if (owners instanceof Array) {
-                owners.forEach(function (x, i) { params.push(["Owner." + (parseInt(i) + 1), x])})
+                owners.forEach(function (x, i) { params.push(["Owner." + (i + 1), x]); });
             } else {
-                params.push(["Owner.1", owners])
+                params.push(["Owner.1", owners]);
             }
 	    debug(owners);
         }
         if (execBy) {
             if (execBy instanceof Array) {
-                execBy.forEach(function (x, i) { params.push(["ExecutableBy." + (parseInt(i) + 1), x])})
+                execBy.forEach(function (x, i) { params.push(["ExecutableBy." + (i + 1), x]); });
             } else {
-                params.push(["ExecutableBy.1", execBy])
+                params.push(["ExecutableBy.1", execBy]);
             }
         }
         this.queryEC2("DescribeImages", params, this, false, "onCompleteDescribeImages", callback);
@@ -1950,8 +2000,8 @@ var ew_api = {
             var item = items[i];
             var obj = new Element();
             obj.toString = function() {
-                return this.id + fieldSeparator + this.instanceType
-            }
+                return this.id + fieldSeparator + this.instanceType;
+            };
             obj.id = getNodeValue(item, "reservedInstancesOfferingId");
             obj.instanceType = getNodeValue(item, "instanceType");
             obj.azone = getNodeValue(item, "availabilityZone");
@@ -1964,10 +2014,10 @@ var ew_api = {
             obj.marketPlace = toBool(getNodeValue(item, "marketplace"));
             obj.recurringPrices = this.getItems(item, "recurringCharges", "item", []);
             obj.marketPrices = this.getItems(item, "pricingDetailsSet", "item", ["price","count"], function(oo) {
-                var o = new Element('price', oo.price, 'count', oo.count)
+                var o = new Element('price', oo.price, 'count', oo.count);
                 o.toString = function() {
                     return '$' + this.price + fieldSeparator + this.count + ' available';
-                }
+                };
                 return o;
             });
             list.push(obj);
@@ -1978,7 +2028,7 @@ var ew_api = {
     createInstanceExportTask: function(id, targetEnv, bucket, descr, prefix, diskFormat, containerFormat, callback)
     {
         var params = [];
-        params.push(["InstanceId", id])
+        params.push(["InstanceId", id]);
         params.push(["TargetEnvironment", targetEnv]);
         params.push(["ExportToS3.S3Bucket", bucket]);
         if (descr) params.push(["Description", descr]);
@@ -2010,7 +2060,7 @@ var ew_api = {
             obj.toString = function() {
                 return this.id + fieldSeparator + this.state + fieldSeparator + this.descr + fieldSeparator + ew_core.modelValue('instanceId',this.instanceId) +
                                  fieldSeparator + this.statusMessage + fieldSeparator + this.bucket + this.prefix;
-            }
+            };
 
             obj.id = getNodeValue(item, "exportTaskId");
             obj.state = getNodeValue(item, "state");
@@ -2022,7 +2072,7 @@ var ew_api = {
             obj.containerFormat = getNodeValue(item, "exportToS3", "containerFormat");
             obj.bucket = getNodeValue(item, "exportToS3", "s3Bucket");
             obj.prefix = getNodeValue(item, "exportToS3", "s3Key");
-            list.push(obj)
+            list.push(obj);
         }
         this.core.setModel('exportTasks', list);
         response.result = list;
@@ -2056,7 +2106,7 @@ var ew_api = {
                 var vol = new Element('id', id, 'expire', expire, 'state', state, 'statusMessage', statusMsg);
                 vol.toString = function() {
                     return this.volumeId + fieldSeparator + this.bytesConverted + "/" + this.volumeSize + fieldSeparator + this.imageFormat + fieldSeparator + this.state;
-                }
+                };
                 vol.bytesConverted = getNodeValue(vols, "bytesConverted");
                 vol.availabilityZone = getNodeValue(vols, "avilabilityZone");
                 vol.vdescr = getNodeValue(vols, "description");
@@ -2074,17 +2124,17 @@ var ew_api = {
                 var obj = new Element('id', id, 'expire', expire, 'state', state, 'statusMessage', statusMsg);
                 obj.toString = function() {
                     return this.instanceId + fieldSeparator + this.state + fieldSeparator + this.platform + fieldSeparator + this.volumes;
-                }
+                };
                 obj.instanceId = getNodeValue(instance, "instanceId");
                 obj.platform = getNodeValue(instance, "platform");
                 obj.descr = getNodeValue(instance, "description");
                 obj.volumes = [];
                 var vols = this.getItems(instance, "volumes", "item");
                 for (var j = 0; j < vols.length; j++) {
-                    var vol = new Element('id', id, 'expire', expire)
+                    var vol = new Element('id', id, 'expire', expire);
                     vol.toString = function() {
                         return this.volumeId + fieldSeparator + this.bytesConverted + "/" + this.volumeSize + fieldSeparator + this.imageFormat + fieldSeparator + this.state;
-                    }
+                    };
                     vol.state = getNodeValue(vols[j], "status");
                     vol.statusMessage = getNodeValue(vols[j], "statusMessage");
                     vol.bytesConverted = getNodeValue(vols[j], "bytesConverted");
@@ -2096,10 +2146,10 @@ var ew_api = {
                     vol.imageChecksum = getNodeValue(vols[j], "image", "checksum");
                     vol.volumeSize = getNodeValue(vols[j], "volume", "size");
                     vol.volumeId = getNodeValue(vols[j], "volume", "id");
-                    obj.volumes.push(vol)
+                    obj.volumes.push(vol);
                 }
                 obj.bytesConverted = obj.volumes.length ? obj.volumes[0].bytesConverted : 0;
-                list.push(obj)
+                list.push(obj);
             }
         }
         this.core.setModel('conversionTasks', list);
@@ -2132,14 +2182,14 @@ var ew_api = {
                 this.count = count;
                 this.productDescription = desc;
                 this.state = state;
-                this.tenancy = tenancy
+                this.tenancy = tenancy;
 
             }
 
             var obj = new Element();
             obj.toString = function() {
                 return this.instanceType  + fieldSeparator + this.fixedPrice + fieldSeparator +  this.recurringCharges + fieldSeparator + this.id;
-            }
+            };
             obj.id = getNodeValue(item, "reservedInstancesId");
             obj.instanceType = getNodeValue(item, "instanceType");
             obj.azone = getNodeValue(item, "availabilityZone");
@@ -2195,7 +2245,7 @@ var ew_api = {
 
     addLaunchPermission : function(imageId, name, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "ImageId", imageId ]);
         params.push([ "Attribute", "launchPermission" ]);
         params.push([ "OperationType", "add" ]);
@@ -2209,7 +2259,7 @@ var ew_api = {
 
     revokeLaunchPermission : function(imageId, name, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "ImageId", imageId ]);
         params.push([ "Attribute", "launchPermission" ]);
         params.push([ "OperationType", "remove" ]);
@@ -2223,7 +2273,7 @@ var ew_api = {
 
     resetLaunchPermissions : function(imageId, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "ImageId", imageId ]);
         params.push([ "Attribute", "launchPermission" ]);
         this.queryEC2("ResetImageAttribute", params, this, false, "onComplete", callback);
@@ -2232,11 +2282,11 @@ var ew_api = {
     describeSpotPriceHistory : function(start, end, instanceType, product, availaZone, callback)
     {
         var params = [];
-        if (start) params.push(["StartTime", start])
-        if (end) params.push(["EndTime", end])
-        if (instanceType) params.push(["InstanceType", instanceType])
-        if (product) params.push(["ProductDescription", product])
-        if (availaZone) params.push(["AvailabilityZone", availaZone])
+        if (start) params.push(["StartTime", start]);
+        if (end) params.push(["EndTime", end]);
+        if (instanceType) params.push(["InstanceType", instanceType]);
+        if (product) params.push(["ProductDescription", product]);
+        if (availaZone) params.push(["AvailabilityZone", availaZone]);
         this.queryEC2("DescribeSpotPriceHistory", params, this, false, "onCompleteDescribeSpotPriceHistory", callback);
     },
 
@@ -2247,10 +2297,10 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "spotPriceHistorySet", "item");
         for ( var i = 0; i < items.length; i++) {
             var item = items[i];
-            var obj = new Element()
+            var obj = new Element();
             obj.toString = function() {
                 return this.instanceType + fieldSeparator + this.price;
-            }
+            };
             obj.instanceType = getNodeValue(item, "instanceType");
             obj.availabilityZone = getNodeValue(item, "availabilityZone");
             obj.date = new Date(getNodeValue(item, "timestamp"));
@@ -2263,7 +2313,7 @@ var ew_api = {
 
     createSpotDatafeedSubscription : function(bucket, prefix, callback)
     {
-        var params = [ [ "Bucket", bucket]]
+        var params = [ [ "Bucket", bucket]];
         if (prefix) params.push(["Prefix", prefix]);
         this.queryEC2("CreateSpotDatafeedSubscription", params, this, false, "onCompleteDescribeSpotDatafeedSubscription", callback);
     },
@@ -2304,10 +2354,10 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "spotInstanceRequestSet", "item");
         for ( var k = 0; k < items.length; k++) {
             var item = items[k];
-            var obj = new Element()
+            var obj = new Element();
             obj.toString = function() {
                 return this.instanceType + fieldSeparator + this.product + fieldSeparator + this.price + fieldSeparator + this.type;
-            }
+            };
 
             obj.id = getNodeValue(item, "spotInstanceRequestId");
             obj.price = getNodeValue(item, "spotPrice");
@@ -2359,10 +2409,10 @@ var ew_api = {
         var params = [];
         if (id instanceof Array) {
             for (var i = 0;i < id.length; i++) {
-                params.push(["SpotInstanceRequestId." + (parseInt(i) + 1), id[i]])
+                params.push(["SpotInstanceRequestId." + (i + 1), id[i]]);
             }
         } else {
-            params.push(["SpotInstanceRequestId.1", id])
+            params.push(["SpotInstanceRequestId.1", id]);
         }
         this.queryEC2("CancelSpotInstanceRequests", params, this, false, "onComplete", callback);
     },
@@ -2379,10 +2429,11 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "reservationSet", "item");
         for ( var k = 0; k < items.length; k++) {
             var item = items[k];
+            // TODO: decide if the following unused variables should actually be used in this method
             var reservationId = getNodeValue(item, "reservationId");
             var ownerId = getNodeValue(item, "ownerId");
             var requesterId = getNodeValue(item, "requesterId");
-            var groups = this.getItems(item, "groupSet", "item", ["groupId", "groupName"], function(obj) { return new Element('id', obj.groupId, 'name', obj.groupName, 'owner', '', 'status', '')});
+            var groups = this.getItems(item, "groupSet", "item", ["groupId", "groupName"], function(obj) { return new Element('id', obj.groupId, 'name', obj.groupName, 'owner', '', 'status', ''); });
             var instancesSet = item.getElementsByTagName("instancesSet")[0];
             var instanceItems = instancesSet.childNodes;
             if (instanceItems) {
@@ -2392,7 +2443,7 @@ var ew_api = {
                     var iobj = new Element('className', 'Instance', 'name', '');
                     iobj.toString = function() {
                         return (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + this.instanceType + fieldSeparator + this.state + (this.elasticIp ? fieldSeparator + this.elasticIp : "");
-                    }
+                    };
                     iobj.validate = function() {
                         if (!this.ipAddress && this.dnsName) {
                             var parts = this.dnsName.split('-');
@@ -2402,7 +2453,7 @@ var ew_api = {
                             var eip = ew_core.queryModel('addresses', 'instanceId', this.id);
                             this.elasticIp = eip && eip.length ? eip[0].publicIp : '';
                         }
-                    }
+                    };
                     iobj.id = getNodeValue(instance, "instanceId");
                     iobj.imageId = getNodeValue(instance, "imageId");
                     iobj.state = getNodeValue(instance, "instanceState", "name");
@@ -2432,8 +2483,8 @@ var ew_api = {
                     iobj.ipAddress = getNodeValue(instance, "ipAddress");
                     iobj.sourceDestCheck = toBool(getNodeValue(instance, 'sourceDestCheck'));
                     iobj.architecture = getNodeValue(instance, "architecture");
-                    iobj.instanceLifecycle = getNodeValue(instance, "instanceLifecycle")
-                    iobj.clientToken = getNodeValue(instance, "clientToken")
+                    iobj.instanceLifecycle = getNodeValue(instance, "instanceLifecycle");
+                    iobj.clientToken = getNodeValue(instance, "clientToken");
                     iobj.spotInstanceRequestId = getNodeValue(instance ,"spotInstanceRequestId");
                     iobj.instanceProfile = getNodeValue(instance, "iamInstanceProfile", "id");
                     iobj.ebsOptimized = toBool(getNodeValue(instance, "ebsOptimized"));
@@ -2444,7 +2495,7 @@ var ew_api = {
                         dev.toString = function() {
                             var vol = ew_core.modelValue("volumeId", this.volumeId);
                             return vol != this.voluemId ? vol : this.deviceName + fieldSeparator + this.status + fieldSeparator + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "");
-                        }
+                        };
                         dev.deviceName = getNodeValue(objs[i], "deviceName");
                         dev.volumeId = getNodeValue(objs[i], "ebs", "volumeId");
                         dev.status = getNodeValue(objs[i], "ebs", "status");
@@ -2460,7 +2511,7 @@ var ew_api = {
                             return (this.descr ? this.descr + fieldSeparator : "") +
                                     this.status + fieldSeparator + 'eth' + this.deviceIndex + fieldSeparator +
                                     (this.privateIpAddresses.length ? this.privateIpAddresses : this.privateIp + (this.publicIp ? "/" + this.publicIp : ""));
-                        }
+                        };
                         eni.id = getNodeValue(objs[i], "networkInterfaceId");
                         eni.status = getNodeValue(objs[i], "status");
                         eni.descr = getNodeValue(objs[i], "description");
@@ -2481,7 +2532,7 @@ var ew_api = {
                             var pip = new Element();
                             pip.toString = function() {
                                 return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary");
-                            }
+                            };
                             pip.privateIp = getNodeValue(objs[i], "privateIpAddress");
                             pip.primary = toBool(getNodeValue(objs[i], "primary"));
                             pip.publicIp = getNodeValue(objs[i], "association", "publicIp");
@@ -2516,8 +2567,8 @@ var ew_api = {
     {
         var params = this.createLaunchParams(options, "LaunchSpecification.");
         //params.push(["Platform", "Windows"])
-        params.push(["LaunchSpecification.InstanceType", instanceType])
-        params.push(["LaunchSpecification.Architecture", arch])
+        params.push(["LaunchSpecification.InstanceType", instanceType]);
+        params.push(["LaunchSpecification.Architecture", arch]);
         params.push(["DiskImage.1.Image.Format", diskFmt]);
         params.push(["DiskImage.1.Image.Bytes", diskBytes]);
         params.push(["DiskImage.1.Image.ImportManifestUrl", diskUrl]);
@@ -2554,7 +2605,7 @@ var ew_api = {
             params.push([ prefix + "KeyName", options.keyName ]);
         }
         if (options.instanceProfile) {
-            params.push([prefix + "IamInstanceProfile.Name", options.instanceProfile])
+            params.push([prefix + "IamInstanceProfile.Name", options.instanceProfile]);
         }
         for (var i in options.securityGroups) {
             params.push([ prefix + "SecurityGroupId." + parseInt(i), typeof options.securityGroups[i] == "object" ? options.securityGroups[i].id : options.securityGroups[i] ]);
@@ -2576,7 +2627,7 @@ var ew_api = {
             params.push([ prefix + "AdditionalInfo", options.additionalInfo ]);
         }
         if (options.clientToken) {
-            params.push([ prefix + "ClientToken", options.clientToken])
+            params.push([ prefix + "ClientToken", options.clientToken]);
         }
         if (options.ebsOptimized) {
             params.push([prefix + "EbsOptimized", "true"]);
@@ -2587,8 +2638,8 @@ var ew_api = {
         if (options.disableApiTermination) {
             params.push([ prefix + "DisableApiTermination", "true"]);
         }
-        if (options.instanceInitiatedShutdownBehaviour) {
-            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehaviour]);
+        if (options.instanceInitiatedShutdownBehavior) {
+            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehavior]);
         }
         if (options.availabilityZone) {
             params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);
@@ -2619,26 +2670,26 @@ var ew_api = {
             }
         }
         if (options.networkInterface) {
-            params.push([ prefix + "NetworkInterface.0.DeviceIndex", options.networkInterface.deviceIndex])
+            params.push([ prefix + "NetworkInterface.0.DeviceIndex", options.networkInterface.deviceIndex]);
             if (options.networkInterface.eniId) {
-                params.push([ prefix + "NetworkInterface.0.NetworkInterfaceId", options.networkInterface.eniId])
+                params.push([ prefix + "NetworkInterface.0.NetworkInterfaceId", options.networkInterface.eniId]);
             }
             if (options.networkInterface.subnetId) {
-                params.push([ prefix + "NetworkInterface.0.SubnetId", options.networkInterface.subnetId])
+                params.push([ prefix + "NetworkInterface.0.SubnetId", options.networkInterface.subnetId]);
             }
             if (options.networkInterface.description) {
-                params.push([ prefix + "NetworkInterface.0.Description", options.networkInterface.description])
+                params.push([ prefix + "NetworkInterface.0.Description", options.networkInterface.description]);
             }
             if (options.networkInterface.privateIpAddress) {
                 params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.Primary", "true"]);
                 params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses.0.PrivateIpAddress", options.networkInterface.privateIpAddress]);
             }
             for (var i in options.networkInterface.secondaryIpAddresses) {
-                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"])
-                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".PrivateIpAddress", options.networkInterface.secondaryIpAddresses[i]])
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".Primary", "false"]);
+                params.push([ prefix + "NetworkInterface.0.PrivateIpAddresses." + (parseInt(i) + 1) + ".PrivateIpAddress", options.networkInterface.secondaryIpAddresses[i]]);
             }
             for (var i in options.networkInterface.securityGroups) {
-                params.push([ prefix + "NetworkInterface.0.SecurityGroupId." + parseInt(i), options.networkInterface.securityGroups[i]])
+                params.push([ prefix + "NetworkInterface.0.SecurityGroupId." + parseInt(i), options.networkInterface.securityGroups[i]]);
             }
         }
         return params;
@@ -2712,8 +2763,8 @@ var ew_api = {
     describeInstanceStatus : function (id, all, callback)
     {
         var params = [];
-        if (id) params.push(["InstanceId", id])
-        if (all) params.push(["IncludeAllInstances", true])
+        if (id) params.push(["InstanceId", id]);
+        if (all) params.push(["IncludeAllInstances", true]);
 
         this.queryEC2("DescribeInstanceStatus", params, this, false, "onCompleteDescribeInstanceStatus", callback);
     },
@@ -2733,7 +2784,7 @@ var ew_api = {
             this.toString = function() {
                 return this.type + fieldSeparator + this.instanceId + (this.status ? fieldSeparator + this.status : "") + fieldSeparator +
                        this.description + fieldSeparator + this.code + (this.startTime ? fieldSeparator + this.startTime : "");
-            }
+            };
         }
 
         var xmlDoc = response.responseXML;
@@ -2743,7 +2794,9 @@ var ew_api = {
             var item = items[i];
             var instanceId = getNodeValue(item, "instanceId");
             var availabilityZone = getNodeValue(item, "availabilityZone");
+            var state = getNodeValue(item, "instanceState", "name");
             list = [];
+            list.push(new Element('type', 'InstanceState', 'id', instanceId, 'state', state, 'availabilityZone', availabilityZone));
 
             var objs = item.getElementsByTagName("systemStatus");
             for (var j = 0; j < objs.length; j++) {
@@ -2786,7 +2839,7 @@ var ew_api = {
 
     terminateInstances : function(instances, callback)
     {
-        var params = []
+        var params = [];
         for ( var i in instances) {
             params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
@@ -2795,7 +2848,7 @@ var ew_api = {
 
     stopInstances : function(instances, force, callback)
     {
-        var params = []
+        var params = [];
         for ( var i in instances) {
             params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
@@ -2807,7 +2860,7 @@ var ew_api = {
 
     startInstances : function(instances, callback)
     {
-        var params = []
+        var params = [];
         for ( var i in instances) {
             params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
@@ -2843,7 +2896,7 @@ var ew_api = {
         // Sign the generated policy with the secret key
         var policySig = b64_hmac_sha1(activeCred.secretKey, s3polb64);
 
-        var params = []
+        var params = [];
         params.push([ "InstanceId", instanceId ]);
         params.push([ "Storage.S3.Bucket", bucket ]);
         params.push([ "Storage.S3.Prefix", prefix ]);
@@ -2865,7 +2918,7 @@ var ew_api = {
 
     cancelBundleTask : function(id, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "BundleId", id ]);
 
         this.queryEC2("CancelBundleTask", params, this, false, "onComplete", callback);
@@ -2874,7 +2927,7 @@ var ew_api = {
     unpackBundleTask : function(item)
     {
         var obj = new Element();
-        obj.toString = function() { return this.id };
+        obj.toString = function() { return this.id; };
         obj.instanceId = getNodeValue(item, "instanceId");
         obj.id = getNodeValue(item, "bundleId");
         obj.state = getNodeValue(item, "state");
@@ -2931,8 +2984,8 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var list = new Array();
-        var owner = getNodeValue(xmlDoc, "Owner", "ID")
-        var ownerName = getNodeValue(xmlDoc, "Owner", "DisplayName")
+        var owner = getNodeValue(xmlDoc, "Owner", "ID");
+        var ownerName = getNodeValue(xmlDoc, "Owner", "DisplayName");
         var items = xmlDoc.getElementsByTagName("Bucket");
         for ( var i = 0; i < items.length; i++) {
             var name = getNodeValue(items[i], "Name");
@@ -2964,7 +3017,7 @@ var ew_api = {
 
     setS3BucketPolicy : function(bucket, policy, callback)
     {
-        var params = {}
+        var params = {};
         params["Content-Type"] = "application/xml; charset=UTF-8";
         this.queryS3("PUT", bucket, "", "?policy", params, policy, this, false, "onComplete", callback);
     },
@@ -2989,7 +3042,7 @@ var ew_api = {
 
     setS3BucketCORS : function(bucket, policy, callback)
     {
-        var params = {}
+        var params = {};
         params["Content-Type"] = "application/xml; charset=UTF-8";
         params['Content-MD5'] = b64_md5(policy);
         this.queryS3("PUT", bucket, "", "?cors", params, policy, this, false, "onComplete", callback);
@@ -3026,18 +3079,18 @@ var ew_api = {
                 break;
 
             case "AmazonCustomerByEmail":
-                id = email
-                name = email
+                id = email;
+                name = email;
                 break;
 
             case "Group":
-                id = uri
-                name = uri.split("/").pop()
+                id = uri;
+                name = uri.split("/").pop();
                 break;
             }
             list.push(new S3BucketAcl(id, type, name, permission));
         }
-        var obj = this.core.getS3Bucket(bucket)
+        var obj = this.core.getS3Bucket(bucket);
         if (obj) obj.acls = list; else obj = { acls: list };
 
         response.result = list;
@@ -3045,14 +3098,13 @@ var ew_api = {
 
     setS3BucketAcl : function(bucket, content, callback)
     {
-        var params = {}
+        var params = {};
         params["Content-Type"] = "application/xml; charset=UTF-8";
         this.queryS3("PUT", bucket, "", "?acl", params, content, this, false, "onCompleteSetS3BucketAcl", callback);
     },
 
     onCompleteSetS3BucketAcl : function(response)
     {
-        var xmlDoc = response.responseXML;
         var bucket = response.params.bucket;
         var obj = this.core.getS3Bucket(bucket);
         if (obj) obj.acls = null;
@@ -3072,7 +3124,7 @@ var ew_api = {
         var bucket = response.params.bucket;
 
         var region = getNodeValue(xmlDoc, "LocationConstraint");
-        var obj = this.core.getS3Bucket(bucket)
+        var obj = this.core.getS3Bucket(bucket);
         if (obj) obj.region = region;
         response.result = region;
         return response.result;
@@ -3095,18 +3147,18 @@ var ew_api = {
         var items = xmlDoc.getElementsByTagName("Contents");
         for (var i = 0; i < items.length; i++) {
             var key = new Element('bucket', bucket);
-            key.toString = function() { return this.bucket + "/" + this.name; }
+            key.toString = function() { return this.bucket + "/" + this.name; };
             key.name = getNodeValue(items[i], "Key");
             key.size = getNodeValue(items[i], "Size");
             key.type = getNodeValue(items[i], "StorageClass");
-            key.etag = getNodeValue(items[i], "ETag");
+            key.etag = getNodeValue(items[i], "ETag").replace(/\"/g, '');
             key.mtime = new Date(getNodeValue(items[i], "LastModified"));
-            key.owner = getNodeValue(items[i], "ID")
+            key.owner = getNodeValue(items[i], "ID");
             list.push(key);
         }
         var obj = this.core.getS3Bucket(bucket);
         if (obj) {
-            obj.keys = obj.keys.concat(list);
+            obj.keys = (obj.keys ? obj.keys.concat(list) : list);
             this.core.notifyComponents('s3buckets');
         } else {
             obj = new S3Bucket(bucket);
@@ -3210,18 +3262,18 @@ var ew_api = {
                 break;
 
             case "AmazonCustomerByEmail":
-                id = email
-                name = email
+                id = email;
+                name = email;
                 break;
 
             case "Group":
-                id = uri
-                name = uri.split("/").pop()
+                id = uri;
+                name = uri.split("/").pop();
                 break;
             }
             list.push(new S3BucketAcl(id, type, name, perms));
         }
-        var obj = this.core.getS3BucketKey(bucket, key)
+        var obj = this.core.getS3BucketKey(bucket, key);
         if (obj) obj.acls = list;
 
         response.result = obj;
@@ -3230,18 +3282,17 @@ var ew_api = {
 
     setS3BucketKeyAcl : function(bucket, key, content, callback)
     {
-        var params = {}
+        var params = {};
         params["Content-Type"] = "application/xml; charset=UTF-8";
         this.queryS3("PUT", bucket, key, "?acl", params, content, this, callback ? false : true, "onCompleteSetS3BucketKeyAcl", callback);
     },
 
     onCompleteSetS3BucketKeyAcl : function(response)
     {
-        var xmlDoc = response.responseXML;
         var bucket = response.params.bucket;
         var key = response.params.key;
 
-        var obj = this.core.getS3BucketKey(bucket, key)
+        var obj = this.core.getS3BucketKey(bucket, key);
         if (obj) obj.acls = null;
 
         response.result = obj;
@@ -3307,7 +3358,7 @@ var ew_api = {
         var items = xmlDoc.getElementsByTagName("item");
         for ( var i = 0; i < items.length; i++) {
             var key = new Element();
-            key.toString = function() { return this.name; }
+            key.toString = function() { return this.name; };
             key.name = getNodeValue(items[i], "keyName");
             key.fingerprint = getNodeValue(items[i], "keyFingerprint");
             list.push(key);
@@ -3327,7 +3378,7 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var key = new Element();
-        key.toString = function() { return this.name; }
+        key.toString = function() { return this.name; };
         key.name = getNodeValue(xmlDoc, "keyName");
         key.fingerprint = getNodeValue(xmlDoc, "keyFingerprint");
         key.material = getNodeValue(xmlDoc, "keyMaterial");
@@ -3357,14 +3408,14 @@ var ew_api = {
             table.toString = function() {
                 var str = (this.name ? this.name + fieldSeparator : "") + this.id + fieldSeparator + ew_core.modelValue("vpcId", this.vpcId);
                 if (this.routes && this.routes.length > 0) {
-                    str += " ("
+                    str += " (";
                     for (var i in this.routes) {
                         str += (i > 0 ? ", " : "") + this.routes[i].cidr + "/" + this.routes[i].gatewayId;
                     }
-                    str += ")"
+                    str += ")";
                 }
                 return str;
-            }
+            };
 
             table.id = getNodeValue(item, "routeTableId");
             table.vpcId = getNodeValue(item, "vpcId");
@@ -3375,7 +3426,7 @@ var ew_api = {
                 var route = new Element();
                 route.toString = function() {
                     return this.cidr + fieldSeparator + ew_core.modelValue("gatewayId", this.gatewayId);
-                }
+                };
                 route.tableId = table.id;
                 route.cidr = getNodeValue(routes[j], "destinationCidrBlock");
                 route.gatewayId = getNodeValue(routes[j], "gatewayId");
@@ -3386,7 +3437,7 @@ var ew_api = {
                 route.origin = getNodeValue(routes[j], "origin");
                 table.routes.push(route);
             }
-            table.associations = this.getItems(item, "associationSet", "item", [], function(obj) { return new Element('id', obj.routeTableAssociationId, 'tableId', obj.routeTableId, 'subnetId', obj.subnetId) } );
+            table.associations = this.getItems(item, "associationSet", "item", [], function(obj) { return new Element('id', obj.routeTableAssociationId, 'tableId', obj.routeTableId, 'subnetId', obj.subnetId); } );
             table.propagations = this.getItems(item, "propagatingVgwSet", "item", []);
             table.tags = this.getTags(item);
             ew_core.processTags(table);
@@ -3441,7 +3492,7 @@ var ew_api = {
     createPlacementGroup : function(name, strategy, callback)
     {
         var params = [["GroupName", name]];
-        params.push( ["Strategy", strategy ])
+        params.push( ["Strategy", strategy]);
         this.queryEC2("CreatePlacementGroup", params, this, false, "onComplete", callback);
     },
 
@@ -3467,12 +3518,12 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.strategy + fieldSeparator + this.state;
-            }
+            };
 
             obj.name = getNodeValue(item, "groupName");
             obj.strategy = getNodeValue(item, "strategy");
             obj.state = getNodeValue(item, "state");
-            list.push(obj)
+            list.push(obj);
         }
         this.core.setModel('placementGroups', list);
         response.result = list;
@@ -3482,10 +3533,10 @@ var ew_api = {
     {
         var params = [["SubnetId", subnetId]];
         if (ip) {
-            params.push( ["PrivateIpAddress", ip ])
+            params.push( ["PrivateIpAddress", ip ]);
         }
         if (descr) {
-            params.push([ "Description", descr])
+            params.push([ "Description", descr]);
         }
         if (groups) {
             for (var i = 0; i < groups.length; i++) {
@@ -3548,7 +3599,7 @@ var ew_api = {
             intf.toString = function() {
                 return this.privateIpAddress + fieldSeparator + this.status + fieldSeparator + this.id + fieldSeparator +  this.descr +
                        " (" + ew_core.modelValue("subnetId", this.subnetId) + ")";
-            }
+            };
             intf.id = getNodeValue(item, "networkInterfaceId");
             intf.subnetId = getNodeValue(item, "subnetId");
             intf.vpcId = getNodeValue(item, "vpcId");
@@ -3567,7 +3618,7 @@ var ew_api = {
                 intf.attachment.toString = function() {
                     return this.deviceIndex + fieldSeparator + this.status + fieldSeparator + this.id + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                            (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
-                }
+                };
                 intf.attachment.id = getNodeValue(aitem, "attachmentId");
                 intf.attachment.instanceId = getNodeValue(aitem, "instanceId");
                 intf.attachment.instanceOwnerId = getNodeValue(aitem, "instanceOwnerId");
@@ -3582,7 +3633,7 @@ var ew_api = {
                 intf.association = new Element();
                 intf.association.toString = function() {
                     return this.publicIp + fieldSeparator + this.id + (this.instanceId ? " (" + ew_core.modelValue("instanceId", this.instanceId) + ")" : "");
-                }
+                };
                 intf.association.id = getNodeValue(aitem, "associationId");
                 intf.association.publicIp = getNodeValue(aitem, "publicIp");
                 intf.association.ipOwnerId = getNodeValue(aitem, "ipOwnerId");
@@ -3594,17 +3645,17 @@ var ew_api = {
             for (var j = 0; j < objs.length; j++) {
                 var ip = new Element();
                 ip.toString = function() {
-                    return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary")
-                }
+                    return this.privateIp + (this.publicIp ? "/" + this.publicIp : "") + fieldSeparator + (this.primary ? "Primary" : "Secondary");
+                };
                 ip.privateIp = getNodeValue(objs[j], "privateIpAddress");
                 ip.primary = toBool(getNodeValue(objs[j], "primary"));
                 ip.publicIp = getNodeValue(objs[j], "association", "publicIp");
                 ip.associationId = getNodeValue(objs[j], "association", "associationId");
-                intf.privateIpAddresses.push(ip)
+                intf.privateIpAddresses.push(ip);
             }
             intf.groups = this.getGroups(item);
             intf.tags = this.getTags(item);
-            ew_core.processTags(intf, "descr")
+            ew_core.processTags(intf, "descr");
             list.push(intf);
         }
 
@@ -3615,15 +3666,15 @@ var ew_api = {
     assignPrivateIpAddresses : function(networkInterfaceId, privateIpList, privateIpCount, reassign, callback)
     {
         var params = [];
-        params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+        params.push([ 'NetworkInterfaceId', networkInterfaceId ]);
 
         if (privateIpList && privateIpList.length) {
             for (var i = 0 ; i < privateIpList.length; i++) {
-                params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ])
+                params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ]);
             }
         } else
         if (privateIpCount) {
-            params.push([ 'SecondaryPrivateIpAddressCount', privateIpCount ])
+            params.push([ 'SecondaryPrivateIpAddressCount', privateIpCount ]);
         }
         //if (reassign) {
         //    params.push([ 'AllowReassignment', "true" ])
@@ -3634,10 +3685,10 @@ var ew_api = {
     unassignPrivateIpAddresses : function(networkInterfaceId, privateIpList, callback)
     {
         var params = [];
-        params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+        params.push([ 'NetworkInterfaceId', networkInterfaceId ]);
 
         for (var i = 0 ; i < privateIpList.length; i++) {
-            params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ])
+            params.push([ 'PrivateIpAddress.' + i,  typeof privateIpList[i] == "object" ? privateIpList[i].privateIp : privateIpList[i] ]);
         }
         this.queryEC2("UnassignPrivateIpAddresses", params, this, false, "onComplete", callback);
     },
@@ -3651,18 +3702,18 @@ var ew_api = {
     {
         function Permission(type, protocol, fromPort, toPort, srcGroup, cidrIp)
         {
-            this.type = type
+            this.type = type;
             this.protocol = protocol;
             this.fromPort = fromPort;
             this.toPort = toPort;
             this.srcGroup = srcGroup;
             if (srcGroup) {
-                this.srcGroup.toString = function() { return ew_core.modelValue('groupId', srcGroup.id); }
+                this.srcGroup.toString = function() { return ew_core.modelValue('groupId', srcGroup.id); };
             }
             this.cidrIp = cidrIp;
             this.toString = function() {
                 return this.type + fieldSeparator + this.protocol + fieldSeparator + this.fromPort + ":" + this.toPort + fieldSeparator + (this.cidrIp ? this.cidrIp : this.srcGroup ? this.srcGroup.toString() : "");
-            }
+            };
         }
 
         if (items) {
@@ -3678,7 +3729,7 @@ var ew_api = {
                     var groupsItems = groups.childNodes;
                     for ( var k = 0; k < groupsItems.length; k++) {
                         if (groupsItems.item(k).nodeName == '#text') continue;
-                        var srcGrp = { ownerId : getNodeValue(groupsItems[k], "userId"), id : getNodeValue(groupsItems[k], "groupId"), name : getNodeValue(groupsItems[k], "groupName") }
+                        var srcGrp = { ownerId : getNodeValue(groupsItems[k], "userId"), id : getNodeValue(groupsItems[k], "groupId"), name : getNodeValue(groupsItems[k], "groupName") };
                         list.push(new Permission(type, ipProtocol, fromPort, toPort, srcGrp));
                     }
                 }
@@ -3693,7 +3744,7 @@ var ew_api = {
                 }
             }
         }
-        return list
+        return list;
     },
 
     onCompleteDescribeSecurityGroups : function(response)
@@ -3707,7 +3758,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.id + (this.vpcId ? " (" + ew_core.modelValue("vpcId", this.vpcId) + ")" : "");
-            }
+            };
             obj.id = getNodeValue(item, "groupId");
             obj.ownerId = getNodeValue(item, "ownerId");
             obj.name = getNodeValue(item, "groupName");
@@ -3720,7 +3771,7 @@ var ew_api = {
             // Comment out egress rules for Eucalyptus
 	        //obj.permissions = this.parsePermissions('Egress', ipPermissionsList, ipPermissions.childNodes);
             obj.tags = this.getTags(item);
-            ew_core.processTags(obj)
+            ew_core.processTags(obj);
             list.push(obj);
         }
 
@@ -3734,7 +3785,7 @@ var ew_api = {
         params.push([ "GroupName", name ]);
         params.push([ "GroupDescription", desc ]);
         if (vpcId && vpcId != "") {
-            params.push([ "VpcId", vpcId ])
+            params.push([ "VpcId", vpcId ]);
         }
         this.queryEC2("CreateSecurityGroup", params, this, false, "onComplete:groupId", callback, null);
     },
@@ -3742,13 +3793,14 @@ var ew_api = {
     deleteSecurityGroup : function(group, callback)
     {
 	debug("Delete Group: " + group.name)
-        var params = [ [ "GroupName", group.name ] ];
+        //var params = [ [ "GroupName", group.name ] ];
+        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ];
         this.queryEC2("DeleteSecurityGroup", params, this, false, "onComplete", callback);
     },
 
     authorizeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
+        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ];
         params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
@@ -3758,7 +3810,7 @@ var ew_api = {
 
     revokeSourceCIDR : function(type, group, ipProtocol, fromPort, toPort, cidrIp, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
+        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ];
         params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
@@ -3768,7 +3820,7 @@ var ew_api = {
 
     authorizeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ]
+        var params = typeof group == "object" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group ] ];
         params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
@@ -3783,7 +3835,7 @@ var ew_api = {
 
     revokeSourceGroup : function(type, group, ipProtocol, fromPort, toPort, srcGroup, callback)
     {
-        var params = group.id && group.id != "" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group.name ] ]
+        var params = group.id && group.id != "" ? [ [ "GroupId", group.id ] ] : [ [ "GroupName", group.name ] ];
         params.push([ "IpPermissions.1.IpProtocol", ipProtocol ]);
         params.push([ "IpPermissions.1.FromPort", fromPort ]);
         params.push([ "IpPermissions.1.ToPort", toPort ]);
@@ -3798,7 +3850,7 @@ var ew_api = {
 
     rebootInstances : function(instances, callback)
     {
-        var params = []
+        var params = [];
         for ( var i in instances) {
             params.push([ "InstanceId." + (parseInt(i) + 1), instances[i].id ]);
         }
@@ -3814,8 +3866,6 @@ var ew_api = {
     onCompleteGetConsoleOutput : function(response)
     {
         var xmlDoc = response.responseXML;
-        var instanceId = getNodeValue(xmlDoc, "instanceId");
-        var timestamp = getNodeValue(xmlDoc, "timestamp");
         var output = xmlDoc.getElementsByTagName("output")[0];
         if (output && output.textContent) {
             output = Base64.decode(output.textContent);
@@ -3840,7 +3890,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "availabilityZoneInfo", "item");
         for ( var i = 0; i < items.length; i++) {
             var obj = new Element();
-            obj.toString = function() { return this.name + fieldSeparator + this.state; }
+            obj.toString = function() { return this.name + fieldSeparator + this.state; };
             obj.name = obj.id = getNodeValue(items[i], "zoneName");
             obj.state = getNodeValue(items[i], "zoneState");
             obj.message = this.getItems(items[i], "messageSet", "item", ["message"], function(obj) { return obj.message; });
@@ -3879,25 +3929,25 @@ var ew_api = {
 
     allocateAddress : function(vpc, callback)
     {
-        var params = vpc ? [["Domain", "vpc"]] : []
+        var params = vpc ? [["Domain", "vpc"]] : [];
         this.queryEC2("AllocateAddress", params, this, false, "onComplete:allocationId", callback);
     },
 
     releaseAddress : function(eip, callback)
     {
-        var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]]
+        var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]];
         this.queryEC2("ReleaseAddress", params, this, false, "onComplete", callback);
     },
 
     associateAddress : function(eip, instanceId, networkInterfaceId, privateIp, force, callback)
     {   // Eucalyptus does not support AllowReassociation
         force = false;
-        var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]]
+        var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]];
         if (instanceId) {
-            params.push([ 'InstanceId', instanceId ])
+            params.push([ 'InstanceId', instanceId ]);
         }
         if (networkInterfaceId) {
-            params.push([ 'NetworkInterfaceId', networkInterfaceId ])
+            params.push([ 'NetworkInterfaceId', networkInterfaceId ]);
         }
         if (privateIp) {
             params.push(["PrivateIpAddress", privateIp]);
@@ -3910,7 +3960,7 @@ var ew_api = {
 
     disassociateAddress : function(eip, callback)
     {
-        var params = eip.associationId ? [["AssociationId", eip.associationId]] : [[ 'PublicIp', eip.publicIp ]]
+        var params = eip.associationId ? [["AssociationId", eip.associationId]] : [[ 'PublicIp', eip.publicIp ]];
         this.queryEC2("DisassociateAddress", params, this, false, "onComplete", callback);
     },
 
@@ -3954,7 +4004,7 @@ var ew_api = {
             var elb = new Element();
             elb.toString = function() {
                 return this.name;
-            }
+            };
 
             elb.name = getNodeValue(items[i], "LoadBalancerName");
             elb.CreatedTime = getNodeValue(items[i], "CreatedTime");
@@ -3973,19 +4023,19 @@ var ew_api = {
                 var lst = new Element();
                 lst.toString = function() {
                     return this.Protocol + ":" + this.Port + "->" + this.InstancePort + (this.policies.length ? fieldSeparator + this.policies : "");
-                }
+                };
                 lst.Protocol = getNodeValue(members[k], "Protocol");
                 lst.Port = getNodeValue(members[k], "LoadBalancerPort");
                 lst.InstancePort = getNodeValue(members[k], "InstancePort");
                 lst.InstanceProtocol = getNodeValue(members[k], "InstanceProtocol");
                 lst.policies = this.getItems(members[k], "Policies", "member", null, function(obj) { return obj.firstChild.nodeValue; });
-                elb.Listeners.push(lst)
+                elb.Listeners.push(lst);
             }
 
             elb.HealthCheck = new Element();
             elb.HealthCheck.toString = function() {
                 return this.Target + fieldSeparator + this.Interval + "/" + this.Timeout + fieldSeparator + this.HealthyThreshold + "/" + this.UnhealthyThreshold;
-            }
+            };
             elb.HealthCheck.Target = getNodeValue(items[i], "HealthCheck", "Target");
             elb.HealthCheck.Interval = getNodeValue(items[i], "HealthCheck", "Interval");
             elb.HealthCheck.Timeout = getNodeValue(items[i], "HealthCheck", "Timeout");
@@ -3993,8 +4043,8 @@ var ew_api = {
             elb.HealthCheck.UnhealthyThreshold = getNodeValue(items[i], "HealthCheck", "UnhealthyThreshold");
 
             elb.zones = this.getItems(items[i], "AvailabilityZones", "member", null, function(obj) { return obj.firstChild.nodeValue; });
-            elb.appStickinessPolicies = this.getItems(items[i], "AppCookieStickinessPolicies", "member", ["PolicyName", "CookieName"], function(obj) { return new Element('name',obj.PolicyName, 'cookieName', obj.CookieName) });
-            elb.lbStickinessPolicies = this.getItems(items[i], "LBCookieStickinessPolicies", "member", ["PolicyName", "CookieExpirationPeriod"], function(obj) { return new Element('name',obj.PolicyName, 'cookieName', '', "expirationPeriod", obj.CookieExpirationPeriod) });
+            elb.appStickinessPolicies = this.getItems(items[i], "AppCookieStickinessPolicies", "member", ["PolicyName", "CookieName"], function(obj) { return new Element('name',obj.PolicyName, 'cookieName', obj.CookieName); });
+            elb.lbStickinessPolicies = this.getItems(items[i], "LBCookieStickinessPolicies", "member", ["PolicyName", "CookieExpirationPeriod"], function(obj) { return new Element('name',obj.PolicyName, 'cookieName', '', "expirationPeriod", obj.CookieExpirationPeriod); });
             elb.otherPolicies = this.getItems(items[i], "OtherPolicies", "member", null, function(obj) { return obj.firstChild.nodeValue; });
             elb.securityGroups = this.getItems(items[i], "SecurityGroups", "member", null, function(obj) { return obj.firstChild.nodeValue; });
             elb.subnets = this.getItems(items[i], "Subnets", "member", null, function(obj) { return obj.firstChild.nodeValue; });
@@ -4023,7 +4073,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.Description + fieldSeparator + this.State + fieldSeparator + ew_core.modelValue("instanceId", this.InstanceId);
-            }
+            };
             obj.Description = getNodeValue(items[i], "Description");
             obj.State = getNodeValue(items[i], "State");
             obj.InstanceId = getNodeValue(items[i], "InstanceId");
@@ -4050,14 +4100,14 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "PolicyTypeDescriptions", "member");
         for (var i = 0; i < items.length; i++) {
             var obj = new Element();
-            obj.toString = function() { return this.name; }
+            obj.toString = function() { return this.name; };
             obj.name = getNodeValue(items[i], "PolicyTypeName");
             obj.descr = getNodeValue(items[i], "Description");
             obj.attributes = [];
             var attrs = this.getItems(xmlDoc, "PolicyAttributeTypeDescriptions", "member");
             for (var j = 0; j < attrs.length; j++) {
                 var attr = new Element();
-                attr.toString = function() { return this.name }
+                attr.toString = function() { return this.name; };
                 attr.name = getNodeValue(attrs[j], "AttributeName");
                 attr.type = getNodeValue(attrs[j], "AttributeType");
                 attr.defaultValue = getNodeValue(attrs[j], "DefaultValue");
@@ -4065,7 +4115,7 @@ var ew_api = {
                 attr.descr = getNodeValue(attrs[j], "Description");
                 obj.attributes.push(attr);
             }
-            list.push(obj)
+            list.push(obj);
         }
         this.core.setModel('elbPolicyTypes', list);
         response.result = list;
@@ -4073,7 +4123,7 @@ var ew_api = {
 
     deleteLoadBalancer : function(LoadBalancerName, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
 
         this.queryELB("DeleteLoadBalancer", params, this, false, "onComplete", callback);
@@ -4081,7 +4131,7 @@ var ew_api = {
 
     createLoadBalancer : function(LoadBalancerName, protocol, elbport, instanceport, cert, azones, subnets, groups, scheme, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         if (azones) {
             for (var i = 0; i < azones.length; i++) {
@@ -4121,7 +4171,7 @@ var ew_api = {
 
     registerInstancesWithLoadBalancer : function(LoadBalancerName, instances, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < instances.length; i++) {
             params.push([ "Instances.member." + (parseInt(i) + 1) + ".InstanceId", instances[i] ]);
@@ -4131,7 +4181,7 @@ var ew_api = {
 
     deregisterInstancesWithLoadBalancer : function(LoadBalancerName, instances, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < instances.length; i++) {
             params.push([ "Instances.member." + (parseInt(i) + 1) + ".InstanceId", instances[i] ]);
@@ -4141,7 +4191,7 @@ var ew_api = {
 
     enableAvailabilityZonesForLoadBalancer : function(LoadBalancerName, Zones, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < Zones.length; i++) {
             params.push([ "AvailabilityZones.member." + (parseInt(i) + 1), Zones[i] ]);
@@ -4151,7 +4201,7 @@ var ew_api = {
 
     disableAvailabilityZonesForLoadBalancer : function(LoadBalancerName, Zones, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0 ; i < Zones.length; i++) {
             params.push([ "AvailabilityZones.member." + (parseInt(i) + 1), Zones[i] ]);
@@ -4161,7 +4211,7 @@ var ew_api = {
 
     createAppCookieStickinessPolicy : function(LoadBalancerName, PolicyName, CookieName, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "CookieName", CookieName ]);
         params.push([ "PolicyName", PolicyName ]);
@@ -4170,7 +4220,7 @@ var ew_api = {
 
     createLBCookieStickinessPolicy : function(LoadBalancerName, PolicyName, CookieExpirationPeriod, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "CookieExpirationPeriod", CookieExpirationPeriod ]);
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "PolicyName", PolicyName ]);
@@ -4179,7 +4229,7 @@ var ew_api = {
 
     deleteLoadBalancerPolicy : function(LoadBalancerName, PolicyName, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "PolicyName", PolicyName ]);
         this.queryELB("DeleteLoadBalancerPolicy", params, this, false, "onComplete", callback);
@@ -4197,7 +4247,7 @@ var ew_api = {
 
     attachLoadBalancerToSubnets : function(LoadBalancerName, subnets, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < subnets.length; i++) {
             params.push(["Subnets.member." + (parseInt(i) + 1), subnets[i]]);
@@ -4207,7 +4257,7 @@ var ew_api = {
 
     detachLoadBalancerFromSubnets : function(LoadBalancerName, subnets, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < subnets.length; i++) {
             params.push(["Subnets.member." + (parseInt(i) + 1), subnets[i]]);
@@ -4217,7 +4267,7 @@ var ew_api = {
 
     setLoadBalancerListenerSSLCertificate: function(LoadBalancerName, port, certId, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "LoadBalancerPort", port]);
         params.push([ "SSLCertificateId", certId]);
@@ -4226,7 +4276,7 @@ var ew_api = {
 
     setLoadBalancerPoliciesForBackendServer: function(LoadBalancerName, InstancePort, PolicyNames, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "InstancePort", InstancePort ]);
         for (var i = 0; i < PolicyNames.length; i++) {
@@ -4237,7 +4287,7 @@ var ew_api = {
 
     setLoadBalancerPoliciesOfListener: function(LoadBalancerName, LoadBalancerPort, PolicyNames, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "LoadBalancerPort", LoadBalancerPort ]);
         for (var i = 0; i < PolicyNames.length; i++) {
@@ -4248,7 +4298,7 @@ var ew_api = {
 
     createLoadBalancerListeners: function(LoadBalancerName, InstancePort, InstanceProtocol, LoadBalancerPort, Protocol, SSLCertificateId, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "Listeners.member.1.InstancePort", InstancePort]);
         params.push([ "Listeners.member.1.InstanceProtocol", InstanceProtocol]);
@@ -4260,7 +4310,7 @@ var ew_api = {
 
     createLoadBalancerPolicy: function(LoadBalancerName, PolicyName, PolicyType, PolicyAttributes, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         params.push([ "PolicyName", PolicyName ]);
         params.push([ "PolicyTypeName", PolicyType ]);
@@ -4275,7 +4325,7 @@ var ew_api = {
 
     deleteLoadBalancerListeners: function(LoadBalancerName, LoadBalancerPorts, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "LoadBalancerName", LoadBalancerName ]);
         for (var i = 0; i < LoadBalancerPorts.length; i++) {
             params.push([ "LoadBalancerPorts.member." + (parseInt(i) + 1), LoadBalancerPorts[i] ]);
@@ -4285,7 +4335,7 @@ var ew_api = {
 
     uploadServerCertificate : function(ServerCertificateName, CertificateBody, PrivateKey, Path, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "ServerCertificateName", ServerCertificateName ]);
         params.push([ "CertificateBody", CertificateBody ]);
         params.push([ "PrivateKey", PrivateKey ]);
@@ -4382,10 +4432,10 @@ var ew_api = {
 
     createAccessKey : function(name, callback)
     {
-        var params = []
+        var params = [];
 
         if (name) {
-            params.push([ "UserName", name ])
+            params.push([ "UserName", name ]);
         }
         this.queryIAM("CreateAccessKey", params, this, false, "onCompleteCreateAccessKey", callback);
     },
@@ -4395,7 +4445,7 @@ var ew_api = {
         var xmlDoc = response.responseXML;
 
         var obj = new Element();
-        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
+        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); };
         obj.userName = getNodeValue(xmlDoc, "UserName");
         obj.id = getNodeValue(xmlDoc, "AccessKeyId");
         obj.secret = getNodeValue(xmlDoc, "SecretAccessKey");
@@ -4406,7 +4456,7 @@ var ew_api = {
     deleteAccessKey : function(id, user, callback)
     {
         var params = [ [ "AccessKeyId", id ] ];
-        if (user) params.push(["UserName", user])
+        if (user) params.push(["UserName", user]);
         this.queryIAM("DeleteAccessKey", params, this, false, "onComplete", callback);
     },
 
@@ -4427,14 +4477,14 @@ var ew_api = {
         var items = xmlDoc.getElementsByTagName("member");
         for (var i = 0; i < items.length; i++) {
             var obj = new Element('userName', user);
-            obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
+            obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); };
             obj.id = getNodeValue(items[i], "AccessKeyId");
             obj.status = getNodeValue(items[i], "Status");
             obj.date = new Date(getNodeValue(items[i], "CreateDate"));
             list.push(obj);
         }
 
-        this.core.updateModel('users', getParam(params, 'UserName'), 'accessKeys', list)
+        this.core.updateModel('users', getParam(params, 'UserName'), 'accessKeys', list);
 
         response.result = list;
     },
@@ -4453,7 +4503,7 @@ var ew_api = {
         var items = this.getItems(xmlDoc, "VirtualMFADevices", "member");
         for ( var i = 0; i < items.length; i++) {
             var dev = new Element();
-            dev.toString = function() { return this.name }
+            dev.toString = function() { return this.name; };
             dev.id = getNodeValue(items[i], "SerialNumber");
             dev.date = getNodeValue(items[i], "EnableDate");
             dev.userName = getNodeValue(items[i], "UserName");
@@ -4503,7 +4553,7 @@ var ew_api = {
 
         var list = this.getItems(xmlDoc, "MFADevices", "member", ["SerialNumber", "EnableDate"], function(obj) {
             var dev = new Element('id', obj.SerialNumber, 'date', obj.EnableDate);
-            dev.toString = function() { return this.name }
+            dev.toString = function() { return this.name; };
             // arn:aws:iam::123456:mfa/name
             dev.name = dev.id.indexOf('arn:aws') == 0 ? dev.id.split(/[:\/]+/).pop() : dev.id;
             return dev;
@@ -4512,7 +4562,7 @@ var ew_api = {
         var user = getNodeValue(xmlDoc, "UserName");
         if (!user) user = getParam(params, 'UserName');
         if (!user) user = this.core.user.name;
-        this.core.updateModel('users', user, 'mfaDevices', list)
+        this.core.updateModel('users', user, 'mfaDevices', list);
 
         response.result = list;
     },
@@ -4536,8 +4586,8 @@ var ew_api = {
     {
         var obj = new Element();
         obj.toString = function() {
-            return this.name + (this.roles.length && this.name != this.roles[0].name ? "(" + this.roles[0].name + ")" : "")
-        }
+            return this.name + (this.roles.length && this.name != this.roles[0].name ? "(" + this.roles[0].name + ")" : "");
+        };
         obj.arn = toArn(getNodeValue(item, "Arn"));
         obj.path = getNodeValue(item, "Path");
         obj.id = getNodeValue(item, "InstanceProfileId");
@@ -4604,7 +4654,7 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             list.push(this.unpackInstanceProfile(items[i]));
         }
-        this.core.updateModel('roles', getParam(params, 'RoleName'), 'instanceProfiles', list)
+        this.core.updateModel('roles', getParam(params, 'RoleName'), 'instanceProfiles', list);
         response.result = list;
     },
 
@@ -4622,7 +4672,7 @@ var ew_api = {
     unpackRole: function(item)
     {
         var obj = new Element();
-        obj.toString = function() { return this.name }
+        obj.toString = function() { return this.name; };
         obj.arn = toArn(getNodeValue(item, "Arn"));
         obj.path = getNodeValue(item, "Path");
         obj.id = getNodeValue(item, "RoleId");
@@ -4701,7 +4751,7 @@ var ew_api = {
     unpackUser: function(item)
     {
         var o = new Element();
-        o.toString = function() { return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : ""); }
+        o.toString = function() { return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : ""); };
         o.id = getNodeValue(item, "UserId");
         o.name = getNodeValue(item, "UserName");
         o.path = getNodeValue(item, "Path");
@@ -4714,7 +4764,6 @@ var ew_api = {
     onCompleteListUsers : function(response)
     {
         var xmlDoc = response.responseXML;
-        var params = response.params;
 
         var list = new Array();
         var items = xmlDoc.getElementsByTagName("member");
@@ -4728,7 +4777,7 @@ var ew_api = {
     getUser : function(name, callback)
     {
         var params = [];
-        if (name) params.push(["UserName", name])
+        if (name) params.push(["UserName", name]);
         this.queryIAM("GetUser", params, this, false, "onCompleteGetUser", callback);
     },
 
@@ -4772,7 +4821,7 @@ var ew_api = {
     getLoginProfile : function(name, callback)
     {
         var params = [];
-        if (name) params.push(["UserName", name])
+        if (name) params.push(["UserName", name]);
         this.queryIAM("GetLoginProfile", params, this, false, "onCompleteGetLoginProfile", callback);
     },
 
@@ -4785,7 +4834,7 @@ var ew_api = {
 
         // It is valid not to have it
         if (!response.hasErrors) {
-            this.core.updateModel('users', name, 'loginProfileDate', date)
+            this.core.updateModel('users', name, 'loginProfileDate', date);
         }
         response.hasErrors = false;
         response.result = date;
@@ -4803,9 +4852,9 @@ var ew_api = {
 
     updateUser : function(name, newname, newpath, callback)
     {
-        var params = [ ["UserName", name] ]
-        if (newname) params.push([ "NewUserName", newname])
-        if (newpath) params.push(["NewPath", newpath])
+        var params = [ ["UserName", name] ];
+        if (newname) params.push([ "NewUserName", newname]);
+        if (newpath) params.push(["NewPath", newpath]);
         this.queryIAM("UpdateUser", params, this, false, "onComplete", callback);
     },
 
@@ -4847,7 +4896,7 @@ var ew_api = {
     unpackGroup: function(item)
     {
         var obj = new Element();
-        obj.toString = function() { return this.name; }
+        obj.toString = function() { return this.name; };
         obj.path = getNodeValue(item, "Path");
         obj.name = getNodeValue(item, "GroupName");
         obj.id = getNodeValue(item, "GroupId");
@@ -4873,7 +4922,7 @@ var ew_api = {
             break;
 
         case "ListGroupsForUser":
-            this.core.updateModel('users', getParam(params, 'UserName'), 'groups', list)
+            this.core.updateModel('users', getParam(params, 'UserName'), 'groups', list);
             break;
         }
 
@@ -4899,15 +4948,15 @@ var ew_api = {
         // Update model directly
         switch(response.action) {
         case "ListGroupPolicies":
-            this.core.updateModel('groups', getParam(params, 'GroupName'), 'policies', list)
+            this.core.updateModel('groups', getParam(params, 'GroupName'), 'policies', list);
             break;
 
         case "ListUserPolicies":
-            this.core.updateModel('users', getParam(params, 'UserName'), 'policies', list)
+            this.core.updateModel('users', getParam(params, 'UserName'), 'policies', list);
             break;
 
         case "ListRolePolicies":
-            this.core.updateModel('roles', getParam(params, 'RoleName'), 'policies', list)
+            this.core.updateModel('roles', getParam(params, 'RoleName'), 'policies', list);
             break;
         }
         response.result = list;
@@ -4952,11 +5001,11 @@ var ew_api = {
         var obj = this.core.findModel('groups', group.id);
         if (!obj) obj = group;
 
-        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(o) {
-            var o = new Element('id', o.UserId, 'name', o.UserName, 'path', o.Path, 'arn', toArn(o.Arn));
+        var users = this.getItems(xmlDoc, 'Users', 'member', ["UserId", "UserName", "Path", "Arn"], function(op) {
+            var o = new Element('id', op.UserId, 'name', op.UserName, 'path', op.Path, 'arn', toArn(op.Arn));
             o.toString = function() {
                 return this.name + (this.groups && this.groups.length ? fieldSeparator + this.groups : "");
-            }
+            };
             // arn:aws:iam::123456:user/name
             o.accountId = o.arn ? o.arn.split(":")[4] : "";
             return o;
@@ -4973,9 +5022,9 @@ var ew_api = {
 
     updateGroup: function(name, newname, newpath, callback)
     {
-        var params = [ ["GroupName", name] ]
-        if (newname) params.push([ "NewGroupName", newname])
-        if (newpath) params.push(["NewPath", newpath])
+        var params = [ ["GroupName", name] ];
+        if (newname) params.push([ "NewGroupName", newname]);
+        if (newpath) params.push(["NewPath", newpath]);
         this.queryIAM("UpdateGroup", params, this, false, "onComplete", callback);
     },
 
@@ -4986,7 +5035,7 @@ var ew_api = {
 
     onCompleteGetPasswordPolicy: function(response)
     {
-        debug(response.responseText)
+        debug(response.responseText);
         var xmlDoc = response.responseXML;
         var obj = { MinimumPasswordLength: null, RequireUppercaseCharacters: null, RequireLowercaseCharacters: null, RequireNumbers: null, RequireSymbols: null, AllowUsersToChangePassword: null };
 
@@ -5007,7 +5056,7 @@ var ew_api = {
 
     updateAccountPasswordPolicy: function(obj, callback)
     {
-        var params = []
+        var params = [];
         for (var p in obj) {
             if (obj[p] == "") continue;
             params.push([p, obj[p]]);
@@ -5040,7 +5089,7 @@ var ew_api = {
         var items = xmlDoc.getElementsByTagName("member");
         for ( var i = 0; i < items.length; i++) {
             var obj = new Element();
-            obj.toString = function() {return this.id;}
+            obj.toString = function() {return this.id;};
             obj.id = getNodeValue(items[i], "CertificateId");
             obj.body = getNodeValue(items[i], "CertificateBody");
             obj.userName = getNodeValue(items[i], "UserName");
@@ -5052,7 +5101,7 @@ var ew_api = {
     uploadSigningCertificate : function(user, body, callback)
     {
         var params = [ [ "CertificateBody", body ] ];
-        if (user) params.push([["UserName", user]])
+        if (user) params.push([["UserName", user]]);
         this.queryIAM("UploadSigningCertificate", params, this, false, "onComplete", callback);
     },
 
@@ -5071,8 +5120,8 @@ var ew_api = {
         var params = [ ["ServerCertificateName", name]];
         params.push([ "CertificateBody", body ]);
         params.push(["PrivateKey", privateKey ]);
-        if (path) params.push([["Path", path]])
-        if (chain) params.push(["CertificateChain", chain])
+        if (path) params.push([["Path", path]]);
+        if (chain) params.push(["CertificateChain", chain]);
         this.queryIAM("UploadServerCertificate", params, this, false, "onComplete", callback);
     },
 
@@ -5096,8 +5145,8 @@ var ew_api = {
 
     unpackServerCertificate: function(item)
     {
-        var obj = new Element()
-        obj.toString = function() { return this.name; }
+        var obj = new Element();
+        obj.toString = function() { return this.name; };
         obj.id = getNodeValue(item, "ServerCertificateId");
         obj.name = getNodeValue(item, "ServerCertificateName");
         obj.arn = toArn(getNodeValue(item, "Arn"));
@@ -5135,14 +5184,14 @@ var ew_api = {
     putMetricAlarm : function(AlarmName, Namespace, MetricName, ComparisonOperator, Threshold, Period, EvaluationPeriods, Statistic, params, callback)
     {
         if (!params) params = [];
-        params.push(["AlarmName", AlarmName])
-        params.push(["MetricName", MetricName])
-        params.push(["Namespace", Namespace])
-        params.push(["ComparisonOperator", ComparisonOperator])
-        params.push(["Period", Period])
-        params.push(["EvaluationPeriods", EvaluationPeriods])
-        params.push(["Threshold", Threshold])
-        params.push(["Statistic", Statistic])
+        params.push(["AlarmName", AlarmName]);
+        params.push(["MetricName", MetricName]);
+        params.push(["Namespace", Namespace]);
+        params.push(["ComparisonOperator", ComparisonOperator]);
+        params.push(["Period", Period]);
+        params.push(["EvaluationPeriods", EvaluationPeriods]);
+        params.push(["Threshold", Threshold]);
+        params.push(["Statistic", Statistic]);
 
         this.queryCloudWatch("PutMetricAlarm", params, this, false, "onComplete", callback);
     },
@@ -5152,7 +5201,7 @@ var ew_api = {
         var obj = new Element();
         obj.toString = function() {
             return this.name + fieldSeparator + this.descr;
-        }
+        };
 
         obj.arn = toArn(getNodeValue(item, "AlarmArn"));
         obj.name = getNodeValue(item, "AlarmName");
@@ -5172,7 +5221,7 @@ var ew_api = {
         obj.evaluationPeriods = getNodeValue(item, "EvaluationPeriods");
         obj.insufficientDataActions = this.getItems(item, "InsufficientDataActions", "member", "");
         obj.okActions = this.getItems(item, "OKActions", "member", "");
-        obj.dimensions = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(o) { return new Tag(o.Name, o.Value)});
+        obj.dimensions = this.getItems(item, "Dimensions", "member", ["Name", "Value"], function(o) { return new Tag(o.Name, o.Value); });
         obj.actions = this.getItems(item, "AlarmActions", "member", "");
         return obj;
     },
@@ -5200,7 +5249,7 @@ var ew_api = {
     describeAlarmHistory : function(name, callback)
     {
         var params = [];
-        if (name) params.push(["AlarmName", name])
+        if (name) params.push(["AlarmName", name]);
         this.queryCloudWatch("DescribeAlarmHistory", params, this, false, "onCompleteDescribeAlarmHistory", callback);
     },
 
@@ -5213,7 +5262,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.type + fieldSeparator + this.date + fieldSeparator + this.descr;
-            }
+            };
 
             obj.name = getNodeValue(items[i], "AlarmName");
             obj.type = getNodeValue(items[i], "HistoryItemType");
@@ -5264,8 +5313,8 @@ var ew_api = {
     listMetrics : function(name, namespace, dimensions, callback)
     {
         var params = [];
-        if (name) params.push(["MetricName", name])
-        if (namespace) params.push(["Namespace", namespace])
+        if (name) params.push(["MetricName", name]);
+        if (namespace) params.push(["Namespace", namespace]);
         if (dimensions instanceof Array) {
             for (var i = 0; i < dimensions.length; i++) {
                 params.push(["Dimensions.member." + (parseInt(i) + 1) + ".Name", dimensions[i].name]);
@@ -5287,15 +5336,15 @@ var ew_api = {
                     this.info = ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true);
                     if (this.info == this.dimensions) this.info = "";
                 }
-            }
+            };
 
             metric.toString = function() {
                 return this.name + fieldSeparator + this.namespace + (this.dimensions.length ? fieldSeparator + ew_core.modelValue(this.dimensions[0].name, this.dimensions[0].value, true) : "");
-            }
+            };
 
             metric.name = getNodeValue(items[i], "MetricName");
             metric.namespace = getNodeValue(items[i], "Namespace");
-            metric.dimensions = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value)});
+            metric.dimensions = this.getItems(items[i], "Dimensions", "member", ["Name", "Value"], function(obj) { return new Tag(obj.Name, obj.Value); });
             list.push(metric);
         }
         return this.getNext(response, this.queryCloudWatch, list);
@@ -5304,18 +5353,19 @@ var ew_api = {
     getMetricStatistics : function(name, namespace, start, end, period, statistics, unit, dimensions, callback)
     {
         var params = [];
-        params.push(["MetricName", name])
-        params.push(["Namespace", namespace])
-        params.push(["StartTime", start])
-        params.push(["EndTime", end])
-        params.push(["Period", period])
-        if (unit) params.push(["Unit", unit])
+        params.push(["MetricName", name]);
+        params.push(["Namespace", namespace]);
+        params.push(["StartTime", start]);
+        params.push(["EndTime", end]);
+        params.push(["Period", period]);
+        if (unit) params.push(["Unit", unit]);
         if (statistics instanceof Array) {
             for (var i = 0; i < statistics.length; i++) {
-                params.push(["Statistics.member." + (parseInt(i) + 1), statistics[i]])
+                //params.push(["Statistics.member." + (parseInt(i) + 1), statistics[i]])
+                params.push(["Statistics.member." + (i + 1), statistics[i]]);
             }
         } else {
-            params.push(["Statistics.member.1", statistics])
+            params.push(["Statistics.member.1", statistics]);
         }
         if (dimensions instanceof Array)
         for (var i = 0; i < dimensions.length; i++) {
@@ -5334,7 +5384,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.timestamp + fieldSeparator + this.unit + fieldSeparator + this.value;
-            }
+            };
             obj.timestamp = new Date(getNodeValue(items[i], "Timestamp"));
             obj.unit = getNodeValue(items[i], "Unit");
             obj.average = getNodeValue(items[i], "Average");
@@ -5388,7 +5438,7 @@ var ew_api = {
                               'userName', name || this.core.user.name,
                               'userId', id || this.core.user.id,
                               'arn', arn || this.core.user.arn);
-        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); }
+        obj.toString = function() { return this.id + (this.state ? fieldSeparator + this.state : ""); };
         response.result = obj;
     },
 
@@ -5420,7 +5470,7 @@ var ew_api = {
                 var resultXml = proc.transformToDocument(configXml);
                 response.result = getNodeValue(resultXml, "transformiix:result");
             } catch (e) {
-                debug("Exception while processing XSLT: "+e)
+                debug("Exception while processing XSLT: "+e);
             }
         }
         return response.result;
@@ -5440,8 +5490,8 @@ var ew_api = {
             item.name = item.url.split("/").pop();
             item.messages = null;
             item.toString = function() {
-                return this.name
-            }
+                return this.name;
+            };
             return item;
         });
         this.core.setModel('queues', list);
@@ -5456,7 +5506,7 @@ var ew_api = {
     onCompleteGetQueueAttributes : function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Element('name',obj.Name,'value',obj.Value)});
+        var list = this.getItems(xmlDoc, "GetQueueAttributesResult", "Attribute", ["Name", "Value"], function(obj) { return new Element('name',obj.Name,'value',obj.Value); });
         response.result = list;
     },
 
@@ -5504,19 +5554,19 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "ReceiveMessageResult", "Message");
         for (var i = 0; i < items.length; i++) {
-            var obj = new Element('subject', '')
+            var obj = new Element('subject', '');
             obj.id = getNodeValue(items[i], "MessageId");
             obj.handle = getNodeValue(items[i], "ReceiptHandle");
             obj.body = getNodeValue(items[i], "Body");
-            obj.md5 = getNodeValue(items[i], "MD5OfBody")
+            obj.md5 = getNodeValue(items[i], "MD5OfBody");
             obj.url = response.url;
             obj.toString = function() {
                 return this.id + (this.subject ? fieldSeparator + this.subject : "");
-            }
+            };
 
             // Try to determine the subject
             try {
-                var o = JSON.parse(obj.body)
+                var o = JSON.parse(obj.body);
                 obj.subject = o.subject || o.type || '';
             } catch(e) {
                 obj.subject = obj.body.split("\n")[0];
@@ -5529,9 +5579,11 @@ var ew_api = {
                 switch (name) {
                 case "":
                     break;
+                // The following times are sent to us as epoch time in milliseconds
                 case "SentTimestamp":
                 case "ApproximateFirstReceiveTimestamp":
-                    obj[name] = new Date(value * 1000);
+                    obj[name] = new Date(0);
+                    obj[name].setUTCMilliseconds(value);
                     break;
                 default:
                     obj[name] = value;
@@ -5546,8 +5598,8 @@ var ew_api = {
     {
         var params = [ ["Label", label]];
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (parseInt(i) + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (parseInt(i) + 1), actions[i].id]);
+            params.push(["ActionName.member." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId.member." + (i + 1), actions[i].id]);
         }
         this.querySQS(url, "AddPermission", params, this, false, "onComplete:QueueUrl", callback);
     },
@@ -5574,7 +5626,7 @@ var ew_api = {
             item.subscriptions = [];
             item.toString = function() {
                 return this.name + (this.subscriptions.length ? fieldSeparator + this.subscriptions[0] : "");
-            }
+            };
             return item;
         });
         this.core.setModel('topics', list);
@@ -5595,10 +5647,10 @@ var ew_api = {
     {
         var params = [];
         params.push([ "Label", label ]);
-        params.push([ "TopicArn", id ])
+        params.push([ "TopicArn", id ]);
         for (var i = 0; i < actions.length; i++) {
-            params.push(["ActionName." + (parseInt(i) + 1), actions[i].name]);
-            params.push(["AWSAccountId." + (parseInt(i) + 1), actions[i].id]);
+            params.push(["ActionName.member." + (i + 1), actions[i].name]);
+            params.push(["AWSAccountId.member." + (i + 1), actions[i].id]);
         }
         this.querySNS("AddPermission", params, this, false, "onComplete", callback);
     },
@@ -5616,7 +5668,7 @@ var ew_api = {
     onCompleteGetTopicAttributes : function(response)
     {
         var xmlDoc = response.responseXML;
-        var list = this.getItems(xmlDoc, "Attributes", "entry", ["key", "value"], function(obj) { return new Tag(obj.key,obj.value)});
+        var list = this.getItems(xmlDoc, "Attributes", "entry", ["key", "value"], function(obj) { return new Tag(obj.key,obj.value); });
         response.result = list;
     },
 
@@ -5633,7 +5685,7 @@ var ew_api = {
             params.push(["Subject", subject]);
         }
         if (json) {
-            params.push(["MessageStructure", "json"])
+            params.push(["MessageStructure", "json"]);
         }
         this.querySNS("Publish", params, this, false, "onComplete:MessageId", callback);
     },
@@ -5648,7 +5700,7 @@ var ew_api = {
         var params = [ ["TopicArn", id]];
         params.push([ "Token", token] );
         if (AuthenticateOnUnsubscribe) {
-            params.push(["AuthenticateOnUnsubscribe", "true"])
+            params.push(["AuthenticateOnUnsubscribe", "true"]);
         }
         this.querySNS("Subscribe", params, this, false, "onComplete:SubscriptionArn", callback);
     },
@@ -5675,21 +5727,21 @@ var ew_api = {
 
         var list = this.getItems(xmlDoc, "Subscriptions", "member", ["TopicArn","Protocol","SubscriptionArn","Owner","Endpoint"], function(obj) {
             var item = new Element();
-            item.id = toArn(obj.SubscriptionArn)
-            item.topicArn = toArn(obj.TopicArn)
-            item.topicName = item.topicArn.split(/[:\/]+/).pop()
-            item.protocol = obj.Protocol
-            item.endpoint = obj.Endpoint
-            item.owner = obj.Owner
+            item.id = toArn(obj.SubscriptionArn);
+            item.topicArn = toArn(obj.TopicArn);
+            item.topicName = item.topicArn.split(/[:\/]+/).pop();
+            item.protocol = obj.Protocol;
+            item.endpoint = obj.Endpoint;
+            item.owner = obj.Owner;
             item.toString = function() {
                 return this.protocol + fieldSeparator + this.endpoint;
-            }
+            };
             return item;
         });
 
         if (response.action == "ListSubscriptions") {
             this.core.setModel('subscriptions', list);
-            var topics = this.core.getModel('topics')
+            var topics = this.core.getModel('topics');
             for (var i in topics) {
                 topics[i].subscriptions = this.core.queryModel('subscriptions', 'topicArn', topics[i].id);
             }
@@ -5725,7 +5777,7 @@ var ew_api = {
                                          'status', getNodeValue(subnets[i], "SubnetStatus"),
                                          'iopsCapable', toBool(getNodeValue(subnets[i], "SubnetAvailabilityZone", "ProvisionedIopsCapable")) ? "IopsCapable" : ""));
         }
-        grp.toString = function() { return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets; }
+        grp.toString = function() { return this.name + fieldSeparator + this.descr + fieldSeparator + this.status + fieldSeparator + ew_core.modelValue('vpcId', this.vpcId) + fieldSeparator + this.subnets; };
         return grp;
     },
 
@@ -5733,7 +5785,7 @@ var ew_api = {
     {
         if (!item) return null;
         var grp = new Element();
-        grp.toString = function() {  return this.name; }
+        grp.toString = function() {  return this.name; };
         grp.name = getNodeValue(item, "DBSecurityGroupName");
         if (!grp.name) return null;
         grp.descr = getNodeValue(item,"DBSecurityGroupDescription");
@@ -5749,7 +5801,7 @@ var ew_api = {
         var obj = new Element();
         obj.toString = function() {
             return this.name + fieldSeparator + this.id + fieldSeparator + this.engine + "/" + this.version;
-        }
+        };
 
         obj.id = getNodeValue(item, "DBInstanceIdentifier");
         obj.name = getNodeValue(item, "DBName");
@@ -5777,9 +5829,9 @@ var ew_api = {
         setNodeValue(obj, item, "OptionGroupMembership", "Status");
         setNodeValue(obj, item, "OptionGroupMembership", "OptionGroupName");
         obj.pendingModifiedValues = this.getItems(item, "PendingModifiedValues", null, null, function(obj) { return obj.tagName && obj.firstChild ? new Element('name',obj.tagName, 'value',obj.firstChild.nodeValue) : null; });
-        obj.securityGroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; })
-        obj.parameterGroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Element('name',obj.DBParameterGroupName,'value',obj.ParameterApplyStatus)});
-        obj.subnetGroupName = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0])
+        obj.securityGroups = this.getItems(item, "DBSecurityGroups", "DBSecurityGroup", ["DBSecurityGroupName"], function(obj) { return obj.DBSecurityGroupName; });
+        obj.parameterGroups = this.getItems(item, "DBParameterGroups", "DBParameterGroup", ["ParameterApplyStatus","DBParameterGroupName"], function(obj) { return new Element('name',obj.DBParameterGroupName,'value',obj.ParameterApplyStatus); });
+        obj.subnetGroupName = this.unpackDBSubnetGroup(item.getElementsByTagName("DBSubnetGroup")[0]);
         return obj;
     },
 
@@ -5814,15 +5866,15 @@ var ew_api = {
 
     createDBInstance : function(id, Engine, DBInstanceClass, AllocatedStorage, MasterUserName, MasterUserPassword, options, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "DBInstanceIdentifier", id ]);
         params.push([ "Engine", Engine ]);
         params.push([ "DBInstanceClass", DBInstanceClass ]);
         params.push([ "AllocatedStorage", AllocatedStorage ]);
-        params.push([ "MasterUsername", MasterUserName])
-        params.push([ "MasterUserPassword", MasterUserPassword])
+        params.push([ "MasterUsername", MasterUserName]);
+        params.push([ "MasterUserPassword", MasterUserPassword]);
 
-        debug(JSON.stringify(options))
+        debug(JSON.stringify(options));
 
         if (options.AutoMinorVersionUpgrade) {
             params.push([ "AutoMinorVersionUpgrade", options.AutoMinorVersionUpgrade ]);
@@ -5837,10 +5889,10 @@ var ew_api = {
             params.push([ "CharacterSetName", options.CharacterSetName ]);
         }
         if (options.DBName) {
-            params.push(["DBName", options.DBName])
+            params.push(["DBName", options.DBName]);
         }
         if (options.IOPS) {
-            params.push(["Iops", options.IOPS])
+            params.push(["Iops", options.IOPS]);
         }
         if (options.DBParameterGroupName) {
             params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
@@ -5851,7 +5903,7 @@ var ew_api = {
             }
         }
         if (options.DBSubnetGroupName) {
-            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName]);
         }
         if (options.EngineVersion) {
             params.push([ "EngineVersion", options.EngineVersion]);
@@ -5885,7 +5937,7 @@ var ew_api = {
 
     modifyDBInstance : function(id, options, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "DBInstanceIdentifier", id ]);
 
         if (options.AllocatedStorage) {
@@ -5910,16 +5962,16 @@ var ew_api = {
             params.push([ "MasterUserPassword", options.MasterUserPassword ]);
         }
         if (options.MultiAZ) {
-            params.push(["MultiAZ", options.MultiAZ])
+            params.push(["MultiAZ", options.MultiAZ]);
         }
         if (options.DBParameterGroupName) {
             params.push([ "DBParameterGroupName", options.DBParameterGroupName ]);
         }
         for (var i in options.DBSecurityGroups) {
-            params.push([ "DBSecurityGroups." + parseInt(i), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].id : options.DBSecurityGroups[i] ]);
+            params.push([ "DBSecurityGroups.member." + (i+1), typeof options.DBSecurityGroups[i] == "object" ? options.DBSecurityGroups[i].name : options.DBSecurityGroups[i] ]);
         }
         if (options.DBSubnetGroupName) {
-            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName]);
         }
         if (options.EngineVersion) {
             params.push([ "EngineVersion", options.EngineVersion]);
@@ -5938,7 +5990,7 @@ var ew_api = {
 
     restoreDBInstanceFromDBSnapshot : function(id, snapshotId, options, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "DBInstanceIdentifier", id ]);
         params.push([ "DBSnapshotIdentifier", snapshotId ]);
 
@@ -5955,7 +6007,7 @@ var ew_api = {
             params.push([ "DBName", options.DBName ]);
         }
         if (options.DBSubnetGroupName) {
-            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName]);
         }
         if (options.Engine) {
             params.push([ "Engine", options.Engine]);
@@ -5967,7 +6019,7 @@ var ew_api = {
             params.push([ 'LicenseModel', options.LicenseModel ]);
         }
         if (options.MultiAZ) {
-            params.push(["MultiAZ", options.MultiAZ])
+            params.push(["MultiAZ", options.MultiAZ]);
         }
         if (options.Port) {
             params.push([ "Port", options.Port ]);
@@ -5977,7 +6029,7 @@ var ew_api = {
 
     restoreDBInstanceToPointInTime : function(sourceId, targetId, options, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "SourceDBInstanceIdentifier", sourceId ]);
         params.push([ "TargetDBInstanceIdentifier", targetId ]);
 
@@ -5994,7 +6046,7 @@ var ew_api = {
             params.push([ "DBName", options.DBName ]);
         }
         if (options.DBSubnetGroupName) {
-            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName])
+            params.push([ "DBSubnetGroupName", options.DBSubnetGroupName]);
         }
         if (options.Engine) {
             params.push([ "Engine", options.Engine]);
@@ -6006,23 +6058,23 @@ var ew_api = {
             params.push([ 'LicenseModel', options.LicenseModel ]);
         }
         if (options.MultiAZ) {
-            params.push(["MultiAZ", options.MultiAZ])
+            params.push(["MultiAZ", options.MultiAZ]);
         }
         if (options.Port) {
             params.push([ "Port", options.Port ]);
         }
         if (options.RestoreTime) {
-            params.push([ "RestoreTime", options.RestoreTime])
+            params.push([ "RestoreTime", options.RestoreTime]);
         }
         if (options.UseLatestRestorableTime) {
-            params.pus(["UseLatestRestorableTime", options.UseLatestRestorableTime])
+            params.pus(["UseLatestRestorableTime", options.UseLatestRestorableTime]);
         }
         this.queryRDS("RestoreDBInstanceToPointInTime", params, this, false, "onCompleteCreateDBInstance", callback);
     },
 
     createDBInstanceReadReplica : function(id, sourceId, options, callback)
     {
-        var params = []
+        var params = [];
         params.push([ "SourceDBInstanceIdentifier", sourceId ]);
         params.push([ "DBInstanceIdentifier", id ]);
 
@@ -6047,8 +6099,8 @@ var ew_api = {
     rebootDBInstance: function(id, ForceFailover, callback)
     {
         var params = [];
-        params.push(["DBInstanceIdentifier", id])
-        if (ForceFailover) params.push(["ForceFailover", "true"])
+        params.push(["DBInstanceIdentifier", id]);
+        if (ForceFailover) params.push(["ForceFailover", "true"]);
         this.queryRDS("RebootDBInstance", params, this, false, "onCompleteCreateDBInstance", callback);
     },
 
@@ -6067,7 +6119,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + "/" + this.version + " " + this.versionDescr + " " + (this.descr ? "/" + this.descr : "");
-            }
+            };
 
             obj.family = getNodeValue(items[i], "DBParameterGroupFamily");
             obj.descr = getNodeValue(items[i], "DBEngineDescription");
@@ -6075,7 +6127,7 @@ var ew_api = {
             obj.name = getNodeValue(items[i], "Engine");
             obj.version = getNodeValue(items[i], "EngineVersion");
             obj.charsets = this.getItems(items[i], "CharacterSet", "CharacterSetName", "");
-            list.push(obj)
+            list.push(obj);
         }
         return this.getNext(response, this.queryRDS, list);
     },
@@ -6083,16 +6135,16 @@ var ew_api = {
     createDBParameterGroup: function(family, name, descr, callback)
     {
         var params = [];
-        params.push(["DBParameterGroupFamily", family])
-        params.push(["DBParameterGroupName", name])
-        params.push(["Description", descr])
+        params.push(["DBParameterGroupFamily", family]);
+        params.push(["DBParameterGroupName", name]);
+        params.push(["Description", descr]);
         this.queryRDS("CreateDBParameterGroup", params, this, false, "onComplete", callback);
     },
 
     deleteDBParameterGroup: function(name, callback)
     {
         var params = [];
-        params.push(["DBParameterGroupName", name])
+        params.push(["DBParameterGroupName", name]);
         this.queryRDS("DeleteDBParameterGroup", params, this, false, "onComplete", callback);
     },
 
@@ -6105,8 +6157,8 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
         var list = this.getItems(xmlDoc, "DBParameterGroups", "DBParameterGroup", ["DBParameterGroupFamily","Description","DBParameterGroupName"], function(o) {
-            var obj = new Element('name',o.DBParameterGroupName,'descr',o.Description,'family',o.DBParameterGroupFamily)
-            obj.toString = function() { return this.name }
+            var obj = new Element('name',o.DBParameterGroupName,'descr',o.Description,'family',o.DBParameterGroupFamily);
+            obj.toString = function() { return this.name; };
             return obj;
         });
         this.core.setModel('dbparameters', list);
@@ -6129,22 +6181,22 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "Parameters", "Parameter");
         for (var i = 0; i < items.length; i++) {
-            var obj = new Element()
+            var obj = new Element();
             obj.toString = function() {
-                return this.name + fieldSeparator + this.value + fieldSeparator + this.type
-            }
+                return this.name + fieldSeparator + this.value + fieldSeparator + this.type;
+            };
 
-            obj.name = getNodeValue(items[i], "ParameterName")
-            obj.value = getNodeValue(items[i], "ParameterValue")
-            obj.type = getNodeValue(items[i], "DataType")
-            obj.descr = getNodeValue(items[i], "Description")
-            obj.minVersion = getNodeValue(items[i], "MinimumEngineVersion")
-            obj.isModifiable = toBool(getNodeValue(items[i], "IsModifiable"))
-            obj.applyType = getNodeValue(items[i], "ApplyType")
-            obj.applyMethod = getNodeValue(items[i], "ApplyMethod")
-            obj.allowedValues = getNodeValue(items[i], "AllowedValues")
-            obj.source = getNodeValue(items[i], "Source")
-            list.push(obj)
+            obj.name = getNodeValue(items[i], "ParameterName");
+            obj.value = getNodeValue(items[i], "ParameterValue");
+            obj.type = getNodeValue(items[i], "DataType");
+            obj.descr = getNodeValue(items[i], "Description");
+            obj.minVersion = getNodeValue(items[i], "MinimumEngineVersion");
+            obj.isModifiable = toBool(getNodeValue(items[i], "IsModifiable"));
+            obj.applyType = getNodeValue(items[i], "ApplyType");
+            obj.applyMethod = getNodeValue(items[i], "ApplyMethod");
+            obj.allowedValues = getNodeValue(items[i], "AllowedValues");
+            obj.source = getNodeValue(items[i], "Source");
+            list.push(obj);
         }
         return this.getNext(response, this.queryRDS, list);
     },
@@ -6164,7 +6216,7 @@ var ew_api = {
     resetDBParameterGroup: function(name, resetAll, options, callback)
     {
         var params =  [ [ "DBParameterGroupName", name]];
-        if (resetAll) params.push(["ResetAllParameters", "true"])
+        if (resetAll) params.push(["ResetAllParameters", "true"]);
         for (var i  = 0; i < options.length; i++) {
             params.push(["Parameters.member." + i + ".ParameterName", options[i].name]);
             params.push(["Parameters.member." + i + ".ApplyMethod", options[i].applyMethod]);
@@ -6177,7 +6229,7 @@ var ew_api = {
     {
         var now = new Date();
         var params = [];
-        params.push([ 'StartTime', (new Date(now.getTime() - 86400*13000)).toISOString()])
+        params.push([ 'StartTime', (new Date(now.getTime() - 86400*13000)).toISOString()]);
         this.queryRDS("DescribeEvents", params, this, false, "onCompleteDescribeEvents", callback);
     },
 
@@ -6185,7 +6237,7 @@ var ew_api = {
     {
         var xmlDoc = response.responseXML;
         var list = this.getItems(xmlDoc, "Events", "Event", ["SourceIdentifier","SourceType","Date","Message"], function(o) {
-            return new Element('id',o.SourceIdentifier,'type',o.SourceType,'date',o.Date,'msg',o.Message)
+            return new Element('id',o.SourceIdentifier,'type',o.SourceType,'date',o.Date,'msg',o.Message);
         });
         return this.getNext(response, this.queryRDS, list);
     },
@@ -6204,20 +6256,20 @@ var ew_api = {
             var snap = new Element();
             snap.toString = function() {
                 return this.dbInstanceId + fieldSeparator + this.engine + "/" + this.version;
-            }
-            snap.id = getNodeValue(items[i], "DBSnapshotIdentifier")
-            snap.dbInstanceId = getNodeValue(items[i], "DBInstanceIdentifier")
-            snap.type = getNodeValue(items[i], "DBSnapshotType")
-            snap.userName = getNodeValue(items[i], "MasterUsername")
-            snap.version = getNodeValue(items[i], "EngineVersion")
-            snap.allocatedStorage = getNodeValue(items[i], "AllocatedStorage")
-            snap.createTime = new Date(getNodeValue(items[i], "InstanceCreateTime"))
-            snap.licenseModel = getNodeValue(items[i], "LicenseModel")
-            snap.availabilityZone = getNodeValue(items[i], "AvailabilityZone")
-            snap.status = getNodeValue(items[i], "Status")
-            snap.engine = getNodeValue(items[i], "Engine")
-            snap.port = getNodeValue(items[i], "Port")
-            snap.snapshotTime = new Date(getNodeValue(items[i], "SnapshotCreateTime"))
+            };
+            snap.id = getNodeValue(items[i], "DBSnapshotIdentifier");
+            snap.dbInstanceId = getNodeValue(items[i], "DBInstanceIdentifier");
+            snap.type = getNodeValue(items[i], "DBSnapshotType");
+            snap.userName = getNodeValue(items[i], "MasterUsername");
+            snap.version = getNodeValue(items[i], "EngineVersion");
+            snap.allocatedStorage = getNodeValue(items[i], "AllocatedStorage");
+            snap.createTime = new Date(getNodeValue(items[i], "InstanceCreateTime"));
+            snap.licenseModel = getNodeValue(items[i], "LicenseModel");
+            snap.availabilityZone = getNodeValue(items[i], "AvailabilityZone");
+            snap.status = getNodeValue(items[i], "Status");
+            snap.engine = getNodeValue(items[i], "Engine");
+            snap.port = getNodeValue(items[i], "Port");
+            snap.snapshotTime = new Date(getNodeValue(items[i], "SnapshotCreateTime"));
             list.push(snap);
         }
         return this.getNext(response, this.queryRDS, list);
@@ -6240,7 +6292,7 @@ var ew_api = {
         var params = [ ["DBSubnetGroupName", name]];
         params.push([ "DBSubnetGroupDescription", descr]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]]);
         }
         this.queryRDS("CreateDBSubnetGroup", params, this, false, "onComplete", callback);
     },
@@ -6250,7 +6302,7 @@ var ew_api = {
         var params = [ ["DBSubnetGroupName", name]];
         if (descr) params.push([ "DBSubnetGroupDescription", descr]);
         for (var i = 0; i < subnets.length; i++) {
-            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]])
+            params.push(["SubnetIds.member." + (i+1), typeof subnets[i] == "object" ? subnets[i].id : subnets[i]]);
         }
         this.queryRDS("ModifyDBSubnetGroup", params, this, false, "onComplete", callback);
     },
@@ -6312,11 +6364,11 @@ var ew_api = {
         var params = [ ["DBSecurityGroupName", name]];
         if (cidr) {
             params.push([ "CIDRIP", cidr]);
-        } else
-        if (group) {
+        } else if (group) {
+            // TODO: check if this trailing else is correct (id/group mutually exclusive) or not
             if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
-            if (group.name) params.push(["EC2SecurityGroupName", group.name])
-            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId])
+            if (group.name) params.push(["EC2SecurityGroupName", group.name]);
+            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId]);
         }
         this.queryRDS("AuthorizeDBSecurityGroupIngress", params, this, false, "onComplete", callback);
     },
@@ -6326,11 +6378,11 @@ var ew_api = {
         var params = [ ["DBSecurityGroupName", name]];
         if (cidr) {
             params.push([ "CIDRIP", cidr]);
-        } else
-        if (group) {
+        } else if (group) {
+            // TODO: check if this trailing else is correct (id/group mutually exclusive) or not
             if (group.id) params.push(["EC2SecurityGroupId", group.id]); else
-            if (group.name) params.push(["EC2SecurityGroupName", group.name])
-            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId])
+            if (group.name) params.push(["EC2SecurityGroupName", group.name]);
+            if (group.ownerId) params.push(["EC2SecurityGroupOwnerId", group.ownerId]);
         }
         this.queryRDS("RevokeDBSecurityGroupIngress", params, this, false, "onComplete", callback);
     },
@@ -6352,7 +6404,7 @@ var ew_api = {
                         this.majorEngineVersion + "/" + this.minimumRequiredMinorEngineVersion +
                         (this.portRequired ? fieldSeparator + "Port Required" : "") +
                         (this.dependsOn ? fieldSeparator + "Depends " + this.dependsOn : "");
-            }
+            };
 
             obj.name = getNodeValue(items[i], "Name");
             obj.engine = getNodeValue(items[i], "EngineName");
@@ -6370,9 +6422,9 @@ var ew_api = {
     createOptionGroup: function(name, descr, engine, version, callback)
     {
         var params = [];
-        params.push(["OptionGroupDescription", descr])
-        params.push(["OptionGroupName", name])
-        params.push(["EngineName", engine])
+        params.push(["OptionGroupDescription", descr]);
+        params.push(["OptionGroupName", name]);
+        params.push(["EngineName", engine]);
         params.push(["MajorEngineVersion", version]);
         this.queryRDS("CreateOptionGroup", params, this, false, "onComplete", callback);
     },
@@ -6380,7 +6432,7 @@ var ew_api = {
     deleteOptionGroup: function(name, callback)
     {
         var params = [];
-        params.push(["OptionGroupName", name])
+        params.push(["OptionGroupName", name]);
         this.queryRDS("DeleteOptionGroup", params, this, false, "onComplete", callback);
     },
 
@@ -6390,19 +6442,19 @@ var ew_api = {
         params.push([ "ApplyImmediately", toBool(now)]);
         for (var i = 0; i < include.length; i++) {
             if (typeof include[i] == "object") {
-                params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".OptionName", include[i].name])
-                if (include[i].port) params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".Port", include[i].port])
+                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i].name]);
+                if (include[i].port) params.push(["OptionsToInclude.member." + (i + 1) + ".Port", include[i].port]);
                 if (include[i].groups) {
                     for (var j = 0; j < include[i].groups.length; j++) {
-                        params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".DBSecurityGroupMemberships.member." + (j + 1), include[i].groups[j]])
+                        params.push(["OptionsToInclude.member." + (i + 1) + ".DBSecurityGroupMemberships.member." + (j + 1), include[i].groups[j]]);
                     }
                 }
             } else {
-                params.push(["OptionsToInclude.member." + (parseInt(i) + 1) + ".OptionName", include[i]])
+                params.push(["OptionsToInclude.member." + (i + 1) + ".OptionName", include[i]]);
             }
         }
         for (var i = 0; i < remove.length; i++) {
-            params.push(["OptionsToRemove.member." + (parseInt(i) + 1), remove[i]])
+            params.push(["OptionsToRemove.member." + (i + 1), remove[i]]);
         }
         this.queryRDS("ModifyOptionGroup", params, this, false, "onComplete", callback);
     },
@@ -6421,7 +6473,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.engine + "/" + this.version + " (" + this.options + ")";
-            }
+            };
 
             obj.name = getNodeValue(items[i], "OptionGroupName");
             obj.engine = getNodeValue(items[i], "EngineName");
@@ -6433,7 +6485,7 @@ var ew_api = {
                 var o = new Element();
                 o.toString = function() {
                     return this.name + fieldSeparator + this.descr + fieldSeparator + this.groups;
-                }
+                };
                 o.oname = getNodeValue(olist[j], "OptionName");
                 o.descr = getNodeValue(olist[j], "OptionDescription");
                 o.port = getNodeValue(olist[j], "Port");
@@ -6459,16 +6511,16 @@ var ew_api = {
             var obj = new Element();
             function DBOrderableOption(dbclass, engine, ver, license, maz, replica, vpc, vpcmaz, vpcreplica, azones)
             {
-                this.instanceClass = dbclass
-                this.engine = engine
-                this.version = ver
-                this.licenseModel = license
-                this.multiAZCapable = maz
-                this.readReplicaCapable = replica
-                this.vpcCapable = vpc
-                this.vpcMultiAZCapable = vpcmaz
-                this.vpcReadReplicaCapable = vpcreplica
-                this.availabilityZones = azones
+                this.instanceClass = dbclass;
+                this.engine = engine;
+                this.version = ver;
+                this.licenseModel = license;
+                this.multiAZCapable = maz;
+                this.readReplicaCapable = replica;
+                this.vpcCapable = vpc;
+                this.vpcMultiAZCapable = vpcmaz;
+                this.vpcReadReplicaCapable = vpcreplica;
+                this.availabilityZones = azones;
                 this.toString = function() {
                     return this.instanceClass + fieldSeparator + this.engine + "/" + this.version + fieldSeparator +
                                       (this.vpcCapable ? "VPC" : "") + " " +
@@ -6477,7 +6529,7 @@ var ew_api = {
                                       (this.readReplicaCapable ? " Replica" : "") + " " +
                                       (this.vpcReadReplicaCapable ? " VPCReplica" : "") + fieldSeparator +
                                       this.availabilityZones;
-                }
+                };
             }
 
             obj.instanceClass = getNodeValue(items[i], "DBInstanceClass");
@@ -6509,8 +6561,8 @@ var ew_api = {
         for ( var i = 0; i < items.length; i++) {
             var obj = new Element();
             obj.toString = function() {
-                return this.id
-            }
+                return this.id;
+            };
             var item = items[i];
             obj.id = getNodeValue(item, "ReservedDBInstancesOfferingId");
             obj.dbInstanceClass = getNodeValue(item, "DBInstanceClass");
@@ -6538,7 +6590,7 @@ var ew_api = {
         var list = new Array();
         var items = this.getItems(xmlDoc, "ReservedDBInstances", "ReservedDBInstance");
         for ( var i = 0; i < items.length; i++) {
-            var obj = new Element()
+            var obj = new Element();
             function DBReservedInstance(id, type, az, start, duration, fPrice, uPrice, rPrices, count, desc, state, otype, oid)
             {
                 this.id = id;
@@ -6552,12 +6604,12 @@ var ew_api = {
                 this.count = count;
                 this.productDescription = desc;
                 this.state = state;
-                this.offeringType = otype
-                this.offeringId = oid
+                this.offeringType = otype;
+                this.offeringId = oid;
 
                 this.toString = function() {
                     return this.dbInstanceClass  + fieldSeparator + this.fixedPrice + fieldSeparator +  this.recurringCharges + fieldSeparator + this.id;
-                }
+                };
             }
 
             var item = items[i];
@@ -6587,14 +6639,14 @@ var ew_api = {
     unpackHostedZone: function(item)
     {
         if (!item) return null;
-        var obj = new Element()
+        var obj = new Element();
         obj.toString = function() {
             return this.name + fieldSeparator + this.count;
-        }
+        };
 
         obj.id = getNodeValue(item, "Id");
-        obj.name = getNodeValue(item, "Name")
-        obj.reference = getNodeValue(item, "CallerReference")
+        obj.name = getNodeValue(item, "Name");
+        obj.reference = getNodeValue(item, "CallerReference");
         obj.count = getNodeValue(item, "ResourceRecordSetCount");
         obj.comment = getNodeValue(item, "Config", "Comment");
         return obj;
@@ -6655,7 +6707,7 @@ var ew_api = {
         obj.requestId = getNodeValue(xmlDoc, 'ChangeInfo', 'Id');
         obj.status = getNodeValue(xmlDoc, 'ChangeInfo', 'Status');
         obj.submitted = getNodeValue(xmlDoc, 'ChangeInfo', 'SubmittedAt');
-        this.core.replaceModel('hostedChanges', obj)
+        this.core.replaceModel('hostedChanges', obj);
         response.result = obj;
     },
 
@@ -6674,17 +6726,17 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.type + fieldSeparator + this.values;
-            }
+            };
 
             obj.type = getNodeValue(items[i], "Type");
-            obj.name = getNodeValue(items[i], "Name")
-            obj.ttl = getNodeValue(items[i], "TTL")
+            obj.name = getNodeValue(items[i], "Name");
+            obj.ttl = getNodeValue(items[i], "TTL");
             obj.hostedZone = getNodeValue(items[i], "AliasTarget", "HostedZoneId");
             obj.dnsName = getNodeValue(items[i], "AliasTarget", "DNSName");
             obj.setId = getNodeValue(items[i], "SetIdentifier");
             obj.weight = getNodeValue(items[i], "Weight");
             obj.region = getNodeValue(items[i], "Region");
-            obj.values = this.getItems(items[i], "ResourceRecords", "ResourceRecord", ["Value"], function(o) { return o.Value; })
+            obj.values = this.getItems(items[i], "ResourceRecords", "ResourceRecord", ["Value"], function(o) { return o.Value; });
             list.push(obj);
         }
 
@@ -6741,7 +6793,7 @@ var ew_api = {
                     '  </ChangeBatch>\n' +
                     '</ChangeResourceRecordSetsRequest>\n';
 
-        debug(contents)
+        debug(contents);
         this.queryRoute53("POST", id + '/rrset', contents, {}, this, false, "onCompleteChangeResourceRecordSets", callback);
     },
 
@@ -6753,11 +6805,11 @@ var ew_api = {
     onCompleteChangeResourceRecordSets: function(response)
     {
         var xmlDoc = response.responseXML;
-        var obj = {}
+        var obj = {};
         obj.id = getNodeValue(xmlDoc, "ChangeInfo", "Id");
         obj.status = getNodeValue(xmlDoc, 'ChangeInfo', 'Status');
         obj.submitted = getNodeValue(xmlDoc, 'ChangeInfo', 'SubmittedAt');
-        this.core.replaceModel('hostedChanges', obj)
+        this.core.replaceModel('hostedChanges', obj);
         response.result = obj;
     },
 
@@ -6768,26 +6820,26 @@ var ew_api = {
 
     deleteAutoScalingGroup: function(name, force, callback)
     {
-        var params = [ ["AutoScalingGroupName", name]]
-        if (force) params.push(["ForceDelete", true])
+        var params = [ ["AutoScalingGroupName", name]];
+        if (force) params.push(["ForceDelete", true]);
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
     createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags, propagate,callback)
     {
-        var params = [ ["AutoScalingGroupName", name]]
+        var params = [ ["AutoScalingGroupName", name]];
         zones.forEach(function(x, i) {
-            params.push(["AvailabilityZones.member." + (parseInt(i) + 1), typeof x == "object" ? x.name : x])
-        })
-        params.push(["LaunchConfigurationName", config])
-        params.push(["MinSize", min])
-        params.push(["MaxSize", max])
-        if (pgroup) params.push(["PlacementGroup", pgroup])
-        if (capacity) params.push(["DesiredCapacity", capacity])
-        if (cooldown) params.push(["DefaultCooldown", cooldown])
-        if (healthType) params.push(["HealthCheckType", healthType])
-        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
-        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ])
+            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x]);
+        });
+        params.push(["LaunchConfigurationName", config]);
+        params.push(["MinSize", min]);
+        params.push(["MaxSize", max]);
+        if (pgroup) params.push(["PlacementGroup", pgroup]);
+        if (capacity) params.push(["DesiredCapacity", capacity]);
+        if (cooldown) params.push(["DefaultCooldown", cooldown]);
+        if (healthType) params.push(["HealthCheckType", healthType]);
+        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace]);
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ]);
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
@@ -6815,17 +6867,17 @@ var ew_api = {
         var params = [ ["AutoScalingGroupName", name]];
 
         (zones || []).forEach(function(x, i) {
-            params.push(["AvailabilityZones.member." + (parseInt(i) + 1), typeof x == "object" ? x.name : x])
+            params.push(["AvailabilityZones.member." + (i + 1), typeof x == "object" ? x.name : x]);
         });
-        params.push(["LaunchConfigurationName", config])
-        params.push(["MinSize", min])
-        params.push(["MaxSize", max])
-        if (pgroup) params.push(["PlacementGroup", pgroup])
-        if (capacity) params.push(["DesiredCapacity", capacity])
-        if (cooldown) params.push(["DefaultCooldown", cooldown])
-        if (healthType) params.push(["HealthCheckType", healthType])
-        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace])
-        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ])
+        params.push(["LaunchConfigurationName", config]);
+        params.push(["MinSize", min]);
+        params.push(["MaxSize", max]);
+        if (pgroup) params.push(["PlacementGroup", pgroup]);
+        if (capacity) params.push(["DesiredCapacity", capacity]);
+        if (cooldown) params.push(["DefaultCooldown", cooldown]);
+        if (healthType) params.push(["HealthCheckType", healthType]);
+        if (healthGrace) params.push(["HealthCheckGracePeriod", healthGrace]);
+        if (subnets) params.push(["VPCZoneIdentifier", subnets.map(function(x) { return typeof x == "object" ? x.id : x; }).join(",") ]);
         if (tpolicies) {
             if (typeof tpolicies == "string") tpolicies = tpolicies.split(",");
             for (var i = 0; i < tpolicies.length; i++) {
@@ -6859,7 +6911,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.capacity + fieldSeparator + this.healthCheckType;
-            }
+            };
 
             obj.name = getNodeValue(items[i], "AutoScalingGroupName");
             obj.id = toArn(getNodeValue(items[i], "AutoScalingGroupARN"));
@@ -6880,14 +6932,14 @@ var ew_api = {
             obj.metrics = this.getItems(items[i], "EnabledMetrics", "item", ["Metric","Granularity"], function(o) { return new Element('name',o.Metric, 'value',o.Granularity); });
             obj.granularity = getNodeValue(items[i], "EnabledMetric", "Granularity");
             obj.instances = this.getItems(items[i], "Instances", "member", ["HealthStatus","AvailabilityZone","InstanceId","LaunchConfigurationName","LifecycleState"], function(o) {
-                var g = new Element('group',this.name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState)
+                var g = new Element('group',this.name,'availabilityZone',o.AvailabilityZone,'healthStatus',o.HealthStatus,'instanceId',o.InstanceId,'launchConfigurationName',o.LaunchConfigurationName,'state',o.LifecycleState);
                 g.toString = function() {
                     return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
-                }
-                return g
-            })
-            obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Element('name',o.ProcessName,'value',o.SuspensionReason)})
-            obj.tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(o) { return new Tag(o.Key,o.Value,o.ResourceId,o.ResourceType,toBool(o.PropagateAtLaunch))})
+                };
+                return g;
+            });
+            obj.suspendedProcesses = this.getItems(items[i], "SuspendedProcesses", "member", ["ProcessName","SuspensionReason"], function(o) { return new Element('name',o.ProcessName,'value',o.SuspensionReason); });
+            obj.tags = this.getItems(items[i], "Tags", "member", ["Key","Value","ResourceId","ResourceType","PropagateAtLaunch"], function(o) { return new Tag(o.Key,o.Value,o.ResourceId,o.ResourceType,toBool(o.PropagateAtLaunch)); });
             list.push(obj);
         }
         this.core.setModel('asgroups', list);
@@ -6896,7 +6948,7 @@ var ew_api = {
 
     deleteLaunchConfiguration: function(name, callback)
     {
-        var params = [ ["LaunchConfigurationName", name]]
+        var params = [ ["LaunchConfigurationName", name]];
         this.queryAS("DeleteLaunchConfiguration", params, this, false, "onComplete", callback);
     },
 
@@ -6944,7 +6996,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.name + fieldSeparator + this.instanceType + fieldSeparator + ew_core.modelValue('imageId', this.imageId);
-            }
+            };
 
             obj.name = getNodeValue(items[i], "LaunchConfigurationName");
             obj.id = toArn(getNodeValue(items[i], "LaunchConfigurationARN"));
@@ -6969,7 +7021,7 @@ var ew_api = {
                            (this.virtualName ? fieldSeparator + this.virtualName : "") + (this.volumeSize ? fieldSeparator + this.volumeSize + "GB" : "") +
                            (this.snapshotId ? fieldSeparator + this.snapshotId : "") + (this.deleteOnTermination ? fieldSeparator + "DeleteOnTermination" : "") +
                            (this.noDevice ? fieldSeparator + "noDevice" : "");
-                }
+                };
                 dev.deviceNqame = getNodeValue(objs[j], "DeviceName");
                 dev.virtualName = getNodeValue(objs[j], "VirtualName");
                 dev.snapshotId = getNodeValue(objs[j], "ebs", "SnapshotId");
@@ -6998,7 +7050,7 @@ var ew_api = {
     {
         var params = [["AutoScalingGroupName", name]];
         params.push(["PolicyName", policy]);
-        if (honorCooldown) params.push(["HonorCooldown",honorCooldown])
+        if (honorCooldown) params.push(["HonorCooldown",honorCooldown]);
         this.queryAS("ExecutePolicy", params, this, false, "onComplete", callback);
     },
 
@@ -7016,15 +7068,14 @@ var ew_api = {
     {
         var params = ["AutoScalingGroupName", name];
         params.push(["TopicARN", topic]);
-        (events || []).forEach(function(x,i) { params.push(["NotificationTypes.member." + (parseInt(i) + 1), x])})
-
+        (events || []).forEach(function(x,i) { params.push(["NotificationTypes.member." + (i + 1), x]); });
         this.queryAS("DeleteNotificationConfiguration", params, this, false, "onComplete", callback);
     },
 
     suspendProcesses: function(name, processes, callback)
     {
         var params = ["AutoScalingGroupName", name];
-        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (parseInt(i) + 1), x])})
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x]); });
 
         this.queryAS("SuspendProcesses", params, this, false, "onComplete", callback);
     },
@@ -7032,8 +7083,7 @@ var ew_api = {
     resumeProcesses: function(name, processes, callback)
     {
         var params = ["AutoScalingGroupName", name];
-        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (parseInt(i) + 1), x])})
-
+        (processes || []).forEach(function(x,i) { params.push(["ScalingProcesses.member." + (i + 1), x]); });
         this.queryAS("ResumeProcesses", params, this, false, "onComplete", callback);
     },
 
@@ -7056,7 +7106,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function() {
                 return this.type + fieldSeparator + this.group + fieldSeparator + this.topic;
-            }
+            };
 
             obj.group = getNodeValue(items[i], "AutoScalingGroupName");
             obj.type = getNodeValue(items[i], "NotificationType");
@@ -7080,7 +7130,7 @@ var ew_api = {
     {
         var params = [["HealthStatus", status]];
         params.push(["InstanceId", id]);
-        if (graceperiod) params.push(["ShouldRespectGracePeriod", true])
+        if (graceperiod) params.push(["ShouldRespectGracePeriod", true]);
         this.queryAS("SetInstanceHealth", params, this, false, "onComplete", callback);
     },
 
@@ -7088,7 +7138,7 @@ var ew_api = {
     {
         var params = [["AutoScalingGroupName", name]];
         params.push(["DesiredCapacity", capacity]);
-        if (honorCooldown) params.push(["HonorCooldown", true])
+        if (honorCooldown) params.push(["HonorCooldown", true]);
         this.queryAS("SetDesiredCapacity", params, this, false, "onComplete", callback);
     },
 
@@ -7097,10 +7147,10 @@ var ew_api = {
         var params = [];
         params.push(["PolicyName", name]);
         params.push(["AutoScalingGroupName", group]);
-        params.push(["AdjustmentType", adjustmentType])
-        params.push(["ScalingAdjustment", adjustment])
-        if (minStep) params.push(["MinAdjustmentStep", minStep])
-        if (cooldown) params.push(["Cooldown", cooldown])
+        params.push(["AdjustmentType", adjustmentType]);
+        params.push(["ScalingAdjustment", adjustment]);
+        if (minStep) params.push(["MinAdjustmentStep", minStep]);
+        if (cooldown) params.push(["Cooldown", cooldown]);
         this.queryAS("PutScalingPolicy", params, this, false, "onComplete", callback);
     },
 
@@ -7109,12 +7159,12 @@ var ew_api = {
         var params = [];
         params.push(["ScheduledActionName", name]);
         params.push(["AutoScalingGroupName", group]);
-        if (capacity) params.push(["DesiredCapacity", capacity])
-        if (recurrence) params.push(["Recurrence", recurrence])
-        if (start) params.push(["StartTime", start])
-        if (end) params.push(["EndTime", end])
-        if (min) params.push(["MinSize", min])
-        if (max) params.push(["MaxSize", max])
+        if (capacity) params.push(["DesiredCapacity", capacity]);
+        if (recurrence) params.push(["Recurrence", recurrence]);
+        if (start) params.push(["StartTime", start]);
+        if (end) params.push(["EndTime", end]);
+        if (min) params.push(["MinSize", min]);
+        if (max) params.push(["MaxSize", max]);
         this.queryAS("PutScheduledUpdateGroupAction", params, this, false, "onComplete", callback);
     },
 
@@ -7132,7 +7182,7 @@ var ew_api = {
             var obj = new Element();
             obj.toString = function () {
                 return this.name + fieldSeparator + this.group + fieldSeparator + this.adjustmentType;
-            }
+            };
 
             obj.group = getNodeValue(items[i], "AutoScalingGroupName");
             obj.adjustmentType = getNodeValue(items[i], "AdjustmentType");
@@ -7161,8 +7211,8 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             var action = new Element();
             action.toString = function() {
-                return this.name + fieldSeparator + this.group + fieldSeparator + this.recurrence
-            }
+                return this.name + fieldSeparator + this.group + fieldSeparator + this.recurrence;
+            };
             action.name = getNodeValue(items[i], "ScheduledActionName");
             action.id = toArn(getNodeValue(items[i], "ScheduledActionARN"));
             action.group = getNodeValue(items[i], "AutoScalingGroupName");
@@ -7189,10 +7239,10 @@ var ew_api = {
         var list = [];
         var items = this.getItems(xmlDoc, "AutoScalingInstances", "member");
         for (var i = 0; i < items.length; i++) {
-            var obj = new Element()
+            var obj = new Element();
             obj.toString = function() {
                 return ew_core.modelValue('instanceId', this.instanceId) + fieldSeparator + this.healthStatus + fieldSeparator + this.state;
-            }
+            };
             obj.group = getNodeValue(items[i], "AutoScalingGroupName");
             obj.availabilityZone = getNodeValue(items[i], "AvailabilityZone");
             obj.healthStatus = getNodeValue(items[i], "HealthStatus");
@@ -7218,8 +7268,8 @@ var ew_api = {
         for (var i = 0; i < items.length; i++) {
             var obj = new Element();
             obj.toString = function() {
-                return this.group + fieldSeparator + this.status
-            }
+                return this.group + fieldSeparator + this.status;
+            };
 
             obj.group = getNodeValue(items[i], "AutoScalingGroupName");
             obj.id = getNodeValue(items[i], "ActivityId");
@@ -7251,13 +7301,14 @@ var ew_api = {
             var job = new Element();
             job.toString = function() {
                 return this.name + fieldSeparator + this.id + fieldSeparator + this.state;
-            }
+            };
             job.id = getNodeValue(items[i], "JobFlowId");
-            job.name = getNodeValue(items[i], "Name")
-            job.logURI = getNodeValue(items[i], "LogUri")
+            job.name = getNodeValue(items[i], "Name");
+            job.logURI = getNodeValue(items[i], "LogUri");
+            job.jobFlowRole = getNodeValue(items[i], "JobFlowRole");
             job.supportedProducts = getNodeValue(items[i], "SupportedProducts");
-            job.amiVersion = getNodeValue(items[i], "AmiVersion")
-            job.state = getNodeValue(items[i], "ExecutionStatusDetail", "State")
+            job.amiVersion = getNodeValue(items[i], "AmiVersion");
+            job.state = getNodeValue(items[i], "ExecutionStatusDetail", "State");
             job.creationDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "CreationDateTime"));
             job.startDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "StartDateTime"));
             job.endDateTime = new Date(getNodeValue(items[i], "ExecutionStatusDetail", "EndDateTime"));
@@ -7276,37 +7327,37 @@ var ew_api = {
             job.keepJobFlowAliveWhenNoSteps = toBool(getNodeValue(items[i], "KeepJobFlowAliveWhenNoSteps"));
             job.terminationProtected = toBool(getNodeValue(items[i], "TerminationProtected"));
             job.instanceGroups = this.getItems(items[i], "InstanceGroups", "member", [], function(obj) {
-                obj.toString = function () { return this.Name + fieldSeparator + this.State + fieldSeparator + this.InstanceRole + fieldSeparator + this.InstanceType + fieldSeparator + this.InstanceRunningCount + '/' + this.InstanceRequestCount; }
+                obj.toString = function () { return this.Name + fieldSeparator + this.State + fieldSeparator + this.InstanceRole + fieldSeparator + this.InstanceType + fieldSeparator + this.InstanceRunningCount + '/' + this.InstanceRequestCount; };
                 return obj;
             });
             job.steps = [];
             var steps = this.getItems(items[i], "Steps", "member");
             for (var j = 0; j < steps.length; j++) {
                 var step = new Element();
-                step.toString = function() { return step.name + fieldSeparator + step.state }
-                step.state = getNodeValue(steps[j], "ExecutionStatusDetail", "State")
+                step.toString = function() { return step.name + fieldSeparator + step.state; };
+                step.state = getNodeValue(steps[j], "ExecutionStatusDetail", "State");
                 step.creationDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "CreationDateTime"));
                 step.startDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "StartDateTime"));
                 step.endDateTime = new Date(getNodeValue(steps[j], "ExecutionStatusDetail", "EndDateTime"));
                 step.lastStateReason = getNodeValue(steps[j], "ExecutionStatusDetail", "LastStateChangeReason");
-                step.name = getNodeValue(steps[j], "StepConfig", "Name")
-                step.actionOnFailure = getNodeValue(steps[j], "StepConfig", "ActionOnFailure")
-                step.hadoopArgs = this.getItems(steps[j], "Args", "member", [])
-                step.hadoopJar = getNodeValue(steps[j], "HadoopJarStep", "Jar")
-                step.hadoopMainClass = getNodeValue(steps[j], "HadoopJarStep", "MainClass")
-                step.hadoopProperties = this.getItems(steps[j], "HadoopJarStep", "Properties", [])
-                job.steps.push(step)
+                step.name = getNodeValue(steps[j], "StepConfig", "Name");
+                step.actionOnFailure = getNodeValue(steps[j], "StepConfig", "ActionOnFailure");
+                step.hadoopArgs = this.getItems(steps[j], "Args", "member", []);
+                step.hadoopJar = getNodeValue(steps[j], "HadoopJarStep", "Jar");
+                step.hadoopMainClass = getNodeValue(steps[j], "HadoopJarStep", "MainClass");
+                step.hadoopProperties = this.getItems(steps[j], "HadoopJarStep", "Properties", []);
+                job.steps.push(step);
             }
             job.bootstrapActions = [];
             var actions = this.getItems(items[i], "BootstrapActions", "member");
             for (var j = 0; j < actions.length; j++) {
                 var action = new Element();
-                action.name = getNodeValue(actions[j], "Name")
-                action.path = getNodeValue(actions[j], "Path")
+                action.name = getNodeValue(actions[j], "Name");
+                action.path = getNodeValue(actions[j], "Path");
                 action.args = this.getItems(actions[j], "Args", "member", []);
-                job.bootstrapActions.push(action)
+                job.bootstrapActions.push(action);
             }
-            list.push(job)
+            list.push(job);
         }
         this.core.setModel('jobflows', list);
         response.result = list;
@@ -7380,7 +7431,7 @@ var ew_api = {
 
     setTerminationProtection: function(id, flag, callback)
     {
-        var params = [["TerminationProtected", toBool(flag)]]
+        var params = [["TerminationProtected", toBool(flag)]];
         if (!Array.isArray(id)) id = [ id ];
         for (var i = 0; i < id.length; i++) {
             params.push(["JobFlowIds.member." + (parseInt(i) + 1), id]);
@@ -7418,7 +7469,7 @@ var ew_api = {
         var schema = { "HashKeyElement": {"AttributeName": hash, "AttributeType": hashtype } };
         if (range && rangetype) schema.RangeKeyElement = {"AttributeName": range,"AttributeType": rangetype };
 
-        var params = { "TableName": name, "KeySchema": schema, "ProvisionedThroughput":{"ReadCapacityUnits": rlimit,"WriteCapacityUnits": wlimit }}
+        var params = { "TableName": name, "KeySchema": schema, "ProvisionedThroughput":{"ReadCapacityUnits": rlimit,"WriteCapacityUnits": wlimit }};
         this.queryDDB('CreateTable', params, this, false, "onCompleteJson:TableDescription", callback);
     },
 
@@ -7430,7 +7481,7 @@ var ew_api = {
 
     updateTable: function(name, r, w, callback)
     {
-        var params = {"TableName": name, "ProvisionedThroughput": {"ReadCapacityUnits":r,"WriteCapacityUnits":w } }
+        var params = {"TableName": name, "ProvisionedThroughput": {"ReadCapacityUnits":r,"WriteCapacityUnits":w } };
         this.queryDDB('UpdateTable', params, this, false, "onCompleteJson:TableDescription", callback);
     },
 
@@ -7560,7 +7611,7 @@ var ew_api = {
             }
         }
         if (options.filter) {
-            params.ScanFilter = {}
+            params.ScanFilter = {};
             for (var attr in options.filter) {
                 if (options.filter.hasOwnProperty(attr)) {
                     for (var op in options.filter[attr]) {

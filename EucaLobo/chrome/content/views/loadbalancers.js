@@ -1,5 +1,5 @@
 var ew_LoadbalancerTreeView = {
-    model: [ "loadBalancers", "availabilityZones", "securityGroups", "instances","cerverCerts", "subnets", "elbPolicyTypes" ],
+    model: [ "loadBalancers", "availabilityZones", "securityGroups", "instances","serverCerts", "subnets", "elbPolicyTypes" ],
 
     display: function(list)
     {
@@ -24,19 +24,18 @@ var ew_LoadbalancerTreeView = {
         if (elb == null) return;
         if (!confirm("Delete Loadbalancer "+elb.name+"?")) return;
         var me = this;
-        this.core.api.deleteLoadBalancer(elb.name, function () { me.refresh() });
+        this.core.api.deleteLoadBalancer(elb.name, function () { me.refresh(); });
     },
 
     create: function() {
         var me = this;
-        var tab = this.core.getCurrentTab();
         var retVal = {ok:null, vpc: this.core.isVpcMode() };
         window.openDialog("chrome://ew/content/dialogs/create_loadbalancer.xul",null,"chrome,centerscreen,modal,resizable",this.core, retVal);
         if (retVal.ok) {
             this.core.api.createLoadBalancer(retVal.name, retVal.Protocol, retVal.elbport, retVal.instanceport, retVal.cert, retVal.azones, retVal.subnets, retVal.securityGroups, retVal.scheme, function() {
                 me.core.api.configureHealthCheck(retVal.name,retVal.Target,retVal.Interval,retVal.Timeout,retVal.HealthyThreshold,retVal.UnhealthyThreshold, function() {
                     if (retVal.instances.length > 0) {
-                        me.core.api.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh() });
+                        me.core.api.registerInstancesWithLoadBalancer(retVal.name, retVal.instances, function() { me.refresh(); });
                     } else {
                         me.refresh();
                     }
@@ -55,7 +54,7 @@ var ew_LoadbalancerTreeView = {
                        {label:"Instance Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
                        {label:"LoadBalancer Port:",type:"number",required:1},
                        {label:"LoadBalancer Protocol:",type:"menulist",required:1,list:["HTTP","HTTPS","TCP","SSL"]},
-                       {label:"SSL Certificate",type:"menulist",list:certs,key:'arn'}]
+                       {label:"SSL Certificate",type:"menulist",list:certs,key:'arn'}];
 
          var values = this.core.promptInput('Create LoadBalancer Listener', inputs);
          if (!values) return;
@@ -71,9 +70,9 @@ var ew_LoadbalancerTreeView = {
                       {label:"Interval",type:"number",help:"seconds",required:1},
                       {label:"Timeout",type:"number", help:"seconds",required:1},
                       {label:"Healthy Threshold",type:"number",required:1},
-                      {label:"Unhealthy Threhold",type:"number",required:1}]
+                      {label:"Unhealthy Threhold",type:"number",required:1}];
 
-        var values = this.core.promptInput("Configure HealthCheck", inputs);
+        var values = this.core.promptInput("Configure Health Check", inputs);
         if (!values) return;
         var me = this;
         this.core.api.configureHealthCheck(elb.name,values[1],values[2],values[3],values[4],values[5],function() { me.refresh(); });
@@ -91,11 +90,11 @@ var ew_LoadbalancerTreeView = {
         var list = this.core.promptList('Register Instances', 'Select instances to register with this load balancer:', instances, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
-        instances = []
+        instances = [];
         for (var i in list) {
-            instances.push(list[i].id)
+            instances.push(list[i].id);
         }
-        this.core.api.registerInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
+        this.core.api.registerInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh(); });
     },
 
     deregisterInstances : function(){
@@ -103,16 +102,16 @@ var ew_LoadbalancerTreeView = {
         if (elb == null) return;
         var instances = [];
         for (var  i in elb.Instances) {
-            instances.push(this.core.findModel('instances', elb.Instances[i]))
+            instances.push(this.core.findModel('instances', elb.Instances[i]));
         }
         var list = this.core.promptList('Deregister Instances', 'Select instances to deregister with this load balancer:', instances, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
-        instances = []
+        instances = [];
         for (var i in list) {
-            instances.push(list[i].id)
+            instances.push(list[i].id);
         }
-        this.core.api.deregisterInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh() });
+        this.core.api.deregisterInstancesWithLoadBalancer(elb.name, instances, function() { me.refresh(); });
     },
 
     manageZones : function(enable) {
@@ -129,15 +128,15 @@ var ew_LoadbalancerTreeView = {
         }
         var list = this.core.promptList((enable ? "Enable" : "Disable") + 'Availability Zones', 'Select Zones to ' + (enable ? "enable" : "disable") + ' for this load balancer:', zones, { multiple: true, checkedItems: checked });
         if (!list || !list.length) return;
-        var zonelist = []
+        var zonelist = [];
         for (var i in list) {
             zonelist.push(list[i].name);
         }
         var me = this;
         if (enable) {
-            this.core.api.enableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
+            this.core.api.enableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh(); });
         } else {
-            this.core.api.disableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh() });
+            this.core.api.disableAvailabilityZonesForLoadBalancer(elb.name, zonelist, function() { me.refresh(); });
         }
     },
 
@@ -154,7 +153,7 @@ var ew_LoadbalancerTreeView = {
         var values = this.core.promptInput('Server Certificates', [{label:"LoadBalancer Port:",type:"number",required:1}, {label:"Certificate",type:"menulist",list:certs,required:1}]);
         if (!values) return;
         var me = this;
-        this.core.api.setLoadBalancerListenerSSLCertificate(elb.name, values[0], values[1], function() { me.refresh() });
+        this.core.api.setLoadBalancerListenerSSLCertificate(elb.name, values[0], values[1], function() { me.refresh(); });
     },
 
     disableStickness :function()
@@ -179,7 +178,7 @@ var ew_LoadbalancerTreeView = {
         var name = this.core.prompt("Please provide your application cookie name:");
         if (!name) return;
         var me = this;
-        this.core.api.createAppCookieStickinessPolicy(elb.name, elb.name + "-" + name + "-AppStickinessPolicy", name,function() { me.refresh() });
+        this.core.api.createAppCookieStickinessPolicy(elb.name, elb.name + "-" + name + "-AppStickinessPolicy", name,function() { me.refresh(); });
     },
 
     loadbalancerStickness :function()
@@ -199,7 +198,6 @@ var ew_LoadbalancerTreeView = {
     menuChanged : function(){
         var elb = this.getSelected();
         if (!elb) return;
-        var menu = document.getElementById("loadbalancer.tree.contextmenu");
         document.getElementById("loadbalancer.context.disablestickness").disabled = !elb.appStickinessPolicies && !elb.lbStickinessPolicies;
         document.getElementById("loadbalancer.context.instances").disabled = elb.Instances.length == 0 ? true : false;
         document.getElementById("loadbalancer.context.disablezones").disabled = elb.zones.length > 1 ? false : true;
@@ -211,16 +209,15 @@ var ew_LoadbalancerTreeView = {
     },
 
     changeSecurityGroup: function() {
-        var me = this;
         var elb = this.getSelected();
         if (!elb) return;
         var groups = this.core.queryModel('securityGroups', 'vpcId', elb.vpcId);
         var list = this.core.promptList('Change Security Groups', 'Select security groups for load balancer:', groups, { multiple: true });
         if (!list || !list.length) return;
         var me = this;
-        groups = []
+        groups = [];
         for (var i in list) {
-            groups.push(list[i].id)
+            groups.push(list[i].id);
         }
         this.core.api.applySecurityGroupsToLoadBalancer(elb.name, groups, function() { me.refresh();});
     },
@@ -234,19 +231,19 @@ var ew_LoadbalancerTreeView = {
         var subnets = this.core.queryModel('subnets', 'vpcId', elb.vpcId);
         for (var i in subnets) {
             if (elb.subnets.indexOf(subnets[i].id) >= 0) continue;
-            list.push(subnets[i])
+            list.push(subnets[i]);
         }
         if (list.length == 0) {
-            alert('No available subnets to attach to')
+            alert('No available subnets to attach to');
             return;
         }
         list = this.core.promptList('Attach to Subnets', 'Select subnets to attach this load balancer to', list, { multiple: true });
         if (!list || !list.length) return;
-        subnets = []
+        subnets = [];
         for (var i in list) {
-            subnets.push(list[i].id)
+            subnets.push(list[i].id);
         }
-        this.core.api.attachLoadBalancerToSubnets(elb.name, subnets, function() { me.refresh() });
+        this.core.api.attachLoadBalancerToSubnets(elb.name, subnets, function() { me.refresh(); });
     },
 
     deleteSubnet: function()
@@ -258,15 +255,15 @@ var ew_LoadbalancerTreeView = {
         var subnets = this.core.queryModel('subnets', 'vpcId', elb.vpcId);
         for (var i in subnets) {
             if (elb.subnets.indexOf(subnets[i].id) == -1) continue;
-            list.push(subnets[i])
+            list.push(subnets[i]);
         }
         list = this.core.promptList('Detach from Subnets', 'Select subnets to dettach from this load balancer', list, { multiple: true });
         if (!list || !list.length) return;
-        subnets = []
+        subnets = [];
         for (var i in list) {
-            subnets.push(list[i].id)
+            subnets.push(list[i].id);
         }
-        this.core.api.dettachLoadBalancerFromSubnets(elb.name, subnets, function() { me.refresh() });
+        this.core.api.dettachLoadBalancerFromSubnets(elb.name, subnets, function() { me.refresh(); });
     },
 };
 

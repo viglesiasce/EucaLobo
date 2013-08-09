@@ -2314,7 +2314,7 @@ RSAKey.prototype.decrypt = RSADecrypt;
 function parseRSAKey(bytes)
 {
     var location = 0;
-    var key = new Object()
+    var key = new Object();
     // Step 1 is to remove the wrapper
     if (bytes[0] != 0x30) {
         log("Expected to find a sequence");

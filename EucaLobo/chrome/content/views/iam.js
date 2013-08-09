@@ -58,19 +58,19 @@ var ew_UsersTreeView = {
         item.refreshed = true;
         // GovCloud does not support this yet
         if (!item.loginProfileDate) {
-            this.core.api.getLoginProfile(item.name, function(date) { me.menuChanged() })
+            this.core.api.getLoginProfile(item.name, function(date) { me.menuChanged(); });
         }
         if (!item.groups) {
-            this.core.api.listGroupsForUser(item.name, function(list) { me.menuChanged() })
+            this.core.api.listGroupsForUser(item.name, function(list) { me.menuChanged(); });
         }
         if (!item.policies) {
-            this.core.api.listUserPolicies(item.name, function(list) { me.menuChanged() })
+            this.core.api.listUserPolicies(item.name, function(list) { me.menuChanged(); });
         }
         if (!item.accessKeys) {
-            this.core.api.listAccessKeys(item.name, function(list) { me.menuChanged() })
+            this.core.api.listAccessKeys(item.name, function(list) { me.menuChanged(); });
         }
         if (!item.mfaDevices) {
-            this.core.api.listMFADevices(item.name, function(list) { me.menuChanged() })
+            this.core.api.listMFADevices(item.name, function(list) { me.menuChanged(); });
         }
     },
 
@@ -86,7 +86,7 @@ var ew_UsersTreeView = {
                                                            { label: "Create Credentials", type: "checkbox", tooltiptext: "Create credentials for EW using new user access key" }]);
         if (!values) return;
         if (values[3] && values[3] != values[4]) {
-            return alert('New entered passwords mismatch')
+            return alert('New entered passwords mismatch');
         }
         this.core.api.createUser(values[0], values[1], function(user) {
             me.core.addModel('users', user);
@@ -95,7 +95,7 @@ var ew_UsersTreeView = {
             if (values[3]) {
                 me.core.api.createLoginProfile(values[0], values[3], function() {
                     user.loginProfileDate = new Date();
-                })
+                });
             }
             if (values[5] || values[6]) {
                 me.core.api.createAccessKey(values[0], function(key) {
@@ -105,7 +105,7 @@ var ew_UsersTreeView = {
                     }
                 });
             }
-        })
+        });
     },
 
     deleteUser: function()
@@ -121,19 +121,19 @@ var ew_UsersTreeView = {
             for (var i in item.policies) {
                 this.core.api.deleteUserPolicy(item.name, item.policies[i]);
             }
-            sleep(1000)
+            sleep(1000);
         }
         if (item.accessKeys) {
             for (var i in item.accessKeys) {
                 this.core.api.deleteAccessKey(item.accessKeys[i].id, item.name);
             }
-            sleep(1000)
+            sleep(1000);
         }
         if (item.groups) {
             for (var i in item.groups) {
                 this.core.api.removeUserFromGroup(item.name, item.groups[i].name);
             }
-            sleep(1000)
+            sleep(1000);
         }
         this.core.api.deleteUser(item.name, function() {
             if (me.core.removeModel('users', item.name, 'name')) me.invalidate(); else me.refresh();
@@ -150,24 +150,23 @@ var ew_UsersTreeView = {
         this.core.api.updateUser(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() {
             me.core.updateModel('users', item.name, 'name', values[0], 'path', values[1]);
             me.invalidate();
-        })
+        });
     },
 
     setPassword: function(update)
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         var title = update ? 'Change Password for ' + item.name : 'Add Password for ' + item.name;
         var values = this.core.promptInput(title, [{ label: "New Password", type: "password" }, { label: "Retype Password", type: "password" }]);
         if (!values) return;
         if (values[0] != values[1]) {
-            return alert('New entered passwords mismatch')
+            return alert('New entered passwords mismatch');
         }
         if (update) {
-            this.core.api.updateLoginProfile(item.name, values[0], function() { })
+            this.core.api.updateLoginProfile(item.name, values[0], function() { });
         } else {
-            this.core.api.createLoginProfile(item.name, values[0], function() { item.loginProfileDate = new Date(); })
+            this.core.api.createLoginProfile(item.name, values[0], function() { item.loginProfileDate = new Date(); });
         }
     },
 
@@ -179,14 +178,13 @@ var ew_UsersTreeView = {
                                  { label: "Retype Password", type: "password" }]);
         if (!values) return;
         if (values[1] != values[2]) {
-            return alert('New entered passwords mismatch')
+            return alert('New entered passwords mismatch');
         }
-        this.core.api.changePassword(values[0], values[1], function() { alert("AWS Console password has been changed") })
+        this.core.api.changePassword(values[0], values[1], function() { alert("AWS Console password has been changed"); });
     },
 
     deletePassword: function()
     {
-        var me = this;
         var item = this.getSelected();
         if (!item) return;
         if (!confirm("Delete password for user " + item.name + "?")) return;
@@ -420,7 +418,7 @@ var ew_GroupsTreeView = {
             this.core.api.getGroup(item.name, function(group) { ew_GroupUsersTreeView.display(group.users); });
         }
         if (!item.policies) {
-            this.core.api.listGroupPolicies(item.name, function(list) { me.menuChanged() })
+            this.core.api.listGroupPolicies(item.name, function(list) { me.menuChanged(); });
         }
     },
 
@@ -432,7 +430,7 @@ var ew_GroupsTreeView = {
         var users = this.core.queryModel('users');
         var list = [];
         for (var i in users) {
-            var found = false
+            var found = false;
             for (var j in item.users) {
                 if (users[i].name == item.users[j].name) {
                     found = true;
@@ -455,7 +453,7 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var user = ew_GroupUsersTreeView.getSelected()
+        var user = ew_GroupUsersTreeView.getSelected();
         if (!user) return;
         if (!confirm("Remove user " + user.name + " from group " + item.name + "?")) return;
         this.core.api.removeUserFromGroup(user.name, item.name, function() {
@@ -474,7 +472,7 @@ var ew_GroupsTreeView = {
                 me.core.addModel('groups', group);
                 me.invalidate();
                 me.select(group);
-            })
+            });
         }
     },
 
@@ -483,7 +481,7 @@ var ew_GroupsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        if (!confirm("Delete group?")) return;
+        if (!confirm("Delete group " + item.name + "?")) return;
         this.core.api.deleteGroup(item.name, function() {
             me.core.removeModel('groups', item.name, 'name');
             me.invalidate();
@@ -500,7 +498,7 @@ var ew_GroupsTreeView = {
         this.core.api.updateGroup(item.name, values[0] != item.name ? values[0] : null, values[1] != item.path ? values[1] : null, function() {
             me.core.updateModel('groups', item.name, 'name', values[0], 'path', values[1]);
             me.invalidate();
-        })
+        });
     },
 
     addPolicy: function()
@@ -600,10 +598,10 @@ var ew_RolesTreeView = {
        if (!item) return;
 
        if (!item.policies) {
-           this.core.api.listRolePolicies(item.name, function(list) { me.menuChanged() })
+           this.core.api.listRolePolicies(item.name, function(list) { me.menuChanged(); });
        }
        if (!item.instanceProfiles) {
-           this.core.api.listInstanceProfilesForRole(item.name, function(list) { me.menuChanged() })
+           this.core.api.listInstanceProfilesForRole(item.name, function(list) { me.menuChanged(); });
        }
    },
 
@@ -621,7 +619,7 @@ var ew_RolesTreeView = {
                        me.refresh();
                    });
                });
-           })
+           });
        }
    },
 
@@ -637,13 +635,13 @@ var ew_RolesTreeView = {
                    me.core.api.deleteInstanceProfile(item.instanceProfiles[i].name);
                });
            }
-           sleep(1000)
+           sleep(1000);
        }
        if (item.policies) {
            for (var i in item.policies) {
                this.core.api.deleteRolePolicy(item.name, item.policies[i]);
            }
-           sleep(1000)
+           sleep(1000);
        }
        this.core.api.deleteRole(item.name, function() {
            if (me.core.removeModel('roles', item.id)) me.invalidate(); else me.refresh();
@@ -741,6 +739,7 @@ var ew_AccessKeysTreeView = {
                 if (list[i].userName != this.core.user.name) continue;
                 if (list[i].expire < now) {
                     list[i].state = "Expired";
+                    // Automatically delete temporary keys one day after they expire
                     if (now.getTime() - list[i].expire.getTime() > 86400 * 1000) {
                         this.core.deleteTempKey(list[i]);
                         continue;
@@ -755,7 +754,7 @@ var ew_AccessKeysTreeView = {
     createTemp: function()
     {
         var me = this;
-        var script= "rc.items[3].obj.disabled=rc.items[4].obj.disabled=(rc.items[0].obj.value=='Session');"
+        var script= "rc.items[3].obj.disabled=rc.items[4].obj.disabled=(rc.items[0].obj.value=='Session');";
         var inputs = [ {label:"Type",type:"menulist",list:["Session","Federation"],required:1,oncommand:script},
                        {label:"Duration(sec)",type:"number",min:3600,max:3600*36},
                        {label:"Federation user",type:"section"},
@@ -764,7 +763,7 @@ var ew_AccessKeysTreeView = {
 
         var mfas = this.core.queryModel("mfas");
         if (mfas && mfas.length) {
-            script += "rc.items[6].obj.disabled=rc.items[7].obj.disabled=(rc.items[0].obj.value!='Session');"
+            script += "rc.items[6].obj.disabled=rc.items[7].obj.disabled=(rc.items[0].obj.value!='Session');";
             inputs.push({label:"Session token with MFA access",type:"section"});
             inputs.push({label:"MFA Device",type:"menulist",list:mfas});
             inputs.push({label:"MFA Auth Code"});
@@ -820,7 +819,7 @@ var ew_AccessKeysTreeView = {
     createAccessKey : function () {
         var me = this;
         this.core.api.createAccessKey(null, function(key) {
-            me.refresh()
+            me.refresh();
             me.showAccessKey(key.id, key.secret);
         });
     },
@@ -829,7 +828,7 @@ var ew_AccessKeysTreeView = {
         var key = this.getSelected();
         if (!key) return;
         if (this.core.api.accessKey == key.id) {
-            alert("You cannot delete current access key")
+            alert("You cannot delete current access key");
             return;
         }
         if (!this.core.promptYesNo("Confirm", "Delete access key "+key.id+"?")) return;
@@ -842,7 +841,7 @@ var ew_AccessKeysTreeView = {
 
         var me = this;
         this.core.api.deleteAccessKey(key.id, null, function() {
-            me.core.deletePassword('AccessKey:' + key.id)
+            me.core.deletePassword('AccessKey:' + key.id);
             me.refresh();
         });
     },
@@ -853,12 +852,11 @@ var ew_CertsTreeView = {
     model: "certs",
 
     createCert : function () {
-        var me = this;
         if (!this.core.generateKeypair()) return alert("Could not generate new X509 certificate");
 
         var cert = FileIO.toString(this.getCertificateFile());
         this.upload(cert);
-        alert('The certificate has been generated and will be uploaded shortly...')
+        alert('The certificate has been generated and will be uploaded shortly...');
     },
 
     upload: function(body, user)
@@ -870,7 +868,7 @@ var ew_CertsTreeView = {
 
     uploadCert : function (user) {
         var me = this;
-        var file = this.core.promptForFile("Select the certificate file to upload:")
+        var file = this.core.promptForFile("Select the certificate file to upload:");
         if (file) {
             var body = FileIO.toString(file);
             this.core.api.uploadSigningCertificate(user, body, function() { me.refresh(); });
@@ -880,7 +878,7 @@ var ew_CertsTreeView = {
     saveCert : function () {
         var item = this.getSelected();
         if (item == null) return;
-        var file = this.core.promptForFile("Select the file to save certificate to:", true, DirIO.fileName(this.core.getCertificateFile(item.userName)))
+        var file = this.core.promptForFile("Select the file to save certificate to:", true, DirIO.fileName(this.core.getCertificateFile(item.userName)));
         if (file) {
             FileIO.write(FileIO.open(file), item.body);
         }
@@ -910,7 +908,7 @@ var ew_ServerCertsTreeView = {
         if (!pkey) return alert("Could not read private key file");
         alert('The server certificate ' + values[0] + ' was created and will be uploaded within 30 seconds to avoid errors related to difference between AWS server and your computer clock...');
 
-        setTimeout(function() { this.core.api.uploadServerCertificate(values[0], cert, pkey, values[1], null, function() { me.refresh() }); }, 30000);
+        setTimeout(function() { this.core.api.uploadServerCertificate(values[0], cert, pkey, values[1], null, function() { me.refresh(); }); }, 30000);
     },
 
     uploadCert : function (user) {
@@ -958,12 +956,10 @@ var ew_VMFATreeView = {
     addDevice: function()
     {
         var me = this;
-        var item = this.getSelected();
-        if (!item) return;
         var values = this.core.promptInput('Create Virtual MFA device', [{label:"Device Name",required:1}, {label:"Device Path"}]);
         if (!values) return;
         this.core.api.createVirtualMFADevice(values[0], values[1], function(obj) {
-            me.refresh()
+            me.refresh();
             var png = "data:image/png;base64," + obj.qrcode;
             me.core.promptInput('New Virtual MFA device', [{label:"Serial",value:obj.id,type:'label'}, {label:"QRCode",value:png,type:'image',fixed:true,minheight:300,maxheight:300,minwidth:300,maxwidth:300,height:300,width:300}, {label:"Secret Key",value:obj.seed,type:'label'}]);
         });
@@ -975,7 +971,7 @@ var ew_VMFATreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Virtual MFA device ' + item.id)) return;
-        this.core.api.deleteVirtualMFADevice(item.id, function(){ me.refresh() });
+        this.core.api.deleteVirtualMFADevice(item.id, function(){ me.refresh(); });
     },
 
     assignDevice: function()
@@ -988,7 +984,7 @@ var ew_VMFATreeView = {
         if (idx < 0) return;
         var values = this.core.promptInput('Assign MFA device', [{label:"Auth Code 1",required:1}, {label:"Auth Code 2",required:1}]);
         if (!values) return;
-        this.core.api.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh() });
+        this.core.api.enableMFADevice(users[idx].name, item.id, values[0], values[1], function() { me.refresh(); });
     },
 
     unassignDevice: function()
@@ -997,7 +993,7 @@ var ew_VMFATreeView = {
         var item = this.getSelected();
         if (!item || !item.userName) return;
         if (!confirm('Deactivate MFA device from user ' + item.userName)) return;
-        this.core.api.deactivateMFADevice(item.userName, item.id, function() { me.refresh() });
+        this.core.api.deactivateMFADevice(item.userName, item.id, function() { me.refresh(); });
     },
 };
 
@@ -1036,16 +1032,16 @@ var ew_PasswordPolicyView = {
     {
         var me = this;
         if (!confirm('Disable account password policy?')) return;
-        this.core.api.deleteAccountPasswordPolicy(function() { me.refresh() });
+        this.core.api.deleteAccountPasswordPolicy(function() { me.refresh(); });
     },
 
     save: function() {
         for (var p in this.obj) {
-            var e = $('ew.' + p)
+            var e = $('ew.' + p);
             if (!e) continue;
             this.obj[p] = e.tagName == 'textbox' ? e.value : e.checked;
         }
-        this.core.api.updateAccountPasswordPolicy(this.obj, function() { alert('Password policy has been updated') });
+        this.core.api.updateAccountPasswordPolicy(this.obj, function() { alert('Password policy has been updated'); });
     },
 };
 
@@ -1058,7 +1054,7 @@ var ew_AccountSummaryView = {
 
     refresh: function() {
         var me = this;
-        var e = $('ew.iam.accountId').value = this.core.user.accountId || "";
+        $('ew.iam.accountId').value = this.core.user.accountId || "";
         this.core.api.listAccountAliases(function(alias) {
             $('ew.iam.alias').value = alias || "Not set";
             $('ew.iam.alias.create').label = alias == "" ? "Create Alias" : "Change Alias";
@@ -1105,14 +1101,14 @@ var ew_AccountSummaryView = {
         var me = this;
         var name = this.core.prompt('Account alias:');
         if (!name) return;
-        this.core.api.createAccountAlias(name, function() { me.refresh() });
+        this.core.api.createAccountAlias(name, function() { me.refresh(); });
     },
 
     deleteAlias: function()
     {
         var me = this;
         if (!confirm('Delete account alias?')) return;
-        this.core.api.deleteAccountAlias(('ew.iam.alias').value, function() { me.refresh() });
+        this.core.api.deleteAccountAlias(('ew.iam.alias').value, function() { me.refresh(); });
     },
 
 };
@@ -1141,7 +1137,7 @@ var ew_CredentialsTreeView = {
 
      getList: function()
      {
-         return this.core.getCredentials()
+         return this.core.getCredentials();
      },
 
      createTempCredentials: function()
@@ -1160,7 +1156,7 @@ var ew_CredentialsTreeView = {
          var endpoints = this.core.getEndpoints();
          var user = this.core.getEnv("USER", this.core.getEnv("USERNAME"));
          var values = this.core.promptInput('Create new access credentials', [
-                             {label:"Name:",required:1,size:45,value:user,validate: function(v, o) { if (me.core.findCredentials(v)) return "Credentials with such name already exists" }},
+                             {label:"Name:",required:1,size:45,value:user,validate: function(v, o) { if (me.core.findCredentials(v)) return "Credentials with such name already exists"; }},
                              {label:"Access Key:",required:1,size:45},
                              {label:"Secret Access Key:",type:'password',required:1,size:45},
                              {label:"Default Endpoint:",type:'menulist',empty:1,list:endpoints,key:'ec2_url'},
@@ -1195,7 +1191,7 @@ var ew_CredentialsTreeView = {
          var cred = this.getSelected();
          if (!cred) return;
          if (!confirm("Delete credentials " + cred.name)) return;
-         this.core.removeCredentials(cred)
+         this.core.removeCredentials(cred);
          this.invalidate();
      },
 
@@ -1296,7 +1292,7 @@ var ew_EndpointsTreeView = {
              }
          }
          return TreeView.filter.call(this, list);
-     },
-}
+     }
+};
 
 

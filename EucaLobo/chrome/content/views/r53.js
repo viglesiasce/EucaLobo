@@ -14,10 +14,10 @@ var ew_HostedZonesTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!item.nameServers) {
-            this.core.api.getHostedZone(item.id, function(obj) { item.nameServers = obj.nameServers; })
+            this.core.api.getHostedZone(item.id, function(obj) { item.nameServers = obj.nameServers; });
         }
         if (!item.records) {
-            this.core.api.listResourceRecordSets(item.id, function(list) { ew_HostedRecordsTreeView.display(list); })
+            this.core.api.listResourceRecordSets(item.id, function(list) { ew_HostedRecordsTreeView.display(list); });
         } else {
             ew_HostedRecordsTreeView.display(item.records);
         }
@@ -33,7 +33,7 @@ var ew_HostedZonesTreeView = {
         this.core.api.createHostedZone(values[0], values[1], values[2], function(obj) {
             me.core.addModel('hostedZones', obj);
             me.invalidate();
-        })
+        });
     },
 
     deleteSelected: function()
@@ -42,7 +42,7 @@ var ew_HostedZonesTreeView = {
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Zone?')) return;
-        this.core.api.deleteHostedZone(item.id, function() { me.refresh()})
+        this.core.api.deleteHostedZone(item.id, function() { me.refresh(); });
     },
 
 };
@@ -53,7 +53,6 @@ var ew_HostedRecordsTreeView = {
 
     create: function()
     {
-        var me = this;
         var zone = ew_HostedZonesTreeView.getSelected();
         if (!zone) return;
         var dnsnames = [];
@@ -151,17 +150,16 @@ var ew_HostedRecordsTreeView = {
         item.weight = values[11];
         item.region = values[12];
         item.setId = values[13];
-        this.core.api.changeResourceRecordSets('CREATE', zone.id, item, function() { ew_HostedZonesTreeView.refresh(); })
+        this.core.api.changeResourceRecordSets('CREATE', zone.id, item, function() { ew_HostedZonesTreeView.refresh(); });
     },
 
     deleteSelected: function()
     {
-        var me = this;
         var zone = ew_HostedZonesTreeView.getSelected();
         if (!zone) return;
         var item = this.getSelected();
         if (!item) return;
         if (!confirm('Delete Zone Record?')) return;
-        this.core.api.changeResourceRecordSets('DELETE', zone.id, item, function() { ew_HostedZonesTreeView.refresh()})
+        this.core.api.changeResourceRecordSets('DELETE', zone.id, item, function() { ew_HostedZonesTreeView.refresh(); });
     },
 };

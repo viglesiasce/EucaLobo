@@ -311,11 +311,12 @@
 <!ENTITY ew.bundleTasks.contextmenu.register.label "Register AMI">
 <!ENTITY ew.bundleTasks.contextmenu.cancel.label "Cancel Bundle Task">
 <!ENTITY ew.bundleTasks.contextmenu.copybunid.label "Copy Bundle ID to clipboard">
+<!ENTITY ew.bundleTasks.contextmenu.copyid.label "Copy Instance ID to clipboard">
 
 <!ENTITY ew.credentials.tip "Manage AWS credentials for accessing Amazon EC2">
 <!ENTITY ew.endpoints.tip "Manage Amazon EC2 Regions">
 <!ENTITY ew.tools.tip "Manage local tools">
-<!ENTITY ew.accountids.tip "Configure friendler names for known EC2 account IDs">
+<!ENTITY ew.accountids.tip "Configure friendly names for known EC2 account IDs">
 <!ENTITY ew.about.tip "All about this extension">
 <!ENTITY ew.quit.tip "Quit the application">
 
@@ -403,7 +404,7 @@
 
 <!ENTITY ew.captions.route.associations.label "Subnet Associations">
 <!ENTITY ew.route.associations.create.tip "Associate Route Table">
-<!ENTITY ew.route.associations.delete.tip "Deassociate Route Table">
+<!ENTITY ew.route.associations.delete.tip "Disassociate Route Table">
 
 <!ENTITY ew.createvolfromsnap.tip "Create new volume from this snapshot">
 <!ENTITY ew.deletesnap.tip "Delete this snapshot">
@@ -531,9 +532,9 @@
 <!ENTITY ew.dialog.title.bundle_instance "Bundle Instance into an AMI">
 <!ENTITY ew.dialog.title.bundle_task_details "Bundle Task Details">
 <!ENTITY ew.dialog.title.console_output "Instance Console Output">
-<!ENTITY ew.dialog.title.copy_S3_keys "Elasticfox AMI Migrator">
+<!ENTITY ew.dialog.title.copy_S3_keys "ElasticWolf AMI Migrator">
 <!ENTITY ew.dialog.title.create_security_group "Create a new security group">
-<!ENTITY ew.dialog.title.delete_ami "Elasticfox AMI Deleter">
+<!ENTITY ew.dialog.title.delete_ami "ElasticWolf AMI Deleter">
 <!ENTITY ew.dialog.title.eip_details "ElasticIP Details">
 <!ENTITY ew.dialog.title.instance_details "Instance Details">
 <!ENTITY ew.dialog.title.keypair_details "Key Pair Details">
@@ -561,11 +562,11 @@
 <!ENTITY ew.dialog.title.disable_avalibility_zone "Disable Availability Zones">
 <!ENTITY ew.dialog.title.enable_avalibility_zone "Enable Availability Zones">
 <!ENTITY ew.dialog.title.loadbalancer_details "Loadbalancer Details">
-<!ENTITY ew.dialog.title.Configure_Healthckeck "Configure Healthckeck">
+<!ENTITY ew.dialog.title.Configure_Healthcheck "Configure Health Check">
 <!ENTITY ew.dialog.title.Create_Loadbalancer "Create Loadbalancer">
 
 <!ENTITY ew.dialog.description.step1 "Step:1 Loadbalancer Protocols">
-<!ENTITY ew.dialog.description.step2 "Step:2 Configure Healthcheck">
+<!ENTITY ew.dialog.description.step2 "Step:2 Configure Health Check">
 <!ENTITY ew.dialog.description.step3 "Step:3 Register Instance">
 
 <!ENTITY ew.dialog.button.accept.attach_ebs_volume.label "Attach">
@@ -621,8 +622,8 @@
 <!ENTITY ew.loadbalancerview.iport.label "Instance Port:">
 <!ENTITY ew.loadbalancerview.interval.label "Interval:">
 <!ENTITY ew.loadbalancerview.target.label "Target:">
-<!ENTITY ew.loadbalancerview.HealthyThreshold.label "Healthy Threshold:">
-<!ENTITY ew.loadbalancerview.UnhealthyThreshold.label "Unhealthy Threshold:">
+<!ENTITY ew.loadbalancerview.HealthyThreshold.label "Healthy Threshold (2-10):">
+<!ENTITY ew.loadbalancerview.UnhealthyThreshold.label "Unhealthy Threshold (2-10):">
 <!ENTITY ew.loadbalancerview.Timeout.label "Timeout:">
 <!ENTITY ew.loadbalancerview.Instances.label "Instance:">
 <!ENTITY ew.loadbalancerview.AvailabilityZones.label "Availability Zones:">
@@ -639,7 +640,7 @@
 <!ENTITY ew.loadbalancer.contextmenu.disablestickness.label "Disable Stickiness">
 <!ENTITY ew.loadbalancer.contextmenu.appstickness.label "Application Stickiness">
 <!ENTITY ew.loadbalancer.contextmenu.loadbalancerstickness.label "Loadbalancer Stickiness">
-<!ENTITY ew.loadbalancer.contextmenu.configurehealthcheck.label "Configure Healthcheck">
+<!ENTITY ew.loadbalancer.contextmenu.configurehealthcheck.label "Configure Health Check">
 <!ENTITY ew.loadbalancer.contextmenu.delete.label "Delete Loadbalancer">
 
 

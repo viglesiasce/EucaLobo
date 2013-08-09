@@ -30,7 +30,7 @@ var ew_VpcsTreeView = {
         var groups = this.core.queryModel('securityGroups','vpcId', vpc.id);
 
         if (subnets.length) {
-            list.push({ name: "Subnets", folder: 1 })
+            list.push({ name: "Subnets", folder: 1 });
             for (var i in subnets) {
                 list.push({ name: "     " + subnets[i].toString() });
                 var found = false;
@@ -39,7 +39,7 @@ var ew_VpcsTreeView = {
                         if (tables[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "         Routes", folder: 1})
+                                list.push({ name: "         Routes", folder: 1});
                             }
                             for (var n in tables[j].routes) {
                                 list.push({ name: "             " + tables[j].routes[n].toString() });
@@ -54,10 +54,10 @@ var ew_VpcsTreeView = {
                         if (acls[j].associations[k].subnetId == subnets[i].id) {
                             if (!found) {
                                 found = true;
-                                list.push({ name: "         Network ACLs", folder: 1 })
+                                list.push({ name: "         Network ACLs", folder: 1 });
                             }
-                            for (n in acls[j].rules) {
-                                list.push({ name: "            " + acls[j].rules[n].toString() })
+                            for (var n in acls[j].rules) {
+                                list.push({ name: "            " + acls[j].rules[n].toString() });
                             }
                             break;
                         }
@@ -71,7 +71,7 @@ var ew_VpcsTreeView = {
             if (!tables[j].associations.length) {
                 if (!found) {
                     found = true;
-                    list.push({ name: "Route Tables", folder: 1})
+                    list.push({ name: "Route Tables", folder: 1});
                 }
                 list.push({ name: "     " + tables[j].toString() });
             }
@@ -89,9 +89,9 @@ var ew_VpcsTreeView = {
                     if (vgws[i].attachments[j].vpcId == vpc.id) {
                         if (!found) {
                             found = true;
-                            list.push({ name: "VPN Gateways", folder: 1 })
+                            list.push({ name: "VPN Gateways", folder: 1 });
                         }
-                        list.push({ name: "     " + vgws[i].toString() })
+                        list.push({ name: "     " + vgws[i].toString() });
                     }
                 }
             }
@@ -107,9 +107,9 @@ var ew_VpcsTreeView = {
                             gws.push(vpns[i].cgwId); // Remember customer gateways
                             if (!found) {
                                 found = true;
-                                list.push({ name: "VPN Connections", folder: 1 })
+                                list.push({ name: "VPN Connections", folder: 1 });
                             }
-                            list.push({ name: "     " + vpns[i].toString() })
+                            list.push({ name: "     " + vpns[i].toString() });
 
                         }
                     }
@@ -124,9 +124,9 @@ var ew_VpcsTreeView = {
                     if (gws[j] == cgws[i].id) {
                         if (!found) {
                             found = true;
-                            list.push({ name: "Customer Gateways", folder: 1 })
+                            list.push({ name: "Customer Gateways", folder: 1 });
                         }
-                        list.push({ name: "     " + cgws[i].toString()})
+                        list.push({ name: "     " + cgws[i].toString()});
                     }
                 }
             }
@@ -137,7 +137,7 @@ var ew_VpcsTreeView = {
     listToInfo: function(items, title, list)
     {
         if (items.length) {
-            list.push({ name: title, folder: 1 })
+            list.push({ name: title, folder: 1 });
             for (var i in items) {
                 list.push({ name: "     " + items[i].toString() });
             }
@@ -172,7 +172,7 @@ var ew_VpcsTreeView = {
         if (values) {
             this.core.api.createVpc(values[1], values[2], function(vpcId) {
                 if (values[3]) {
-                    me.core.setTags(vpcId, "Name:" + values[3], function() { me.refresh() });
+                    me.core.setTags(vpcId, "Name:" + values[3], function() { me.refresh(); });
                 } else {
                     me.refresh();
                 }
@@ -231,7 +231,7 @@ var ew_VpcsTreeView = {
         if (!confirm("You must delete all Subnets, Security Groups, Network ACLs, DHCP Options Sets, Network Interfaces, Route Tables, Internet Gateways, and VPN Attachments associated with this VPC before you can delete the VPC itself.\n\nContinue to delete " + vpc.toString() + "?")) return;
 
         var me = this;
-        this.core.api.deleteVpc(vpc.id, function() { me.refresh()});
+        this.core.api.deleteVpc(vpc.id, function() { me.refresh(); });
     },
 
     setDhcpOptions : function()
@@ -243,9 +243,9 @@ var ew_VpcsTreeView = {
         var vpcs = this.core.queryModel('vpcs');
         var dhcps = this.core.queryModel('dhcpOptions');
         var values = this.core.promptInput('Associate DHCP Options', [{label:"VPC",type:"menulist",list:vpcs,value:vpc.id,required:1},
-                                                                      {label:"DHCP Options",type:"menulist",list:dhcps,required:1}])
+                                                                      {label:"DHCP Options",type:"menulist",list:dhcps,required:1}]);
         if (!values) return;
-        this.core.api.associateDhcpOptions(values[1], values[0], function() { me.refresh() });
+        this.core.api.associateDhcpOptions(values[1], values[0], function() { me.refresh(); });
     },
 
     attachToVpnGateway : function()
@@ -257,9 +257,9 @@ var ew_VpcsTreeView = {
         var vgws = this.core.queryModel('vpnGateways');
 
         var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPC",type:"label",value:vpc.id,required:1},
-                                                                  {label:"VPN Gateway",type:"menulist",list:vgws,required:1}, ])
+                                                                  {label:"VPN Gateway",type:"menulist",list:vgws,required:1}, ]);
         if (!values) return;
-        this.core.api.attachVpnGatewayToVpc(values[1], values[0], function() { me.refresh() });
+        this.core.api.attachVpnGatewayToVpc(values[1], values[0], function() { me.refresh(); });
     },
 
     attachToInternetGateway : function()
@@ -309,7 +309,7 @@ var ew_DhcpoptsTreeView = {
                                                                     {label: "Enter up to 4 NetBIOS name server IP addresses, separated by commas"},
                                                                     {label: "Enter the NetBIOS node type (2: P-Node)" }]);
         if (!values) return;
-        var params = {}
+        var params = {};
         if (values[0]) {
             params["domain-name"] = values[0];
         }
@@ -346,7 +346,7 @@ var ew_SubnetsTreeView = {
         var instances = this.core.queryModel('instances', 'subnetId', subnet.id, 'state', 'running');
         if (instances.length) {
             alert("There is instance " + instances[0].toString() + " in this subnet");
-            return false
+            return false;
         }
 
         if (!confirm("Delete " + subnet.toString() + "?")) return;
@@ -446,14 +446,14 @@ var ew_SubnetsTreeView = {
 
         var acls = this.core.queryModel('networkAcls', 'vpcId', subnet.vpcId);
         if (!acls.length) {
-            alert("No ACLs available for subnets with VPC ID " + subnet.vpcId + ", please try later")
+            alert("No ACLs available for subnets with VPC ID " + subnet.vpcId + ", please try later");
             return;
         }
         var rc = this.core.promptList("Replace Network ACL", "Select ACL", acls, { columns: [ "id", "vpcId" ] });
         if (rc < 0) {
             return;
         }
-        this.core.api.ReplaceNetworkAclAssociation(subnet.aclAssocId.id, acls[rc].id, function() { ew_SubnetsTreeView.refresh() });
+        this.core.api.ReplaceNetworkAclAssociation(subnet.aclAssocId.id, acls[rc].id, function() { ew_SubnetsTreeView.refresh(); });
     },
 
     associateRoute : function()
@@ -463,7 +463,7 @@ var ew_SubnetsTreeView = {
 
         var routes = this.core.queryModel('routeTables');
         if (!routes) {
-            alert("No route tables available, try later")
+            alert("No route tables available, try later");
             return;
         }
         var rc = this.core.promptList("Associate Route Table", "Select route table", routes, { columns: [ "id", "vpcId" ] });
@@ -532,8 +532,8 @@ var ew_RouteTablesTreeView = {
 
     selectionChanged : function()
     {
-        var table = this.getSelected()
-        if (table == null) return
+        var table = this.getSelected();
+        if (table == null) return;
 
         ew_RoutesTreeView.display(table.routes);
         ew_RouteAssociationsTreeView.display(table.associations);
@@ -543,7 +543,7 @@ var ew_RouteTablesTreeView = {
     {
         var vpcs = this.core.queryModel('vpcs');
         if (!vpcs) {
-            alert("No VPCs available, try later")
+            alert("No VPCs available, try later");
             return;
         }
         var rc = this.core.promptList("Create Route Table", "Select VPC", vpcs, {columns: [ 'id', 'cidr' ] });
@@ -552,7 +552,7 @@ var ew_RouteTablesTreeView = {
         }
 
         var me = this;
-        this.core.api.createRouteTable(vpcs[rc].id, function() { me.refresh() });
+        this.core.api.createRouteTable(vpcs[rc].id, function() { me.refresh(); });
 
     },
 
@@ -562,7 +562,7 @@ var ew_RouteTablesTreeView = {
         if (!table || table.main == "true") return;
         if (!confirm("Delete route table " + table.id + "?")) return;
         var me = this;
-        this.core.api.deleteRouteTable(table.id, function() { me.refresh() });
+        this.core.api.deleteRouteTable(table.id, function() { me.refresh(); });
     },
 
     enablePropagation: function() {
@@ -573,7 +573,7 @@ var ew_RouteTablesTreeView = {
         var vgws = this.core.queryModel('vpnGateways');
         var idx = this.core.promptList("Enable Propagation to VPG Gateway", "Select VPN gateway:", vgws);
         if (idx >= 0) {
-            this.core.api.enableVgwRoutePropagation(vgws[idx], table.id, function() { me.refersh() });
+            this.core.api.enableVgwRoutePropagation(vgws[idx], table.id, function() { me.refresh(); });
         }
     },
 
@@ -583,7 +583,7 @@ var ew_RouteTablesTreeView = {
         if (!table || !table.propagations.length) return;
         var idx = this.core.promptList("Disable Propagation to VPG Gateway", "Select VPN gateway:", table.propagations);
         if (idx >= 0) {
-            this.core.api.disableVgwRoutePropagation(table.propagations[idx].gatewayId, table.id, function() { me.refresh() });
+            this.core.api.disableVgwRoutePropagation(table.propagations[idx].gatewayId, table.id, function() { me.refresh(); });
         }
     },
 
@@ -635,7 +635,7 @@ var ew_RouteAssociationsTreeView = {
         }
         var subnets = this.core.queryModel('subnets');
         if (!subnets) {
-            alert("No subnets available, try later")
+            alert("No subnets available, try later");
             return;
         }
         var rc = this.core.promptList("Create Route", "Select subnet", subnets, { columns: [ "id", "cidr" ] });
@@ -662,7 +662,7 @@ var ew_NetworkAclsTreeView = {
 
     selectionChanged: function(event)
     {
-        var acl = this.getSelected()
+        var acl = this.getSelected();
         if (acl == null) return
 
         ew_NetworkAclRulesTreeView.display(acl.rules);
@@ -672,7 +672,7 @@ var ew_NetworkAclsTreeView = {
     createACL : function()
     {
         var vpcs = this.core.queryModel('vpcs');
-        if (!vpcs) return alert("No VPCs available, try later")
+        if (!vpcs) return alert("No VPCs available, try later");
         var rc = this.core.promptList("Create Network ACL", "Select VPC", vpcs, { columns: ['id', 'cidr' ] });
         if (rc < 0) return;
         var me = this;
@@ -693,7 +693,7 @@ var ew_NetworkAclsTreeView = {
         var acl = this.getSelected();
         if (!acl) return alert("Please select an ACL");
         var subnets = this.core.queryModel('subnets', 'vpcId', acl.vpcId);
-        if (!subnets.length) return alert("No subnets available, try later")
+        if (!subnets.length) return alert("No subnets available, try later");
         var rc = this.core.promptList("Associate with VPC Subnet", "Select subnet", subnets, { columns: [ "id", "cidr" ] });
         if (rc < 0) return;
 
@@ -702,7 +702,7 @@ var ew_NetworkAclsTreeView = {
         for (var i in acls) {
             for (var j in acls[i].associations) {
                 if (acls[i].associations[j].subnetId == subnets[rc].id) {
-                    this.core.api.ReplaceNetworkAclAssociation(acls[i].associations[j].id, acl.id, function() { ew_NetworkAclsTreeView.refresh() });
+                    this.core.api.ReplaceNetworkAclAssociation(acls[i].associations[j].id, acl.id, function() { ew_NetworkAclsTreeView.refresh(); });
                     return;
                 }
             }
@@ -724,7 +724,7 @@ var ew_NetworkAclRulesTreeView = {
         var retVal = {ok:null};
         window.openDialog("chrome://ew/content/dialogs/create_rule.xul", null, "chrome,centerscreen,modal,resizable", acl, this.core, retVal);
         if (retVal.ok) {
-            debug(JSON.stringify(retVal))
+            debug(JSON.stringify(retVal));
             this.core.api.createNetworkAclEntry(acl.id, retVal.num, retVal.proto, retVal.action, retVal.egress, retVal.cidr, retVal.var1, retVal.var2, function() {
                 ew_NetworkAclsTreeView.refresh();
                 ew_SubnetsTreeView.refresh();
@@ -754,7 +754,7 @@ var ew_InternetGatewayTreeView = {
     create : function()
     {
         var me = this;
-        this.core.api.createInternetGateway(function(){me.refresh()});
+        this.core.api.createInternetGateway(function() { me.refresh(); });
     },
 
     destroy : function()
@@ -766,18 +766,18 @@ var ew_InternetGatewayTreeView = {
         var me = this;
         if (igw.vpcId) {
             this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {
-                me.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+                me.core.api.deleteInternetGateway(igw.id, function() { me.refresh(); });
             });
         } else {
-            this.core.api.deleteInternetGateway(igw.id, function() {me.refresh()});
+            this.core.api.deleteInternetGateway(igw.id, function() { me.refresh(); });
         }
     },
 
     attach: function(vpcid, igwid, selected)
     {
-        var igw = this.getSelected()
+        var igw = this.getSelected();
         if (!igw) return
-        this.attachInternetGateway(null, igw.id)
+        this.attachInternetGateway(null, igw.id);
     },
 
     attachInternetGateway : function(vpcid, igwid)
@@ -791,10 +791,10 @@ var ew_InternetGatewayTreeView = {
         if (!values) return;
         if (values[2]) {
             this.core.api.createInternetGateway(function(id) {
-                me.core.api.attachInternetGateway(id, values[0], function() {me.refresh()});
+                me.core.api.attachInternetGateway(id, values[0], function() { me.refresh(); });
             });
         } else {
-            this.core.api.attachInternetGateway(values[1], values[0], function() {me.refresh()});
+            this.core.api.attachInternetGateway(values[1], values[0], function() { me.refresh(); });
         }
     },
 
@@ -804,7 +804,7 @@ var ew_InternetGatewayTreeView = {
         if (igw == null) return;
         if (!this.core.promptYesNo("Confirm", "Detach Internet Gateway " + igw.id + " from " + igw.vpcId + "?")) return;
         var me = this;
-        this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() {me.refresh()});
+        this.core.api.detachInternetGateway(igw.id, igw.vpcId, function() { me.refresh(); });
     },
 };
 
@@ -813,7 +813,7 @@ var ew_NetworkInterfacesTreeView = {
 
     selectionChanged: function(event)
     {
-        var eni = this.getSelected()
+        var eni = this.getSelected();
         if (eni == null) return
     },
 
@@ -824,11 +824,11 @@ var ew_NetworkInterfacesTreeView = {
         if (eni == null) return;
 
         var groups = me.core.queryModel('securityGroups', 'vpcId', eni.vpcId);
-        var checked = groups.filter(function(x){ return eni.groups.some(function(y) { return y.id == x.id }) });
+        var checked = groups.filter(function(x) { return eni.groups.some(function(y) { return y.id == x.id; }); });
         var values = this.core.promptInput("Update ENI", [{label:"ENI",type:"description",style:"max-width:350px;",value:eni},
                                                           {label:"Description",value:eni.descr},
                                                           {label:"Source Dest Check",type:"checkbox",checked:eni.sourceDestCheck},
-                                                          {label:"Security Groups",type:"listview",rows:10,list:groups,checkedItems:checked}])
+                                                          {label:"Security Groups",type:"listview",rows:10,list:groups,checkedItems:checked}]);
         if (!values) return;
         if (eni.sourceDestCheck != values[2]) {
             this.core.api.modifyNetworkInterfaceAttribute(eni.id, "SourceDestCheck", values[2], function() { me.refresh(); });
@@ -857,7 +857,7 @@ var ew_NetworkInterfacesTreeView = {
         var values = this.core.promptInput("Create ENI", [{label:"Subnet",type:"menulist",list:subnets,required:1,callback:callback},
                                                           {label:"Private Ip Address",type:"ip",required:1},
                                                           {label:"Description"},
-                                                          {label:"Security Groups",type:"listview",rows:10,callback:callback}])
+                                                          {label:"Security Groups",type:"listview",rows:10,callback:callback}]);
         if (!values) return;
         this.core.api.createNetworkInterface(values[0], values[1], values[2], values[3], function() { me.refresh(); });
     },
@@ -878,7 +878,7 @@ var ew_NetworkInterfacesTreeView = {
         var values = this.core.promptInput("Assign Private IP Addresses", [{label:"List of private IP Addresses",help:"separate by comma"},
                                                                            {label:"Auto Assign IPs",type:"number",help:"specify how many IPs to auto assign"},
                                                                            {label:"",value:"Specify either IP address list or number to auto assign, not both",type:"label"},
-                                                                           {label:"Allow auto reassignment of IP addresses",type:"checkbox"}])
+                                                                           {label:"Allow auto reassignment of IP addresses",type:"checkbox"}]);
         if (!values) return;
         this.core.api.assignPrivateIpAddresses(eni.id, values[0] ? values[0].replace(/[ ]+/g,'').split(",") : null, values[1], values[3], function() { me.refresh();});
     },
@@ -900,7 +900,7 @@ var ew_NetworkInterfacesTreeView = {
         if (!eni) return;
         var instances = this.core.queryModel('instances','vpcId', eni.vpcId, 'availabilityZone', eni.availabilityZone);
         var values = this.core.promptInput("Attach ENI", [{label:"Instance",type:"menulist",list:instances,required:1},
-                                                          {label:"Device Index",type:"number",required:1}])
+                                                          {label:"Device Index",type:"number",required:1}]);
         if (!values) return;
         this.core.api.attachNetworkInterface(eni.id, values[0], values[1], function() { me.refresh();});
     },
@@ -954,7 +954,7 @@ var ew_VpnConnectionTreeView = {
         var vpn = this.getSelected();
         if (vpn == null) return;
         if (vpn.config == null) {
-           alert("The Customer Gateway configuration for this VPN Connection is not present.")
+           alert("The Customer Gateway configuration for this VPN Connection is not present.");
            return;
         }
 
@@ -978,7 +978,7 @@ var ew_VpnConnectionTreeView = {
                                                                      {label:"VPN Gateway",type:"menulist",list:vgws,value:vgwid,required:1},
                                                                      {label: "Static Routes Only",type:"checkbox",oncommand:"rc.items[4].required=rc.items[3].obj.checked"},
                                                                      {label: "IP prefixes on your side of VPN connection"},
-                                                                     {label:"",type:"label",value:"Comma separated, e.g.:10.0.0.0/16,10.1.1.0/16"}])
+                                                                     {label:"",type:"label",value:"Comma separated, e.g.:10.0.0.0/16,10.1.1.0/16"}]);
         if (!values) return;
         this.core.api.createVpnConnection(values[0], values[1], values[2], values[3], function(id) {
             if (values[3]) {
@@ -1000,7 +1000,7 @@ var ew_VpnConnectionTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        this.core.api.deleteVpnConnection(vpn.id, function() { me.refresh()});
+        this.core.api.deleteVpnConnection(vpn.id, function() { me.refresh(); });
     },
 
     addRoute: function()
@@ -1008,7 +1008,7 @@ var ew_VpnConnectionTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!item) return;
-        var cidr = this.core.prompt("Please provide static route between VPN gateway and Customer gateway:")
+        var cidr = this.core.prompt("Please provide static route between VPN gateway and Customer gateway:");
         if (!cidr) return;
         this.core.api.createVpnConnectionRoute(item.id, cidr, function() { me.refresh(); });
     },
@@ -1069,7 +1069,7 @@ var ew_CustomerGatewayTreeView = {
         if (cgw == null) return;
 
         ew_VpnConnectionTreeView.createVpnConnection(cgw.id, null);
-        this.core.selectTab('ew.tabs.vpn')
+        this.core.selectTab('ew.tabs.vpn');
     },
 };
 
@@ -1084,10 +1084,10 @@ var ew_VpnGatewayTreeView = {
     },
 
     createVpnGateway : function () {
-        var values = this.core.promptInput('Create VPN Gateway', [{label:"Type",value:"ipsec.1"}])
+        var values = this.core.promptInput('Create VPN Gateway', [{label:"Type",value:"ipsec.1"}]);
         if (!values) return;
         var me = this;
-        this.core.api.createVpnGateway(values[0], function() {me.refresh()});
+        this.core.api.createVpnGateway(values[0], function() { me.refresh(); });
     },
 
     deleteVpnGateway : function () {
@@ -1098,7 +1098,7 @@ var ew_VpnGatewayTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        this.core.api.deleteVpnGateway(vgw.id, function() { me.refresh() });
+        this.core.api.deleteVpnGateway(vgw.id, function() { me.refresh(); });
     },
 
     createVpnConnection : function() {
@@ -1128,7 +1128,7 @@ var ew_VpnGatewayTreeView = {
         if (!confirmed) return;
 
         var me = this;
-        this.core.api.detachVpnGatewayFromVpc(vgw.id, vgw.vpcId, function() { me.refresh() });
+        this.core.api.detachVpnGatewayFromVpc(vgw.id, vgw.vpcId, function() { me.refresh(); });
     },
 
     attachVpc : function(vpcid, vgwid)
@@ -1139,9 +1139,9 @@ var ew_VpnGatewayTreeView = {
         var vpcs = this.core.queryModel('vpcs');
 
         var values = this.core.promptInput("Attach VPN Gateway", [{label:"VPN Gateway",type:"label",value:vgw.id,required:1},
-                                                                  {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},])
+                                                                  {label:"VPC",type:"menulist",list:vpcs,value:vpcid,required:1},]);
         if (!values) return;
-        this.core.api.attachVpnGatewayToVpc(values[0], values[1], function() { me.refresh() });
+        this.core.api.attachVpnGatewayToVpc(values[0], values[1], function() { me.refresh(); });
     },
 };
 

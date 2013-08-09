@@ -62,9 +62,14 @@
 <?xul-overlay href="chrome://ew/content/views/ddb.xul"?>
 <?xul-overlay href="chrome://ew/content/views/swfdomains.xul"?>
 
-<window id="ew-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml"
+<window id="ew-window"
+        title="ElasticWolf"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
         orient="vertical"
-        persist="width height screenX screenY sizemode" minwidth="600" minheight="400"
+        persist="width height screenX screenY sizemode"
+        minwidth="600"
+        minheight="400"
         onload="ew_core.initialize(ew_tabs, ew_api)">
 
   <script src="chrome://venkman/content/venkman-overlay.js" />
@@ -112,7 +117,7 @@
 
             { name: "ew.tabs.vmfa",          views: [ { id: "ew.vmfas.view", view: ew_VMFATreeView } ] },
 
-            { name: "ew.tabs.ec2.folder",    views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
+            { name: "ew.tabs.ec2.c.folder",    views: [ { id: "ew.ec2.view", view: ew_EC2TreeView } ] },
 
             { name: "ew.tabs.instance",      views: [ { id: "ew.instances.view", view: ew_InstancesTreeView, filterList: [ { name: "vpcId", empty: true }] } ], },
 
@@ -286,6 +291,7 @@
        <menuitem label="Show Error Log" image="images/revoke.png" class="menuitem-iconic" oncommand="ew_core.displayErrors();"/>
        <menuitem label="Show Access Log" image="images/start.png" class="menuitem-iconic" oncommand="ew_core.displayAccessLog();"/>
        <menuitem label="Preferences" id="menu_preferences" image="images/tools.png" class="menuitem-iconic" key="prefs" oncommand="ew_core.selectTab('ew.tabs.prefs');"/>
+       <menuseparator id="menu_FileQuitSeparator"/>
        <menuitem label="Quit" image="images/reboot.png" class="menuitem-iconic" id="menu_FileQuitItem" key="quit" oncommand="ew_core.quit();"/>
       </menupopup>
     </menu>
@@ -402,7 +408,7 @@
 
     <splitter persist="state" collapse="none" resizebefore="closest" />
 
-    <tabbox flex="1">
+    <tabbox flex="1" style="overflow: scroll;">
     <tabpanels id="ew.tabs" flex="1" style="margin:5px;padding-top:0px;outline:0px;border:0px;">
       <tabpanel id="ew.tabs.prefs"/>
       <tabpanel id="ew.tabs.credential"/>
@@ -464,7 +470,7 @@
       <tabpanel id="ew.tabs.placementgroup"/>
       <tabpanel id="ew.tabs.swf.domain"/>
 
-      <tabpanel id="ew.tabs.ec2.folder">
+      <tabpanel id="ew.tabs.ec2.c.folder">
        <vbox flex="1">
          <groupbox flex="1">
            <caption label="EC2 Resources Summary" />

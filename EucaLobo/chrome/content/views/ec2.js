@@ -45,7 +45,7 @@ var ew_EC2TreeView = {
     listToInfo: function(items, title, list)
     {
         if (items.length) {
-            list.push({ name: title, folder: 1 })
+            list.push({ name: title, folder: 1 });
             for (var i in items) {
                 list.push({ name: "     " + items[i].toString() });
             }
@@ -74,7 +74,7 @@ var ew_KeypairsTreeView = {
         this.core.api.createKeypair(name, function(keypair) {
             // Save key in the file
             var file = me.core.getPrivateKeyFile(name);
-            var fp = FileIO.open(file)
+            var fp = FileIO.open(file);
             FileIO.write(fp, keypair.material + "\n\n", "");
             me.refresh();
             me.core.alertDialog('Keypair Created', 'KeyPair ' + name + ' is saved in the ' + file);
@@ -88,13 +88,13 @@ var ew_KeypairsTreeView = {
         name = name.trim();
         var me = this;
         // Create new private key file using openssl and return key value
-        var file = this.core.promptForFile("Select the public key file to upload:")
+        var file = this.core.promptForFile("Select the public key file to upload:");
         if (file) {
-            var body = readPublicKey(file)
+            var body = readPublicKey(file);
             if (body == '') {
                 return alert('Unable to read public key file ' + file);
             }
-            this.core.api.importKeypair(name, body, function() { me.refresh() });
+            this.core.api.importKeypair(name, body, function() { me.refresh(); });
         }
     },
 
@@ -108,7 +108,7 @@ var ew_KeypairsTreeView = {
         var me = this;
 
         if (!this.core.getKeyHome()) {
-            var file = this.core.promptForDir("Choose where to store keys and certificate or Cancel to use " + this.core.getKeyHome(), true)
+            var file = this.core.promptForDir("Choose where to store keys and certificate or Cancel to use " + this.core.getKeyHome(), true);
             if (file) {
                 this.setStrPrefs("ew.key.home", file);
             }
@@ -162,10 +162,10 @@ var ew_AMIsTreeView = {
     {
         var menu = $("ew.images.type");
         if (menu.itemCount == 0) {
-            menu.appendItem("No Filter", "")
+            menu.appendItem("No Filter", "");
             var filters = this.core.getImageFilters();
             for (var i in filters) {
-                menu.appendItem(filters[i].name, filters[i].value)
+                menu.appendItem(filters[i].name, filters[i].value);
             }
         }
         return TreeView.activate.call(this);
@@ -201,15 +201,15 @@ var ew_AMIsTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         var favs = this.core.getStrPrefs("ew.images.favorites", "").split("^");
-        debug(remove + ":" + favs)
+        debug(remove + ":" + favs);
         if (remove) {
-            var i = favs.indexOf(image.id)
+            var i = favs.indexOf(image.id);
             if (i > -1) {
-                favs.splice(i, 1)
+                favs.splice(i, 1);
             }
         } else {
             if (favs.indexOf(image.id) == -1) {
-                favs.push(image.id)
+                favs.push(image.id);
             }
         }
         this.core.setStrPrefs("ew.images.favorites", favs.join("^"));
@@ -233,8 +233,22 @@ var ew_AMIsTreeView = {
         window.openDialog("chrome://ew/content/dialogs/create_instances.xul", null, "chrome,centerscreen,modal,resizable", retVal);
         if (retVal.ok) {
             this.core.api.runInstances(retVal.imageId, retVal.instanceType, retVal.minCount, retVal.maxCount, retVal, function(list) {
+                // Monitor status, once running then attach volume
+                if (retVal.attachVolume) {
+                    function attachVolume() {
+                        me.core.api.describeInstanceStatus(list[0], false, function(status) {
+                            debug(status);
+                            if (status && status.length && status[0].state == 'running') {
+                                ew_VolumeTreeView.attachEBSVolume(retVal.attachVolume.volumeId, list[0], retVal.attachVolume.deviceName);
+                            } else {
+                                setTimeout(function() { attachVolume(); }, 2000);
+                            }
+                        });
+                    }
+                    attachVolume();
+                }
                 if (retVal.tag) {
-                    me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh() });
+                    me.core.setTags(list, retVal.tag, function() { ew_InstancesTreeView.refresh(); });
                 } else {
                     ew_InstancesTreeView.refresh();
                 }
@@ -253,9 +267,11 @@ var ew_AMIsTreeView = {
     callRegisterImageInRegion : function(manifest, region)
     {
         var me = this;
+        debug("Register image: manifest=" + manifest);
+        debug("Register image: region=" + region);
         this.core.api.registerImageInRegion(manifest, region, function() {
             me.refresh();
-            alert("Image with Manifest: " + manifest + " was registered");
+            alert("Image with manifest: " + manifest + " was registered");
         });
     },
 
@@ -270,8 +286,7 @@ var ew_AMIsTreeView = {
 
     registerNewImage : function()
     {
-        var me = this;
-        var value = this.core.prompt('AMI Manifest Path:');
+        var value = this.core.prompt('AMI Manifest Path (Bucket/Pathname):');
         if (value) {
             var oldextre = new RegExp("\\.manifest$");
             var newextre = new RegExp("\\.manifest\\.xml$");
@@ -289,7 +304,7 @@ var ew_AMIsTreeView = {
                 alert("Just specify the bucket and manifest path name, not the entire S3 URL.");
                 return false;
             }
-            var s3bucket = value.split('/')[0];
+
             var region = this.core.api.getS3BucketLocation(s3bucket);
             this.callRegisterImage(value, region);
         }
@@ -301,7 +316,7 @@ var ew_AMIsTreeView = {
         var image = this.getSelected();
         if (!image) return;
         if (!confirmed && !confirm("Deregister AMI " + image.id + " (" + image.location + ")?")) return;
-        this.core.api.deregisterImage(image.id, function() {me.refresh()});
+        this.core.api.deregisterImage(image.id, function() { me.refresh(); });
     },
 
     deleteImage : function()
@@ -319,7 +334,7 @@ var ew_AMIsTreeView = {
             var sourceB = parts[0];
             var prefix = parts[1];
             // Remove the manifest.xml from the prefix
-            var prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
+            prefix = prefix.substring(0, prefix.indexOf(".manifest.xml"));
             var obj = this.core.api.getS3BucketKeys(sourceB, {prefix:prefix});
             if (obj) {
                 for (var i = 0; i < obj.keys.length; ++i) {
@@ -341,7 +356,7 @@ var ew_AMIsTreeView = {
             this.core.api.deregisterImage(image.id, function() {
                 for (var i in image.volumes) {
                     if (image.volumes[i].snapshotId) {
-                        me.core.api.deleteSnapshot(image.volumes[i].snapshotId, function() { ew_SnapshotTreeView.refresh() });
+                        me.core.api.deleteSnapshot(image.volumes[i].snapshotId, function() { ew_SnapshotTreeView.refresh(); });
                     }
                 }
                 me.refresh();
@@ -388,14 +403,13 @@ var ew_InstancesTreeView = {
             list[i].validate();
             if ((noTerm && list[i].state == "terminated") || (noStop && list[i].state == "stopped")) continue;
             if ((onlySpot && list[i].instanceLifecycle != "spot")) continue;
-            nlist.push(list[i])
+            nlist.push(list[i]);
         }
         return TreeView.filter.call(this, nlist);
     },
 
     exportToS3: function()
     {
-        var me = this;
         var instance = this.getSelected();
         if (instance == null) return;
 
@@ -405,7 +419,7 @@ var ew_InstancesTreeView = {
                                      {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
                                      {label:"S3 Bucket Name",type:"name",required:1},
                                      {label:"S3 Prefix"},
-                                     {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                                     {label:"Disk Image Format",type:"menulist",list:["vmdk", "vhd"]},
                                      {label:"Container Format",type:"menulist",list:["ova"]},
                                      ]);
         if (!values) return;
@@ -416,6 +430,7 @@ var ew_InstancesTreeView = {
     showBundleDialog : function()
     {
         var me = this;
+        // TODO: decide if the following unused variable should actually be used in this method
         var retVal = {ok:null,bucketName:null,prefix:null};
         var instance = this.getSelected();
         if (instance == null) return;
@@ -434,6 +449,7 @@ var ew_InstancesTreeView = {
 
     showCreateImageDialog : function()
     {
+        // TODO: decide if the following unused variable should actually be used in this method
         var retVal = {ok:null,amiName:null,amiDescription:null,noReboot:null};
         var instance = this.getSelected();
         if (instance == null) return;
@@ -472,7 +488,7 @@ var ew_InstancesTreeView = {
                                                  {type:"label",value:"Windows devices: xvdf through xvdp"}]);
         if (!values) return;
         ew_VolumeTreeView.attachEBSVolume(values[1], instance.id, values[2]);
-        this.core.selectTab('ew.tabs.volume')
+        this.core.selectTab('ew.tabs.volume');
     },
 
     associateWithEIP : function()
@@ -495,7 +511,7 @@ var ew_InstancesTreeView = {
         for (var i in eipList) {
             var eip = eipList[i];
             if ((instance.vpcId != '' && eip.domain != "vpc") || (instance.vpcId == '' && eip.domain == "vpc")) continue;
-            eips.push(eip)
+            eips.push(eip);
         }
         var idx = this.core.promptList("Associate EIP with Instance", "Which EIP would you like to associate with " + instance.toString() + "?", eips);
         if (idx < 0) return;
@@ -638,6 +654,8 @@ var ew_InstancesTreeView = {
         log("Private Key File: " + prvKeyFile);
 
         while (fSuccess) {
+            var rsaPrivateKey = null;
+
             // If the private key file was not specified, or couldn't be found,
             // ask the user for its location on the local filesystem
             if (prvKeyFile.length == 0) {
@@ -660,7 +678,7 @@ var ew_InstancesTreeView = {
 
             if (fSuccess) {
                 // Get the RSA private key from the password file
-                var rsaPrivateKey  = this.retrieveRSAKeyFromKeyFile(prvKeyFile, fSilent);
+                rsaPrivateKey  = this.retrieveRSAKeyFromKeyFile(prvKeyFile, fSilent);
                 fSuccess = (rsaPrivateKey != null);
             }
 
@@ -711,7 +729,7 @@ var ew_InstancesTreeView = {
         $("instances.context.connectPublic").disabled = instance.ipAddress == "";
         $("instances.context.copyPublic").disabled = instance.ipAddress == "";
         $("instances.context.connectElastic").disabled = instance.elasticIp == "";
-        $("instances.context.copyElastic").disabled = instance.elasticIp == ""
+        $("instances.context.copyElastic").disabled = instance.elasticIp == "";
         $("instances.context.connectPublicDns").disabled = instance.dnsName == "";
         $("instances.context.copyPublicDns").disabled = instance.dnsName == "";
 
@@ -738,8 +756,11 @@ var ew_InstancesTreeView = {
         // These items are only valid for instances with EBS-backed root devices.
         var optDisabled = !isEbsRootDeviceType(instance.rootDeviceType);
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
-        $("instances.context.changeShutdownBehaviour").disabled = optDisabled;
+        $("instances.context.changeShutdownBehavior").disabled = optDisabled;
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
+        $("instances.context.startMonitoring").disabled = optDisabled || instance.monitoringEnabled;
+        $("instances.context.stopMonitoring").disabled = optDisabled || !instance.monitoringEnabled;
+        $("instances.context.showMetrics").disabled = optDisabled || !instance.monitoringEnabled;
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
         $("instances.context.forceStop").disabled = optDisabled;
@@ -747,7 +768,6 @@ var ew_InstancesTreeView = {
 
     launchNewInstances : function()
     {
-        var me = this;
         var instance = this.getSelected();
         if (!instance) {
             alert('No existing instances, please choose AMI to launch from');
@@ -769,7 +789,7 @@ var ew_InstancesTreeView = {
         }
 
         var me = this;
-        this.core.api.runMoreInstances(instance, count, function() { me.refresh()});
+        this.core.api.runMoreInstances(instance, count, function() { me.refresh(); });
     },
 
     terminateInstance : function() {
@@ -778,7 +798,7 @@ var ew_InstancesTreeView = {
         if (!confirm("Terminate " + instances.length + " instance(s)?")) return;
 
         var me = this;
-        this.core.api.terminateInstances(instances, function() { me.refresh()});
+        this.core.api.terminateInstances(instances, function() { me.refresh(); });
     },
 
     stopInstance : function(force)
@@ -788,7 +808,7 @@ var ew_InstancesTreeView = {
         if (!confirm("Stop " + instances.length + " instance(s)?")) return;
 
         var me = this;
-        this.core.api.stopInstances(instances, force, function() { me.refresh()});
+        this.core.api.stopInstances(instances, force, function() { me.refresh(); });
     },
 
     changeSecurityGroups: function() {
@@ -798,9 +818,9 @@ var ew_InstancesTreeView = {
         var groups = this.core.queryModel('securityGroups', 'vpcId', instance.vpcId);
         var list = this.core.promptList('Change Security Groups', 'Select security groups for the instance:', groups, { multiple: true });
         if (!list || !list.length) return;
-        var params = []
+        var params = [];
         for (var i = 0; i < list.length; i++) {
-            params.push(["GroupId." + (i + 1), list[i].id])
+            params.push(["GroupId." + (i + 1), list[i].id]);
         }
         me.core.api.modifyInstanceAttributes(instance.id, params);
     },
@@ -843,7 +863,7 @@ var ew_InstancesTreeView = {
         var types = this.core.getInstanceTypes();
         this.core.api.describeInstanceAttribute(instance.id, "instanceType", function(value) {
             var idx = me.core.promptList('Instance Type', 'Select instance type:', types );
-            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', types[idx].id, function() { me.refresh() });
+            me.core.api.modifyInstanceAttribute(instance.id, 'InstanceType', types[idx].id, function() { me.refresh(); });
         });
     },
 
@@ -854,7 +874,7 @@ var ew_InstancesTreeView = {
         var me = this;
 
         this.core.api.describeInstanceAttribute(instances[0].id, "disableApiTermination", function(value) {
-            value = (value == "true")
+            value = (value == "true");
             if (confirm((value ? "Disable" : "Enable") + " Termination Protection?")) {
                 for (var i = 0; i < instances.length; i++) {
                     me.core.api.modifyInstanceAttribute(instances[i].id, "DisableApiTermination", !value);
@@ -870,7 +890,7 @@ var ew_InstancesTreeView = {
         var me = this;
 
         this.core.api.describeInstanceAttribute(instances[0].id, "sourceDestCheck", function(value) {
-            value = (value == "true")
+            value = (value == "true");
             if (confirm((value ? "Disable" : "Enable") + " source/destination checking?")) {
                 for (var i = 0; i < instances.length; i++) {
                     me.core.api.modifyInstanceAttribute(instances[i].id, "SourceDestCheck", !value);
@@ -879,7 +899,7 @@ var ew_InstancesTreeView = {
         });
     },
 
-    changeShutdownBehaviour : function(value)
+    changeShutdownBehavior : function(value)
     {
         var instances = this.getSelectedAll();
         if (!instances.length) return;
@@ -887,7 +907,7 @@ var ew_InstancesTreeView = {
 
         this.core.api.describeInstanceAttribute(instances[0].id, "instanceInitiatedShutdownBehavior", function(value) {
             value = value == "stop" ? "terminate" : "stop";
-            if (confirm("Change instance initiated shutdown behaviour to " + value + " for "+instances.length+" instance(s)?")) {
+            if (confirm("Change instance initiated shutdown behavior to " + value + " for "+instances.length+" instance(s)?")) {
                 for (var i = 0; i < instances.length; i++) {
                     me.core.api.modifyInstanceAttribute(instances[i].id, "InstanceInitiatedShutdownBehavior", value);
                 }
@@ -926,8 +946,7 @@ var ew_InstancesTreeView = {
     {
         var instances = this.getSelectedAll();
         if (instances.length == 0) return;
-        var me = this;
-        this.core.api.startInstances(instances, function() {me.refresh()});
+        this.core.api.startInstances(instances, function() { e.refresh(); });
     },
 
     isInstanceReadyToUse : function(instance)
@@ -952,7 +971,7 @@ var ew_InstancesTreeView = {
         var instance = this.getSelected();
         if (!instance) return;
         this.core.api.getConsoleOutput(instance.id, function(output) {
-            me.core.promptInput('Console', [{notitle:1,multiline:true,cols:120,rows:50,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:output}])
+            me.core.promptInput('Console', [{notitle:1,multiline:true,cols:120,rows:50,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:output}]);
         });
     },
 
@@ -968,9 +987,8 @@ var ew_InstancesTreeView = {
         var hostCIDR = this.core.api.queryCheckIP() + "/32";
         var networkCIDR = this.core.api.queryCheckIP("block");
 
-        debug("Host: " + hostCIDR + ", net:" + networkCIDR + ", transport:" + transport + ", proto:" + protocol + ", port:" + port + ", groups:" + groups)
+        debug("Host: " + hostCIDR + ", net:" + networkCIDR + ", transport:" + transport + ", proto:" + protocol + ", port:" + port + ", groups:" + groups);
 
-        var permissions = null;
         for (var j in groups) {
             var group = this.core.findModel('securityGroups', groups[j]);
             if (!group) continue;
@@ -987,7 +1005,7 @@ var ew_InstancesTreeView = {
                 var fromPort = parseInt(perm.fromPort);
                 var toPort = parseInt(perm.toPort);
                 port = parseInt(port);
-                if ((perm.fromPort == port || perm.toPort == port || (perm.fromPort <= port && perm.toPort >= port)) &&
+                if ((fromPort == port || toPort == port || (fromPort <= port && toPort >= port)) &&
                     (perm.cidrIp == openCIDR || perm.cidrIp == hostCIDR || perm.cidrIp == networkCIDR)) {
                     fAdd = false;
                     break;
@@ -1011,13 +1029,13 @@ var ew_InstancesTreeView = {
             for (var i in groups) {
                 if (groups[i]) {
                     this.core.api.authorizeSourceCIDR('Ingress', groups[i], transport, port, port, hostCIDR, function() { ew_SecurityGroupsTreeView.refresh(); });
-                    result = true
+                    result = true;
                     break;
                 }
             }
         }
         if (!result) {
-            this.core.errorMessage("Could not authorize " + transport + ":" + protocol + ":" + port)
+            this.core.errorMessage("Could not authorize " + transport + ":" + protocol + ":" + port);
         }
     },
 
@@ -1047,7 +1065,7 @@ var ew_InstancesTreeView = {
                        ipType == 4 ? instance.dnsName :
                        ipType == 2 ? instance.elasticIp : "";
         if (!hostname && ipType == 3) {
-            hostname = this.instance.elasticIp
+            hostname = this.instance.elasticIp;
         }
 
         // Open ports for non private connection
@@ -1070,10 +1088,10 @@ var ew_InstancesTreeView = {
                 return;
             }
         }
-        var params = []
+        var params = [];
         params.push(["host", hostname]);
         params.push(["name", instance.name]);
-        params.push(["keyname", instance.keyName])
+        params.push(["keyname", instance.keyName]);
         params.push(["publicDnsName", instance.dnsName]);
         params.push(["privateDnsName", instance.privateDnsName]);
         params.push(["privateIpAddress", instance.privateIpAddress]);
@@ -1081,7 +1099,7 @@ var ew_InstancesTreeView = {
         if (args.indexOf("${pass}") >= 0) {
             var pass = this.getAdminPassword(instance, true);
             if (pass) {
-                params.push(["pass", pass])
+                params.push(["pass", pass]);
             }
         } else
 
@@ -1090,17 +1108,21 @@ var ew_InstancesTreeView = {
             if (!FileIO.exists(keyFile)) {
                 keyFile = this.core.promptForFile("Select the EC2 Private Key File for key: " + instance.keyName);
             }
-            if (!keyFile || !FileIO.exists(keyFile)) {
-                alert('Cannot connect without private key file for keypair ' + instance.keyName)
+            if (!keyFile) {
+                debug('User cancelled');
+                return;
+            } else if (!FileIO.exists(keyFile)) {
+                alert('Cannot connect without private key file for keypair ' + instance.keyName);
                 return;
             }
-            params.push(["key", keyFile])
+            debug('Connecting to ' + keyFile);
+            params.push(["key", keyFile]);
         }
 
         if (args.indexOf("${login}") >= 0 && this.core.getStrPrefs("ew.ssh.user") == "") {
             var login = this.core.prompt("Please provide SSH user name:");
             if (login && login != "") {
-                params.push(["login", login])
+                params.push(["login", login]);
             }
         }
 
@@ -1113,7 +1135,7 @@ var ew_InstancesTreeView = {
     rdpToMac : function(hostname, cmd)
     {
         var filename = this.core.getHome() + "/" + this.core.getAppName() + "/" + hostname + ".rdp";
-        var config = FileIO.open(filename)
+        var config = FileIO.open(filename);
 
         if (!config.exists()) {
             // create a bare-bones RDP connection file
@@ -1221,11 +1243,11 @@ var ew_VolumeTreeView = {
         var params = [];
         if (values[4] == "io1") {
             params.push(["VolumeType", values[4]]);
-            params.push(["Iops", values[5]])
+            params.push(["Iops", values[5]]);
         }
         this.core.api.createVolume(values[0],values[3],values[2], params, function(id) {
             if (values[1]) {
-                me.core.setTags(id, "Name:" + values[1], function() { me.refresh() });
+                me.core.setTags(id, "Name:" + values[1], function() { me.refresh(); });
             } else {
                 me.refresh();
             }
@@ -1239,15 +1261,13 @@ var ew_VolumeTreeView = {
         var label = image.name ? (image.name + '@' + image.id) : image.id;
         if (!confirm("Delete volume " + label + "?")) return;
         var me = this;
-        this.core.api.deleteVolume(image.id, function() {me.refresh()});
+        this.core.api.deleteVolume(image.id, function() { me.refresh(); });
     },
 
     attachEBSVolume : function (volumeId, instId, device)
     {
-        if (device == "windows_device") {
-            device = this.determineWindowsDevice(instId);
-        }
         var me = this;
+        if (device == "windows_device") device = this.determineWindowsDevice(instId);
         this.core.api.attachVolume(volumeId, instId, device, function() {me.refresh();});
     },
 
@@ -1270,7 +1290,7 @@ var ew_VolumeTreeView = {
 
         // If this is a Windows instance, the device should be windows_device and the instance should be ready to use
         var instance = this.core.findModel('instances', values[1]);
-        if (!instance) return alert('Instance disappeared')
+        if (!instance) return alert('Instance disappeared');
         if (!ew_InstancesTreeView.isInstanceReadyToUse(instance)) return;
         this.attachEBSVolume(image.id, values[1], values[2]);
     },
@@ -1285,15 +1305,11 @@ var ew_VolumeTreeView = {
 
         // If a volume is associated with this instance, mark the associated device as taken
         for (var i in volumes) {
-            if (volumes[i].instanceId == instId) {
-                devList[volumes[i].device] = 1;
-            }
+            if (volumes[i].instanceId == instId) devList[volumes[i].device] = 1;
         }
 
         for (var device in devList) {
-            if (devList[device] != 1) {
-                return devList[device];
-            }
+            if (devList[device] != 1) return devList[device];
         }
         return "";
     },
@@ -1304,7 +1320,7 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Enable IO for volume " + image.id + "?")) return;
-        this.core.api.enableVolumeIO(image.id, function() { me.refresh() });
+        this.core.api.enableVolumeIO(image.id, function() { me.refresh(); });
     },
 
     showStatus : function ()
@@ -1313,7 +1329,7 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         this.core.api.describeVolumeStatus(image.id, function(list) {
-            me.core.promptInput('Volume Status', [{notitle:1,multiline:true,cols:120,rows:10,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:list.join("\n")}])
+            me.core.promptInput('Volume Status', [{notitle:1,multiline:true,cols:120,rows:10,scale:1,wrap:false,style:"font-family:monospace",readonly:true,value:list.join("\n")}]);
         });
     },
 
@@ -1332,7 +1348,7 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
         if (!confirm("Detach volume " + image.id + "?")) return;
-        this.core.api.detachVolume(image.id, function() { me.refresh() });
+        this.core.api.detachVolume(image.id, function() { me.refresh(); });
     },
 
     forceDetachVolume : function ()
@@ -1341,7 +1357,7 @@ var ew_VolumeTreeView = {
         if (image == null) return;
         if (!confirm("Force detach volume " + image.id + "?")) return;
         var me = this;
-        this.core.api.forceDetachVolume(image.id, function() { me.refresh() });
+        this.core.api.forceDetachVolume(image.id, function() { me.refresh(); });
     },
 
     isRefreshable: function()
@@ -1428,7 +1444,7 @@ var ew_SnapshotTreeView = {
         if (image == null) return;
         var label = image.name ? (image.name + '@' + image.id) : image.id;
         if (!confirm("Delete snapshot " + label + "?"))  return;
-        this.core.api.deleteSnapshot(image.id, function() { me.refresh() });
+        this.core.api.deleteSnapshot(image.id, function() { me.refresh(); });
     },
 
     createVolume : function () {
@@ -1477,7 +1493,7 @@ var ew_SnapshotTreeView = {
         var me = this;
         var image = this.getSelected();
         var snapshots = this.treeList;
-        var regions = this.core.api.getEC2Regions().filter(function(x) { return x.name != me.core.api.region });
+        var regions = this.core.api.getEC2Regions().filter(function(x) { return x.name != me.core.api.region; });
 
         var values = this.core.promptInput('Copy Snapshot',
                 [{label:"Same region",type:"section"},
@@ -1514,12 +1530,13 @@ var ew_ElasticIPTreeView = {
         $("ew.addresses.contextmenu.disassociate").disabled = !eip || (!eip.instanceId && !eip.associationId);
         $("ew.addresses.contextmenu.copyDns").disabled = !eip || !instance || !instance.dnsName;
         $("ew.addresses.contextmenu.copyIp").disabled = !eip;
-        $("ew.addresses.contextmenu.tag").disabled = !eip;
     },
 
     allocateAddress : function() {
+        if (this.core.promptYesNo('Allocate New Address', 'Are you sure you want to allocate a new IP address?')) {
         var me = this;
-        this.core.api.allocateAddress(this.core.isVpcMode(), function() { me.refresh() });
+        this.core.api.allocateAddress(this.core.isVpcMode(), function() { me.refresh(); });
+        }
     },
 
     releaseAddress : function() {
@@ -1528,7 +1545,7 @@ var ew_ElasticIPTreeView = {
         if (!this.core.promptYesNo("Confirm", "Release "+eip.publicIp+"?")) return;
 
         var me = this;
-        this.core.api.releaseAddress(eip, function() { me.refresh() });
+        this.core.api.releaseAddress(eip, function() { me.refresh(); });
     },
 
     getUnassociatedInstances : function() {
@@ -1592,7 +1609,7 @@ var ew_ElasticIPTreeView = {
         }
 
         var me = this;
-        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, privateIp, force, function() { me.refresh() });
+        this.core.api.associateAddress(eip, eip.instanceId, eip.eniId, privateIp, force, function() { me.refresh(); });
         return true;
     },
 
@@ -1601,10 +1618,10 @@ var ew_ElasticIPTreeView = {
         var eip = this.getSelected();
         if (eip == null) return;
         if (!eip.instanceId && !eip.associationId) {
-            return alert("This EIP is not associated")
+            return alert("This EIP is not associated with an EC2 instance.");
         }
         if (!confirm("Disassociate " + eip + "?")) return;
-        this.core.api.disassociateAddress(eip, function() { me.refresh() });
+        this.core.api.disassociateAddress(eip, function() { me.refresh(); });
     },
 
     copyPublicDnsToClipBoard : function(fieldName) {
@@ -1636,7 +1653,7 @@ var ew_SecurityGroupsTreeView = {
         var values = this.core.promptInput('Create Security Group', [ {label:"Group Name",type:"name",required:1},
                                                                       {label:"Description",required:1},
                                                                       {label:"VPC",type:"menulist",list:vpcs},
-                                                                      {label:"Permissions",type:"menulist",list:opts}])
+                                                                      {label:"Permissions",type:"menulist",list:opts}]);
 
         if (!values) return;
         this.core.api.createSecurityGroup(values[0], values[1], values[2], function(id) {
@@ -1654,14 +1671,16 @@ var ew_SecurityGroupsTreeView = {
 
             case 'Manual':
                 ew_PermissionsTreeView.grantPermission();
+                me.refresh();
                 return;
 
             default:
+                me.refresh();
                 return;
             }
             // Need to authorize SSH and RDP for either this host or the network.
             me.core.api.authorizeSourceCIDR('Ingress', {id: id}, "tcp", protPortMap["ssh"], protPortMap["ssh"], cidr, null);
-            me.core.api.authorizeSourceCIDR('Ingress', {id: id}, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, function() { me.refresh() });
+            me.core.api.authorizeSourceCIDR('Ingress', {id: id}, "tcp", protPortMap["rdp"], protPortMap["rdp"], cidr, function() { me.refresh(); });
         });
     },
 
@@ -1676,7 +1695,7 @@ var ew_SecurityGroupsTreeView = {
         var me = this;
         var wrap = function() {
             me.refresh();
-        }
+        };
         this.core.api.deleteSecurityGroup(group, wrap);
     },
 
@@ -1770,7 +1789,7 @@ var ew_ReservedInstancesOfferingsTreeView = {
 
             if (image.marketPlace) inputs.push({label:"Market Price Limit ($US)",type:"number",size:6,min:0,});
 
-            var values = this.core.promptInput({ title: 'Purchase Instance', buttons: { accept: 'Next' }}, inputs)
+            var values = this.core.promptInput({ title: 'Purchase Instance', buttons: { accept: 'Next' }}, inputs);
             if (!values) return;
 
             var count = parseInt(values[14]);
@@ -1799,11 +1818,18 @@ var ew_BundleTasksTreeView = {
     {
         var task = this.getSelected();
 
+        // Cannot view bundle details unless a bundle task is available and selected
+        $("bundleTasks.context.details").disabled = !task;
+
         // If the task has been completed or has failed, disable the following context menu items.
         $("bundleTasks.context.cancel").disabled = !task || (task.state == "complete" || task.state == "failed");
 
         // If the task hasn't completed, you can't register a new AMI
         $("bundleTasks.context.register").disabled = !task || (task.state != "complete");
+
+        // Cannot copy bundle ID or instance ID unless a bundle task is available and selected
+        $("bundleTasks.context.copy.bunid").disabled = !task;
+        $("bundleTasks.context.copy.id").disabled = !task;
     },
 
     isRefreshable : function()
@@ -1817,11 +1843,15 @@ var ew_BundleTasksTreeView = {
     cancelBundleTask: function ()
     {
         var selected = this.getSelectedBundle();
-        if (selected == null) return;
+
+        if (selected == null) {
+            alert('Please select a bundle task.');
+            return;
+        }
 
         if (!confirm("Cancel bundle task:  " + selected.id + "?")) return;
         var me = this;
-        this.core.api.cancelBundleTask(selected.id, function() { me.refresh() });
+        this.core.api.cancelBundleTask(selected.id, function() { me.refresh(); });
     },
 
     registerBundledImage : function (bucket, prefix)
@@ -1837,7 +1867,11 @@ var ew_BundleTasksTreeView = {
 
     registerNewImage : function () {
         var selected = this.getSelected();
-        if (selected == null) return;
+
+        if (selected == null) {
+            alert('A bundle task in complete state is required before registering a new AMI.');
+            return;
+        }
 
         // Ensure that bundling has run to completion
         if (selected.state != "complete") {
@@ -1854,7 +1888,7 @@ var ew_SpotInstanceRequestsTreeView = {
     activate: function()
     {
         var me = this;
-        this.core.api.describeSpotDatafeedSubscription(function(obj) { me.datafeedChanged(obj) });
+        this.core.api.describeSpotDatafeedSubscription(function(obj) { me.datafeedChanged(obj); });
         return TreeView.activate.call(this);
     },
 
@@ -1880,7 +1914,7 @@ var ew_SpotInstanceRequestsTreeView = {
         if (retVal.ok) {
             this.core.api.requestSpotInstances(retVal.spotPrice, retVal.minCount, retVal.spotType, retVal.validFrom, retVal.validUntil, retVal.launchGroup, retVal.availZoneGroup, retVal.imageId, retVal.instanceType, retVal, function(list) {
                 if (retVal.tag) {
-                    me.core.setTags(list, retVal.tag, function() { me.refresh() });
+                    me.core.setTags(list, retVal.tag, function() { me.refresh(); });
                 } else {
                     me.refresh();
                 }
@@ -1918,7 +1952,7 @@ var ew_SpotInstanceRequestsTreeView = {
                                                      {label:"Duration(days ago)",type:"menulist",value:1,list:[0.5,1,2,3,4,5,6,7,8,9,10,20,30,45,60,75,90]},
                                                      {label:"Availability Zone",type:"menulist",list:this.core.queryModel('availabilityZones')},
                                                      {label:"Price History Graph",type:"graph",width:550,height:350,list:[],xlabel:'Date',ylabel:'Price'},
-                                                     ], {onchange:onchange})
+                                                     ], {onchange:onchange});
     },
 
     datafeedChanged: function(obj)
@@ -1958,7 +1992,7 @@ var ew_ExportTasksTreeView = {
                 {label:"Target Environment",type:"menulist",list:["vmware", "citrix", "microsoft"],required:1},
                 {label:"S3 Bucket Name",type:"name",required:1},
                 {label:"S3 Prefix"},
-                {label:"Diks Image Format",type:"menulist",list:["vmdk", "vhd"]},
+                {label:"Disk Image Format",type:"menulist",list:["vmdk", "vhd"]},
                 {label:"Container Format",type:"menulist",list:["ova"]},
                 ]);
        if (!values) return;
@@ -1980,7 +2014,7 @@ var ew_ConversionTasksTreeView = {
 
    createVolumeTask: function()
    {
-       alert('The createVolumeTask feature has not been implemented')
+       alert('The createVolumeTask feature has not been implemented');
    },
 
    createInstanceTask: function()
@@ -1992,7 +2026,7 @@ var ew_ConversionTasksTreeView = {
                                     {label:"Instance Type",type:"menulist",list:this.core.getInstanceTypes(),style:"max-width:400px",required:1},
                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
                                     {label:"Disk Description"},
-                                    {label:"Diks Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
+                                    {label:"Disk Image Format",type:"menulist",list:["RAW","VMDK","VHD"],required:1},
                                     {label:"Disk Image Size (bytes)",type:"number",required:1},
                                     {label:"Disk Image S3 Bucket",required:1,tooltiptext:"S3 bucket to the manifest for the disk image, stored in Amazon S3"},
                                     {label:"Disk Image S3 Path",required:1,tooltiptext:"S3 path to the manifest for the disk image, stored in Amazon S3, it will be converted into S3 HTTP URL and signed with current credentials"},
@@ -2016,7 +2050,7 @@ var ew_ConversionTasksTreeView = {
        options.subnetId = values[12];
        options.privateIpAddress = values[13];
        options.monitoringEnabled = values[14];
-       options.instanceInitiatedShutdownBehaviour = values[15];
+       options.instanceInitiatedShutdownBehavior = values[15];
        options.userData = values[16];
        options.platform = values[17];
        var s3 = this.core.api.queryS3Prepare('GET', values[6], values[7], "", {}, "", Math.round((new Date()).getTime()/1000) + 60);

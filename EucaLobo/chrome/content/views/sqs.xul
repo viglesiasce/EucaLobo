@@ -59,7 +59,7 @@
                  <textbox id="ew.messages.timeout" type="number" min="0" max="20" size="2" />
                </hbox>
                <toolbarbutton image="images/refresh.png" oncommand="ew_SQSMsgTreeView.refresh();" tooltiptext="Clear and start reading new messages" />
-               <toolbarbutton image="images/download.png" oncommand="ew_SQSMsgTreeView.append();" tooltiptext="Read and add new messages the list" />
+               <toolbarbutton image="images/download.png" oncommand="ew_SQSMsgTreeView.append();" tooltiptext="Read and add new messages to the list" />
                <toolbarbutton image="images/delete.png" tooltiptext="Delete Message" oncommand="ew_SQSMsgTreeView.deleteMessage();" />
             </toolbar>
 

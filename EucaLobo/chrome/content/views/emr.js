@@ -20,6 +20,10 @@ var ew_JobFlowsTreeView = {
     addItem: function(instance)
     {
         var me = this;
+
+        // Warning: the labels used in this dialog must match the parameter names to the EMR API,
+        // for example the label "Log Uri" is converted to "LogUri" and used on the EMR API.  Also,
+        // these may be prefixed if necesary - to do that, add a prefix:"myprefix" property.
         var inputs = [{label:'EMR',type:'tabs',list:['General','Instance Group','Bootstrap','Steps']},
                       {label:'General',type:'tabpanel'},
                       {label:"Name",tooltiptext:"Friendly name given to the job flow",required:true},
@@ -29,11 +33,12 @@ var ew_JobFlowsTreeView = {
                       {label:"Termination Protection", type:"checkbox",prefix:"Instances.",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."},
                       {label:"Availability Zone",type:"menulist",prefix:"Instances.Placement.",list:this.core.queryModel('availabilityZones'),tooltiptext:"Specifies the Availability Zone the job flow will run in."},
                       {label:"Keep Job Flow Alive When No Steps",type:"checkbox",prefix:"Instances.",tooltiptext:"Specifies whether the job flow should terminate after completing all steps."},
-                      {label:"Ec2 Key Name",type:"menulist",prefix:"Instances.",list:this.core.queryModel("keypairs"),key:'name',tooltiptext:"Specifies the name of the Amazon EC2 key pair that can be used to ssh to the master node as the user called hadoop."},
-                      {label:"Ec2 Subnet Id",type:"menulist",prefix:"Instances.",list:this.core.queryModel("subnets"),style:"max-width:350px;",tooltiptext:"To launch the job flow in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the job flow to launch. If you do not specify this value, the job flow is launched in the normal Amazon Web Services cloud, outside of an Amazon VPC. Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus you cannot specify the cc1.4xlarge instance type for nodes of a job flow launched in a Amazon VPC."},
+                      {label:"EC2 Key Name",type:"menulist",prefix:"Instances.",list:this.core.queryModel("keypairs"),key:'name',tooltiptext:"Specifies the name of the Amazon EC2 key pair that can be used to ssh to the master node as the user called hadoop."},
+                      {label:"EC2 Subnet ID",type:"menulist",prefix:"Instances.",list:this.core.queryModel("subnets"),style:"max-width:350px;",tooltiptext:"To launch the job flow in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the job flow to launch. If you do not specify this value, the job flow is launched in the normal Amazon Web Services cloud, outside of an Amazon VPC. Amazon VPC currently does not support cluster compute quadruple extra large (cc1.4xlarge) instances. Thus you cannot specify the cc1.4xlarge instance type for nodes of a job flow launched in a Amazon VPC."},
                       {label:"Hadoop Version",type:"menulist",prefix:"Instances.",list:["0.18", "0.20", "0.20.205"],required:true},
-                      {label:"Ami Version",type:"menulist",list:["1.0", "2.0", "latest"],tooltiptext:"The version of the Amazon Machine Image (AMI) to use when launching Amazon EC2 instances in the job flow. The following values ane valid: latest (latest AMI version; currently AMI 2.0, Hadoop 0.20.205), 2.0 (AMI 2.0, Hadoop 0.20.205), 1.0 (AMI 1.0, Hadoop 0.18), If this value is not specified, the job flow uses the default of (AMI 1.0, Hadoop 0.18)."},
-                      {label:"Log Uri",tooltiptext:"Specifies the location in Amazon S3 to write the log files of the job flow. If a value is not provided, logs are not created."},
+                      {label:"AMI Version",type:"menulist",list:["1.0", "2.0", "latest"],tooltiptext:"The version of the Amazon Machine Image (AMI) to use when launching Amazon EC2 instances in the job flow. The following values ane valid: latest (latest AMI version; currently AMI 2.0, Hadoop 0.20.205), 2.0 (AMI 2.0, Hadoop 0.20.205), 1.0 (AMI 1.0, Hadoop 0.18), If this value is not specified, the job flow uses the default of (AMI 1.0, Hadoop 0.18)."},
+                      {label:"Log URI",tooltiptext:"Specifies the location in Amazon S3 to write the log files of the job flow. If a value is not provided, logs are not created."},
+                      {label:"Job Flow Role",tooltiptext:"An IAM role for the job flow. The EC2 instances of the job flow assume this role. The default role is EMRJobflowDefault. In order to use the default role, you must have already created it using the CLI."},
                       {label:"Supported Products",type:"listview",rows:3,headers:["","Product"],list:["karmasphere-enterprise-utility","mapr-m3","mapr-m5"],toltiptext:"A list of strings that indicates third-party software to use with the job flow."},
                       {label:"Instance Group",type:"tabpanel"},
                       {label:"Name",tooltiptext:"Friendly name given to the instance group"},
@@ -59,7 +64,7 @@ var ew_JobFlowsTreeView = {
                       ];
         var values = this.core.promptInput("Create Job Flow", inputs);
         if (!values) return;
-        var opts = {}
+        var opts = {};
         for (var i = 3; i < inputs.length; i++) {
             if (!values[i]) continue;
             var label = (inputs[i].prefix || "") + inputs[i].label.replace(/ /g, "");
@@ -106,7 +111,7 @@ var ew_JobFlowsTreeView = {
                 }
             }
         }
-        this.core.api.runJobFlow(values[2], values[3], opts, function() { me.refresh() });
+        this.core.api.runJobFlow(values[2], values[3], opts, function() { me.refresh(); });
     },
 
     deleteSelected : function ()
@@ -114,7 +119,7 @@ var ew_JobFlowsTreeView = {
         var me = this;
         var item = this.getSelected();
         if (!TreeView.deleteSelected.call(this)) return;
-        this.core.api.terminateJobFlows(item.id, function() { me.refresh() });
+        this.core.api.terminateJobFlows(item.id, function() { me.refresh(); });
     },
 
     setTerminationProtection: function()
@@ -124,7 +129,7 @@ var ew_JobFlowsTreeView = {
         if (!item) return;
         var values = this.core.promptInput("Set Termination Protection",
                         [{label:"Termination Protection", type:"checkbox",tooltiptext:"A Boolean that indicates whether to protect the job flow and prevent the Amazon EC2 instances in the cluster from shutting down due to API calls, user intervention, or job-flow error."}]);
-        this.core.api.setTerminationProtection(item.id, values[0], function() { me.refresh() });
+        this.core.api.setTerminationProtection(item.id, values[0], function() { me.refresh(); });
     },
 
     addGroup: function()
@@ -140,14 +145,14 @@ var ew_JobFlowsTreeView = {
                  {label:"Market",type:"menulist",list:["ON_DEMAND","SPOT"],required:true,tooltiptext:"Market type of the Amazon EC2 instances used to create a cluster node."},
                  {label:"BidPrice",type:"number",min:0,tooltiptext:"Bid price for each Amazon EC2 instance in the instance group when launching nodes as Spot Instances, expressed in USD."}]);
         if (!values) return;
-        var group = {}
+        var group = {};
         group.Name = values[0];
         group.InstanceCount = values[1];
         group.InstanceRole = values[2];
         group.InstanceType = values[3];
         group.Market = values[4];
         group.BidPrice = values[5];
-        this.core.api.addInstanceGroups(item.id, group, function() { me.refresh() });
+        this.core.api.addInstanceGroups(item.id, group, function() { me.refresh(); });
     },
 
     modifyGroup: function()
@@ -163,7 +168,7 @@ var ew_JobFlowsTreeView = {
                  {label:"Number of instance in the group:",type:"number",min:0,}]);
         if (!values) return;
         values[0].InstanceCount = values[1];
-        this.core.api.modifyInstanceGroups(values[0], function() { me.refresh() });
+        this.core.api.modifyInstanceGroups(values[0], function() { me.refresh(); });
     },
 
     addFlowStep: function()
@@ -180,14 +185,14 @@ var ew_JobFlowsTreeView = {
                  {label:"Properties",multiline:true,rows:3,cols:60,tooltiptext:"A list of Java properties that are set when the step runs.You can use these properties to pass key value pairs to your main function.Format is: key=value"}
                  ]);
         if (!values) return;
-        var step = {}
-        step.Name = values[0]
-        step.ActionOnFailure = values[1]
+        var step = {};
+        step.Name = values[0];
+        step.ActionOnFailure = values[1];
         step.Jar = values[2];
         step.MainClass = values[3];
         step.Args = values[4] ? values[4].split(" ") : "";
         step.Properties = this.core.parseTags(values[5]);
-        this.core.api.addJobFlowSteps(item.id, step, function() { me.refresh() });
+        this.core.api.addJobFlowSteps(item.id, step, function() { me.refresh(); });
     },
 
 };

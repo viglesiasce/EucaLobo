@@ -5,6 +5,7 @@
 
 var ew_core = {
     URL: 'http://www.elasticwolf.com/',
+    S3REDIRECT: 'https://s3-us-gov-west-1.amazonaws.com/elasticwolf/redirect',
     ISSUES: 'https://github.com/aws-ew-dev/ElasticWolf/issues',
     REALM : 'chrome://ew/',
     HOST  : 'chrome://ew/',
@@ -123,6 +124,8 @@ var ew_core = {
             setTimeout(function() { ew_CredentialsTreeView.addCredentials(); }, 1000);
             this.addEndpoint("AWS","AWS","https://ec2.amazonaws.com","https://s3.amazonaws.com");
         }
+        // Cache essential models on startup
+        ["images","availabilityZones","securityGroups"].forEach(function(x) { me.refreshModel(x); });
     },
 
     setIdleTimer: function()
@@ -140,7 +143,7 @@ var ew_core = {
              timeout: timeout * 60,
              observe: function(subject, topic, data) {
                  var action = me.getStrPrefs("ew.idle.action", "");
-                 debug(subject + ", " + topic + ", " + data + ", " + action)
+                 debug(subject + ", " + topic + ", " + data + ", " + action);
                  switch (topic + ':' + action) {
                  case "idle:exit":
                      me.quit();
@@ -207,7 +210,7 @@ var ew_core = {
             // Try directly if this panel not in the menu
             var panel = $(name);
             if (!panel) {
-                debug('menu not found ' + name)
+                debug('menu not found ' + name);
                 return false;
             }
         } else {
@@ -219,7 +222,7 @@ var ew_core = {
 
         // Activate and refresh if no records yet
         for (var i in tab.views) {
-            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount)
+            debug('activate ' + tab.views[i].id + ", rows=" + tab.views[i].view.rowCount);
             tab.views[i].view.activate();
             // Assign new filter list and refresh contents
             tab.views[i].view.filterList = tab.views[i].filterList;
@@ -311,26 +314,36 @@ var ew_core = {
         }
     },
 
+    updateStatusBar: function()
+    {
+        var cred = this.getActiveCredentials();
+        $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
+    },
+
     updateMenu: function()
     {
-        var tree = $('ew.menu');
+        this.updateStatusBar();
+
+        // Modify menu to show current credentials
         var idx = this.getMenu("ew.tabs.credential");
         if (idx > -1) {
+            var tree = $('ew.menu');
             var cred = this.getActiveCredentials();
             var label = cred ? 'Current: ' + cred.name + "/" + this.api.region : "Manage Credentials";
             tree.view.setCellText(idx, tree.columns[0], label);
-            $('ew_status').label = cred ? cred.name + "/" + this.api.region : "";
         }
-        // Hide items in non advanced mode
+
+        // Hide advanced items if not in advanced mode
         var advanced = this.getBoolPrefs("ew.advanced.mode", false);
         var items = document.getElementsByClassName("advanced");
         for (var i = 0; i < items.length; i++) {
             items[i].hidden = !advanced;
         }
-        // Hie items in VPC only mode
+
+        // Hide EC2 classic items in VPC only mode
         var items = document.getElementsByClassName("ec2");
         for (var i = 0; i < items.length; i++) {
-            items[i].hidden = this.vpcId != null;
+            items[i].hidden = (this.vpcId != null);
         }
     },
 
@@ -349,13 +362,14 @@ var ew_core = {
         this.updateMenu();
     },
 
-    getCredentials : function () {
+    getCredentials : function ()
+    {
         var credentials = new Array();
-        var list = this.getPasswordList("Cred:")
+        var list = this.getPasswordList("Cred:");
         for (var i = 0; i < list.length; i++) {
             var pw = list[i][1].split(";;");
             if (pw.length > 1) {
-                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "", pw.length > 4 ? pw[4] : "")
+                var cred = new Credential(list[i][0].substr(5).trim(), pw[0], pw[1], pw.length > 2 ? pw[2] : "", pw.length > 3 ? pw[3] : "", pw.length > 4 ? pw[4] : "");
                 credentials.push(cred);
             }
         }
@@ -374,13 +388,13 @@ var ew_core = {
 
     removeCredentials : function(cred)
     {
-        this.deletePassword('Cred:' + cred.name)
+        this.deletePassword('Cred:' + cred.name);
         this.credentials = this.getCredentials();
     },
 
     saveCredentials : function(cred)
     {
-        this.savePassword('Cred:' + cred.name, cred.toString())
+        this.savePassword('Cred:' + cred.name, cred.toString());
     },
 
     getActiveCredentials : function()
@@ -422,7 +436,7 @@ var ew_core = {
                 if (!endpoint) endpoint = new Endpoint("", cred.ec2_url)
                 this.selectEndpoint(endpoint, true);
             } else
-            // GovCloud credentials require endpoint to be set explicitely, switching from GovCloud without explicit endpoint will result in errors
+            // GovCloud credentials require endpoint to be set explicitly, switching from GovCloud without explicit endpoint will result in errors
             if (wasGovCloud) {
                 // Reset and then use last saved endpoint
                 this.api.setEndpoint(new Endpoint());
@@ -433,7 +447,7 @@ var ew_core = {
             this.invalidateMenu();
             var me = this;
             // Retrieve current user info
-            this.api.getUser(null, function(user) { me.user = user || {}; })
+            this.api.getUser(null, function(user) { me.user = user || {}; ew_PrefsView.refresh(); });
             return true;
         }
         return false;
@@ -451,7 +465,7 @@ var ew_core = {
     createTempCredentials: function(item, active)
     {
         if (!item) return;
-        if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary" }).length >= 2) {
+        if (item.accessKeys && item.accessKeys.filter(function(x) { return x.status != "Temporary"; }).length >= 2) {
             return alert((item.name || 'You') + ' already have ' + item.accessKeys.length + ' regular Access Keys. Please delete one key in order to create new credentials.');
         }
 
@@ -528,7 +542,7 @@ var ew_core = {
         if (this.selectEndpoint(endpoint)) {
             // Switching between GovCloud, reset credentials
             if (this.isGovCloud() != wasGovCloud) {
-                debug('disable credentials when switching to/from GovCloud')
+                debug('disable credentials when switching to/from GovCloud');
                 this.api.setCredentials("", "");
                 this.setStrPrefs("ew.account.name", "");
             }
@@ -536,7 +550,7 @@ var ew_core = {
             this.invalidateModel();
             this.invalidateMenu();
         } else {
-            alert('Endpoint ' + name + ' does not exist.')
+            alert('Endpoint ' + name + ' does not exist.');
         }
     },
 
@@ -608,7 +622,7 @@ var ew_core = {
         try {
           var io = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
           var uri = io.newURI(url, null, null);
-          var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService)
+          var eps = Components.classes['@mozilla.org/uriloader/external-protocol-service;1'].getService(Components.interfaces.nsIExternalProtocolService);
           var launcher = eps.getProtocolHandlerInfo(protocol || 'http');
           launcher.preferredAction = Components.interfaces.nsIHandlerInfo.useSystemDefault;
           launcher.launchWithURI(uri, null);
@@ -686,12 +700,19 @@ var ew_core = {
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
         fp.init(window, msg, save ? nsIFilePicker.modeSave : nsIFilePicker.modeOpen);
+        fp.appendFilters(nsIFilePicker.filterAll |
+                         nsIFilePicker.filterApps |
+                         nsIFilePicker.filterAudio |
+                         nsIFilePicker.filterHTML |
+                         nsIFilePicker.filterImages |
+                         nsIFilePicker.filterText |
+                         nsIFilePicker.filterVideo);
         fp.displayDirectory = FileIO.open(this.getKeyHome());
         fp.defaultString = filename || "";
         if (fp.show() != nsIFilePicker.returnCancel) {
             return fp.file.path;
         }
-        return null
+        return null;
     },
 
     promptForDir : function(msg, save)
@@ -703,13 +724,13 @@ var ew_core = {
         if (fp.show() != nsIFilePicker.returnCancel) {
             return fp.file.path;
         }
-        return null
+        return null;
     },
 
     promptYesNo : function(title, text)
     {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-        return promptService.confirmEx(window, title, text, promptService.STD_YES_NO_BUTTONS| promptService.BUTTON_POS_0_DEFAULT, "", "", "", null, {}) == 0
+        return promptService.confirmEx(window, title, text, promptService.STD_YES_NO_BUTTONS| promptService.BUTTON_POS_0_DEFAULT, "", "", "", null, {}) == 0;
     },
 
     promptConfirm: function(title, msg, checkmsg, checkval)
@@ -797,7 +818,7 @@ var ew_core = {
                 try {
                     input.value = formatJSON(input.value);
                 }
-                catch(e) { debug(e) }
+                catch(e) { debug(e); }
             }
             if (input.found) inputs.splice(0, 0, input); else inputs.push(input);
         }
@@ -865,14 +886,14 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username == key) {
-                log("modifying password: " + key)
+                log("modifying password: " + key);
                 loginManager.modifyLogin(logins[i], login);
-                return false
+                return false;
             }
         }
-        log("adding password: " + key)
+        log("adding password: " + key);
         loginManager.addLogin(login);
-        return true
+        return true;
     },
 
     deletePassword : function(key)
@@ -881,12 +902,12 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username == key) {
-                log("removing password: " + key)
+                log("removing password: " + key);
                 loginManager.removeLogin(logins[i]);
-                return true
+                return true;
             }
         }
-        return false
+        return false;
     },
 
     getPassword : function(key)
@@ -898,7 +919,7 @@ var ew_core = {
                 return logins[i].password;
             }
         }
-        return ""
+        return "";
     },
 
     getPasswordList : function(prefix)
@@ -908,10 +929,10 @@ var ew_core = {
         var logins = loginManager.findLogins({}, this.HOST, "", this.REALM);
         for ( var i = 0; i < logins.length; i++) {
             if (logins[i].username.indexOf(prefix) == 0) {
-                list.push([ logins[i].username, logins[i].password ])
+                list.push([ logins[i].username, logins[i].password ]);
             }
         }
-        return list
+        return list;
     },
 
     getTempKeys: function()
@@ -949,7 +970,7 @@ var ew_core = {
         for (var i = 0; i < arguments.length; i++) {
             str += String(arguments[i]) + " ";
         }
-        debug(str)
+        debug(str);
     },
 
     copyToClipboard: function(text)
@@ -973,37 +994,85 @@ var ew_core = {
         return parseInt(v[0]) * 100 + parseInt(v[1]) * 10 + parseInt(v[2]);
     },
 
-    checkForUpdates: function(msg)
+    checkForRedirect: function(showmsg)
     {
         var me = this;
         if (!this.isEnabled()) return null;
 
-        // File naming convention
+        var xmlhttp = this.api.getXmlHttp();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4) {
+                if (xmlhttp.status == 200) {
+                    debug("Response text: " + xmlhttp.responseText);
+                    var o = JSON.parse(xmlhttp.responseText);
+                    debug("New URL: " + o.url);
+                    debug("New MSG: " + o.msg);
+                    return me.checkForUpdatedVersion(showmsg, o.url, o.msg);
+                } else {
+                    return me.checkForUpdatedVersion(showmsg, null, null);
+                }
+            }
+            return null;
+        };
+        var url = this.S3REDIRECT + "?" + new Date().getTime();
+        xmlhttp.open("GET", url, true);
+        xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
+        xmlhttp.setRequestHeader("Cache-Control", "no-cache");
+        xmlhttp.setRequestHeader("Pragma", "no-cache");
+        xmlhttp.send();
+    },
+
+    checkForUpdatedVersion: function(showmsg, redirecturl, redirectmsg)
+    {
+        var me = this;
+        if (!this.isEnabled()) return null;
+
+        if (redirecturl && redirectmsg) {
+            if (confirm(redirectmsg + "\n\n" + "A software update is available at " + redirecturl + "\n\nWould you like to visit that page to download the update?")) {
+                this.displayUrl(redirecturl);
+            }
+            return;
+        }
+
+        // File naming convention includes version number
         var rx = new RegExp(this.getAppName() + ".*[-\.]([0-9]+\.[0-9]+\.[0-9]+)[-\.].*zip", "g");
-        var verno = this.getAppVersion()
+
+        // HTTP access to the releases, can be any kind of page or listing with files
+        var verno = this.getAppVersion();
         var ver = this.versionNum(verno);
+
+        url = redirecturl ? redirecturl : this.URL;
+        debug("url: " + url);
 
         // HTTP access to the releases, can be any kind of page or listing with files
         var xmlhttp = this.api.getXmlHttp();
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4) {
                 var d, data = xmlhttp.responseText;
+
                 while (d = rx.exec(data)) {
                     debug('update:' + d);
                     if (me.versionNum(d[1]) > ver) {
-                        me.promptInput('Software Update', [{label:"New version " + d[1] + " is available at",value:me.URL,type:"link",url:me.URL}]);
+                        me.promptInput('Software Update', [{label:"New version " + d[1] + " is available at",value:url,type:"link",url:url}]);
                         return;
                     }
                 }
-                if (msg) alert("You are running the latest version: " + verno)
+                if (showmsg) alert("You are running the latest version: " + verno);
             }
         };
-        xmlhttp.open("GET", this.URL + "?" + new Date().getTime(), true);
+        xmlhttp.open("GET", url + "?" + new Date().getTime(), true);
         xmlhttp.setRequestHeader("User-Agent", this.getUserAgent());
-        xmlhttp.setRequestHeader("Cache-Control", "no-cache, must-revalidate");
+        xmlhttp.setRequestHeader("Cache-Control", "no-cache");
+        xmlhttp.setRequestHeader("Pragma", "no-cache");
         xmlhttp.send();
         // Mark when we checked last time
         this.setIntPrefs('ew.updates.time', (new Date()).getTime()/1000);
+    },
+
+    checkForUpdates: function(showmsg)
+    {
+        if (!this.isEnabled()) return null;
+        this.checkForRedirect(showmsg, this.checkForUpdatedVersion);
     },
 
     errorMessage: function(msg)
@@ -1086,7 +1155,7 @@ var ew_core = {
     // tags can be a string or list of tags
     setTags: function(objs, tags, callback)
     {
-        log('setTags: id=' + objs + ", tags=" + tags)
+        log('setTags: id=' + objs + ", tags=" + tags);
 
         var me = this;
         var ntags = new Array();
@@ -1149,7 +1218,7 @@ var ew_core = {
             var type = mService.getTypeFromURI(url);
             return type || "";
         }
-        catch(e) { debug('Error: ' + file + ":" + e) }
+        catch(e) { debug('Error: ' + file + ":" + e); }
         return "";
     },
 
@@ -1187,7 +1256,7 @@ var ew_core = {
         if (home == "" && env.exists('HOME')) {
             home = env.get("HOME");
         }
-        return home
+        return home;
     },
 
     getAppPath : function()
@@ -1220,9 +1289,9 @@ var ew_core = {
                 var rc = FileIO.write(FileIO.open(file), "");
                 FileIO.remove(file);
                 if (rc) return 1;
-                msg = "Directory " + path + " is not writable, please choose another place where to keep my files:"
+                msg = "Directory " + path + " is not writable, please choose another place where to keep my files:";
             } else {
-                msg = 'Unable to create directory ' + path + ", please choose another directory where to keep my files:"
+                msg = 'Unable to create directory ' + path + ", please choose another directory where to keep my files:";
             }
             path = this.promptForDir(msg);
             if (!path) return 0;
@@ -1313,7 +1382,7 @@ var ew_core = {
                   '  tell app "Terminal" to activate',
                   'end run'];
             // turn into -e 'line1' -e 'line2' etc.
-            args = cmdline.map(function(s) { return "-e '" + s.replace(/^\s+/, '') + "'" }).join(" ");
+            args = cmdline.map(function(s) { return "-e '" + s.replace(/^\s+/, '') + "'"; }).join(" ");
         } else
 
         if (isWindows(navigator.platform)) {
@@ -1396,11 +1465,11 @@ var ew_core = {
             }
         }
         if (file.indexOf("${home}") > -1) {
-            var home = this.getHome()
+            var home = this.getHome();
             file = file.replace(/\${home}/g, quotepath(home));
         }
         if (file.indexOf("${keyhome}") > -1) {
-            var home = this.getKeyHome()
+            var home = this.getKeyHome();
             file = file.replace(/\${keyhome}/g, quotepath(home));
         }
         if (file.indexOf("${user}") > -1) {
@@ -1409,7 +1478,7 @@ var ew_core = {
         if (file.indexOf("${key}") > -1) {
             file = file.replace(/\${key}/g, quotepath(this.getPrivateKeyFile(keyname)));
         }
-        return file
+        return file;
     },
 
     getArgsProcessed: function(args, params, shellfile)
@@ -1431,7 +1500,7 @@ var ew_core = {
         FileIO.write(fd, batch + (isWindows(navigator.platform) ? "\r\n" : "\n"));
         fd.permissions = 0700;
 
-        debug("BATCH:" + shellfile + "\n" + batch)
+        debug("BATCH:" + shellfile + "\n" + batch);
         return args;
     },
 
@@ -1444,13 +1513,13 @@ var ew_core = {
     generateKeypair : function(keyname)
     {
         // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
+        if (!this.makeKeyHome()) return 0;
 
         var certfile = this.getCertificateFile(keyname);
         var keyfile = this.getPrivateKeyFile(keyname);
         var pubfile = this.getPublicKeyFile(keyname);
         var openssl = this.getOpenSSLCommand();
-        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf"
+        var conffile = this.getKeyHome() + DirIO.slash + "openssl.cnf";
 
         // Make sure we do not lose existing private keys
         if (FileIO.exists(keyfile)) {
@@ -1463,7 +1532,7 @@ var ew_core = {
         FileIO.remove(conffile);
 
         // Create openssl config file
-        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n"
+        var confdata = "[req]\nprompt=no\ndistinguished_name=n\nx509_extensions=c\n[c]\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid:always,issuer\nbasicConstraints=CA:true\n[n]\nCN=EC2\nOU=EC2\nemailAddress=ec2@amazonaws.com\n";
         if (!FileIO.write(FileIO.open(conffile), confdata)) {
             return alert('Unable to create file ' + conffile + ", please check permissions.");
         }
@@ -1472,26 +1541,26 @@ var ew_core = {
         this.setEnv("OPENSSL_CONF", conffile);
         this.launchProcess(openssl, [ "genrsa", "-out", keyfile, "1024" ], true);
         if (!waitForFile(keyfile, 5000)) {
-            debug("ERROR: no private key generated")
+            debug("ERROR: no private key generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
         FileIO.open(keyfile).permissions = 0600;
 
         this.launchProcess(openssl, [ "req", "-new", "-x509", "-nodes", "-sha1", "-days", "730", "-key", keyfile, "-out", certfile, "-config", conffile ], true);
         if (!waitForFile(certfile, 5000)) {
-            debug("ERROR: no certificate generated")
+            debug("ERROR: no certificate generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
 
         // Create public file
         this.launchProcess(openssl, [ "rsa", "-in", keyfile, "-pubout", "-out", pubfile ], true);
         // Wait a little because if process is running in the background on Windows it may take some time but we return immediately
         if (!waitForFile(pubfile, 5000)) {
-            debug("ERROR: no public file generated")
+            debug("ERROR: no public file generated");
             FileIO.remove(conffile);
-            return 0
+            return 0;
         }
         FileIO.remove(conffile);
 
@@ -1515,7 +1584,7 @@ var ew_core = {
     launchShell : function(cred)
     {
         // Make sure we have directory
-        if (!this.makeKeyHome()) return 0
+        if (!this.makeKeyHome()) return 0;
 
         // Save access key into file by credentials name or account name
         if (!cred) cred = this.getActiveCredentials();
@@ -1555,7 +1624,7 @@ var ew_core = {
             this.setEnv(paths[i].home, p);
             path += sep + p + DirIO.slash + "bin";
         }
-        debug('launchShell:' + cred + " " + path)
+        debug('launchShell:' + cred + " " + path);
         this.setEnv("PATH", path);
         this.launchProcess(this.getShellCommand(), this.getStrPrefs("ew.shell.args"));
     },
@@ -1608,11 +1677,11 @@ var ew_core = {
 
         try {
             process.run(block, args, args.length);
-            debug("launch: " + cmd + " finished with status " + process.exitValue)
+            debug("launch: " + cmd + " finished with status " + process.exitValue);
         }
         catch (e) {
             alert("Couldn't launch: " + cmd + "\nWith arguments: " + args.join(" ") + "\n\n" + e.message);
-            return false
+            return false;
         }
         return true;
     },
@@ -1817,10 +1886,10 @@ var ew_core = {
             var name = arguments[i];
             var now = (new Date).getTime();
             if (this.progress[name] > 0 && now - this.progress[name] < 30000) {
-                debug('refresh: ' + name + ' in progress')
+                debug('refresh: ' + name + ' in progress');
                 continue;
             }
-            debug('refresh model ' + name)
+            debug('refresh model ' + name);
             this.progress[name] = now;
 
             switch (name) {
@@ -2017,7 +2086,7 @@ var ew_core = {
                 this.api.describeJobFlows();
                 break;
             case "ddb":
-                this.api.listTables({}, function(list) { me.setModel('ddb', list) });
+                this.api.listTables({}, function(list) { me.setModel('ddb', list); });
                 break;
             case "hostedZones":
                 this.api.listHostedZones();
@@ -2050,7 +2119,7 @@ var ew_core = {
     // Update model list and notify components
     setModel: function(name, list)
     {
-        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records')
+        debug('update model ' + name + ' with ' + (list ? list.length : 0) + ' records');
         this.progress[name] = 0;
         this.model[name] = list;
         this.notifyComponents(name);
@@ -2058,7 +2127,7 @@ var ew_core = {
 
     appendModel: function(name, list, reset)
     {
-        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records' + (reset ? " with reset" : ""))
+        debug('append model ' + name + ' with ' + (list ? list.length : 0) + ' records' + (reset ? " with reset" : ""));
         this.progress[name] = 0;
         if (!this.model[name] || reset) this.model[name] = [];
         this.model[name] = this.model[name].concat(list);
@@ -2159,7 +2228,7 @@ var ew_core = {
             } else {
                 var obj = this.findObject(list, value);
                 if (obj) {
-                    return obj.toString()
+                    return obj.toString();
                 }
             }
         }
@@ -2173,7 +2242,7 @@ var ew_core = {
         if (typeof obj == "object") {
             var item = "";
             if (!columns && obj.hasOwnProperty('toString')) {
-                item = obj.toString()
+                item = obj.toString();
             } else {
                for (var p in obj) {
                    if (typeof obj[p] == "function") {
@@ -2185,7 +2254,7 @@ var ew_core = {
                    }
                 }
             }
-            return item
+            return item;
         }
         return obj;
     },
@@ -2238,7 +2307,7 @@ var ew_core = {
                     }
                 }
                 if (matches == args.length/2) {
-                    list.push(items[i])
+                    list.push(items[i]);
                 }
             }
         }
@@ -2333,7 +2402,7 @@ var ew_core = {
             var favs = this.getStrPrefs("ew.images.favorites", "").split("^");
             for (var i in list) {
                 if (favs.indexOf(list[i].id) >= 0) {
-                    nlist.push(list[i])
+                    nlist.push(list[i]);
                 }
             }
             return nlist;
@@ -2360,29 +2429,29 @@ var ew_core = {
             if (root && root != list[i].rootDeviceType) continue;
             if (alias && alias != list[i].ownerAlias) continue;
             if (owner && owner != list[i].ownerId) continue;
-            nlist.push(list[i])
+            nlist.push(list[i]);
         }
         return nlist;
     },
 
     getVpcById: function(id)
     {
-        return this.findObject(this.model.vpcs, id)
+        return this.findObject(this.model.vpcs, id);
     },
 
     getSubnetById: function(id)
     {
-        return this.findObject(this.model.subnets, id)
+        return this.findObject(this.model.subnets, id);
     },
 
     getInstanceById: function(id)
     {
-        return this.findObject(this.model.instances, id)
+        return this.findObject(this.model.instances, id);
     },
 
     getSecurityGroupById: function(id)
     {
-        return this.findObject(this.model.securityGroups, id)
+        return this.findObject(this.model.securityGroups, id);
     },
 
     getInstanceTypes: function(arch, region)
@@ -2409,7 +2478,7 @@ var ew_core = {
 
         var list = [];
         for (var i in types) {
-            types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); }
+            types[i].toString = function() { return this.name + ", " + (this.x86_64 ? "x86_64" : "") + (this.i386 ? ", i386" : ""); };
             // Filter by region, type
             if (region && types[i][region] == false) continue;
             if (arch && !types[i][arch]) continue;
