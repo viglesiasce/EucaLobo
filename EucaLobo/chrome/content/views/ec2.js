@@ -262,7 +262,7 @@ var ew_AMIsTreeView = {
     callRegisterImage : function(manifest, region)
     {
         var me = this;
-        this.core.api.registerImage(region, function() {
+        this.core.api.registerImage(manifest, function() {
             me.refresh();
             alert("Image with Manifest: " + manifest + " was registered");
         });
