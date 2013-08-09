@@ -644,7 +644,7 @@
                          <menuitem label="None" value="" />
                          <menuitem label="EBS Snapshot" value="snapshot" />
                          <menuitem label="Virtual" value="virtual" />
-                         <menuitem label="New EBS Volume" value="new" />
+                         <menuitem label="Root EBS Volume" value="new" />
                        </menupopup>
                     </menulist>
                 </row>
