@@ -18,11 +18,7 @@ build:	clean build_osx build_win build_linux xpi md5
 	make dev
 
 md5:
-<<<<<<< HEAD
 	(cd ../ && for f in *.zip *.xpi; do md5 $$f > $$f.md5;done)
-=======
-	for f in $(build_dir)/{*.zip,*.xpi}; do md5sum $$f > $$f.md5;done
->>>>>>> b6e7d217cb606aa98bffd73292711d87dfffa814
 
 prepare: clean prepare_osx
 
