@@ -3890,7 +3890,8 @@ var ew_api = {
     },
 
     associateAddress : function(eip, instanceId, networkInterfaceId, privateIp, force, callback)
-    {
+    {   // Eucalyptus does not support AllowReassociation
+        force = false;
         var params = eip.allocationId ? [["AllocationId", eip.allocationId]] : [[ 'PublicIp', eip.publicIp ]]
         if (instanceId) {
             params.push([ 'InstanceId', instanceId ])
