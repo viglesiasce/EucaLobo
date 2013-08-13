@@ -2633,9 +2633,10 @@ var ew_api = {
         if (options.disableApiTermination) {
             params.push([ prefix + "DisableApiTermination", "true"]);
         }
-        if (options.instanceInitiatedShutdownBehavior) {
-            params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehavior]);
-        }
+        // Unsupported in Euca 3.3.0
+        //if (options.instanceInitiatedShutdownBehavior) {
+        //    params.push([ prefix + "InstanceInitiatedShutdownBehavior", options.instanceInitiatedShutdownBehavior]);
+        //}
         if (options.availabilityZone) {
             params.push([ prefix + "Placement.AvailabilityZone", options.availabilityZone ]);
         }
