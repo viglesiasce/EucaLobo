@@ -1,6 +1,7 @@
 # EucaLobo
 
 [Getting Started Video](https://www.youtube.com/watch?v=AYn78OrwBxw)
+
 [Getting Started Blog](http://testingclouds.wordpress.com/2013/06/18/getting-started-with-eucalobo/)
 
 EucaLobo is an application for managing Eucalyptus resources with a simple and
