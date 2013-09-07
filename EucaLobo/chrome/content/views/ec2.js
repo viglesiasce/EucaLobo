@@ -439,7 +439,7 @@ var ew_InstancesTreeView = {
                                                           {label:"S3 Bucket Name",type:"name",required:1},
                                                           {label:"Image Name",required:1}, ]);
         if (!values) return;
-        this.core.api.createS3Bucket(values[1], function() {
+        this.core.api.createS3Bucket(values[1], null, null,function() {
             me.core.api.bundleInstance(instance.id, values[1], values[2], me.core.getActiveCredentials(), function() {
                 me.core.refreshModel('bundleTasks');
                 me.core.selectTab('ew.tabs.bundletask');
