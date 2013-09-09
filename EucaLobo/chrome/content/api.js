@@ -1128,9 +1128,9 @@ var ew_api = {
         this.queryEC2InRegion(region, "RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback, endpoint.ec2_url);
     },
 
-    registerImage : function(manifestPath, callback)
+    registerImage : function(params, callback)
     {
-        this.queryEC2("RegisterImage", [ [ "ImageLocation", manifestPath ] ], this, false, "onComplete", callback);
+        this.queryEC2("RegisterImage", params, this, false, "onComplete", callback);
     },
 
     registerImageFromSnapshot : function(snapshotId, amiName, amiDescription, architecture, kernelId, ramdiskId, deviceName, deleteOnTermination, callback)
@@ -2541,7 +2541,6 @@ var ew_api = {
                 }
             }
         }
-
         this.core.setModel('instances', list);
         response.result = list;
     },
@@ -6821,7 +6820,7 @@ var ew_api = {
         this.queryAS("DeleteAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
-    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags, propagate,callback)
+    createAutoScalingGroup: function(name, zones, config, min, max, capacity, cooldown, healthType, healthGrace, subnets, elbs, pgroup,  tpolicies, tags, propagate, monitor, callback)
     {
         var params = [ ["AutoScalingGroupName", name]];
         zones.forEach(function(x, i) {
@@ -6854,7 +6853,7 @@ var ew_api = {
             params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
             params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
         });
-
+        if (healthGrace) params.push(["EnableMetricsCollection", ""]);
         this.queryAS("CreateAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 

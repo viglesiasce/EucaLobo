@@ -275,38 +275,49 @@ var ew_AMIsTreeView = {
         });
     },
 
-    callRegisterImage : function(manifest, region)
+    callRegisterImage : function(params, region)
     {
         var me = this;
-        this.core.api.registerImage(manifest, function() {
+        this.core.api.registerImage(params, function() {
             me.refresh();
-            alert("Image with Manifest: " + manifest + " was registered");
+            alert("Image with Manifest: " + params[0] + " was registered");
         });
     },
 
     registerNewImage : function()
     {
-        var value = this.core.prompt('AMI Manifest Path (Bucket/Pathname):');
-        if (value) {
+        var values = this.core.promptInput('Register image from S3',
+                                    [{label:"Manifest Path (Bucket/Pathname):", type:"name", required: 1},
+                                     {label:"Image Name",  required: 1},
+                                     {label:"Description"},
+                                     {label:"Virtualization Type",type:"menulist",list:["paravirtual", "hvm"],required:1},
+                                     {label:"Architecture",type:"menulist",list:["x86_64", "i386"],required:1},
+                                     ]);
+        if (!values) return;
+        if (values[0]) {
+            var params = [];
             var oldextre = new RegExp("\\.manifest$");
             var newextre = new RegExp("\\.manifest\\.xml$");
-            if (value.match(oldextre) == null && value.match(newextre) == null) {
+            if (values[0].match(oldextre) == null && values[0].match(newextre) == null) {
                 alert("Manifest files should end in .manifest or .manifest.xml");
                 return false;
             }
-            var s3bucket = value.split('/')[0];
+            var s3bucket = values[0].split('/')[0];
             if (s3bucket.match(new RegExp("[A-Z]"))) {
                 alert("The S3 bucket must be all lower case");
                 return false;
             }
             var httppre = new RegExp("^http", "i");
-            if (value.match(httppre) != null) {
+            if (values[0].match(httppre) != null) {
                 alert("Just specify the bucket and manifest path name, not the entire S3 URL.");
                 return false;
             }
-
-            var region = this.core.api.getS3BucketLocation(s3bucket);
-            this.callRegisterImage(value, region);
+            params.push([ "ImageLocation", values[0] ]);
+            params.push([ "Name", values[1] ]);
+            params.push([ "Description", values[2] ]);
+            params.push([ "VirtualizationType", values[3] ]);
+            params.push([ "Architecture", values[4] ]);
+            this.callRegisterImage(params);
         }
     },
 

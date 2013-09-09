@@ -340,6 +340,16 @@ var ew_core = {
             items[i].hidden = !advanced;
         }
 
+        // Hide AWS items in Eucalyptus Mode
+        var items = document.getElementsByClassName("aws");
+        for (var i = 0; i < items.length; i++) {
+            if ( this.api.endpoint.type == "AWS"){
+                items[i].hidden = false;
+            }else{
+                items[i].hidden = true;
+            }
+        }
+
         // Hide EC2 classic items in VPC only mode
         var items = document.getElementsByClassName("ec2");
         for (var i = 0; i < items.length; i++) {

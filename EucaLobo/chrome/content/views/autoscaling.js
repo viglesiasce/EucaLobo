@@ -75,7 +75,8 @@ var ew_ASGroupsTreeView = {
                       {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2."},
                       {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5,tooltiptext:"A standalone termination policy or a list of termination policies used to select the instance to terminate. The policies are executed in the order that they are listed."},
                       {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"},
-                      {label:"Propagate Tags",type: "checkbox", value: true,tooltiptext:"Whether or not to propagate tags on launch"}
+                      {label:"Propagate Tags",type: "checkbox", value: true,tooltiptext:"Whether or not to propagate tags on launch"},
+                      {label:"Enable Metrics Collection",type: "checkbox", value: true,tooltiptext:"Enable CloudWatch metrics for this ASG"},
                       ];
 
         if (edit) {
@@ -97,6 +98,7 @@ var ew_ASGroupsTreeView = {
             inputs[11].value = item.placementGroup;
             inputs[12].checkedItems = item.terminationPolicies;
             inputs[13].value = item.tags.join("\n");
+            inputs[14].value = item.tags.join("\n");
         }
 
         var values = this.core.promptInput((edit ? 'Edit' : 'Create') + ' AutoScaling Group', inputs);
