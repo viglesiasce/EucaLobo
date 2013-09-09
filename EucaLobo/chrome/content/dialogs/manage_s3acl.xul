@@ -71,7 +71,6 @@
             if (this.list[i].full_control) content += this.grant(this.list[i], "FULL_CONTROL");
         }
         content += '</AccessControlList></AccessControlPolicy>';
-        debug(content)
         this.retVal.content = content;
         this.retVal.ok = true;
         return true;
