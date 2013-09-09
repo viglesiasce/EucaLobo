@@ -147,15 +147,15 @@ var ew_api = {
 
     getEC2Regions: function()
     {
-        return [ { name: 'us-east-1',      ec2_url: 'https://ec2.us-east-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'us-west-1',      ec2_url: 'https://ec2.us-west-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'us-west-2',      ec2_url: 'https://ec2.us-west-2.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'eu-west-1',      ec2_url: 'https://ec2.eu-west-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'ap-southeast-1', ec2_url: 'https://ec2.ap-southeast-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'ap-southeast-2', ec2_url: 'https://ec2.ap-southeast-2.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'ap-northeast-1', ec2_url: 'https://ec2.ap-northeast-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'sa-east-1',      ec2_url: 'https://ec2.sa-east-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
-                 { name: 'us-gov-west-1',  ec2_url: 'https://ec2.us-gov-west-1.amazonaws.com', s3_url: 's3.amazonaws.com', type:"AWS", toString: function() { return this.name; }},
+        return [ { name: 'us-east-1',      ec2_url: 'https://ec2.us-east-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'us-west-1',      ec2_url: 'https://ec2.us-west-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'us-west-2',      ec2_url: 'https://ec2.us-west-2.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'eu-west-1',      ec2_url: 'https://ec2.eu-west-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'ap-southeast-1', ec2_url: 'https://ec2.ap-southeast-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'ap-southeast-2', ec2_url: 'https://ec2.ap-southeast-2.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'ap-northeast-1', ec2_url: 'https://ec2.ap-northeast-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'sa-east-1',      ec2_url: 'https://ec2.sa-east-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; } },
+                 { name: 'us-gov-west-1',  ec2_url: 'https://ec2.us-gov-west-1.amazonaws.com', s3_url: 'http://s3.amazonaws.com', type:"AWS", toString: function() { return this.name; }},
             ];
     },
 
