@@ -1853,7 +1853,7 @@ var ew_BundleTasksTreeView = {
 
     cancelBundleTask: function ()
     {
-        var selected = this.getSelectedBundle();
+        var selected = this.getSelected();
 
         if (selected == null) {
             alert('Please select a bundle task.');
