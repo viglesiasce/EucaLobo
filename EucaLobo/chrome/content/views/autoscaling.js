@@ -75,7 +75,7 @@ var ew_ASGroupsTreeView = {
                       {label:"Placement Group",type:"menulist",list:this.core.queryModel('placementGroups'),key:"name",tooltiptext:"Physical location of your cluster placement group created in Amazon EC2."},
                       {label:"Termination Policy",type:"listview",list:["OldestInstance","NewestInstance","OldestLaunchConfiguration","ClosestToNextInstanceHour","Default"],rows:5,tooltiptext:"A standalone termination policy or a list of termination policies used to select the instance to terminate. The policies are executed in the order that they are listed."},
                       {label:"Tag",multiline:true,rows:2,tooltiptext:"Tags to propagate to the instances, one tag in the form key:value per line"},
-                      {label:"Propagate Tags",type: "checkbox", value: true,tooltiptext:"Whether or not to propagate tags on launch"},
+                      {label:"Propagate Tags",type: "checkbox", value: true,tooltiptext:"Whether or not to propagate tags on launch"}
                       ];
 
         if (edit) {
@@ -164,7 +164,7 @@ var ew_ASGroupsTreeView = {
         var check = {value: false};
         if (!this.core.promptConfirm("Delete AutoScaling Group", "Delete " + item.name + "?", "Force Delete", check)) return;
         this.core.api.deleteAutoScalingGroup(item.name, check.value, function() { me.refresh(); });
-    },
+    }
 
 };
 
@@ -214,7 +214,7 @@ var ew_ASConfigsTreeView = {
         if (!TreeView.deleteSelected.call(this)) return;
         var item = this.getSelected();
         this.core.api.deleteLaunchConfiguration(item.name, function() { me.refresh(); });
-    },
+    }
 
 };
 
@@ -239,7 +239,7 @@ var ew_ASPoliciesTreeView = {
                       {label:"Adjustment Type",type:"menulist",list:["ChangeInCapacity","ExactCapacity","PercentChangeInCapacity"],required:1,tooltiptext:"Specifies whether the ScalingAdjustment is an absolute number or a percentage of the current capacity."},
                       {label:"Scaling Adjustment",type:"number",required:1,min:-99999,tooltiptext:"The number of instances by which to scale. AdjustmentType determines the interpretation of this number (e.g., as an absolute number or as a percentage of the existing Auto Scaling group size). A positive increment adds to the current capacity and a negative value removes from the current capacity."},
                       {label:"Min Adjustment Step",type:"number",tooltiptext:"Used with AdjustmentType with the value PercentChangeInCapacity, the scaling policy changes the DesiredCapacity of the Auto Scaling group by at least the number of instances specified in the value.You will get a ValidationError if you use MinAdjustmentStep on a policy with an AdjustmentType other than PercentChangeInCapacity."},
-                      {label:"Cooldown",type:"number",tooltiptext:"The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start."},
+                      {label:"Cooldown",type:"number",tooltiptext:"The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start."}
                       ];
 
         if (edit) {
@@ -273,7 +273,7 @@ var ew_ASPoliciesTreeView = {
         var check = {value: false};
         if (!this.core.promptConfirm("Exec AutoScaling Policy", "Execute policy " + item.name + "?", "Reject if in cooldown", check)) return;
         this.core.api.executePolicy(item.group, item.name, check.value, function() { me.refresh(); });
-    },
+    }
 
 
 };
@@ -319,7 +319,7 @@ var ew_ASActionsTreeView = {
         if (!TreeView.deleteSelected.call(this)) return;
         var item = this.getSelected();
         this.core.api.deleteScheduledAction(item.group, item.name, function() { me.refresh(); });
-    },
+    }
 
 };
 
@@ -345,10 +345,10 @@ var ew_ASInstancesTreeView = {
        var check = {value: false};
        if (!this.core.promptConfirm("Terminate Instance", "Terminate instance " + item.instanceId + "?", "Decrement desired capacity", check)) return;
        this.core.api.terminateInstanceInAutoScalingGroup(item.instanceId, check.value, function() { me.refresh(); });
-   },
+   }
 
 };
 
 var ew_ASActivitiesTreeView = {
-   model: ["asactivities"],
+   model: ["asactivities"]
 };
