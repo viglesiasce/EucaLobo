@@ -6853,7 +6853,6 @@ var ew_api = {
             params.push(["Tags.member." + (i+1) + ".ResourceType", "auto-scaling-group"]);
             params.push(["Tags.member." + (i+1) + ".ResourceId", name]);
         });
-        if (healthGrace) params.push(["EnableMetricsCollection", ""]);
         this.queryAS("CreateAutoScalingGroup", params, this, false, "onComplete", callback);
     },
 
