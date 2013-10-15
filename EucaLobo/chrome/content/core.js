@@ -1082,7 +1082,9 @@ var ew_core = {
     checkForUpdates: function(showmsg)
     {
         if (!this.isEnabled()) return null;
-        this.checkForRedirect(showmsg, this.checkForUpdatedVersion);
+        //Disable updates until mechanism is figured out
+        return null;
+        //this.checkForRedirect(showmsg, this.checkForUpdatedVersion);
     },
 
     errorMessage: function(msg)
