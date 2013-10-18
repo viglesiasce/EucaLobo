@@ -601,7 +601,10 @@ var ew_core = {
             var list = this.getListPrefs("ew.endpoints");
             for (var i in list) {
                 if (list[i] && list[i].name && list[i].type && list[i].ec2_url && list[i].s3_url) {
-                    this.endpoints.push(new Endpoint(list[i].name,list[i].type, list[i].ec2_url, list[i].s3_url));
+                    // If the region already exists dont add it
+                    if(!this.getEndpoint(list[i].name)){
+                        this.endpoints.push(new Endpoint(list[i].name,list[i].type, list[i].ec2_url, list[i].s3_url));
+                    }
                 }
             }
         }
