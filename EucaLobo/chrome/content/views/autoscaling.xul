@@ -29,7 +29,7 @@
                 <toolbarbutton label="Create" image="images/add.png" oncommand="ew_ASGroupsTreeView.putGroup();" tooltiptext="Add Group" />
                 <toolbarbutton label="Edit" image="images/edit.png" oncommand="ew_ASGroupsTreeView.putGroup(true);" tooltiptext="Edit Group" />
                 <toolbarbutton label="Delete" image="images/delete.png" oncommand="ew_ASGroupsTreeView.deleteSelected();" tooltiptext="Delete Group" />
-                <toolbarbutton label="Set Notification" image="images/email.png" oncommand="ew_ASGroupsTreeView.putNotifications();" tooltiptext="Set Notifications" />
+                <toolbarbutton label="Set Capacity" image="images/reset.png" oncommand="ew_ASGroupsTreeView.setCapacity();" tooltiptext="Set Desired Capacity" />
             </toolbar>
 
             <tree enableColumnDrag="true" seltype="single" id="ew.asgroups.view" flex="1">
