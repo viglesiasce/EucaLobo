@@ -202,10 +202,11 @@ var ew_ASConfigsTreeView = {
                  {label:"Spot Instance Price",type:"number",tooltiptext:"The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price."},
                  {label:"User Data",multiline:true,cols:40,rows:3,tooltiptext:"User data to be made available to the instance."},
                  {label:"Monitoring",type:"checkbox",tooltiptext:"Enables detailed monitoring, which is enabled by default. When detailed monitoring is enabled, CloudWatch will generate metrics every minute and your account will be charged a fee. When you disable detailed monitoring, by specifying False, Cloudwatch will generate metrics every 5 minutes."},
-                 {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."}
+                 {label:"Security Groups",type:"listview",list:this.core.queryModel('securityGroups'),flex:1,rows:5,tooltiptext:"The names of the security groups with which to associate Amazon EC2 or Amazon VPC instances. Specify Amazon EC2 security groups using security group names, such as websrv. Specify Amazon VPC security groups using security group IDs, such as sg-12345678.Cannot combine VPC and non-VPC security groups."},
+                 {label:"Block Device Mapping",tooltiptext:"Block device mapping for instances: ie /dev/sda=:2:true"}
                  ], { onchange: callback });
         if (!values) return;
-        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],values[12],function() { me.refresh(); });
+        this.core.api.createLaunchConfiguration(values[0],values[1],values[3],values[4],values[5],values[6],values[7],values[8],values[9],values[10],values[11],values[12],values[13],function() { me.refresh(); });
     },
 
     deleteSelected : function ()

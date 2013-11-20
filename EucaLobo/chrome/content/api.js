@@ -6946,7 +6946,7 @@ var ew_api = {
         this.queryAS("DeleteLaunchConfiguration", params, this, false, "onComplete", callback);
     },
 
-    createLaunchConfiguration: function(name, instanceType, imageId, ebsOptimized, kernelId, ramdiskId, iamProfile, keypair, price, userData, monitoring, groups, callback)
+    createLaunchConfiguration: function(name, instanceType, imageId, ebsOptimized, kernelId, ramdiskId, iamProfile, keypair, price, userData, monitoring, groups, block_device_mapping, callback)
     {
         var params = [ ["LaunchConfigurationName", name]]
         params.push(["InstanceType", instanceType])
@@ -6972,6 +6972,17 @@ var ew_api = {
             groups.forEach(function(x, i) {
                 params.push(["SecurityGroups.member." + (parseInt(i) + 1), typeof x == "object" ? (x.vpcId ? x.id : x.name) : x])
             })
+        }
+        if (block_device_mapping){
+            var bdm_parts = block_device_mapping.split("=")
+            params.push(["BlockDeviceMappings.member.1.DeviceName", bdm_parts[0]]);
+            var ebs_parts = bdm_parts[1].split(":")
+            if (ebs_parts[0])
+                params.push(["BlockDeviceMappings.member.1.Ebs.SnapshotId", ebs_parts[0]]);
+            if (ebs_parts[1])
+                params.push(["BlockDeviceMappings.member.1.Ebs.VolumeSize", ebs_parts[1]]);
+            if (ebs_parts[2])
+                params.push(["BlockDeviceMappings.member.1.Ebs.DeleteOnTermination", ebs_parts[2]]);
         }
         this.queryAS("CreateLaunchConfiguration", params, this, false, "onComplete", callback);
     },
