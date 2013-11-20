@@ -1283,7 +1283,7 @@ var ew_VolumeTreeView = {
         var image = this.getSelected();
         if (image == null) return;
 
-        var instances = this.core.queryModel('instances', 'availabilityZone', image.availabilityZone);
+        var instances = this.core.queryModel('instances', 'availabilityZone', image.availabilityZone, 'state', 'running');
         if (!instances.length) {
             return alert('No instances running in the same availability zone');
         }
