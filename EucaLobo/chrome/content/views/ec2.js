@@ -760,15 +760,14 @@ var ew_InstancesTreeView = {
         }
         $("instances.context.changeSecurityGroups").disabled = instance.vpcId == "";
 
-        $("instances.context.startMonitoring").disabled = false;
-        $("instances.context.stopMonitoring").disabled = false;
-        $("instances.context.showMetrics").disabled = false;
-
         // These items are only valid for instances with EBS-backed root devices.
         var optDisabled = !isEbsRootDeviceType(instance.rootDeviceType);
         $("instances.context.changeTerminationProtection").disabled = optDisabled;
         $("instances.context.changeShutdownBehavior").disabled = optDisabled;
         $("instances.context.changeSourceDestCheck").disabled = optDisabled;
+        $("instances.context.startMonitoring").disabled =  instance.monitoringEnabled;
+        $("instances.context.stopMonitoring").disabled = !instance.monitoringEnabled;
+        $("instances.context.showMetrics").disabled = !instance.monitoringEnabled;
         $("instances.button.start").disabled = optDisabled;
         $("instances.button.stop").disabled = optDisabled;
         $("instances.context.forceStop").disabled = optDisabled;
