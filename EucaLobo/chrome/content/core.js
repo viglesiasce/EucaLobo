@@ -125,7 +125,7 @@ var ew_core = {
             this.addEndpoint("AWS","AWS","https://ec2.amazonaws.com","https://s3.amazonaws.com");
         }
         // Cache essential models on startup
-        ["images","availabilityZones","securityGroups"].forEach(function(x) { me.refreshModel(x); });
+        ["images","availabilityZones","keypairs","securityGroups", "instances", "s3Buckets"].forEach(function(x) { me.refreshModel(x); });
     },
 
     setIdleTimer: function()
