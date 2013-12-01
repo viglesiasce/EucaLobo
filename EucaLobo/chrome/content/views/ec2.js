@@ -450,12 +450,22 @@ var ew_InstancesTreeView = {
                                                           {label:"S3 Bucket Name",type:"name",required:1},
                                                           {label:"Image Name",required:1}, ]);
         if (!values) return;
-        this.core.api.createS3Bucket(values[1], null, null,function() {
-            me.core.api.bundleInstance(instance.id, values[1], values[2], me.core.getActiveCredentials(), function() {
-                me.core.refreshModel('bundleTasks');
-                me.core.selectTab('ew.tabs.bundletask');
+        var item = this.core.getS3Bucket(values[1]);
+        if (!item){
+            //alert("Bucket does not exist: " + values[1] );
+            this.core.api.createS3Bucket(values[1], null, null,function() {
+                me.core.api.bundleInstance(instance.id, values[1], values[2], me.core.getActiveCredentials(), function() {
+                    me.core.refreshModel('bundleTasks');
+                    me.core.selectTab('ew.tabs.bundletask');
+                });
             });
-        });
+        }else{
+            //alert("Bucket exists: " + values[1]);
+            this.core.api.bundleInstance(instance.id, values[1], values[2], this.core.getActiveCredentials(), function() {
+                    me.core.refreshModel('bundleTasks');
+                    me.core.selectTab('ew.tabs.bundletask');
+            });
+        };
     },
 
     showCreateImageDialog : function()
