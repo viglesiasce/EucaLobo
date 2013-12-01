@@ -1875,8 +1875,25 @@ var ew_BundleTasksTreeView = {
     {
         var me = this;
         var manifestPath = bucket + "/" + prefix + ".manifest.xml";
-        var region = this.core.api.getS3BucketLocation(bucket);
-        this.core.api.registerImageInRegion(manifestPath, region, function() {
+        //var region = this.core.api.getS3BucketLocation(bucket);
+        var values = this.core.promptInput('Image info',
+                                    [{label:"Manifest", value: manifestPath, required: 1},
+                                     {label:"Name", required:1},
+                                     {label:"Description",required:1},
+                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
+                                     {label:"Virtualization Type",type:"menulist",list:["paravirtual", "hvm"],required:1},
+                                     {label:"Kernel ID"},
+                                     {label:"Ramdisk ID"},]);
+        var params = [];
+
+        params.push([ 'ImageLocation', values[0]]);
+        params.push([ 'Name', values[1]]);
+        params.push([ 'Description', values[2]]);
+        params.push([ 'Architecture', values[3]]);
+        params.push([ 'VirtualizationType', values[4]]);
+        params.push([ 'KernelId', values[5]]);
+        params.push([ 'RamdiskId', values[6]]);
+        this.core.api.registerImage(params, function() {
             me.core.modelRefresh('images');
             me.core.selectTab('ew.tabs.image');
         });
@@ -1891,7 +1908,7 @@ var ew_BundleTasksTreeView = {
         }
 
         // Ensure that bundling has run to completion
-        if (selected.state != "complete") {
+        if ( selected.state.indexOf("complete") < 0 ) {
             alert('Please wait for the Bundling State to be "complete" before Registering');
             return;
         }
