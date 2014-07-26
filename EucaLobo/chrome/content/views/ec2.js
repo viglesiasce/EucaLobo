@@ -452,20 +452,12 @@ var ew_InstancesTreeView = {
         if (!values) return;
         var item = this.core.getS3Bucket(values[1]);
         if (!item){
-            //alert("Bucket does not exist: " + values[1] );
-            this.core.api.createS3Bucket(values[1], null, null,function() {
-                me.core.api.bundleInstance(instance.id, values[1], values[2], me.core.getActiveCredentials(), function() {
-                    me.core.refreshModel('bundleTasks');
-                    me.core.selectTab('ew.tabs.bundletask');
-                });
-            });
-        }else{
-            //alert("Bucket exists: " + values[1]);
-            this.core.api.bundleInstance(instance.id, values[1], values[2], this.core.getActiveCredentials(), function() {
-                    me.core.refreshModel('bundleTasks');
-                    me.core.selectTab('ew.tabs.bundletask');
-            });
+            this.core.api.createS3Bucket(values[1]);
         };
+        this.core.api.bundleInstance(instance.id, values[1], values[2], this.core.getActiveCredentials(), function() {
+                    me.core.refreshModel('bundleTasks');
+                    me.core.selectTab('ew.tabs.bundletask');
+            });
     },
 
     showCreateImageDialog : function()
