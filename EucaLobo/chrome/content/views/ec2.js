@@ -1872,8 +1872,8 @@ var ew_BundleTasksTreeView = {
                                     [{label:"Manifest", value: manifestPath, required: 1},
                                      {label:"Name", required:1},
                                      {label:"Description",required:1},
-                                     {label:"Architecture",type:"menulist",list:['i386','x86_64'],required:1},
-                                     {label:"Virtualization Type",type:"menulist",list:["paravirtual", "hvm"],required:1},
+                                     {label:"Architecture",type:"menulist",list:['x86_64', 'i386'],required:1},
+                                     {label:"Virtualization Type",type:"menulist",list:["hvm", "paravirtual"],required:1},
                                      {label:"Kernel ID"},
                                      {label:"Ramdisk ID"},]);
         var params = [];
