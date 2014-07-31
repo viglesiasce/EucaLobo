@@ -83,10 +83,20 @@ var ew_api = {
         // debug('setCredentials: security token=' + this.securityToken);
     },
 
+    removeTrailingSlash  : function(url) {
+       if(url.substr(-1) == '/') {
+           return url.substr(0, url.length - 1);
+       }else{
+           return url;
+       };
+    },
+
     setEndpoint : function (endpoint)
     {
         if (!endpoint) return;
         this.endpoint = endpoint;
+        endpoint.ec2_url = this.removeTrailingSlash(endpoint.ec2_url);
+        endpoint.s3_url = this.removeTrailingSlash(endpoint.s3_url);
         if (endpoint.type.indexOf("Eucalyptus") != -1) {
             this.region = "eucalyptus";
             this.urls.EC2 = endpoint.ec2_url + "/services/Eucalyptus";
