@@ -1282,6 +1282,21 @@ var ew_EndpointsTreeView = {
          this.refresh();
      },
 
+     editEndpoints : function()
+     {
+         var endpoint = this.getSelected();
+         if (!endpoint) return;
+         var values = this.core.promptInput("Endpoint:", [ {label:"Name:", value: endpoint.name, type:'name', required:1},
+                                                           {label:"Type",type:"menulist", value: endpoint.type,list:["Eucalyptus","AWS"],required:1},
+                                                           {label:"EC2 URL",type:'url', value: endpoint.ec2_url, required:1},
+                                                           {label:"S3 URL",type:'url', value: endpoint.s3_url,required:1},]);
+         if (!values) return;
+         this.core.deleteEndpoint(endpoint.name);
+         var endpoint = new Endpoint(values[0], values[1], values[2], values[3]);
+         this.core.addEndpoint(endpoint.name, endpoint.type, endpoint.ec2_url, endpoint.s3_url);
+         this.invalidate();
+     },
+
      filter: function(list)
      {
          for (var i in list) {
