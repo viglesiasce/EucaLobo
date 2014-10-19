@@ -703,7 +703,7 @@
                 </row>
                 <row>
                     <label control="ew.deleteOnTermination" value="Delete On Termination:" />
-                    <checkbox id="ew.deleteOnTermination" checked="true" disabled="true" />
+                    <checkbox id="ew.deleteOnTermination" checked="false" disabled="true" />
                 </row>
             </rows>
          </grid>
