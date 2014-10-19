@@ -671,15 +671,15 @@
                 </row>
                 <row>
                     <label control="ew.deviceName" value="Device Name (e.g. /dev/sda2):" />
-                    <textbox id="ew.deviceName" size="40" />
+                    <textbox id="ew.deviceName" value="/dev/vdb" size="40" />
                 </row>
                 <row>
                    <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
                    <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
                 </row>
                 <row>
-                    <label control="ew.virtualName" value="Virtual Name (e.g. ephemeral0):" />
-                    <textbox id="ew.virtualName" size="40" disabled="true" />
+                    <label control="ew.virtualName" value="Virtual Name:" />
+                    <textbox id="ew.virtualName" size="40" value="ephemeral0" disabled="true" />
                 </row>
                 <row>
                    <separator style="height:1px;width:100%;background-color:#cccccc;margin:5px 0px 5px 0px;"/>
