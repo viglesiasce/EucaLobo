@@ -544,7 +544,7 @@ function fromDynamoDB(ddb)
 
 function isWindows(platform)
 {
-    return platform.match(regExs['win']);
+    return platform == 'windows';
 }
 
 function isMacOS(platform)

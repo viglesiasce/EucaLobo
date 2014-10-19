@@ -961,7 +961,7 @@ var ew_InstancesTreeView = {
     isInstanceReadyToUse : function(instance)
     {
         var rc = false;
-        if (isWindows(instance.platform)) {
+        if (isWindows(instance.platform) && this.core.getActiveEndpoint().type == "AWS") {
             var output = this.core.api.getConsoleOutput(instance.id);
             // Parse the response to determine whether the instance is ready to use
             rc = output.indexOf("Windows is Ready to use") >= 0;
