@@ -1,6 +1,9 @@
 #!/bin/sh
-
-xulrunner=$(which xulrunner)
+if command -v emerge 2>&1 >/dev/null; then
+   xulrunner="firefox"
+else
+   xulrunner=$(which xulrunner)
+fi
 if [ "$xulrunner" = "" ]; then
    echo "Please install xulrunner"
    echo
