@@ -1,6 +1,6 @@
 #!/bin/sh
 if command -v emerge 2>&1 >/dev/null; then
-   xulrunner="firefox"
+   xulrunner="palemoon"
 else
    xulrunner=$(which xulrunner)
 fi
